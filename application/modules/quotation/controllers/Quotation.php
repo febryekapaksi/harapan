@@ -325,7 +325,7 @@ class Quotation extends Admin_Controller
 				if ($get_penawaran->req_app1 !== null || $get_penawaran->req_app2 !== null || $get_penawaran->req_app3 !== null) {
 
 					$get_ttl_detail = $this->db->query("SELECT SUM(a.harga_satuan * a.qty) AS ttl_harga, SUM(a.total_harga) AS ttl_harga_after_disc FROM tr_penawaran_detail a WHERE a.no_penawaran = '" . $no_surat . "'")->row();
-					
+
 					$get_ttl_other_cost = $this->db->select('SUM(a.total_nilai) AS ttl_other_cost')->get_where('tr_penawaran_other_cost a', ['a.id_penawaran' => $no_surat])->row();
 					$get_ttl_other_item = $this->db->select('SUM(a.total) AS ttl_other_item')->get_where('tr_penawaran_other_item a', ['a.id_penawaran' => $no_surat])->row();
 
@@ -544,7 +544,7 @@ class Quotation extends Admin_Controller
 				} else {
 
 					$get_ttl_detail = $this->db->query("SELECT SUM(a.harga_satuan * a.qty) AS ttl_harga, SUM(a.total_harga) AS ttl_harga_after_disc FROM tr_penawaran_detail a WHERE a.no_penawaran = '" . $no_surat . "'")->row();
-					
+
 					$get_ttl_other_cost = $this->db->select('SUM(a.total_nilai) AS ttl_other_cost')->get_where('tr_penawaran_other_cost a', ['a.id_penawaran' => $no_surat])->row();
 					$get_ttl_other_item = $this->db->select('SUM(a.total) AS ttl_other_item')->get_where('tr_penawaran_other_item a', ['a.id_penawaran' => $no_surat])->row();
 
@@ -1572,9 +1572,9 @@ class Quotation extends Admin_Controller
 
 		$harga_produk = $get_ukuran_jadi->price_unit;
 		if ($curr == 'USD') {
-			if($get_ukuran_jadi->price_unit <= 0 || $get_data->kurs <= 0) {
+			if ($get_ukuran_jadi->price_unit <= 0 || $get_data->kurs <= 0) {
 				$harga_produk = 0;
-			}else{
+			} else {
 				$harga_produk = ($get_ukuran_jadi->price_unit / $get_data->kurs);
 			}
 		}
@@ -2093,15 +2093,31 @@ class Quotation extends Admin_Controller
 	{
 		$id_customer = $this->input->post('id_customer');
 
-		$get_data_pic = $this->db->query('SELECT a.nm_pic, a.id_pic, a.email_pic FROM customer_pic a JOIN customer b ON b.id_pic = a.id_pic WHERE b.id_customer = "' . $id_customer . '"')->row();
+		// Ambil semua PIC yang sesuai dengan id_customer
+		$get_data_pic = $this->db->query('SELECT a.name_pic, a.id_pic, a.email_pic FROM child_customer_pic a WHERE a.id_customer = "' . $id_customer . '"')->result();
 
-		$list_pic = '<option value="' . $get_data_pic->id_pic . '">' . $get_data_pic->nm_pic . '</option>';
+		// Pastikan list kosong jika tidak ada data
+		$list_pic = '<option value="">-- Choose Customer PIC --</option>';
+		$email_list = [];
+		$email_pic = '';
+
+		foreach ($get_data_pic as $pic) {
+			$list_pic .= '<option value="' . $pic->id_pic . '">' . $pic->name_pic . '</option>';
+			$email_list[$pic->id_pic] = $pic->email_pic;
+		}
+
+		// Ambil email dari PIC pertama jika ada
+		if (!empty($get_data_pic)) {
+			$email_pic = $get_data_pic[0]->email_pic;
+		}
 
 		echo json_encode([
 			'list_pic' => $list_pic,
-			'email_pic' => $get_data_pic->email_pic
+			'email_pic' => $email_pic,
+			'email_list' => $email_list // Kirim semua email PIC berdasarkan id_pic
 		]);
 	}
+
 
 	public function createunlocated()
 	{

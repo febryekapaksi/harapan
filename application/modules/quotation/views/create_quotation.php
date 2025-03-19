@@ -54,7 +54,7 @@
                                                     <select id="id_customer" name="id_customer" class="form-control select2 get_data_customer" required>
                                                         <option value="">--Pilih--</option>
                                                         <?php foreach ($results['customers'] as $customers) { ?>
-                                                            <option value="<?= $customers->id_customer ?>" <?= (isset($results['data_penawaran']) && $customers->id_customer == $results['data_penawaran']->id_customer) ? 'selected' : null ?>><?= ucfirst($customers->nm_customer) ?></option>
+                                                            <option value="<?= $customers->id_customer ?>" <?= (isset($results['data_penawaran']) && $customers->id_customer == $results['data_penawaran']->id_customer) ? 'selected' : null ?>><?= ucfirst($customers->name_customer) ?></option>
                                                         <?php } ?>
                                                     </select>
                                                 </div>
@@ -92,7 +92,7 @@
                                                             if (isset($results['data_penawaran']) && $results['data_penawaran']->pic_customer == $pic->id_pic) {
                                                                 $selected = 'selected';
                                                             }
-                                                            echo '<option value="' . $pic->id_pic . '" ' . $selected . '>' . ucfirst($pic->nm_pic) . '</option>';
+                                                            echo '<option value="' . $pic->id_pic . '" ' . $selected . '>' . ucfirst($pic->name_pic) . '</option>';
                                                         }
                                                         ?>
                                                     </select>
@@ -1998,8 +1998,21 @@
                         success: function(result) {
                             $('#pic_customer').html(result.list_pic);
                             $('#email_customer').val(result.email_pic);
+
+                            $('#pic_customer').data('emailList', result.email_list);
                         }
                     });
+                });
+
+                $(document).on('change', '#pic_customer', function() {
+                    var selectedPic = $(this).val();
+                    var emailList = $(this).data('emailList');
+
+                    if (emailList && emailList[selectedPic]) {
+                        $('#email_customer').val(emailList[selectedPic]);
+                    } else {
+                        $('#email_customer').val('');
+                    }
                 });
 
                 $(document).on('click', '.tambah_other_cost', function() {

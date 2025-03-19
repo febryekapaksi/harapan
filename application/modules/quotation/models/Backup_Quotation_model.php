@@ -11,9 +11,9 @@ class Quotation_model extends BF_Model
 	{
 		$session = $this->session->userdata('app_session');
 
-		$Cust = $this->db->query("SELECT a.* FROM master_customers a")->result();
+		$Cust = $this->db->query("SELECT a.* FROM customer a")->result();
 		$User = $this->db->query("SELECT a.* FROM users a")->result();
-		$pic_cust = $this->db->query("SELECT a.* FROM child_customer_pic a WHERE a.name_pic <> ''")->result();
+		$pic_cust = $this->db->query("SELECT a.* FROM customer_pic a WHERE a.nm_pic <> ''")->result();
 
 		$get_penawaran_detail = $this->db->get_where('tr_penawaran_detail', ['no_penawaran' => $session['id_user']])->result();
 
@@ -24,7 +24,7 @@ class Quotation_model extends BF_Model
 			$get_penawaran_detail = $this->db->get_where('tr_penawaran_detail', ['no_penawaran' => $no_penawaran])->result();
 
 			$get_other_cost = $this->db->get_where('tr_penawaran_other_cost', ['id_penawaran' => $no_penawaran])->result();
-
+			
 			$get_other_item = $this->db->query("
 			SELECT
 				a.code_lv4 as id_product,
@@ -48,7 +48,7 @@ class Quotation_model extends BF_Model
 				a.deleted_by IS NULL
 		")->result();
 
-			$get_list_item_others = $this->db->get_where('tr_penawaran_other_item', ['id_penawaran' => $no_penawaran])->result();
+		$get_list_item_others = $this->db->get_where('tr_penawaran_other_item', ['id_penawaran' => $no_penawaran])->result();
 
 			$this->template->set('results', [
 				'customers' => $Cust,
@@ -80,9 +80,9 @@ class Quotation_model extends BF_Model
 	{
 		$session = $this->session->userdata('app_session');
 
-		$Cust = $this->db->query("SELECT a.* FROM master_customers a WHERE a.deleted = '0'")->result();
+		$Cust = $this->db->query("SELECT a.* FROM customer a")->result();
 		$User = $this->db->query("SELECT a.* FROM users a")->result();
-		$pic_cust = $this->db->query("SELECT a.* FROM child_customer_pic a WHERE a.name_pic <> ''")->result();
+		$pic_cust = $this->db->query("SELECT a.* FROM customer_pic a WHERE a.nm_pic <> ''")->result();
 
 		$get_penawaran_detail = $this->db->get_where('tr_penawaran_detail', ['no_penawaran' => $session['id_user'], 'curr' => $curr])->result();
 
@@ -134,9 +134,9 @@ class Quotation_model extends BF_Model
 	{
 		$session = $this->session->userdata('app_session');
 
-		$Cust = $this->db->query("SELECT a.* FROM master_customers a")->result();
+		$Cust = $this->db->query("SELECT a.* FROM customer a")->result();
 		$User = $this->db->query("SELECT a.* FROM users a")->result();
-		$pic_cust = $this->db->query("SELECT a.* FROM child_customer_pic a WHERE a.name_pic <> ''")->result();
+		$pic_cust = $this->db->query("SELECT a.* FROM customer_pic a WHERE a.nm_pic <> ''")->result();
 
 		$get_penawaran_detail = $this->db->get_where('tr_penawaran_detail', ['no_penawaran' => $session['id_user']])->result();
 
@@ -168,9 +168,9 @@ class Quotation_model extends BF_Model
 	{
 		$session = $this->session->userdata('app_session');
 
-		$Cust = $this->db->query("SELECT a.* FROM master_customers a")->result();
+		$Cust = $this->db->query("SELECT a.* FROM customer a")->result();
 		$User = $this->db->query("SELECT a.* FROM users a")->result();
-		$pic_cust = $this->db->query("SELECT a.* FROM child_customer_pic a WHERE a.name_pic <> ''")->result();
+		$pic_cust = $this->db->query("SELECT a.* FROM customer_pic a WHERE a.nm_pic <> ''")->result();
 
 		$get_penawaran_detail = $this->db->get_where('tr_penawaran_detail', ['no_penawaran' => $session['id_user']])->result();
 		$get_top = $this->db->get_where('list_help', ['group_by' => 'top invoice'])->result();
@@ -180,7 +180,7 @@ class Quotation_model extends BF_Model
 			$get_penawaran_detail = $this->db->get_where('tr_penawaran_detail', ['no_penawaran' => $no_penawaran])->result();
 
 			$get_other_cost = $this->db->get_where('tr_penawaran_other_cost', ['id_penawaran' => $no_penawaran])->result();
-
+			
 			$get_other_item = $this->db->query("
 			SELECT
 				a.code_lv4 as id_product,
@@ -204,7 +204,7 @@ class Quotation_model extends BF_Model
 				a.deleted_by IS NULL
 		")->result();
 
-			$get_list_item_others = $this->db->get_where('tr_penawaran_other_item', ['id_penawaran' => $no_penawaran])->result();
+		$get_list_item_others = $this->db->get_where('tr_penawaran_other_item', ['id_penawaran' => $no_penawaran])->result();
 
 			$this->template->set('results', [
 				'customers' => $Cust,
@@ -554,18 +554,8 @@ class Quotation_model extends BF_Model
 	function generate_nopn($tgl)
 	{
 		$arr_tgl = array(
-			1 => 'A',
-			2 => 'B',
-			3 => 'C',
-			4 => 'D',
-			5 => 'E',
-			6 => 'F',
-			7 => 'G',
-			8 => 'H',
-			9 => 'I',
-			10 => 'J',
-			11 => 'K',
-			12 => 'L'
+			1 => 'A', 2 => 'B', 3 => 'C', 4 => 'D', 5 => 'E', 6 => 'F',
+			7 => 'G', 8 => 'H', 9 => 'I', 10 => 'J', 11 => 'K', 12 => 'L'
 		);
 		$bln_now = date('m', strtotime($tgl));
 		$kode_bln = '';
@@ -663,18 +653,8 @@ class Quotation_model extends BF_Model
 	function generate_nopn_np($tgl)
 	{
 		$arr_tgl = array(
-			1 => 'A',
-			2 => 'B',
-			3 => 'C',
-			4 => 'D',
-			5 => 'E',
-			6 => 'F',
-			7 => 'G',
-			8 => 'H',
-			9 => 'I',
-			10 => 'J',
-			11 => 'K',
-			12 => 'L'
+			1 => 'A', 2 => 'B', 3 => 'C', 4 => 'D', 5 => 'E', 6 => 'F',
+			7 => 'G', 8 => 'H', 9 => 'I', 10 => 'J', 11 => 'K', 12 => 'L'
 		);
 		$bln_now = date('m', strtotime($tgl));
 		$kode_bln = '';
@@ -783,7 +763,7 @@ class Quotation_model extends BF_Model
 					)
 		";
 
-
+		
 		// echo $sql; exit;
 
 		$data['totalData'] = $this->db->query($sql)->num_rows();
@@ -834,13 +814,13 @@ class Quotation_model extends BF_Model
 				$nomor = ($total_data - $start_dari) - $urut2;
 			}
 
-			if (!isset($row['price_unit']) || $row['price_unit'] <= 0) {
+			if(!isset($row['price_unit']) || $row['price_unit'] <= 0){
 				$idr_price = $row['price_list_idr'];
 				$usd_price = $row['price_list'];
-			} else {
+			}else{
 				$idr_price = $row['price_unit'];
 				$usd_price = 0;
-				if ($row['kurs'] > 0) {
+				if($row['kurs'] > 0) {
 					$usd_price = ($row['price_unit'] / $row['kurs']);
 				}
 			}
@@ -849,7 +829,7 @@ class Quotation_model extends BF_Model
 			$nestedData[]	= "<td align='center'>" . $nomor . "</td>";
 			$nestedData[]	= "<td align='left'>" . strtoupper(strtolower($row['product_code'])) . "</td>";
 			$nestedData[]	= "<td align='left'>" . strtoupper(strtolower($row['nama_level4'])) . "</td>";
-			$nestedData[]	= "<td align='left' style='min-width: 15% !important;'>" . number_format($row['width'], 2) . " x " . number_format($row['length'], 2) . "</td>";
+			$nestedData[]	= "<td align='left' style='min-width: 15% !important;'>" . number_format($row['width'], 2) . " x ".number_format($row['length'], 2)."</td>";
 			$nestedData[]	= "<td align='left'>" . strtoupper(strtolower($row['variant_product'])) . "</td>";
 			$nestedData[]	= "<td align='left'>" . strtoupper(strtolower($row['color'])) . "</td>";
 			$nestedData[]	= "<td align='left'>" . strtoupper(strtolower($row['surface'])) . "</td>";
@@ -876,7 +856,7 @@ class Quotation_model extends BF_Model
 			// $nestedData[]	= "<div align='left'><span class='badge bg-".$warna."'>".$status."</span></div>";
 
 
-			$view	= '<button type="button" class="btn btn-sm btn-success select_product_price_' . $row['id'] . '_' . $row['id_ukuran_jadi'] . '" onclick="add_product_price(' . $row['id'] . ', ' . $row['id_ukuran_jadi'] . ')"><i class="fa fa-plus"></i>Select</button>';
+			$view	= '<button type="button" class="btn btn-sm btn-success select_product_price_' . $row['id'] . '_'.$row['id_ukuran_jadi'].'" onclick="add_product_price(' . $row['id'] . ', ' . $row['id_ukuran_jadi'] . ')"><i class="fa fa-plus"></i>Select</button>';
 			$edit	= "";
 
 			// $view	= "<a href='" . site_url($this->uri->segment(1)) . '/detail_costing/' . $row['no_bom'] . "' class='btn btn-sm btn-warning' title='Detail' data-role='qtip'><i class='fa fa-eye'></i></a>";
