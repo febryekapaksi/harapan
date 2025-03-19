@@ -13,7 +13,7 @@
                                 <div class="row">
                                     <div class="col-sm-12">
                                         <div class="col-sm-6">
-                                            <div class="form-group row">
+                                            <!-- <div class="form-group row">
                                                 <div class="col-md-4">
                                                     <label for="customer">Quotation By :</label>
                                                 </div>
@@ -23,7 +23,7 @@
                                                         <option value="ORIGA" <?= (isset($results['data_penawaran']) && $results['data_penawaran']->quote_by == 'ORIGA') ? 'selected' : null ?>>ORIGA</option>
                                                     </select>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                             <div class="form-group row">
                                                 <div class="col-md-4">
                                                     <label for="customer">Quotation No :</label>
