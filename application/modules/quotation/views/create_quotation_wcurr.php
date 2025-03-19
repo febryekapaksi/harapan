@@ -119,7 +119,7 @@
                                                 </div>
                                                 <div class='col-md-8'>
 
-                                                    <select name="term_of_payment" id="" class="form-control">
+                                                    <select name="term_of_payment" id="" class="form-control select2">
                                                         <option value="">- Choose TOP -</option>
                                                         <?php
                                                         foreach ($results['list_top'] as $top) {
