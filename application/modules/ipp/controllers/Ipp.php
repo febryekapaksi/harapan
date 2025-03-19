@@ -297,10 +297,14 @@ class Ipp extends Admin_Controller
 				$detail   		= $this->db->get_where('ipp_detail', array('no_ipp' => $no_ipp))->result_array();
 			}
 			$customer   	= $this->db->order_by('name_customer', 'asc')->get_where('master_customers', array('deleted' => 0))->result_array();
-			$deliv_category = $this->db->order_by('urut', 'asc')->get_where('list', array('menu' => 'delivery rate', 'category' => 'category'))->result_array();
-			$top			= $this->db->order_by('urut', 'asc')->get_where('list', array('menu' => 'ipp', 'category' => 'top'))->result_array();
-			$shipping		= $this->db->order_by('urut', 'asc')->get_where('list', array('menu' => 'delivery rate', 'category' => 'method'))->result_array();
-			$packing		= $this->db->order_by('urut', 'asc')->get_where('list', array('menu' => 'ipp', 'category' => 'packing type'))->result_array();
+			// $deliv_category = $this->db->order_by('urut', 'asc')->get_where('list', array('menu' => 'delivery rate', 'category' => 'category'))->result_array();
+			// $top			= $this->db->order_by('urut', 'asc')->get_where('list', array('menu' => 'ipp', 'category' => 'top'))->result_array();
+			// $shipping		= $this->db->order_by('urut', 'asc')->get_where('list', array('menu' => 'delivery rate', 'category' => 'method'))->result_array();
+			// $packing		= $this->db->order_by('urut', 'asc')->get_where('list', array('menu' => 'ipp', 'category' => 'packing type'))->result_array();
+			$deliv_category = $this->db->get_where('list_help', ['group_by' => 'deliv category'])->result_array();
+			$top 			= $this->db->get_where('list_help', ['group_by' => 'top invoice'])->result_array();
+			$shipping 	    = $this->db->get_where('list_help', ['group_by' => 'shiping'])->result_array();
+			$packing 	    = $this->db->get_where('list_help', ['group_by' => 'packing'])->result_array();
 			$country 		= $this->db->order_by('a.name', 'asc')->get('country_all a')->result_array();
 
 			$list_bom_topping = $this->db
