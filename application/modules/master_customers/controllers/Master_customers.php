@@ -1039,7 +1039,7 @@ class Master_customers extends Admin_Controller
 		echo "<select id='id_kota' name='id_kota' class='form-control input-sm select2'>";
 		echo "<option value=''>--Pilih--</option>";
 		foreach ($data as $key => $st) :
-			echo "<option value='$st->id_prov' set_select('id_kota', $st->id_prov, isset($data->id_prov) && $data->id_prov == $st->id_prov)>$st->nama_kota
+			echo "<option value='$st->id_kota' set_select('id_kota', $st->id_prov, isset($data->id_prov) && $data->id_prov == $st->id_prov)>$st->nama_kota
                     </option>";
 		endforeach;
 		echo "</select>";
@@ -1077,5 +1077,93 @@ class Master_customers extends Admin_Controller
 		}
 
 		echo json_encode($status);
+	}
+
+	public function excel_report_all()
+	{
+		set_time_limit(0);
+		ini_set('memory_limit', '1024M');
+
+		$this->load->library("PHPExcel");
+		$objPHPExcel = new PHPExcel();
+
+		// Konfigurasi style header tabel
+		$tableHeader = [
+			'font' => ['bold' => true],
+			'alignment' => ['horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER],
+			'borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THIN]],
+			'fill' => ['type' => PHPExcel_Style_Fill::FILL_SOLID, 'color' => ['rgb' => 'CCCCCC']]
+		];
+
+		// Konfigurasi style body tabel
+		$tableBody = [
+			'borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THIN]],
+			'alignment' => ['vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER]
+		];
+
+		$sheet = $objPHPExcel->getActiveSheet();
+		$sheet->setTitle('Customer Report');
+
+		// Mengambil data dari database
+		$customers = $this->db
+			->select('*')
+			->get_where('master_customers', ['deleted' => 0])
+			->result_array();
+
+		// Menulis judul laporan
+		$sheet->setCellValue('A1', 'Laporan Customer');
+		$sheet->mergeCells('A1:J1');
+		$sheet->getStyle('A1:J1')->applyFromArray($tableHeader);
+
+		// Header kolom
+		$headers = [
+			'A' => 'ID Customer',
+			'B' => 'Nama Customer',
+			'C' => 'Telephone',
+			'D' => 'Fax',
+			'E' => 'Email',
+			'F' => 'NPWP',
+			'G' => 'Alamat NPWP',
+			'H' => 'Nama Bank',
+			'I' => 'No Rekening',
+			'J' => 'Nama Pemilik Rekening'
+		];
+
+		$rowNum = 3;
+		foreach ($headers as $col => $header) {
+			$sheet->setCellValue($col . $rowNum, $header);
+			$sheet->getStyle($col . $rowNum)->applyFromArray($tableHeader);
+			$sheet->getColumnDimension($col)->setAutoSize(true);
+		}
+
+		// Mengisi data customer ke dalam Excel
+		$rowNum = 4;
+		foreach ($customers as $customer) {
+			$sheet->setCellValue("A$rowNum", $customer['id_customer']);
+			$sheet->setCellValue("B$rowNum", $customer['name_customer']);
+			$sheet->setCellValue("C$rowNum", $customer['telephone']);
+			$sheet->setCellValue("D$rowNum", $customer['fax']);
+			$sheet->setCellValue("E$rowNum", $customer['email']);
+			$sheet->setCellValue("F$rowNum", $customer['npwp']);
+			$sheet->setCellValue("G$rowNum", $customer['npwp_address']);
+			$sheet->setCellValue("H$rowNum", $customer['name_bank']);
+			$sheet->setCellValue("I$rowNum", $customer['no_rekening']);
+			$sheet->setCellValue("J$rowNum", $customer['nama_rekening']);
+			$sheet->getStyle("A$rowNum:J$rowNum")->applyFromArray($tableBody);
+			$rowNum++;
+		}
+
+		// Mulai menyimpan file Excel
+		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+		ob_end_clean();
+		header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+		header("Cache-Control: no-store, no-cache, must-revalidate");
+		header("Cache-Control: post-check=0, pre-check=0", false);
+		header("Pragma: no-cache");
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="customer_report.xls"');
+
+		// Unduh file
+		$objWriter->save("php://output");
 	}
 }
