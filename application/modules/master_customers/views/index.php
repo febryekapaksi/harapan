@@ -27,6 +27,7 @@ $ENABLE_DELETE  = has_permission('Master_customers.Delete');
 					<?php if ($ENABLE_VIEW) : ?>
 						<a class="btn btn-success btn-sm add_customer" href="javascript:void(0)" title="Add"><i class="fa fa-plus">&nbsp;</i>Tambah Data</a>
 					<?php endif; ?>
+					<a class="btn btn-warning btn-sm" href="<?= base_url('master_customers/excel_report_all') ?>" target='_blank' title="Download Excel"> <i class="fa fa-file-excel-o">&nbsp;</i>&nbsp;Download Excel</a>
 					<span class="pull-right"></span>
 				</div>
 				<div class="box-body">
