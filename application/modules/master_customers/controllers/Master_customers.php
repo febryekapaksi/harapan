@@ -452,6 +452,9 @@ class Master_customers extends Admin_Controller
 			'latitude'		    	=> $post['latitude'],
 			'activation'		    => $post['activation'],
 			'facility'		   		=> $post['facility'],
+			'chanel_pemasaran'		=> $post['chanel'],
+			'persentase'		   	=> $post['persentase'],
+			'tahun_mulai'		   	=> $post['tahun_mulai'],
 			'name_bank'		    	=> $post['name_bank'],
 			'no_rekening'		    => $post['no_rekening'],
 			'nama_rekening'		    => $post['nama_rekening'],
@@ -509,6 +512,18 @@ class Master_customers extends Admin_Controller
 			$data =  array(
 				'id_customer'				=> $code,
 				'name_category_customer'	=> $d2[id_category_customer],
+			);
+			//Add Data
+			$this->db->insert('child_category_customer', $data);
+		}
+		$numb2 = 0;
+		foreach ($_POST['data3'] as $d3) {
+			$numb2++;
+			$data =  array(
+				'id_customer'				=> $code,
+				'existing_pt'				=> $d3[existing_pt],
+				'existing_pic'				=> $d3[existing_pic],
+				'existing_telp'				=> $d3[existing_telp],
 			);
 			//Add Data
 			$this->db->insert('child_category_customer', $data);
