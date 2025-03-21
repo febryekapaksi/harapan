@@ -117,8 +117,11 @@ $ENABLE_DELETE  = has_permission('Master_customers.Delete');
 													<input type="radio" class="radio-control" id="chanel" name="chanel" value="Project" required onclick="togglePersentaseInput()"> Project
 												</label>
 											</div>
-											<div class="col-md-6">
-												<input type="text" class="form-control input-sm divide" name="persentase" id="persentase" placeholder="%" disabled>
+											<div class="col-6">
+												<div class="input-group">
+													<input type="text" class="form-control input-sm divide" name="persentase" id="persentase" disabled>
+													<span class="input-group-addon"><i class="fa fa-percent"></i></span>
+												</div>
 											</div>
 										</div>
 									</div>
@@ -316,8 +319,9 @@ $ENABLE_DELETE  = has_permission('Master_customers.Delete');
 												echo "<tr id='tr_$loop'>";
 												foreach (['name_pic', 'phone_pic', 'email_pic', 'position_pic'] as $field) {
 													$value = ($field == 'position_pic') ? $row['name'] : '';
+													$readonly = ($field == 'position_pic') ? 'readonly' : '';
 													echo "<td align='left'>";
-													echo "<input type='text' class='form-control input-sm' name='data1[$loop][$field]' id='data1_{$loop}_{$field}' value='$value' required>";
+													echo "<input type='text' class='form-control input-sm' name='data1[$loop][$field]' id='data1_{$loop}_{$field}' value='$value' $readonly required>";
 													echo "</td>";
 												}
 												echo "<td></td>";
@@ -634,7 +638,6 @@ $ENABLE_DELETE  = has_permission('Master_customers.Delete');
 		</form>
 	</div>
 </div>
-
 
 <script src="<?= base_url('assets/js/number-divider.min.js') ?>"></script>
 <script type="text/javascript">
