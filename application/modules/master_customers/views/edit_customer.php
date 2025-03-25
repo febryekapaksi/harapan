@@ -12,675 +12,692 @@ foreach ($results['cus'] as $cus) {
 			<div class="col-sm-12">
 				<div class="input_fields_wrap2">
 					<div class="row">
-
-						<center><label for="customer">
-								<h3>Detail Identitas Customer</h3>
-							</label></center>
-						<div class="col-sm-6">
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="id_supplier">Id Customer</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="id_customer" value='<?= $cus->id_customer ?>' required name="id_customer" readonly placeholder="Id Suplier">
-								</div>
-							</div>
-							<div class="form-group row" hidden>
-								<div class="col-md-6">
-									<label for="id_category_customer">Category Customer</label>
-								</div>
-								<div class="col-md-6">
-									<select id="id_category_customer" name="id_category_customer" class="form-control select" required>
-										<option value="">--Pilih--</option>
-										<?php foreach ($results['category'] as $category) {
-											$select = $cus->id_category_customer == $category->id_category_customer ? 'selected' : '';
-										?>
-											<option value="<?= $category->id_category_customer ?>" <?= $select ?>><?= $category->name_category_customer ?></option>
-										<?php } ?>
-									</select>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Nama Customer</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="name_customer" value='<?= $cus->name_customer ?>' required name="name_customer" placeholder="Nama Customer">
-								</div>
-							</div>
-
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Telephone</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="telephone" value='<?= $cus->telephone ?>' required name="telephone" placeholder="Nomor Telephone">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer"></label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="telephone_2" value='<?= $cus->telephone_2 ?>' name="telephone_2" placeholder="Nomor Telephone">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Fax</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="fax" required name="fax" value='<?= $cus->fax ?>' placeholder="Nomor Fax">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Email</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="email" required name="email" value='<?= $cus->name_customer ?>' placeholder="email@domain.adress">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Tanggal Mulai</label>
-								</div>
-								<div class="col-md-6">
-									<input type="date" class="form-control" id="start_date" required name="start_date" value='<?= $cus->start_date ?>' placeholder="Tanggal Mulai">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="id_category_customer">Marketing</label>
-								</div>
-								<div class="col-md-6">
-									<select id="id_karyawan" name="id_karyawan" class="form-control select" required>
-										<option value="">--pilih--</option>
-										<?php foreach ($results['karyawan'] as $karyawan) {
-											$select = $cus->id_karyawan == $karyawan->id_karyawan ? 'selected' : '';
-										?>
-											<option value="<?= $karyawan->id_karyawan ?>" <?= $select ?>><?= $karyawan->nama_karyawan ?></option>
-										<?php } ?>
-									</select>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="id_category_supplier">Profinsi</label>
-								</div>
-								<div class="col-md-6">
-									<select id="id_prov" name="id_prov" class="form-control select" onchange="get_kota()" required>
-										<option value="">--Pilih--</option>
-										<?php foreach ($results['prof'] as $prof) {
-											$select = $cus->id_prov == $prof->id_prov ? 'selected' : '';
-										?>
-											<option value="<?= $prof->id_prov ?>" <?= $select ?>><?= ucfirst(strtolower($prof->nama)) ?></option>
-										<?php } ?>
-									</select>
-								</div>
-							</div>
-
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="id_category_supplier">Kota</label>
-								</div>
-								<div class="col-md-6">
-									<select id="id_kota" name="id_kota" class="form-control select" required>
-										<option value="">--Pilih--</option>
-										<?php foreach ($results['kota'] as $kota) {
-											$select = $cus->id_kota == $kota->id_kota ? 'selected' : '';
-										?>
-											<option value="<?= $kota->id_kota ?>" <?= $select ?>><?= ucfirst(strtolower($kota->nama_kota)) ?></option>
-										<?php } ?>
-									</select>
-								</div>
-							</div>
-
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Alamat</label>
-								</div>
-								<div class="col-md-6">
-									<textarea type="text" name="address_office" id="address_office" class="form-control input-sm required w70" placeholder="Alamat"><?= $cus->address_office ?></textarea>
-								</div>
-							</div>
-
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Kode Pos</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="zip_code" value='<?= $cus->zip_code ?>' required name="zip_code" placeholder="Kode Pos">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Lontitude</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="longitude" value='<?= $cus->longitude ?>' required name="longitude" placeholder="Longtitude">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Latitude</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="latitude" value='<?= $cus->latitude ?>' required name="latitude" placeholder="Latitude">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Status</label>
-								</div>
-								<?php if ($cus->activation == 'aktif') { ?>
-									<div class="col-md-6">
-										<label>
-											<input type="radio" class="radio-control" id="activation" name="activation" checked value="aktif" required> Aktif
-										</label>
-										<label>
-											<input type="radio" class="radio-control" id="activation" name="activation" value="inaktif" required> Inaktif
-										</label>
-									</div>
-								<?php } else { ?>
-									<div class="col-md-6">
-										<label>
-											<input type="radio" class="radio-control" id="activation" name="activation" value="aktif" required> Aktif
-										</label>
-										<label>
-											<input type="radio" class="radio-control" id="activation" name="activation" checked value="inaktif" required> Inaktif
-										</label>
-									</div>
-								<?php } ?>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Facility</label>
-								</div>
-								<?php if ($cus->facility == 'DPIL') { ?>
-									<div class="col-md-6">
-										<label>
-											<input type="radio" class="radio-control" id="facility" name="facility" checked value="DPIL" required> DPIL
-										</label>
-										<label>
-											<input type="radio" class="radio-control" id="facility" name="facility" value="Kawasan Berikat" required> Kawasan Berikat
-										</label>
-									</div>
-								<?php } else { ?>
-									<div class="col-md-6">
-										<label>
-											<input type="radio" class="radio-control" id="facility" name="facility" value="DPIL" required> DPIL
-										</label>
-										<label>
-											<input type="radio" class="radio-control" id="facility" name="facility" checked value="Kawasan Berikat" required> Kawasan Berikat
-										</label>
-									</div>
-								<?php }; ?>
-							</div>
-						</div>
-						<br>
 						<div class="col-sm-12">
-							<div class="col-md-12">
-								<center><label for="customer">
-										<h3>Category Customer</h3>
-									</label></center>
+							<center>
+								<h3>DETAIL IDENTITAS CUSTOMER</h3>
+							</center>
+							<div class="col-sm-6">
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="id_supplier">Id Customer</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="id_customer" value='<?= $cus->id_customer ?>' required name="id_customer" readonly placeholder="Id Suplier">
+									</div>
+								</div>
+
+								<div class="form-group row" hidden>
+									<div class="col-md-6">
+										<label for="id_category_customer">Category Customer</label>
+									</div>
+									<div class="col-md-6">
+										<select id="id_category_customer" name="id_category_customer" class="form-control select" required>
+											<option value="">--Pilih--</option>
+											<?php foreach ($results['category'] as $category) {
+												$select = $cus->id_category_customer == $category->id_category_customer ? 'selected' : '';
+											?>
+												<option value="<?= $category->id_category_customer ?>" <?= $select ?>><?= $category->name_category_customer ?></option>
+											<?php } ?>
+										</select>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Nama Customer</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="name_customer" value='<?= $cus->name_customer ?>' required name="name_customer" placeholder="Nama Customer">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Telephone</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="telephone" value='<?= $cus->telephone ?>' required name="telephone" placeholder="Nomor Telephone">
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer"></label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="telephone_2" value='<?= $cus->telephone_2 ?>' name="telephone_2" placeholder="Nomor Telephone">
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Fax</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="fax" required name="fax" value='<?= $cus->fax ?>' placeholder="Nomor Fax">
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Email</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="email" required name="email" value='<?= $cus->name_customer ?>' placeholder="email@domain.adress">
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Tanggal Mulai</label>
+									</div>
+									<div class="col-md-6">
+										<input type="date" class="form-control" id="start_date" required name="start_date" value='<?= $cus->start_date ?>' placeholder="Tanggal Mulai">
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="id_category_customer">Marketing</label>
+									</div>
+									<div class="col-md-6">
+										<select id="id_karyawan" name="id_karyawan" class="form-control select" required>
+											<option value="">--pilih--</option>
+											<?php foreach ($results['karyawan'] as $karyawan) {
+												$select = $cus->id_karyawan == $karyawan->id_karyawan ? 'selected' : '';
+											?>
+												<option value="<?= $karyawan->id_karyawan ?>" <?= $select ?>><?= $karyawan->nama_karyawan ?></option>
+											<?php } ?>
+										</select>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Chanel Pemasaran</label>
+									</div>
+									<div class="col-md-6">
+										<div class="row">
+											<div class="col-md-12">
+												<label>
+													<input type="radio" class="radio-control" id="chanel" name="chanel" value="Toko dan User" <?= (($cus->chanel_pemasaran == 'Toko dan User') ? 'checked' : '') ?> required onclick="togglePersentaseInput()"> Toko dan User
+												</label>
+											</div>
+										</div>
+										<div class="row">
+											<div class="col-md-6">
+												<label>
+													<input type="radio" class="radio-control" id="chanel" name="chanel" value="Project" <?= (($cus->chanel_pemasaran == 'Project') ? 'checked' : '') ?> required onclick="togglePersentaseInput()"> Project
+												</label>
+											</div>
+											<div class="col-6">
+												<div class="input-group">
+													<input type="text" class="form-control input-sm divide" name="persentase" id="persentase" value="<?= (($cus->chanel_pemasaran == 'Project') ? $cus->persentase : '') ?>" disabled>
+													<span class="input-group-addon"><i class="fa fa-percent"></i></span>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
 							</div>
-						</div>
-						<div class="col-sm-12">
-							<?php
-							echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-category'));
-							?>
-						</div>
-						<div class="form-group row">
-							<div class="col-md-12">
+							<div class="col-sm-6">
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="id_category_supplier">Provinsi</label>
+									</div>
+									<div class="col-md-6">
+										<select id="id_prov" name="id_prov" class="form-control select" onchange="get_kota()" required>
+											<option value="">--Pilih--</option>
+											<?php foreach ($results['prof'] as $prof) {
+												$select = $cus->id_prov == $prof->id_prov ? 'selected' : '';
+											?>
+												<option value="<?= $prof->id_prov ?>" <?= $select ?>><?= ucfirst(strtolower($prof->nama)) ?></option>
+											<?php } ?>
+										</select>
+									</div>
+								</div>
 
-								<table class='table table-bordered table-striped'>
-									<thead>
-										<tr class='bg-blue'>
-											<td align='center'><b>Category Customer</b></td>
-											<td align='center'><b>Aksi</b></td>
-										</tr>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="id_category_supplier">Kota</label>
+									</div>
+									<div class="col-md-6">
+										<select id="id_kota" name="id_kota" class="form-control select" required>
+											<option value="">--Pilih--</option>
+											<?php foreach ($results['kota'] as $kota) {
+												$select = $cus->id_kota == $kota->id_kota ? 'selected' : '';
+											?>
+												<option value="<?= $kota->id_kota ?>" <?= $select ?>><?= ucfirst(strtolower($kota->nama_kota)) ?></option>
+											<?php } ?>
+										</select>
+									</div>
+								</div>
 
-									</thead>
-									<tbody id='list_category'>
-										<?php
-										$loop = 0;
-										foreach ($results['cate'] as $cate) {
-											$loop++;
-											echo "<tr id='tr_" . $loop . "'>";
-											echo "<td align='left'>
-			<select id='data2_" . $loop . "_id_category_customer' name='data2[" . $loop . "][id_category_customer]' class='form-control select' required>
-				<option value='$cate->name_category_customer'>$cate->name_category_customer</option>";
-											foreach ($results['category'] as $category) {
-												echo "<option value='$category->name_category_customer'>$category->name_category_customer</option>";
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Alamat</label>
+									</div>
+									<div class="col-md-6">
+										<textarea type="text" name="address_office" id="address_office" class="form-control input-sm required w70" placeholder="Alamat" readonly><?= $cus->address_office ?></textarea>
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Kode Pos</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="zip_code" value='<?= $cus->zip_code ?>' required name="zip_code" placeholder="Kode Pos" readonly>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Longtitude</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="longitude" value='<?= $cus->longitude ?>' required name="longitude" placeholder="Longtitude" readonly>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Latitude</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="latitude" value='<?= $cus->latitude ?>' required name="latitude" placeholder="Latitude" readonly>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Status</label>
+									</div>
+									<div class="col-md-6">
+										<label>
+											<input type="radio" class="radio-control" id="activation" name="activation" value="aktif" <?= (($cus->activation == 'aktif') ? 'checked' : '') ?> required> Aktif
+										</label>
+										<label>
+											<input type="radio" class="radio-control" id="activation" name="activation" value="inaktif" <?= (($cus->activition == 'inaktif') ? 'checked' : '') ?> required> Non aktif
+										</label>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Facility</label>
+									</div>
+									<div class="col-md-6">
+										<label>
+											<input type="radio" class="radio-control" id="facility" name="facility" value="DPIL" <?= (($cus->facility == 'DPIL') ? 'checked' : '') ?> required> DPIL
+										</label>
+										<label>
+											<input type="radio" class="radio-control" id="facility" name="facility" value="Kawasan Berikat" <?= (($cus->facility == 'Kawasan Berikat') ? 'checked' : '') ?> required> Kawasan Berikat
+										</label>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Mulai Usaha Sejak</label>
+									</div>
+									<div class="col-md-6">
+										<select name="tahun_mulai" class="form-control select">
+											<option value="">-- Pilih Tahun --</option>
+											<?php
+											$currentYear = date("Y");
+											for ($year = $currentYear; $year >= $currentYear - 50; $year--) {
+												echo "<option value='$year' " . (($year == $cus->tahun_mulai) ? 'selected' : '') . ">$year</option>";
 											}
-											echo "
-			</select>
-			</td>";
-											echo "<td align='center'><button type='button' class='btn btn-sm btn-danger' title='Hapus Data' data-role='qtip' onClick='return DelItem2(" . $loop . ");'><i class='fa fa-trash-o'></i></button></td></tr>";
-											echo "</tr>";
-										} ?>
-									</tbody>
-								</table>
+											?>
+										</select>
+									</div>
+								</div>
 							</div>
 						</div>
+
 						<div class="col-sm-12">
-							<div class="col-md-12">
-								<center><label for="customer">
-										<h3>PIC</h3>
-									</label></center>
+							<center>
+								<h3>SUPLIER EXISTING CUSTOMER</h3>
+							</center>
+							<div class="form-group row">
+								<div class="col-md-12">
+									<table class='table table-bordered table-striped'>
+										<thead>
+											<tr class='bg-blue'>
+												<td align='center'><b>Nama PT</b></td>
+												<td align='center'><b>PIC</b></td>
+												<td align='center'><b>No Telepon</b></td>
+												<td style="width: 50px;" align='center'>
+													<?php
+													echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-existing'));
+													?>
+												</td>
+											</tr>
+										</thead>
+										<tbody id='list_existing'>
+											<?php
+											$loop = 0;
+											foreach ($results['exis'] as $exis) {
+												$loop++;
+												echo "<tr id='tr_existing_$loop'>";
+												echo "<td align='left'><input type='text' class='form-control input-sm' name='existing[" . $loop . "][existing_pt]' value='$exis->existing_pt' id='existing_" . $loop . "_pt' required></td>";
+												echo "<td align='left'><input type='text' class='form-control input-sm' name='existing[" . $loop . "][existing_pic]' value='$exis->existing_pic' id='existing_" . $loop . "_pic' required></td>";
+												echo "<td align='left'><input type='text' class='form-control input-sm' name='existing[" . $loop . "][existing_telp]' value='$exis->existing_telp' id='existing_" . $loop . "_telp' required></td>";
+												echo "<td align='center'><button type='button' class='btn btn-sm btn-danger' title='Hapus Data' data-role='qtip' onClick='return DelExisting(" . $loop . ");'><i class='fa fa-trash-o'></i></button></td>";
+												echo "</tr>";
+											}
+											?>
+										</tbody>
+									</table>
+								</div>
 							</div>
 						</div>
+
 						<div class="col-sm-12">
-							<?php
-							echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-payment'));
-							?>
-						</div>
-						<div class="form-group row">
-							<div class="col-md-12">
+							<center>
+								<h3>CATEGORY CUSTOMER</h3>
+							</center>
+							<div class="form-group row">
+								<div class="col-md-12">
 
-								<table class='table table-bordered table-striped'>
-									<thead>
-										<tr class='bg-blue'>
-											<td align='center'><b>Nama PIC</b></td>
-											<td align='center'><b>Nomor Telp</b></td>
-											<td align='center'><b>Email</b></td>
-											<td align='center'><b>Jabatan</b></td>
-											<td align='center'><b>Aksi</b></td>
-										</tr>
+									<table class='table table-bordered table-striped'>
+										<thead>
+											<tr class='bg-blue'>
+												<td align='center'><b>Category Customer</b></td>
+												<td style="width: 50px;" align='center'>
+													<?php
+													echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-category'));
+													?>
+												</td>
+											</tr>
 
-									</thead>
-									<tbody id='list_payment'>
-										<?php
-										$loop = 0;
-										foreach ($results['pic'] as $pic) {
-											$loop++;
-											echo "<tr id='tr_" . $loop . "'>";
-											echo "<td align='left'><input type='text' class='form-control input-sm' name='data1[" . $loop . "][name_pic]' value='$pic->name_pic' id='data1_" . $loop . "_name_pic' label=/FALSE' div='FALSE'></td>";
-											echo "<td align='left'><input type='text' class='form-control input-sm' name='data1[" . $loop . "][phone_pic]' value='$pic->phone_pic'  id='data1_" . $loop . "_phone_pic' label='FALSE' div='FALSE'></td>";
-											echo "<td align='left'><input type='text' class='form-control input-sm' name='data1[" . $loop . "][email_pic]' value='$pic->email_pic'  id='data1_" . $loop . "_email_pic' label='FALSE' div='FALSE'></td>";
-											echo "<td align='left'><input type='text' class='form-control input-sm' name='data1[" . $loop . "][position_pic]' value='$pic->position_pic' d='data1_" . $loop . "_position_pic' label='FALSE' div='FALSE'></td>";
-											echo "<td align='center'><button type='button' class='btn btn-sm btn-danger' title='Hapus Data' data-role='qtip' onClick='return DelItem(" . $loop . ");'><i class='fa fa-trash-o'></i></button></td></tr>";
-											echo "</tr>";
-										} ?>
-									</tbody>
-								</table>
+										</thead>
+										<tbody id='list_category'>
+											<?php
+											$loop = 0;
+											foreach ($results['cate'] as $cate) {
+												$loop++;
+												echo "<tr id='tr_" . $loop . "'>";
+												echo "<td align='left'>";
+												echo "<select id='data2_" . $loop . "_id_category_customer' name='data2[" . $loop . "][id_category_customer]' class='form-control select' required>";
+												echo "<option value='$cate->name_category_customer'>$cate->name_category_customer</option>";
+												foreach ($results['category'] as $category) {
+													echo "<option value='$category->name_category_customer'>$category->name_category_customer</option>";
+												}
+												echo "</select>";
+												echo "</td>";
+												echo "<td align='center'><button type='button' class='btn btn-sm btn-danger' title='Hapus Data' data-role='qtip' onClick='return DelItem2(" . $loop . ");'><i class='fa fa-trash-o'></i></button></td></tr>";
+												echo "</tr>";
+											} ?>
+										</tbody>
+									</table>
+								</div>
 							</div>
 						</div>
 
+						<div class="col-sm-12">
+							<center>
+								<h3>PIC</h3>
+							</center>
+							<div class="form-group row">
+								<div class="col-md-12">
+									<table class='table table-bordered table-striped'>
+										<thead>
+											<tr class='bg-blue'>
+												<td align='center'><b>Nama PIC</b></td>
+												<td align='center'><b>Nomor Telp</b></td>
+												<td align='center'><b>Email</b></td>
+												<td align='center'><b>Jabatan</b></td>
+												<td style="width: 50px;" align='center'>
+													<?php
+													echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-payment'));
+													?>
+												</td>
+											</tr>
 
-						<center><label for="customer">
+										</thead>
+										<tbody id='list_payment'>
+											<?php
+											$defaultRows = [
+												['name' => 'PIC'],
+												['name' => 'Owner'],
+												['name' => 'KA Toko']
+											];
+
+											// Cek apakah ada data yang akan diedit
+											$loop = 0;
+											if (!empty($results['pic'])) {
+												// Mode Edit (menggunakan data dari database)
+												foreach ($results['pic'] as $pic) {
+													$loop++;
+													echo "<tr id='tr_" . $loop . "'>";
+													foreach (['name_pic', 'phone_pic', 'email_pic', 'position_pic'] as $field) {
+														$value = $pic->$field;
+														$readonly = ($field == 'position_pic') ? 'readonly' : '';
+														echo "<td align='left'>";
+														echo "<input type='text' class='form-control input-sm' name='data1[" . $loop . "][$field]' value='$value' id='data1_" . $loop . "_$field' $readonly required>";
+														echo "</td>";
+													}
+													echo "<td align='center'><button type='button' class='btn btn-sm btn-danger' title='Hapus Data' data-role='qtip' onClick='return DelItem(" . $loop . ");'><i class='fa fa-trash-o'></i></button></td>";
+													echo "</tr>";
+												}
+											} else {
+												// Mode Tambah (menggunakan data default)
+												foreach ($defaultRows as $index => $row) {
+													$loop = $index + 1;
+													echo "<tr id='tr_$loop'>";
+													foreach (['name_pic', 'phone_pic', 'email_pic', 'position_pic'] as $field) {
+														$value = ($field == 'position_pic') ? $row['name'] : '';
+														$readonly = ($field == 'position_pic') ? 'readonly' : '';
+														echo "<td align='left'>";
+														echo "<input type='text' class='form-control input-sm' name='data1[$loop][$field]' id='data1_{$loop}_{$field}' value='$value' $readonly required>";
+														echo "</td>";
+													}
+													echo "<td align='center'><button type='button' class='btn btn-sm btn-danger' title='Hapus Data' data-role='qtip' onClick='return DelItem(" . $loop . ");'><i class='fa fa-trash-o'></i></button></td>";
+													echo "</tr>";
+												}
+											}
+											?>
+										</tbody>
+
+									</table>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-sm-12">
+							<center>
 								<h3>INFORMASI PEMBAYARAN</h3>
-							</label></center>
-
-						<div class="col-sm-6">
-							<div class="col-md-12">
-								<label for="id_supplier">
-									<h4>Informasi Bank</h4>
-								</label>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="id_supplier">Nama Bank</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="name_bank" value='<?= $cus->name_bank ?>' required name="name_bank" placeholder="Nama Bank">
-								</div>
-							</div>
-
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="id_category_supplier">Nomor Akun</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="no_rekening" value='<?= $cus->no_rekening ?>' required name="no_rekening" placeholder="No Rekening">
-								</div>
-							</div>
-
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Nama Akun</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="nama_rekening" value='<?= $cus->nama_rekening ?>' required name="nama_rekening" placeholder="Nama Rekening">
-								</div>
-							</div>
-
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Alamat Bank</label>
-								</div>
-								<div class="col-md-6">
-									<textarea type="text" name="alamat_bank" id="alamat_bank" class="form-control input-sm required w70" placeholder="Alamat_Bank"><?= $cus->alamat_bank ?></textarea>
-								</div>
-							</div>
-
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Swift Code</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="swift_code" value='<?= $cus->swift_code ?>' required name="swift_code" placeholder="Swift Code">
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="col-md-12">
-								<label for="id_supplier">
-									<h4>Informasi Pajak</h4>
-								</label>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Nomor NPWP/PKP</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="npwp" value='<?= $cus->npwp ?>' required name="npwp" placeholder="Nomor NPWP">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Nama NPWP/PKP</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="npwp_name" value='<?= $cus->npwp_name ?>' required name="npwp_name" placeholder="Nama NPWP">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Alamat NPWP</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="npwp_address" value='<?= $cus->npwp_address ?>' required name="npwp_address" placeholder="Alamat NPWP">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="id_category_customer">Term Of Payment</label>
-								</div>
-								<div class="col-md-6">
-									<select id="payment_term" name="payment_term" class="form-control select" required>
-										<option value="<?= $cus->payment_term ?>"><?= $cus->payment_term ?></option>
-										<option value="Cash Before Delivery">Cash Before Delivery</option>
-										<option value="Cash on Delivery">Cash on Delivery</option>
-										<option value="30 Day">30 Day-</option>
-										<option value="45 Day">45 Day</option>
-										<option value="60 Day">60 Day</option>
-										<option value="DP">DP</option>
-									</select>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Nominal DP</label>
-								</div>
-								<div class="col-md-6">
-									<input type="text" class="form-control" id="nominal_dp" value='<?= $cus->nominal_dp ?>' required name="nominal_dp" placeholder="Alamat NPWP">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="id_category_customer">Sisa Pembayaran</label>
-								</div>
-								<div class="col-md-6">
-									<select id="sisa_pembayaran" name="sisa_pembayaran" class="form-control select" required>
-										<option value="<?= $cus->sisa_pembayaran ?>"><?= $cus->sisa_pembayaran ?></option>
-										<option value="15 After Delifery">15 After Delifery</option>
-										<option value="30 After Delifery">30 After Delifery</option>
-									</select>
-								</div>
-							</div>
-						</div>
-					</div>
-					<center><label for="customer">
-							<h3>INFORMASI INVOICE</h3>
-						</label></center>
-					<div class="col-sm-12">
-						<div class="col-md-3">
-							<label for="customer">Hari Terima</label>
-						</div>
-						<div class="col-md-9">
-							<label>
-								<?php if ($cus->senin == 'Y') { ?>
-									<input type="checkbox" class="radio-control" checked id="senin" name="senin" value="Y" required> Senin
-								<?php } else { ?>
-									<input type="checkbox" class="radio-control" id="senin" name="senin" value="Y" required> Senin
-								<?php }; ?>
-							</label>
-							&nbsp
-							<label>
-								<?php if ($cus->selasa == 'Y') { ?>
-									<input type="checkbox" class="radio-control" checked id="selasa" name="selasa" value="Y" required> Selasa
-								<?php } else { ?>
-									<input type="checkbox" class="radio-control" id="selasa" name="selasa" value="Y" required> Selasa
-								<?php }; ?>
-							</label>
-							&nbsp
-							<label>
-								<?php if ($cus->rabu == 'Y') { ?>
-									<input type="checkbox" class="radio-control" checked id="rabu" name="rabu" value="Y" required> Rabu
-								<?php } else { ?>
-									<input type="checkbox" class="radio-control" id="rabu" name="rabu" value="Y" required> Rabu
-								<?php }; ?>
-							</label>
-							&nbsp
-							<label>
-								<?php if ($cus->kamis == 'Y') { ?>
-									<input type="checkbox" class="radio-control" checked id="kamis" name="kamis" value="Y" required> Kamis
-								<?php } else { ?>
-									<input type="checkbox" class="radio-control" id="kamis" name="kamis" value="Y" required> Kamis
-								<?php }; ?>
-							</label>
-							&nbsp
-							<label>
-								<?php if ($cus->jumat == 'Y') { ?>
-									<input type="checkbox" class="radio-control" checked id="jumat" name="jumat" value="Y" required> Jumat
-								<?php } else { ?>
-									<input type="checkbox" class="radio-control" id="jumat" name="jumat" value="Y" required> Jumat
-								<?php }; ?>
-							</label>
-							&nbsp
-							<label>
-								<?php if ($cus->sabtu == 'Y') { ?>
-									<input type="checkbox" class="radio-control" checked id="sabtu" name="sabtu" value="Y" required> Sabtu
-								<?php } else { ?>
-									<input type="checkbox" class="radio-control" id="sabtu" name="sabtu" value="Y" required> Sabtu
-								<?php }; ?>
-							</label>
-							&nbsp
-							<label>
-								<?php if ($cus->minggu == 'Y') { ?>
-									<input type="checkbox" class="radio-control" checked id="minggu" name="minggu" value="Y" required> Minggu
-								<?php } else { ?>
-									<input type="checkbox" class="radio-control" id="minggu" name="minggu" value="Y" required> Minggu
-								<?php }; ?>
-							</label>
-						</div>
-					</div>
-					<div class="col-sm-12">
-						<div class="col-sm-6">
-							<div class="form-group row">
+							</center>
+							<div class="col-sm-6">
 								<div class="col-md-12">
-									<label for="customer">Waktu Penerimaan Invoice</label>
+									<label for="id_supplier">
+										<h4>Informasi Bank</h4>
+									</label>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="id_supplier">Nama Bank</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="name_bank" value="<?= $cus->name_bank ?>" required name="name_bank" placeholder="Nama Bank">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="id_category_supplier">Nomor Akun</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="no_rekening" value="<?= $cus->no_rekening ?>" required name="no_rekening" placeholder="No Rekening">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Nama Akun</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="nama_rekening" value="<?= $cus->nama_rekening ?>" required name="nama_rekening" placeholder="Nama Rekening">
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Alamat Bank</label>
+									</div>
+									<div class="col-md-6">
+										<textarea type="text" name="alamat_bank" id="alamat_bank" class="form-control input-sm required w70" placeholder="Alamat_Bank"><?= $cus->alamat_bank ?></textarea>
+									</div>
+								</div>
+
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Swift Code</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="swift_code" value="<?= $cus->swift_code ?>" required name="swift_code" placeholder="Swift Code">
+									</div>
 								</div>
 							</div>
-							<div class="form-group row">
-								<div class="col-md-2">
-									<label for="customer">Start</label>
+							<div class="col-sm-6">
+								<div class="col-md-12">
+									<label for="id_supplier">
+										<h4>Informasi Pajak</h4>
+									</label>
 								</div>
-								<div class="col-md-4">
-									<input type="time" class="form-control" id="start_recive" value='<?= $cus->start_recive ?>' required name="start_recive" placeholder="Latitude">
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Nomor NPWP/PKP</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="npwp" value="<?= $cus->npwp ?>" required name="npwp" placeholder="Nomor NPWP">
+									</div>
 								</div>
-								<div class="col-md-2">
-									<label for="customer">END</label>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Nama NPWP/PKP</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="npwp_name" value='<?= $cus->npwp_name ?>' required name="npwp_name" placeholder="Nama NPWP">
+									</div>
 								</div>
-								<div class="col-md-4">
-									<input type="time" class="form-control" id="end_recive" value='<?= $cus->end_recive ?>' required name="end_recive" placeholder="Latitude">
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Alamat NPWP</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="npwp_address" value='<?= $cus->npwp_address ?>' required name="npwp_address" placeholder="Alamat NPWP">
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="id_category_customer">Term Of Payment</label>
+									</div>
+									<div class="col-md-6">
+										<select id="payment_term" name="payment_term" class="form-control select" required>
+											<option value="<?= $cus->payment_term ?>"><?= $cus->payment_term ?></option>
+											<option value="Cash Before Delivery">Cash Before Delivery</option>
+											<option value="Cash on Delivery">Cash on Delivery</option>
+											<option value="30 Day">30 Day-</option>
+											<option value="45 Day">45 Day</option>
+											<option value="60 Day">60 Day</option>
+											<option value="DP">DP</option>
+										</select>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Nominal DP</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" id="nominal_dp" value='<?= $cus->nominal_dp ?>' required name="nominal_dp" placeholder="Alamat NPWP">
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="id_category_customer">Sisa Pembayaran</label>
+									</div>
+									<div class="col-md-6">
+										<select id="sisa_pembayaran" name="sisa_pembayaran" class="form-control select" required>
+											<option value="<?= $cus->sisa_pembayaran ?>"><?= $cus->sisa_pembayaran ?></option>
+											<option value="15 After Delifery">15 After Delifery</option>
+											<option value="30 After Delifery">30 After Delifery</option>
+										</select>
+									</div>
 								</div>
 							</div>
 						</div>
 
-						<div class="col-sm-6">
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Alamat Invoice</label>
+						<div class="col-sm-12">
+							<center>
+								<h3>INFORMASI INVOICE</h3>
+							</center>
+							<div class="col-sm-12">
+								<div class="form-group-row">
+									<div class="col-md-3">
+										<label for="customer">Hari Terima</label>
+									</div>
+									<div class="col-md-9">
+										<label>
+											<input type="checkbox" class="radio-control" id="senin" name="senin" <?= (($cus->senin == 'Y') ? 'checked' : '') ?> value="Y" required> Senin
+										</label>
+										&nbsp
+										<label>
+											<input type="checkbox" class="radio-control" id="selasa" name="selasa" <?= (($cus->selasa == 'Y') ? 'checked' : '') ?> value="Y" required> Selasa
+										</label>
+										&nbsp
+										<label>
+											<input type="checkbox" class="radio-control" id="rabu" name="rabu" <?= (($cus->rabu == 'Y') ? 'checked' : '') ?> value="Y" required> Rabu
+										</label>
+										&nbsp
+										<label>
+											<input type="checkbox" class="radio-control" id="kamis" name="kamis" <?= (($cus->kamis == 'Y') ? 'checked' : '') ?> value="Y" required> Kamis
+										</label>
+										&nbsp
+										<label>
+											<input type="checkbox" class="radio-control" id="jumat" name="jumat" <?= (($cus->jumat == 'Y') ? 'checked' : '') ?> value="Y" required> Jumat
+										</label>
+										&nbsp
+										<label>
+											<input type="checkbox" class="radio-control" id="sabtu" name="sabtu" <?= (($cus->sabtu == 'Y') ? 'checked' : '') ?> value="Y" required> Sabtu
+										</label>
+										&nbsp
+										<label>
+											<input type="checkbox" class="radio-control" id="minggu" name="minggu" <?= (($cus->minggu == 'Y') ? 'checked' : '') ?> value="Y" required> Minggu
+										</label>
+									</div>
 								</div>
 							</div>
-							<div class="form-group row">
-								<div class="col-md-12">
-									<textarea type="text" name="address_invoice" id="address_invoice" class="form-control input-sm required w70" placeholder="Alamat"><?= $cus->adress_invoice ?></textarea>
+							<div class="col-sm-12">
+								<div class="col-sm-6">
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label for="customer">Waktu Penerimaan Invoice</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-2">
+											<label for="customer">Start</label>
+										</div>
+										<div class="col-md-4">
+											<input type="time" class="form-control" id="start_recive" value='<?= $cus->start_recive ?>' required name="start_recive" placeholder="Latitude">
+										</div>
+										<div class="col-md-2">
+											<label for="customer">END</label>
+										</div>
+										<div class="col-md-4">
+											<input type="time" class="form-control" id="end_recive" value='<?= $cus->end_recive ?>' required name="end_recive" placeholder="Latitude">
+										</div>
+									</div>
 								</div>
-							</div>
-						</div>
-					</div>
-					<center><label for="customer">
-							<h3>Persyaratan Pembayaran</h3>
-						</label></center>
-					<div class="col-sm-12">
-						<div class="col-sm-4">
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->berita_acara == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="berita_acara" checked name="berita_acara" value="Y" required> Berita Acara
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="berita_acara" name="berita_acara" value="Y" required> Berita Acara
-										<?php }; ?>
-									</label>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->faktur == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="faktur" checked name="faktur" value="Y" required> Faktur Pajak
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="faktur" name="faktur" value="Y" required> Faktur Pajak
-										<?php }; ?>
-									</label>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->tdp == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="tdp" checked name="tdp" value="Y" required> TDP
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="tdp" name="tdp" value="Y" required> TDP
-										<?php }; ?>
-									</label>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->real_po == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="real_po" checked name="real_po" value="Y" required> Real PO
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="real_po" name="real_po" value="Y" required> Real PO
-										<?php }; ?>
-									</label>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-4">
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->ttd_specimen == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="ttd_specimen" checked name="ttd_specimen" value="Y" required> TTD Specimen / Tax Invoice Serial Number
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="ttd_specimen" name="ttd_specimen" value="Y" required> TTD Specimen / Tax Invoice Serial Number
-										<?php }; ?>
-									</label>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->payement_certificate == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="payement_certificate" checked name="payement_certificate" value="Y" required> Payment Certificate
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="payement_certificate" name="payement_certificate" value="Y" required> Payment Certificate
-										<?php }; ?>
-									</label>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->photo == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="photo" checked name="photo" value="Y" required> Photo
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="photo" name="photo" value="Y" required> Photo
-										<?php }; ?>
-									</label>
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->siup == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="siup" checked name="siup" value="Y" required> SIUP
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="siup" name="siup" value="Y" required> SIUP
-										<?php }; ?>
-									</label>
+
+								<div class="col-sm-6">
+									<div class="form-group row">
+										<div class="col-md-6">
+											<label for="customer">Alamat Invoice</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<textarea type="text" name="address_invoice" id="address_invoice" class="form-control input-sm required w70" placeholder="Alamat"><?= $cus->adress_invoice ?></textarea>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
-						<div class="col-sm-4">
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->spk == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="spk" checked name="spk" value="Y" required> SPK
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="spk" name="spk" value="Y" required> SPK
-										<?php }; ?>
-									</label>
+
+						<div class="col-sm-12">
+							<center>
+								<h3>PERSYARATAN PEMBAYARAN</h3>
+							</center>
+							<div class="col-sm-12">
+								<div class="col-sm-4">
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="berita_acara" name="berita_acara" <?= (($cus->berita_acara == 'Y') ? 'checked' : '') ?> value="Y" required> Berita Acara
+											</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="faktur" name="faktur" <?= (($cus->faktur == 'Y') ? 'checked' : '') ?> value="Y" required> Faktur Pajak
+											</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="tdp" name="tdp" <?= (($cus->tdp == 'Y') ? 'checked' : '') ?> value="Y" required> TDP
+											</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="real_po" name="real_po" <?= (($cus->real_po == 'Y') ? 'checked' : '') ?> value="Y" required> Real PO
+											</label>
+										</div>
+									</div>
 								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->delivery_order == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="delivery_order" checked name="delivery_order" value="Y" required> Delivery Order
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="delivery_order" name="delivery_order" value="Y" required> Delivery Order
-										<?php }; ?>
-									</label>
+								<div class="col-sm-4">
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="ttd_specimen" name="ttd_specimen" <?= (($cus->ttd_specimen == 'Y') ? 'checked' : '') ?> value="Y" required> TTD Specimen / Tax Invoice Serial Number
+											</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="payement_certificate" name="payement_certificate" <?= (($cus->payement_certificate == 'Y') ? 'checked' : '') ?> value="Y" required> Payment Certificate
+											</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="photo" name="photo" <?= (($cus->photo == 'Y') ? 'checked' : '') ?> value="Y" required> Photo
+											</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="siup" name="siup" <?= (($cus->siup == 'Y') ? 'checked' : '') ?> value="Y" required> SIUP
+											</label>
+										</div>
+									</div>
 								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-12">
-									<label>
-										<?php if ($cus->need_npwp == 'Y') { ?>
-											<input type="checkbox" class="radio-control" id="need_npwp" checked name="need_npwp" value="Y" required> NPWP
-										<?php } else { ?>
-											<input type="checkbox" class="radio-control" id="need_npwp" name="need_npwp" value="Y" required> NPWP
-										<?php }; ?>
-									</label>
+								<div class="col-sm-4">
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="spk" name="spk" <?= (($cus->spk == 'Y') ? 'checked' : '') ?> value="Y" required> SPK
+											</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="delivery_order" name="delivery_order" <?= (($cus->delivery_order == 'Y') ? 'checked' : '') ?> value="Y" required> Delivery Order
+											</label>
+										</div>
+									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="need_npwp" name="need_npwp" <?= (($cus->need_npwp == 'Y') ? 'checked' : '') ?> value="Y" required> NPWP
+											</label>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
-					</div>
-					<div class="col-sm-12">
-						<center>
-							<button type="submit" class="btn btn-success btn-sm" name="save" id="simpan-com"><i class="fa fa-save"></i>Simpan</button>
-						</center>
+
+						<div class="col-sm-12">
+							<center>
+								<button type="submit" class="btn btn-success btn-sm" name="save" id="simpan-com"><i class="fa fa-save"></i> Simpan</button>
+							</center>
+						</div>
 					</div>
 				</div>
 			</div>
+		</form>
 	</div>
-	</form>
 </div>
-</div>
-
-
-
 
 <script type="text/javascript">
 	//$('#input-kendaraan').hide();
@@ -883,6 +900,21 @@ foreach ($results['cus'] as $cus) {
 
 	});
 
+	function togglePersentaseInput() {
+		const persentaseInput = document.getElementById("persentase");
+		const selectedChannel = document.querySelector("input[name='chanel']:checked");
+
+		if (selectedChannel && selectedChannel.value === "Project") {
+			persentaseInput.disabled = false;
+			persentaseInput.required = true;
+			persentaseInput.focus();
+		} else {
+			persentaseInput.disabled = true;
+			persentaseInput.required = false;
+			persentaseInput.value = ""; // Bersihkan nilai saat disabled
+		}
+	}
+
 	function get_kota() {
 		var id_prov = $("#id_prov").val();
 		$.ajax({
@@ -903,5 +935,9 @@ foreach ($results['cus'] as $cus) {
 	function DelItem2(id) {
 		$('#list_category #tr_' + id).remove();
 
+	}
+
+	function DelItem3(id) {
+		$('#list_existing #tr_' + id).remove();
 	}
 </script>

@@ -86,6 +86,7 @@ class Master_customers extends Admin_Controller
 		$cus = $this->db->get_where('master_customers', array('id_customer' => $id))->result();
 		$pic = $this->db->get_where('child_customer_pic', array('id_customer' => $id))->result();
 		$cate = $this->db->get_where('child_category_customer', array('id_customer' => $id))->result();
+		$exis = $this->db->get_where('child_customer_existing', array('id_customer' => $id))->result();
 		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
 		$prof = $this->Customer_model->get_data('provinsi');
 		$kota = $this->Customer_model->get_data('kota');
@@ -94,6 +95,7 @@ class Master_customers extends Admin_Controller
 			'cus'	=> $cus,
 			'category' => $category,
 			'cate' => $cate,
+			'exis' => $exis,
 			'kota' => $kota,
 			'prof' => $prof,
 			'pic' => $pic,
