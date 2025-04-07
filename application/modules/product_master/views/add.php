@@ -10,7 +10,7 @@ $code_lv2 = (!empty($listData[0]->code_lv2)) ? $listData[0]->code_lv2 : '';
 $code_lv3 = (!empty($listData[0]->code_lv3)) ? $listData[0]->code_lv3 : '';
 $code_lv4 = (!empty($listData[0]->code_lv4)) ? $listData[0]->code_lv4 : '';
 $nama = (!empty($listData[0]->nama)) ? $listData[0]->nama : '';
-$nama = (!empty($listData[0]->retail)) ? $listData[0]->retail : '';
+$retail = (!empty($listData[0]->retail)) ? $listData[0]->retail : '';
 
 $code = (!empty($listData[0]->code)) ? $listData[0]->code : '';
 $trade_name = (!empty($listData[0]->trade_name)) ? $listData[0]->trade_name : '';
