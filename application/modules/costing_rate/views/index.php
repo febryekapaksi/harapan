@@ -17,6 +17,7 @@ $ENABLE_DELETE  = has_permission('Costing_rate.Delete');
                         <th class='text-center' width="25%">Element Costing</th>
                         <th class='text-center' width="12%">Rate (%)</th>
                         <th class='text-center'>Keterangan</th>
+                        <th class='text-center'>Nama Coa Terkait</th>
                         <th class='text-center' width="20%">Elemen COA</th>
                     </tr>
                 </thead>
@@ -43,6 +44,7 @@ $ENABLE_DELETE  = has_permission('Costing_rate.Delete');
                             echo "<input type='text' id='rate_" . $value['code'] . "' name='detail[" . $value['code'] . "][rate]' class='form-control text-center autoNumeric' value='" . $rate . "'>";
                             echo "</td>";
                             echo "<td>" . $value['keterangan'] . "</td>";
+                            echo "<td>" . $value['nama_coa_terkait'] . "</td>";
                             echo "<td><input type='text' id='coa_" . $value['code'] . "' name='detail[" . $value['code'] . "][element_coa]' class='form-control' value='" . $value['element_coa'] . "'></td>";
                             echo "</tr>";
                         }
@@ -64,6 +66,7 @@ $ENABLE_DELETE  = has_permission('Costing_rate.Delete');
                             echo "<input type='text' id='rate_" . $value['code'] . "' name='detail[" . $value['code'] . "][rate]' class='form-control text-center autoNumeric' value='" . $rate . "'>";
                             echo "</td>";
                             echo "<td>" . $value['keterangan'] . "</td>";
+                            echo "<td>" . $value['nama_coa_terkait'] . "</td>";
                             echo "<td><input type='text' id='coa_" . $value['code'] . "' name='detail[" . $value['code'] . "][element_coa]' class='form-control' value='" . $value['element_coa'] . "'></td>";
                             echo "</tr>";
                         }
@@ -87,6 +90,7 @@ $ENABLE_DELETE  = has_permission('Costing_rate.Delete');
                             echo "<input type='text' id='rate_" . $value['code'] . "' name='detail[" . $value['code'] . "][rate]' class='form-control text-center autoNumeric' value='" . $rate . "'>";
                             echo "</td>";
                             echo "<td>" . $value['keterangan'] . "</td>";
+                            echo "<td>" . $value['nama_coa_terkait'] . "</td>";
                             echo "<td><input type='text' id='coa_" . $value['code'] . "' name='detail[" . $value['code'] . "][element_coa]' class='form-control' value='" . $value['element_coa'] . "'></td>";
                             echo "</tr>";
                         }
@@ -115,7 +119,8 @@ $ENABLE_DELETE  = has_permission('Costing_rate.Delete');
 <script type="text/javascript">
     $(document).ready(function() {
         $('.autoNumeric').autoNumeric()
-        $('#rate_1,#rate_2,#rate_9,#rate_10,#rate_15,#rate_16,#rate_17,#rate_18,#coa_1,#coa_2,#coa_9,#coa_10,#coa_15,#coa_16,#coa_17,#coa_18').prop('readonly', true);
+        $('#rate_1,#rate_11,#rate_13,#rate_14,#rate_15,#rate_16,#rate_17,#rate_19,#rate_21,#rate_22,#rate_23,#rate_24,#rate_26,#rate_27,#rate_28,#rate_29,#rate_30,#rate_31,#rate_32').prop('readonly', true);
+        $('#coa_1,#coa_11,#coa_13,#coa_14,#coa_15,#coa_16,#coa_17,#coa_19,#coa_21,#coa_22,#coa_23,#coa_24,#coa_26,#coa_27,#coa_28,#coa_29,#coa_30,#coa_31,#coa_32').prop('readonly', true);
     })
 
     $('#save').click(function(e) {
