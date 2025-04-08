@@ -14,10 +14,10 @@ if (!defined('BASEPATH')) {
 class Master_customers extends Admin_Controller
 {
 	//Permission
-	protected $viewPermission 	= 'Master_customers.View';
-	protected $addPermission  	= 'Master_customers.Add';
-	protected $managePermission = 'Master_customers.Manage';
-	protected $deletePermission = 'Master_customers.Delete';
+	protected $viewPermission 	= 'Master_customer.View';
+	protected $addPermission  	= 'Master_customer.Add';
+	protected $managePermission = 'Master_customer.Manage';
+	protected $deletePermission = 'Master_customer.Delete';
 
 	public function __construct()
 	{

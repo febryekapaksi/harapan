@@ -1,8 +1,8 @@
 <?php
-$ENABLE_ADD     = has_permission('Master_customers.Add');
-$ENABLE_MANAGE  = has_permission('Master_customers.Manage');
-$ENABLE_VIEW    = has_permission('Master_customers.View');
-$ENABLE_DELETE  = has_permission('Master_customers.Delete');
+$ENABLE_ADD     = has_permission('Master_customer.Add');
+$ENABLE_MANAGE  = has_permission('Master_customer.Manage');
+$ENABLE_VIEW    = has_permission('Master_customer.View');
+$ENABLE_DELETE  = has_permission('Master_customer.Delete');
 
 ?>
 <style type="text/css">
