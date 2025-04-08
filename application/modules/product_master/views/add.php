@@ -24,6 +24,7 @@ $id_unit = (!empty($listData[0]->id_unit)) ? $listData[0]->id_unit : '';
 $length = (!empty($listData[0]->length)) ? $listData[0]->length : '';
 $wide 	= (!empty($listData[0]->wide)) ? $listData[0]->wide : '';
 $high 	= (!empty($listData[0]->high)) ? $listData[0]->high : '';
+$weight = (!empty($listData[0]->weight)) ? $listData[0]->weight : '';
 $cub 	= (!empty($listData[0]->cub)) ? $listData[0]->cub : '';
 
 $file_msds 	= (!empty($listData[0]->file_msds)) ? $listData[0]->file_msds : '';
@@ -185,19 +186,26 @@ $status2 = (!empty($listData[0]->status) and $listData[0]->status == '2') ? 'che
 			<hr>
 			<div class="form-group row">
 				<div class="col-md-2">
-					<label>Dimensi (L,W,H)</label>
+					<label>Dimensi (P,L,T)</label>
 				</div>
 				<div class="col-md-3">
-					<input type="text" class="form-control maskM getCub" id="length" name="length" value='<?= $length; ?>' placeholder="Length">
+					<input type="text" class="form-control maskM getCub" id="length" name="length" value='<?= $length; ?>' placeholder="Panjang">
 				</div>
 				<div class="col-md-3">
-					<input type="text" class="form-control maskM getCub" id="wide" name="wide" value='<?= $wide; ?>' placeholder="Wide">
+					<input type="text" class="form-control maskM getCub" id="wide" name="wide" value='<?= $wide; ?>' placeholder="Lebar">
 				</div>
 				<div class="col-md-3">
-					<input type="text" class="form-control maskM getCub" id="high" name="high" value='<?= $high; ?>' placeholder="High">
+					<input type="text" class="form-control maskM getCub" id="high" name="high" value='<?= $high; ?>' placeholder="Tinggi">
 				</div>
 			</div>
-
+			<div class="form-group row">
+				<div class="col-md-2">
+					<label>Berat/unit</label>
+				</div>
+				<div class="col-md-3">
+					<input type="text" class="form-control" id="weight" name="weight" value="<?= $weight ?>" placeholder="Berat per unit">
+				</div>
+			</div>
 			<div class="form-group row">
 				<div class="col-md-2">
 					<label>CBM</label>

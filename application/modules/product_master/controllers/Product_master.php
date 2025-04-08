@@ -227,6 +227,7 @@ class Product_master extends Admin_Controller
       $length     = str_replace(',', '', $post['length']);
       $wide       = str_replace(',', '', $post['wide']);
       $high       = str_replace(',', '', $post['high']);
+      $weight       = $post['weight'];
       $cub        = str_replace(',', '', $post['cub']);
 
       $last_by    = (!empty($id)) ? 'updated_by' : 'created_by';
@@ -251,6 +252,7 @@ class Product_master extends Admin_Controller
         'min_stok'    => $min_stok,
         'wide'      => $wide,
         'high'      => $high,
+        'weight'      => $weight,
         'cub'      => $cub,
         'status'    => $status,
         $last_by    => $this->id_user,
