@@ -20,7 +20,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 										<label for="id_supplier">Id Customer</label>
 									</div>
 									<div class="col-md-6">
-										<input type="text" class="form-control" id="id_customer" required name="id_customer" readonly placeholder="Id Suplier">
+										<input type="text" class="form-control" id="id_customer" required name="id_customer" readonly placeholder="Id Customer">
 									</div>
 								</div>
 
@@ -94,27 +94,27 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 										<select id="id_karyawan" name="id_karyawan" class="form-control select" required>
 											<option value="">--pilih--</option>
 											<?php foreach ($results['karyawan'] as $karyawan) { ?>
-												<option value="<?= $karyawan->id_karyawan ?>"><?= ucfirst(strtolower($karyawan->nama_karyawan)) ?></option>
+												<option value="<?= $karyawan->id ?>"><?= ucfirst(strtolower($karyawan->nm_karyawan)) ?></option>
 											<?php } ?>
 										</select>
 									</div>
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Chanel Pemasaran</label>
+										<label for="customer">Channel Pemasaran</label>
 									</div>
 									<div class="col-md-6">
 										<div class="row">
 											<div class="col-md-12">
 												<label>
-													<input type="radio" class="radio-control" id="chanel" name="chanel" value="Toko dan User" required onclick="togglePersentaseInput()"> Toko dan User
+													<input type="checkbox" class="checkbox-control" id="chanel_toko" name="chanel_toko" value="Toko dan User" onclick="togglePersentaseInput()"> Toko dan User
 												</label>
 											</div>
 										</div>
-										<div class="row">
+										<div class="row mt-1">
 											<div class="col-md-6">
 												<label>
-													<input type="radio" class="radio-control" id="chanel" name="chanel" value="Project" required onclick="togglePersentaseInput()"> Project
+													<input type="checkbox" class="checkbox-control" id="chanel_project" name="chanel_project" value="Project" onclick="togglePersentaseInput()"> Project
 												</label>
 											</div>
 											<div class="col-6">
@@ -207,9 +207,6 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 										<label>
 											<input type="radio" class="radio-control" id="facility" name="facility" value="DPIL" required> DPIL
 										</label>
-										<label>
-											<input type="radio" class="radio-control" id="facility" name="facility" value="Kawasan Berikat" required> Kawasan Berikat
-										</label>
 									</div>
 								</div>
 								<div class="form-group row">
@@ -226,6 +223,117 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 											}
 											?>
 										</select>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Kategori Customer</label>
+									</div>
+									<div class="col-md-6">
+										<select name="kategori_cust" id="kategori_cust" class="form-control select">
+											<option value="">-- Pilih --</option>
+											<option value="Distributor">Distributor</option>
+											<option value="Retail">Retail</option>
+										</select>
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-sm-12">
+							<center>
+								<h3>PENILAIAN CUSTOMER</h3>
+							</center>
+							<div class="col-sm-6">
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Bayar 3 Bulan On Time</label>
+									</div>
+									<div class="col-md-6">
+										<label>
+											<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="Yes" required> Yes
+										</label>
+										&nbsp;
+										<label>
+											<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="No" required> No
+										</label>
+										&nbsp;
+										<label>
+											<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="New" required> New
+										</label>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Toko Milik Sendiri</label>
+									</div>
+									<div class="col-md-6">
+										<label>
+											<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="Yes" required> Yes
+										</label>
+										&nbsp;
+										<label>
+											<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="No" required> No
+										</label>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Armada Pickup</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" name="data4[armada_pickup]">
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Armada Truck</label>
+									</div>
+									<div class="col-md-6">
+										<input type="text" class="form-control" name="data4[armada_truck]">
+									</div>
+								</div>
+							</div>
+							<div class="col-sm-6">
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Attitude</label>
+									</div>
+									<div class="col-md-6">
+										<label>
+											<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="Yes" required> Yes
+										</label>
+										&nbsp;
+										<label>
+											<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="No" required> No
+										</label>
+										&nbsp;
+										<label>
+											<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="New" required> New
+										</label>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">Luas Tanah</label>
+									</div>
+									<div class="col-md-6">
+										<textarea class="form-control" name="data4[luas_tanah]" id="luas_tanah"></textarea>
+									</div>
+								</div>
+								<div class="form-group row">
+									<div class="col-md-6">
+										<label for="customer">PBB</label>
+									</div>
+									<div class="col-md-6">
+										<label>
+											<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="Yes" required> Yes
+										</label>
+										&nbsp;
+										<label>
+											<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="No" required> No
+										</label>
+										&nbsp;
 									</div>
 								</div>
 							</div>
@@ -623,6 +731,13 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 											</label>
 										</div>
 									</div>
+									<div class="form-group row">
+										<div class="col-md-12">
+											<label>
+												<input type="checkbox" class="radio-control" id="ditagih" name="ditagih" value="Y" required> Ditagih Kolektor/Sales
+											</label>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -867,19 +982,20 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 	});
 
 	function togglePersentaseInput() {
+		const projectCheckbox = document.querySelector("input[name='chanel_project']");
 		const persentaseInput = document.getElementById("persentase");
-		const selectedChannel = document.querySelector("input[name='chanel']:checked");
 
-		if (selectedChannel && selectedChannel.value === "Project") {
+		if (projectCheckbox && projectCheckbox.checked) {
 			persentaseInput.disabled = false;
 			persentaseInput.required = true;
 			persentaseInput.focus();
 		} else {
 			persentaseInput.disabled = true;
 			persentaseInput.required = false;
-			persentaseInput.value = ""; // Bersihkan nilai saat disabled
+			persentaseInput.value = ""; // Kosongkan kalau tidak aktif
 		}
 	}
+
 
 
 	function get_kota() {

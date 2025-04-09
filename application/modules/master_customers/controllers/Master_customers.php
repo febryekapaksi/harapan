@@ -155,7 +155,7 @@ class Master_customers extends Admin_Controller
 		$aktif = 'active';
 		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
 		$prof = $this->Customer_model->get_data('provinsi');
-		$karyawan = $this->db->get_where('ms_karyawan', array('divisi' => 12, 'deleted' => 0))->result();
+		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
 		$data = [
 			'category' => $category,
 			'prof' => $prof,
@@ -435,6 +435,15 @@ class Master_customers extends Admin_Controller
 		} else {
 			$need_npwp = 'N';
 		};
+
+		$chanel = [];
+		if ($this->input->post('chanel_toko')) {
+			$chanel[] = $this->input->post('chanel_toko'); // Toko dan User
+		}
+		if ($this->input->post('chanel_project')) {
+			$chanel[] = $this->input->post('chanel_project'); // Project
+		}
+
 		$session = $this->session->userdata('app_session');
 		$code = $this->Customer_model->generate_id();
 		$this->db->trans_begin();
@@ -456,8 +465,9 @@ class Master_customers extends Admin_Controller
 			'latitude'		    	=> $post['latitude'],
 			'activation'		    => $post['activation'],
 			'facility'		   		=> $post['facility'],
-			'chanel_pemasaran'		=> $post['chanel'],
-			'persentase'		   	=> $post['persentase'],
+			'kategori_cust'			=> $post['kategori_cust'],
+			'chanel_pemasaran' 		=> implode(', ', $chanel),
+			'persentase'       		=> $post['persentase'],
 			'tahun_mulai'		   	=> $post['tahun_mulai'],
 			'name_bank'		    	=> $post['name_bank'],
 			'no_rekening'		    => $post['no_rekening'],
@@ -495,6 +505,10 @@ class Master_customers extends Admin_Controller
 			'created_on'			=> date('Y-m-d H:i:s'),
 			'created_by'			=> $this->auth->user_id()
 		);
+		// echo '<pre>';
+		// print_r($header1);
+		// echo '</pre>';
+		// die();
 		//Add Data
 		$this->db->insert('master_customers', $header1);
 		$numb2 = 0;
@@ -531,6 +545,22 @@ class Master_customers extends Admin_Controller
 			);
 			//Add Data
 			$this->db->insert('child_customer_existing', $data);
+		}
+		$numb2 = 0;
+		foreach ($_POST['data4'] as $d4) {
+			$numb2++;
+			$data =  array(
+				'id_customer'				=> $code,
+				'ontime'					=> $d4[ontime],
+				'toko_sendiri'				=> $d4[toko_sendiri],
+				'armada_pickup'				=> $d4[armada_pickup],
+				'armada_truck'				=> $d4[armada_truck],
+				'attitude'					=> $d4[attitude],
+				'luas_tanah'				=> $d4[luas_tanah],
+				'pbb'						=> $d4[pbb],
+			);
+			//Add Data
+			$this->db->insert('child_customer_rate', $data);
 		}
 
 		if ($this->db->trans_status() === FALSE) {
