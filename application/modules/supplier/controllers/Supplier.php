@@ -15,7 +15,7 @@ class Supplier extends Admin_Controller
 	{
 		parent::__construct();
 
-		// $this->load->library(array('Mpdf'));
+		$this->load->library(array('Mpdf'));
 		$this->load->model(array(
 			'Supplier/supplier_model'
 		));
@@ -32,6 +32,7 @@ class Supplier extends Admin_Controller
 
 		history("View index master supplier");
 
+		$this->template->page_icon('fa fa-users');
 		$this->template->title('Supplier');
 		$this->template->render('index');
 	}

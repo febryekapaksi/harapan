@@ -23,162 +23,194 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 // print_r($header);
 ?>
 
-<div class="box box-primary">
-	<div class="box-body">
-		<form id="data-form" method="post"><br>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Supplier Name <span class='text-red'>*</span></label>
-				</div>
-				<div class="col-md-4">
-					<input type="hidden" name="id" id="id" value="<?= $id; ?>">
-					<input type="hidden" name="kode_supplier" id="kode_supplier" value="<?= $kode_supplier; ?>">
-					<input type="text" name="nama" id="nama" class='form-control input-md' placeholder='Supplier Name' value="<?= $nama; ?>">
-				</div>
-			</div>
 
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Country</label>
+<form id="data-form" method="post">
+	<div class="row">
+		<div class="col-sm-12">
+			<div class="col-sm-6">
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Supplier Name <span class='text-red'>*</span></label>
+					</div>
+					<div class="col-md-8">
+						<input type="hidden" name="id" id="id" value="<?= $id; ?>">
+						<input type="hidden" name="kode_supplier" id="kode_supplier" value="<?= $kode_supplier; ?>">
+						<input type="text" name="nama" id="nama" class='form-control input-md' placeholder='Supplier Name' value="<?= $nama; ?>">
+					</div>
 				</div>
-				<div class="col-md-4">
-					<select id="id_country" name="id_country" class="form-control input-md chosen-select">
-						<?php foreach ($country as $val => $value) {
-							$sel = ($value['iso3'] == $id_country) ? 'selected' : '';
-						?>
-							<option value="<?= $value['iso3']; ?>" <?= $sel; ?>><?= strtoupper($value['name']) ?></option>
-						<?php } ?>
-					</select>
-				</div>
-				<div class="col-md-2">
-					<label for="customer">Provinsi</label>
-				</div>
-				<div class="col-md-4">
-					<select id="id_provinsi" name="id_provinsi" class="form-control input-md chosen-select">
-						<option value="0">Select Provinsi</option>
-						<?php foreach ($provinsi as $val => $value) {
-							$sel = ($value['id_prov'] == $id_provinsi) ? 'selected' : '';
-						?>
-							<option value="<?= $value['id_prov']; ?>" <?= $sel; ?>><?= strtoupper($value['nama']) ?></option>
-						<?php } ?>
-					</select>
-				</div>
-			</div>
-			<hr>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Telephone</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="telp" id="telp" class='form-control input-md' placeholder='Telephone' value="<?= $telp; ?>">
-				</div>
-				<div class="col-md-2">
-					<label for="customer">Email</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="email" id="email" class='form-control input-md' placeholder='Email' value="<?= $email; ?>">
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Country</label>
+					</div>
+					<div class="col-md-8">
+						<select id="id_country" name="id_country" class="form-control select">
+							<?php foreach ($country as $val => $value) {
+								$sel = ($value['iso3'] == $id_country) ? 'selected' : '';
+							?>
+								<option value="<?= $value['iso3']; ?>" <?= $sel; ?>><?= strtoupper($value['name']) ?></option>
+							<?php } ?>
+						</select>
+					</div>
 				</div>
 			</div>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Telephone 2</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="telp2" id="telp2" class='form-control input-md' placeholder='Telephone 2' value="<?= $telp2; ?>">
-				</div>
-				<div class="col-md-2">
-					<label for="customer">Email 2</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="email2" id="email2" class='form-control input-md' placeholder='Email 2' value="<?= $email2; ?>">
-				</div>
-			</div>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Fax</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="fax" id="fax" class='form-control input-md' placeholder='Fax' value="<?= $fax; ?>">
-				</div>
-				<div class="col-md-2">
-					<label for="customer">Email 3</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="email3" id="email3" class='form-control input-md' placeholder='Email 3' value="<?= $email3; ?>">
+			<div class="col-sm-6">
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Provinsi</label>
+					</div>
+					<div class="col-md-8">
+						<select id="id_provinsi" name="id_provinsi" class="form-control select">
+							<option value="0">Select Provinsi</option>
+							<?php foreach ($provinsi as $val => $value) {
+								$sel = ($value['id_prov'] == $id_provinsi) ? 'selected' : '';
+							?>
+								<option value="<?= $value['id_prov']; ?>" <?= $sel; ?>><?= strtoupper($value['nama']) ?></option>
+							<?php } ?>
+						</select>
+					</div>
 				</div>
 			</div>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Address</label>
-				</div>
-				<div class="col-md-4">
-					<textarea name='address' id='address' class='form-control input-md' placeholder='Address' rows='2'><?= $address; ?></textarea>
-				</div>
-			</div>
-			<hr>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Contact</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="contact" id="contact" class='form-control input-md' placeholder='Contact' value="<?= $contact; ?>">
-				</div>
-				<div class="col-md-2">
-					<label for="customer">Contact Person</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="contact_person" id="contact_person" class='form-control input-md' placeholder='Contact Person' value="<?= $contact_person; ?>">
-				</div>
-			</div>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Tax Number</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="tax_number" id="tax_number" class='form-control input-md' placeholder='Tax Number' value="<?= $tax_number; ?>">
-				</div>
-				<div class="col-md-2">
-					<label for="customer">Tax Address</label>
-				</div>
-				<div class="col-md-4">
-					<textarea name='tax_address' id='tax_address' class='form-control input-md' placeholder='Tax Address' rows='2'><?= $tax_address; ?></textarea>
-				</div>
-			</div>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Currency</label>
-				</div>
-				<div class="col-md-4">
-					<select id="id_currency" name="id_currency" class="form-control input-md chosen-select">
-						<!-- <option value="0">Select Currency</option> -->
-						<?php foreach ($currency as $val => $value) {
-							$sel = ($value['kode'] == $id_currency) ? 'selected' : '';
-						?>
-							<option value="<?= $value['kode']; ?>" <?= $sel; ?>><?= strtoupper($value['kode'] . ' - ' . $value['mata_uang']) ?></option>
-						<?php } ?>
-					</select>
-				</div>
-				<div class="col-md-2">
-					<label for="customer">Bank Account</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="bank_account" id="bank_account" class='form-control input-md' placeholder='Bank Account' value="<?= $bank_account; ?>">
-				</div>
-			</div>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Note</label>
-				</div>
-				<div class="col-md-4">
-					<textarea name='note' id='note' class='form-control input-md' placeholder='Note' rows='2'><?= $note; ?></textarea>
-				</div>
-			</div>
-			<button type="button" class="btn btn-danger" style='float:right; margin-left:5px;' name="back" id="back"><i class="fa fa-reply"></i> Back</button>
-			<button type="submit" class="btn btn-primary" style='float:right;' name="save" id="save"><i class="fa fa-save"></i> Save</button>
+		</div>
 
-		</form>
+		<div class="col-sm-12">
+			<div class="col-sm-6">
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Telephone</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="telp" id="telp" class='form-control input-md' placeholder='Telephone' value="<?= $telp; ?>">
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Telephone 2</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="telp2" id="telp2" class='form-control input-md' placeholder='Telephone 2' value="<?= $telp2; ?>">
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Fax</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="fax" id="fax" class='form-control input-md' placeholder='Fax' value="<?= $fax; ?>">
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Address</label>
+					</div>
+					<div class="col-md-8">
+						<textarea name='address' id='address' class='form-control input-md' placeholder='Address' rows='2'><?= $address; ?></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-6">
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Email</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="email" id="email" class='form-control input-md' placeholder='Email' value="<?= $email; ?>">
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Email 2</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="email2" id="email2" class='form-control input-md' placeholder='Email 2' value="<?= $email2; ?>">
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Email 3</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="email3" id="email3" class='form-control input-md' placeholder='Email 3' value="<?= $email3; ?>">
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-sm-12">
+			<div class="col-sm-6">
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Contact</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="contact" id="contact" class='form-control input-md' placeholder='Contact' value="<?= $contact; ?>">
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Tax Number</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="tax_number" id="tax_number" class='form-control input-md' placeholder='Tax Number' value="<?= $tax_number; ?>">
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Currency</label>
+					</div>
+					<div class="col-md-8">
+						<select id="id_currency" name="id_currency" class="form-control input-md chosen-select">
+							<!-- <option value="0">Select Currency</option> -->
+							<?php foreach ($currency as $val => $value) {
+								$sel = ($value['kode'] == $id_currency) ? 'selected' : '';
+							?>
+								<option value="<?= $value['kode']; ?>" <?= $sel; ?>><?= strtoupper($value['kode'] . ' - ' . $value['mata_uang']) ?></option>
+							<?php } ?>
+						</select>
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Note</label>
+					</div>
+					<div class="col-md-8">
+						<textarea name='note' id='note' class='form-control input-md' placeholder='Note' rows='2'><?= $note; ?></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-6">
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Contact Person</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="contact_person" id="contact_person" class='form-control input-md' placeholder='Contact Person' value="<?= $contact_person; ?>">
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Tax Address</label>
+					</div>
+					<div class="col-md-8">
+						<textarea name='tax_address' id='tax_address' class='form-control input-md' placeholder='Tax Address' rows='2'><?= $tax_address; ?></textarea>
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label for="customer">Bank Account</label>
+					</div>
+					<div class="col-md-8">
+						<input type="text" name="bank_account" id="bank_account" class='form-control input-md' placeholder='Bank Account' value="<?= $bank_account; ?>">
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<center>
+			<button type="submit" class="btn btn-success" ame="save" id="save"><i class="fa fa-save"></i> Save</button>
+		</center>
 	</div>
-</div>
+</form>
+
 
 <script src="<?= base_url('assets/js/autoNumeric.js') ?>"></script>
 <style media="screen">
@@ -193,7 +225,9 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 	var active_controller = '<?php echo ($this->uri->segment(1)); ?>';
 
 	$(document).ready(function() {
-		$('.chosen-select').select2();
+		$('.select').select2({
+			width: '100%'
+		});
 		$(".datepicker").datepicker();
 		$(".autoNumeric4").autoNumeric('init', {
 			mDec: '4',
