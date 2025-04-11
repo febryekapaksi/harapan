@@ -116,8 +116,7 @@ foreach ($results['rate'] as $rate) {
 											<div class="col-md-12">
 												<label>
 													<input type="checkbox" class="checkbox-control" id="chanel_toko" name="chanel_toko" value="Toko dan User"
-														<?= (strpos($cus->chanel_pemasaran, 'Toko dan User') !== false) ? 'checked' : '' ?>
-														onclick="togglePersentaseInput()"> Toko dan User
+														<?= (strpos($cus->chanel_pemasaran, 'Toko dan User') !== false) ? 'checked' : '' ?>> Toko dan User
 												</label>
 											</div>
 										</div>
@@ -1024,17 +1023,17 @@ foreach ($results['rate'] as $rate) {
 	});
 
 	function togglePersentaseInput() {
+		const projectCheckbox = document.querySelector("input[name='chanel_project']");
 		const persentaseInput = document.getElementById("persentase");
-		const selectedChannel = document.querySelector("input[name='chanel']:checked");
 
-		if (selectedChannel && selectedChannel.value === "Project") {
+		if (projectCheckbox && projectCheckbox.checked) {
 			persentaseInput.disabled = false;
 			persentaseInput.required = true;
 			persentaseInput.focus();
 		} else {
 			persentaseInput.disabled = true;
 			persentaseInput.required = false;
-			persentaseInput.value = ""; // Bersihkan nilai saat disabled
+			persentaseInput.value = ""; // Kosongkan kalau tidak aktif
 		}
 	}
 
