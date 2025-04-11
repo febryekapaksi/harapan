@@ -5,6 +5,8 @@ $ENABLE_VIEW    = has_permission('Master_customer.View');
 $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 foreach ($results['cus'] as $cus) {
 }
+foreach ($results['rate'] as $rate) {
+}
 ?>
 <div class="box box-primary">
     <div class="box-body">
@@ -98,9 +100,9 @@ foreach ($results['cus'] as $cus) {
                                         <select id="id_karyawan" name="id_karyawan" class="form-control select" required>
                                             <option value="">--pilih--</option>
                                             <?php foreach ($results['karyawan'] as $karyawan) {
-                                                $select = $cus->id_karyawan == $karyawan->id_karyawan ? 'selected' : '';
+                                                $select = $cus->id_karyawan == $karyawan->id ? 'selected' : '';
                                             ?>
-                                                <option value="<?= $karyawan->id_karyawan ?>" <?= $select ?>><?= $karyawan->nama_karyawan ?></option>
+                                                <option value="<?= $karyawan->id ?>" <?= $select ?>><?= ucfirst(strtolower($karyawan->nm_karyawan)) ?></option>
                                             <?php } ?>
                                         </select>
                                     </div>
@@ -113,19 +115,25 @@ foreach ($results['cus'] as $cus) {
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <label>
-                                                    <input type="radio" class="radio-control" id="chanel" name="chanel" value="Toko dan User" <?= (($cus->chanel_pemasaran == 'Toko dan User') ? 'checked' : '') ?> required onclick="togglePersentaseInput()"> Toko dan User
+                                                    <input type="checkbox" class="checkbox-control" id="chanel_toko" name="chanel_toko" value="Toko dan User"
+                                                        <?= (strpos($cus->chanel_pemasaran, 'Toko dan User') !== false) ? 'checked' : '' ?>
+                                                        onclick="togglePersentaseInput()"> Toko dan User
                                                 </label>
                                             </div>
                                         </div>
-                                        <div class="row">
+                                        <div class="row mt-1">
                                             <div class="col-md-6">
                                                 <label>
-                                                    <input type="radio" class="radio-control" id="chanel" name="chanel" value="Project" <?= (($cus->chanel_pemasaran == 'Project') ? 'checked' : '') ?> required onclick="togglePersentaseInput()"> Project
+                                                    <input type="checkbox" class="checkbox-control" id="chanel_project" name="chanel_project" value="Project"
+                                                        <?= (strpos($cus->chanel_pemasaran, 'Project') !== false) ? 'checked' : '' ?>
+                                                        onclick="togglePersentaseInput()"> Project
                                                 </label>
                                             </div>
                                             <div class="col-6">
                                                 <div class="input-group">
-                                                    <input type="text" class="form-control input-sm divide" name="persentase" id="persentase" value="<?= (($cus->chanel_pemasaran == 'Project') ? $cus->persentase : '') ?>" disabled>
+                                                    <input type="text" class="form-control input-sm divide" name="persentase" id="persentase"
+                                                        value="<?= (strpos($cus->chanel_pemasaran, 'Project') !== false) ? $cus->persentase : '' ?>"
+                                                        <?= (strpos($cus->chanel_pemasaran, 'Project') !== false) ? '' : 'disabled' ?>>
                                                     <span class="input-group-addon"><i class="fa fa-percent"></i></span>
                                                 </div>
                                             </div>
@@ -220,9 +228,6 @@ foreach ($results['cus'] as $cus) {
                                         <label>
                                             <input type="radio" class="radio-control" id="facility" name="facility" value="DPIL" <?= (($cus->facility == 'DPIL') ? 'checked' : '') ?> required> DPIL
                                         </label>
-                                        <label>
-                                            <input type="radio" class="radio-control" id="facility" name="facility" value="Kawasan Berikat" <?= (($cus->facility == 'Kawasan Berikat') ? 'checked' : '') ?> required> Kawasan Berikat
-                                        </label>
                                     </div>
                                 </div>
                                 <div class="form-group row">
@@ -239,6 +244,117 @@ foreach ($results['cus'] as $cus) {
                                             }
                                             ?>
                                         </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="customer">Kategori Customer</label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select name="kategori_cust" id="kategori_cust" class="form-control select">
+                                            <option value="">-- Pilih --</option>
+                                            <option value="Distributor" <?= (($cus->kategori_cust == 'Distributor') ? 'selected' : '')  ?>>Distributor</option>
+                                            <option value="Retail" <?= (($cus->kategori_cust == 'Retail') ? 'selected' : '')  ?>>Retail</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                            <center>
+                                <h3>PENILAIAN CUSTOMER</h3>
+                            </center>
+                            <div class="col-sm-6">
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="customer">Bayar 3 Bulan On Time</label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>
+                                            <input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="Yes" <?= (($rate->ontime == 'Yes') ? 'checked' : '') ?> required> Yes
+                                        </label>
+                                        &nbsp;
+                                        <label>
+                                            <input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="No" <?= (($rate->ontime == 'No') ? 'checked' : '') ?> required> No
+                                        </label>
+                                        &nbsp;
+                                        <label>
+                                            <input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="New" <?= (($rate->ontime == 'New') ? 'checked' : '') ?> required> New
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="customer">Toko Milik Sendiri</label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>
+                                            <input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="Yes" <?= (($rate->toko_sendiri == 'Yes') ? 'checked' : '') ?> required> Yes
+                                        </label>
+                                        &nbsp;
+                                        <label>
+                                            <input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="No" <?= (($rate->toko_sendiri == 'No') ? 'checked' : '') ?> required> No
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="customer">Armada Pickup</label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" name="data4[armada_pickup]" value="<?= $rate->armada_pickup ?>">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="customer">Armada Truck</label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <input type="text" class="form-control" name="data4[armada_truck]" value="<?= $rate->armada_truck ?>">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6">
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="customer">Attitude</label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>
+                                            <input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="Yes" <?= (($rate->attitude == 'Yes') ? 'checked' : '') ?> required> Yes
+                                        </label>
+                                        &nbsp;
+                                        <label>
+                                            <input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="No" <?= (($rate->attitude == 'No') ? 'checked' : '') ?> required> No
+                                        </label>
+                                        &nbsp;
+                                        <label>
+                                            <input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="New" <?= (($rate->attitude == 'New') ? 'checked' : '') ?> required> New
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="customer">Luas Tanah</label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <textarea class="form-control" name="data4[luas_tanah]" id="luas_tanah"><?= $rate->luas_tanah ?></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="customer">PBB</label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label>
+                                            <input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="Yes" <?= (($rate->pbb == 'Yes') ? 'checked' : '') ?> required> Yes
+                                        </label>
+                                        &nbsp;
+                                        <label>
+                                            <input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="No" <?= (($rate->pbb == 'No') ? 'checked' : '') ?> required> No
+                                        </label>
+                                        &nbsp;
                                     </div>
                                 </div>
                             </div>
@@ -685,12 +801,6 @@ foreach ($results['cus'] as $cus) {
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="col-sm-12">
-                            <center>
-                                <button type="submit" class="btn btn-success btn-sm" name="save" id="simpan-com"><i class="fa fa-save"></i> Simpan</button>
-                            </center>
                         </div>
                     </div>
                 </div>

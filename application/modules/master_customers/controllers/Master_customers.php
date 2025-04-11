@@ -59,15 +59,17 @@ class Master_customers extends Admin_Controller
 		$pic = $this->db->get_where('child_customer_pic', array('id_customer' => $id))->result();
 		$cate = $this->db->get_where('child_category_customer', array('id_customer' => $id))->result();
 		$exis = $this->db->get_where('child_customer_existing', array('id_customer' => $id))->result();
+		$rate = $this->db->get_where('child_customer_rate', array('id_customer' => $id))->result();
 		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
 		$prof = $this->Customer_model->get_data('provinsi');
 		$kota = $this->Customer_model->get_data('kota');
-		$karyawan = $this->db->get_where('ms_karyawan', array('divisi' => 12, 'deleted' => 0))->result();
+		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
 		$data = [
 			'cus'	=> $cus,
 			'category' => $category,
 			'cate' => $cate,
 			'exis' => $exis,
+			'rate' => $rate,
 			'kota' => $kota,
 			'prof' => $prof,
 			'pic' => $pic,
@@ -87,15 +89,17 @@ class Master_customers extends Admin_Controller
 		$pic = $this->db->get_where('child_customer_pic', array('id_customer' => $id))->result();
 		$cate = $this->db->get_where('child_category_customer', array('id_customer' => $id))->result();
 		$exis = $this->db->get_where('child_customer_existing', array('id_customer' => $id))->result();
+		$rate = $this->db->get_where('child_customer_rate', array('id_customer' => $id))->result();
 		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
 		$prof = $this->Customer_model->get_data('provinsi');
 		$kota = $this->Customer_model->get_data('kota');
-		$karyawan = $this->db->get_where('ms_karyawan', array('divisi' => 12, 'deleted' => 0))->result();
+		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
 		$data = [
 			'cus'	=> $cus,
 			'category' => $category,
 			'cate' => $cate,
 			'exis' => $exis,
+			'rate' => $rate,
 			'kota' => $kota,
 			'prof' => $prof,
 			'pic' => $pic,
@@ -254,8 +258,7 @@ class Master_customers extends Admin_Controller
 	{
 		$this->auth->restrict($this->deletePermission);
 		$id = $this->input->post('id');
-		// print_r($id);
-		// exit();
+
 		$data = [
 			'deleted' 		=> '1',
 			'deleted_by' 	=> $this->auth->user_id()
@@ -435,6 +438,11 @@ class Master_customers extends Admin_Controller
 		} else {
 			$need_npwp = 'N';
 		};
+		if (isset($post['ditagih'])) {
+			$ditagih = 'Y';
+		} else {
+			$ditagih = 'N';
+		};
 
 		$chanel = [];
 		if ($this->input->post('chanel_toko')) {
@@ -501,14 +509,11 @@ class Master_customers extends Admin_Controller
 			'spk'					=> $spk,
 			'delivery_order'		=> $delivery_order,
 			'need_npwp'				=> $need_npwp,
+			'ditagih'				=> $ditagih,
 			'deleted'				=> '0',
 			'created_on'			=> date('Y-m-d H:i:s'),
 			'created_by'			=> $this->auth->user_id()
 		);
-		// echo '<pre>';
-		// print_r($header1);
-		// echo '</pre>';
-		// die();
 		//Add Data
 		$this->db->insert('master_customers', $header1);
 		$numb2 = 0;
@@ -546,22 +551,20 @@ class Master_customers extends Admin_Controller
 			//Add Data
 			$this->db->insert('child_customer_existing', $data);
 		}
-		$numb2 = 0;
-		foreach ($_POST['data4'] as $d4) {
-			$numb2++;
-			$data =  array(
-				'id_customer'				=> $code,
-				'ontime'					=> $d4[ontime],
-				'toko_sendiri'				=> $d4[toko_sendiri],
-				'armada_pickup'				=> $d4[armada_pickup],
-				'armada_truck'				=> $d4[armada_truck],
-				'attitude'					=> $d4[attitude],
-				'luas_tanah'				=> $d4[luas_tanah],
-				'pbb'						=> $d4[pbb],
-			);
-			//Add Data
-			$this->db->insert('child_customer_rate', $data);
-		}
+
+		$d4 = $_POST['data4'];
+		$data4 = array(
+			'id_customer'     => $code,
+			'ontime'          => $d4['ontime'],
+			'toko_sendiri'    => $d4['toko_sendiri'],
+			'armada_pickup'   => $d4['armada_pickup'],
+			'armada_truck'    => $d4['armada_truck'],
+			'attitude'        => $d4['attitude'],
+			'luas_tanah'      => $d4['luas_tanah'],
+			'pbb'             => $d4['pbb'],
+		);
+		$this->db->insert('child_customer_rate', $data4);
+
 
 		if ($this->db->trans_status() === FALSE) {
 			$this->db->trans_rollback();
@@ -673,6 +676,20 @@ class Master_customers extends Admin_Controller
 		} else {
 			$need_npwp = 'N';
 		};
+		if (isset($post['ditagih'])) {
+			$ditagih = 'Y';
+		} else {
+			$ditagih = 'N';
+		};
+
+		$chanel = [];
+		if ($this->input->post('chanel_toko')) {
+			$chanel[] = $this->input->post('chanel_toko'); // Toko dan User
+		}
+		if ($this->input->post('chanel_project')) {
+			$chanel[] = $this->input->post('chanel_project'); // Project
+		}
+
 		$session = $this->session->userdata('app_session');
 		$this->db->trans_begin();
 		$header1 =  array(
@@ -724,6 +741,7 @@ class Master_customers extends Admin_Controller
 			'spk'					=> $spk,
 			'delivery_order'		=> $delivery_order,
 			'need_npwp'				=> $need_npwp,
+			'ditagih'				=> $ditagih,
 			'deleted'				=> '0',
 			'created_on'			=> date('Y-m-d H:i:s'),
 			'created_by'			=> $this->auth->user_id()
@@ -756,6 +774,33 @@ class Master_customers extends Admin_Controller
 			//Add Data
 			$this->db->insert('child_category_customer', $data);
 		}
+		$numb2 = 0;
+		foreach ($_POST['data3'] as $d3) {
+			$numb2++;
+			$data =  array(
+				'id_customer'				=> $code,
+				'existing_pt'				=> $d3[existing_pt],
+				'existing_pic'				=> $d3[existing_pic],
+				'existing_telp'				=> $d3[existing_telp],
+			);
+			//Add Data
+			$this->db->insert('child_customer_existing', $data);
+		}
+
+		$d4 = $_POST['data4'];
+		$data4 = array(
+			'id_customer'     => $code,
+			'ontime'          => $d4['ontime'],
+			'toko_sendiri'    => $d4['toko_sendiri'],
+			'armada_pickup'   => $d4['armada_pickup'],
+			'armada_truck'    => $d4['armada_truck'],
+			'attitude'        => $d4['attitude'],
+			'luas_tanah'      => $d4['luas_tanah'],
+			'pbb'             => $d4['pbb'],
+		);
+		$this->db->insert('child_customer_rate', $data4);
+
+
 		if ($this->db->trans_status() === FALSE) {
 			$this->db->trans_rollback();
 			$status	= array(
