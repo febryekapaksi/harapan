@@ -748,6 +748,7 @@ class Master_customers extends Admin_Controller
 		);
 		//Add Data
 		$this->db->where('id_customer', $post['id_customer'])->update("master_customers", $header1);
+
 		$this->db->delete('child_customer_pic', array('id_customer' => $post['id_customer']));
 		$numb2 = 0;
 		foreach ($_POST['data1'] as $d1) {
@@ -763,6 +764,7 @@ class Master_customers extends Admin_Controller
 			//Add Data
 			$this->db->insert('child_customer_pic', $data);
 		}
+
 		$this->db->delete('child_category_customer', array('id_customer' => $post['id_customer']));
 		$numb2 = 0;
 		foreach ($_POST['data2'] as $d2) {
@@ -774,6 +776,8 @@ class Master_customers extends Admin_Controller
 			//Add Data
 			$this->db->insert('child_category_customer', $data);
 		}
+
+		$this->db->delete('child_customer_existing', array('id_customer' => $post['id_customer']));
 		$numb2 = 0;
 		foreach ($_POST['data3'] as $d3) {
 			$numb2++;
@@ -787,6 +791,7 @@ class Master_customers extends Admin_Controller
 			$this->db->insert('child_customer_existing', $data);
 		}
 
+		$this->db->delete('child_customer_rate', array('id_customer' => $post['id_customer']));
 		$d4 = $_POST['data4'];
 		$data4 = array(
 			'id_customer'     => $code,
