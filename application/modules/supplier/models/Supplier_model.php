@@ -93,8 +93,8 @@ class Supplier_model extends BF_Model
 			$edit	= "";
 			$delete	= "";
 			if ($this->ENABLE_MANAGE) {
-				// $edit	= "<a href='javascript:void(0)' data-id='" . $row['id'] . "' class='btn btn-sm btn-primary add_supplier' title='Edit Data' data-role='qtip'><i class='fa fa-edit'></i></a>";
-				$edit	= "<a href='" . site_url($this->uri->segment(1)) . '/add/' . $row['id'] . "' class='btn btn-sm btn-primary' title='Edit Data' data-role='qtip'><i class='fa fa-edit'></i></a>";
+				$edit	= "<a href='javascript:void(0)' data-id='" . $row['id'] . "' class='btn btn-sm btn-primary edit_supplier' title='Edit Data' data-role='qtip'><i class='fa fa-edit'></i></a>";
+				// $edit	= "<a href='" . site_url($this->uri->segment(1)) . '/add/' . $row['id'] . "' class='btn btn-sm btn-primary' title='Edit Data' data-role='qtip'><i class='fa fa-edit'></i></a>";
 			}
 			if ($this->ENABLE_DELETE) {
 				$delete	= "&nbsp;<button type='button' class='btn btn-sm btn-danger delete' title='Delete work data' data-id='" . $row['id'] . "'><i class='fa fa-trash'></i></button>";

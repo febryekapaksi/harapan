@@ -108,10 +108,28 @@ $ENABLE_DELETE  = has_permission('Master_Supplier.Delete');
 			success: function(data) {
 				$("#dialog-popup").modal();
 				$("#ModalView").html(data);
-
 			}
 		})
 	});
+
+	//FORM MODAL EDIT SUPPLIER
+	$(document).on('click', '.edit_supplier', function() {
+		const id = $(this).data('id');
+
+		$("#head_title").html("<i class='fa fa-edit'></i><b>Edit Data</b>");
+		$.ajax({
+			type: 'POST',
+			url: siteurl + 'supplier/edit',
+			data: {
+				id: id
+			}, // Kirim sebagai POST
+			success: function(data) {
+				$("#dialog-popup").modal();
+				$("#ModalView").html(data);
+			}
+		});
+	});
+
 
 
 	// DELETE DATA

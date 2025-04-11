@@ -162,6 +162,31 @@ class Supplier extends Admin_Controller
 		}
 	}
 
+	public function edit()
+	{
+		$id = $this->input->post('id');
+
+		if (!$id) {
+			show_error("ID tidak ditemukan", 400);
+		}
+
+		$header   	= $this->db->get_where('new_supplier', array('id' => $id))->result();
+		$country    = $this->db->order_by('name', 'asc')->get_where('country_all', array('iso3 !=' => NULL))->result_array();
+		$provinsi   = $this->db->order_by('urut', 'asc')->get('provinsi')->result_array();
+		$currency   = $this->db->order_by('negara', 'asc')->get('mata_uang')->result_array();
+
+		$data = [
+			'header' => $header,
+			'country' => $country,
+			'provinsi' => $provinsi,
+			'currency' => $currency,
+		];
+
+		$this->template->title('Edit Supplier');
+		$this->template->page_icon('fa fa-edit');
+		$this->template->render('add', $data);
+	}
+
 	public function detail()
 	{
 		// $this->auth->restrict($this->viewPermission);
