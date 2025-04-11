@@ -994,8 +994,6 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 		}
 	}
 
-
-
 	function get_kota() {
 		var id_prov = $("#id_prov").val();
 		$.ajax({

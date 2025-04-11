@@ -878,30 +878,6 @@ foreach ($results['rate'] as $rate) {
 		})
 
 
-		$('#add-category').click(function() {
-			var jumlah = $('#list_category').find('tr').length;
-			if (jumlah == 0 || jumlah == null) {
-				var ada = 0;
-				var loop = 1;
-			} else {
-				var nilai = $('#list_category tr:last').attr('id');
-				var jum1 = nilai.split('_');
-				var loop = parseInt(jum1[1]) + 1;
-			}
-			Template = '<tr id="tr_' + loop + '">';
-			Template += '<td align="left">';
-			Template += '<select id="data2_' + loop + '_id_category_customer" name="data2[' + loop + '][id_category_customer]" class="form-control select" required>';
-			Template += '<option value="">--pilih--</option>';
-			Template += '<?php foreach ($results['category'] as $category) { ?>';
-			Template += '<option value="<?= $category->name_category_customer ?>"><?= ucfirst(strtolower($category->name_category_customer)) ?></option>';
-			Template += '<?php } ?>';
-			Template += '</select>';
-			Template += '</td>';
-			Template += '</td>';
-			Template += '<td align="center"><button type="button" class="btn btn-sm btn-danger" title="Hapus Data" data-role="qtip" onClick="return DelItem2(' + loop + ');"><i class="fa fa-trash-o"></i></button></td>';
-			Template += '</tr>';
-			$('#list_category').append(Template);
-		});
 		$('#add-payment').click(function() {
 			var jumlah = $('#list_payment').find('tr').length;
 			if (jumlah == 0 || jumlah == null) {
@@ -929,7 +905,54 @@ foreach ($results['rate'] as $rate) {
 			Template += '</tr>';
 			$('#list_payment').append(Template);
 		});
-
+		$('#add-category').click(function() {
+			var jumlah = $('#list_category').find('tr').length;
+			if (jumlah == 0 || jumlah == null) {
+				var ada = 0;
+				var loop = 1;
+			} else {
+				var nilai = $('#list_category tr:last').attr('id');
+				var jum1 = nilai.split('_');
+				var loop = parseInt(jum1[1]) + 1;
+			}
+			Template = '<tr id="tr_' + loop + '">';
+			Template += '<td align="left">';
+			Template += '<select id="data2_' + loop + '_id_category_customer" name="data2[' + loop + '][id_category_customer]" class="form-control select" required>';
+			Template += '<option value="">--pilih--</option>';
+			Template += '<?php foreach ($results['category'] as $category) { ?>';
+			Template += '<option value="<?= $category->name_category_customer ?>"><?= ucfirst(strtolower($category->name_category_customer)) ?></option>';
+			Template += '<?php } ?>';
+			Template += '</select>';
+			Template += '</td>';
+			Template += '</td>';
+			Template += '<td align="center"><button type="button" class="btn btn-sm btn-danger" title="Hapus Data" data-role="qtip" onClick="return DelItem2(' + loop + ');"><i class="fa fa-trash-o"></i></button></td>';
+			Template += '</tr>';
+			$('#list_category').append(Template);
+		});
+		$('#add-existing').click(function() {
+			var jumlah = $('#list_existing').find('tr').length;
+			if (jumlah == 0 || jumlah == null) {
+				var ada = 0;
+				var loop = 1;
+			} else {
+				var nilai = $('#list_existing tr:last').attr('id');
+				var jum1 = nilai.split('_');
+				var loop = parseInt(jum1[1]) + 1;
+			}
+			Template = '<tr id="tr_' + loop + '">';
+			Template += '<td align="left">';
+			Template += '<input type="text" class="form-control input-sm" name="data3[' + loop + '][existing_pt]" id="data3_' + loop + '_existing_pt" label="FALSE" div="FALSE">';
+			Template += '</td>';
+			Template += '<td align="left">';
+			Template += '<input type="text" class="form-control input-sm" name="data3[' + loop + '][existing_pic]" id="data3_' + loop + '_existing_pic" label="FALSE" div="FALSE">';
+			Template += '</td>';
+			Template += '<td align="left">';
+			Template += '<input type="text" class="form-control input-sm" name="data3[' + loop + '][existing_telp]" id="data3_' + loop + '_existing_telp" label="FALSE" div="FALSE">';
+			Template += '</td>';
+			Template += '<td align="center"><button type="button" class="btn btn-sm btn-danger" title="Hapus Data" data-role="qtip" onClick="return DelItem3(' + loop + ');"><i class="fa fa-trash-o"></i></button></td>';
+			Template += '</tr>';
+			$('#list_existing').append(Template);
+		});
 
 
 		$('#simpan-com').click(function(e) {
