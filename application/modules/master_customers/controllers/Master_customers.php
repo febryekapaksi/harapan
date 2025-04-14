@@ -517,53 +517,60 @@ class Master_customers extends Admin_Controller
 		//Add Data
 		$this->db->insert('master_customers', $header1);
 		$numb2 = 0;
-		foreach ($_POST['data1'] as $d1) {
-			$numb2++;
-			$data =  array(
-				'id_customer'	=> $code,
-				'name_pic'		=> $d1[name_pic],
-				'phone_pic'		=> $d1[phone_pic],
-				'email_pic'		=> $d1[email_pic],
-				'position_pic'	=> $d1[position_pic]
-			);
-			//Add Data
-			$this->db->insert('child_customer_pic', $data);
-		}
-		$numb2 = 0;
-		foreach ($_POST['data2'] as $d2) {
-			$numb2++;
-			$data =  array(
-				'id_customer'				=> $code,
-				'name_category_customer'	=> $d2[id_category_customer],
-			);
-			//Add Data
-			$this->db->insert('child_category_customer', $data);
-		}
-		$numb2 = 0;
-		foreach ($_POST['data3'] as $d3) {
-			$numb2++;
-			$data =  array(
-				'id_customer'				=> $code,
-				'existing_pt'				=> $d3[existing_pt],
-				'existing_pic'				=> $d3[existing_pic],
-				'existing_telp'				=> $d3[existing_telp],
-			);
-			//Add Data
-			$this->db->insert('child_customer_existing', $data);
+		if (isset($_POST['data1']) && is_array($_POST['data1'])) {
+			foreach ($_POST['data1'] as $d1) {
+				$numb2++;
+				$data = array(
+					'id_customer'	=> $code,
+					'name_pic'		=> $d1['name_pic'],
+					'phone_pic'		=> $d1['phone_pic'],
+					'email_pic'		=> $d1['email_pic'],
+					'position_pic'	=> $d1['position_pic']
+				);
+				$this->db->insert('child_customer_pic', $data);
+			}
 		}
 
-		$d4 = $_POST['data4'];
-		$data4 = array(
-			'id_customer'     => $code,
-			'ontime'          => $d4['ontime'],
-			'toko_sendiri'    => $d4['toko_sendiri'],
-			'armada_pickup'   => $d4['armada_pickup'],
-			'armada_truck'    => $d4['armada_truck'],
-			'attitude'        => $d4['attitude'],
-			'luas_tanah'      => $d4['luas_tanah'],
-			'pbb'             => $d4['pbb'],
-		);
-		$this->db->insert('child_customer_rate', $data4);
+		$numb2 = 0;
+		if (isset($_POST['data2']) && is_array($_POST['data2'])) {
+			foreach ($_POST['data2'] as $d2) {
+				$numb2++;
+				$data = array(
+					'id_customer'				=> $code,
+					'name_category_customer'	=> $d2['id_category_customer'],
+				);
+				$this->db->insert('child_category_customer', $data);
+			}
+		}
+
+		$numb2 = 0;
+		if (isset($_POST['data3']) && is_array($_POST['data3'])) {
+			foreach ($_POST['data3'] as $d3) {
+				$numb2++;
+				$data = array(
+					'id_customer'	=> $code,
+					'existing_pt'	=> $d3['existing_pt'],
+					'existing_pic'	=> $d3['existing_pic'],
+					'existing_telp'	=> $d3['existing_telp'],
+				);
+				$this->db->insert('child_customer_existing', $data);
+			}
+		}
+
+		if (isset($_POST['data4']) && is_array($_POST['data4'])) {
+			$d4 = $_POST['data4'];
+			$data4 = array(
+				'id_customer'     => $code,
+				'ontime'          => $d4['ontime'],
+				'toko_sendiri'    => $d4['toko_sendiri'],
+				'armada_pickup'   => $d4['armada_pickup'],
+				'armada_truck'    => $d4['armada_truck'],
+				'attitude'        => $d4['attitude'],
+				'luas_tanah'      => $d4['luas_tanah'],
+				'pbb'             => $d4['pbb'],
+			);
+			$this->db->insert('child_customer_rate', $data4);
+		}
 
 
 		if ($this->db->trans_status() === FALSE) {
@@ -748,62 +755,70 @@ class Master_customers extends Admin_Controller
 		);
 		//Add Data
 		$this->db->where('id_customer', $post['id_customer'])->update("master_customers", $header1);
+		$code = $post['id_customer'];
 
 		$this->db->delete('child_customer_pic', array('id_customer' => $post['id_customer']));
 		$numb2 = 0;
-		foreach ($_POST['data1'] as $d1) {
-			$numb2++;
-			$code = $post['id_customer'];
-			$data =  array(
-				'id_customer'	=> $code,
-				'name_pic'		=> $d1[name_pic],
-				'phone_pic'		=> $d1[phone_pic],
-				'email_pic'		=> $d1[email_pic],
-				'position_pic'	=> $d1[position_pic]
-			);
-			//Add Data
-			$this->db->insert('child_customer_pic', $data);
+		if (isset($_POST['data1']) && is_array($_POST['data1'])) {
+			foreach ($_POST['data1'] as $d1) {
+				$numb2++;
+				$data =  array(
+					'id_customer'	=> $code,
+					'name_pic'		=> $d1['name_pic'],
+					'phone_pic'		=> $d1['phone_pic'],
+					'email_pic'		=> $d1['email_pic'],
+					'position_pic'	=> $d1['position_pic']
+				);
+				//Add Data
+				$this->db->insert('child_customer_pic', $data);
+			}
 		}
 
 		$this->db->delete('child_category_customer', array('id_customer' => $post['id_customer']));
 		$numb2 = 0;
-		foreach ($_POST['data2'] as $d2) {
-			$numb2++;
-			$data =  array(
-				'id_customer'	=> $code,
-				'name_category_customer'		=> $d2[id_category_customer],
-			);
-			//Add Data
-			$this->db->insert('child_category_customer', $data);
+		if (isset($_POST['data2']) && is_array($_POST['data2'])) {
+			foreach ($_POST['data2'] as $d2) {
+				$numb2++;
+				$data =  array(
+					'id_customer'				=> $code,
+					'name_category_customer'	=> $d2['id_category_customer'],
+				);
+				//Add Data
+				$this->db->insert('child_category_customer', $data);
+			}
 		}
 
 		$this->db->delete('child_customer_existing', array('id_customer' => $post['id_customer']));
 		$numb2 = 0;
-		foreach ($_POST['data3'] as $d3) {
-			$numb2++;
-			$data =  array(
-				'id_customer'				=> $code,
-				'existing_pt'				=> $d3[existing_pt],
-				'existing_pic'				=> $d3[existing_pic],
-				'existing_telp'				=> $d3[existing_telp],
-			);
-			//Add Data
-			$this->db->insert('child_customer_existing', $data);
+		if (isset($_POST['data3']) && is_array($_POST['data3'])) {
+			foreach ($_POST['data3'] as $d3) {
+				$numb2++;
+				$data =  array(
+					'id_customer'				=> $code,
+					'existing_pt'				=> $d3['existing_pt'],
+					'existing_pic'				=> $d3['existing_pic'],
+					'existing_telp'				=> $d3['existing_telp'],
+				);
+				//Add Data
+				$this->db->insert('child_customer_existing', $data);
+			}
 		}
 
 		$this->db->delete('child_customer_rate', array('id_customer' => $post['id_customer']));
-		$d4 = $_POST['data4'];
-		$data4 = array(
-			'id_customer'     => $code,
-			'ontime'          => $d4['ontime'],
-			'toko_sendiri'    => $d4['toko_sendiri'],
-			'armada_pickup'   => $d4['armada_pickup'],
-			'armada_truck'    => $d4['armada_truck'],
-			'attitude'        => $d4['attitude'],
-			'luas_tanah'      => $d4['luas_tanah'],
-			'pbb'             => $d4['pbb'],
-		);
-		$this->db->insert('child_customer_rate', $data4);
+		if (isset($_POST['data4']) && is_array($_POST['data4'])) {
+			$d4 = $_POST['data4'];
+			$data4 = array(
+				'id_customer'     => $code,
+				'ontime'          => $d4['ontime'],
+				'toko_sendiri'    => $d4['toko_sendiri'],
+				'armada_pickup'   => $d4['armada_pickup'],
+				'armada_truck'    => $d4['armada_truck'],
+				'attitude'        => $d4['attitude'],
+				'luas_tanah'      => $d4['luas_tanah'],
+				'pbb'             => $d4['pbb'],
+			);
+			$this->db->insert('child_customer_rate', $data4);
+		}
 
 
 		if ($this->db->trans_status() === FALSE) {
