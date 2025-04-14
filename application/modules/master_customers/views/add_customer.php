@@ -198,16 +198,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									</label>
 								</div>
 							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Facility</label>
-								</div>
-								<div class="col-md-6">
-									<label>
-										<input type="radio" class="radio-control" id="facility" name="facility" value="DPIL" required> DPIL
-									</label>
-								</div>
-							</div>
+
 							<div class="form-group row">
 								<div class="col-md-6">
 									<label for="customer">Mulai Usaha Sejak</label>

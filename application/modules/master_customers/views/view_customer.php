@@ -220,16 +220,7 @@ foreach ($results['rate'] as $rate) {
                                         </label>
                                     </div>
                                 </div>
-                                <div class="form-group row">
-                                    <div class="col-md-6">
-                                        <label for="customer">Facility</label>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label>
-                                            <input type="radio" class="radio-control" id="facility" name="facility" value="DPIL" <?= (($cus->facility == 'DPIL') ? 'checked' : '') ?> required> DPIL
-                                        </label>
-                                    </div>
-                                </div>
+
                                 <div class="form-group row">
                                     <div class="col-md-6">
                                         <label for="customer">Mulai Usaha Sejak</label>
@@ -796,6 +787,13 @@ foreach ($results['rate'] as $rate) {
                                         <div class="col-md-12">
                                             <label>
                                                 <input type="checkbox" class="radio-control" id="need_npwp" name="need_npwp" <?= (($cus->need_npwp == 'Y') ? 'checked' : '') ?> value="Y" required> NPWP
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group row">
+                                        <div class="col-md-12">
+                                            <label>
+                                                <input type="checkbox" class="radio-control" id="ditagih" name="ditagih" <?= (($cus->ditagih == 'Y') ? 'checked' : '') ?> value="Y" value="Y" required> Ditagih Kolektor/Sales
                                             </label>
                                         </div>
                                     </div>

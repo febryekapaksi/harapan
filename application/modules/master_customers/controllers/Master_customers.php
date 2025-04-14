@@ -716,6 +716,10 @@ class Master_customers extends Admin_Controller
 			'latitude'		    	=> $post['latitude'],
 			'activation'		    => $post['activation'],
 			'facility'		   		=> $post['facility'],
+			'kategori_cust'			=> $post['kategori_cust'],
+			'chanel_pemasaran' 		=> implode(', ', $chanel),
+			'persentase'       		=> $post['persentase'],
+			'tahun_mulai'		   	=> $post['tahun_mulai'],
 			'name_bank'		    	=> $post['name_bank'],
 			'no_rekening'		    => $post['no_rekening'],
 			'nama_rekening'		    => $post['nama_rekening'],
@@ -753,6 +757,7 @@ class Master_customers extends Admin_Controller
 			'created_on'			=> date('Y-m-d H:i:s'),
 			'created_by'			=> $this->auth->user_id()
 		);
+
 		//Add Data
 		$this->db->where('id_customer', $post['id_customer'])->update("master_customers", $header1);
 		$code = $post['id_customer'];
