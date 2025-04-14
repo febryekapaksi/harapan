@@ -61,7 +61,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 										<td><?= $numb; ?></td>
 										<td hidden><?= $customer->id_customer ?></td>
 										<td><?= $customer->name_customer ?></td>
-										<td><?= $customer->nama_karyawan ?></td>
+										<td><?= ucfirst($customer->nama_karyawan) ?></td>
 										<td hidden><?php
 													$id = $customer->id_customer;
 													$cate  = $this->db->get_where('child_category_customer', array('id_customer' => $id))->result();
