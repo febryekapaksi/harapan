@@ -331,7 +331,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 
 					<div class="col-sm-12">
 						<center>
-							<h3>SUPLIER EXISTING CUSTOMER</h3>
+							<h3>SUPPLIER EXISTING CUSTOMER</h3>
 						</center>
 						<div class="form-group row">
 							<div class="col-md-12">

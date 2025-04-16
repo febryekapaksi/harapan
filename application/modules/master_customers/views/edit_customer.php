@@ -24,7 +24,7 @@ foreach ($results['rate'] as $rate) {
 										<label for="id_supplier">Id Customer</label>
 									</div>
 									<div class="col-md-6">
-										<input type="text" class="form-control" id="id_customer" value='<?= $cus->id_customer ?>' required name="id_customer" readonly placeholder="Id Suplier">
+										<input type="text" class="form-control" id="id_customer" value='<?= $cus->id_customer ?>' required name="id_customer" readonly placeholder="Id Customer">
 									</div>
 								</div>
 
@@ -352,7 +352,7 @@ foreach ($results['rate'] as $rate) {
 
 						<div class="col-sm-12">
 							<center>
-								<h3>SUPLIER EXISTING CUSTOMER</h3>
+								<h3>SUPPLIER EXISTING CUSTOMER</h3>
 							</center>
 							<div class="form-group row">
 								<div class="col-md-12">
