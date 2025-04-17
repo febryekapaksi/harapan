@@ -79,7 +79,7 @@ $ENABLE_DELETE  = has_permission('Costing_rate.Delete');
                             echo "<tr>";
                             echo "<td class='text-center text-bold'>" . $nomor . "</td>";
                             // echo "<td class='text-center text-bold text-primary'>".$value['code']."</td>";
-                            echo "<td>" . strtoupper($value['element_costing']) . "</td>";
+                            echo "<td class='text-bold'>" . strtoupper($value['element_costing']) . "</td>";
                             echo "<td>";
                             echo "<input type='hidden' id='id_" . $value['code'] . "' name='detail[" . $value['code'] . "][code]' value='" . $value['code'] . "'>";
                             echo "<input type='hidden' name='detail[" . $value['code'] . "][judul]' value='" . $value['judul'] . "'>";
@@ -119,8 +119,8 @@ $ENABLE_DELETE  = has_permission('Costing_rate.Delete');
 <script type="text/javascript">
     $(document).ready(function() {
         $('.autoNumeric').autoNumeric()
-        $('#rate_1,#rate_11,#rate_13,#rate_14,#rate_15,#rate_16,#rate_17,#rate_19,#rate_21,#rate_22,#rate_23,#rate_24,#rate_26,#rate_27,#rate_28,#rate_29,#rate_30,#rate_31,#rate_32').prop('readonly', true);
-        $('#coa_1,#coa_11,#coa_13,#coa_14,#coa_15,#coa_16,#coa_17,#coa_19,#coa_21,#coa_22,#coa_23,#coa_24,#coa_26,#coa_27,#coa_28,#coa_29,#coa_30,#coa_31,#coa_32').prop('readonly', true);
+        $('#rate_1,#rate_2,#rate_12,#rate_19,#rate_20,#rate_34').prop('readonly', true);
+        $('#coa_1,#coa_2,#coa_12,#coa_19,#coa_20,#coa_34').prop('readonly ', true);
     })
 
     $('#save').click(function(e) {
