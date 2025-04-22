@@ -62,6 +62,38 @@ class Price_list extends Admin_Controller
 		$this->template->render('add', $data);
 	}
 
+	// approve
+	public function approve($id = null)
+	{
+		if (!$id) {
+			echo json_encode(['save' => 0, 'message' => 'ID tidak ditemukan']);
+			return;
+		}
+
+		// Cek apakah datanya ada
+		$costing = $this->db->get_where('product_costing', ['id' => $id])->row();
+		if (!$costing) {
+			echo json_encode(['save' => 0, 'message' => 'Data tidak ditemukan']);
+			return;
+		}
+
+		$data = [
+			'status' 	  => 'A',
+			'modified_by' => $this->auth->user_id(),
+			'modified_at' => date('Y-m-d H:i:s')
+		];
+
+		$this->db->where('id', $id);
+		$update = $this->db->update('product_costing', $data);
+
+		if ($update) {
+			echo json_encode(['save' => 1, 'message' => 'Disetujui']);
+		} else {
+			echo json_encode(['save' => 0, 'message' => 'Gagal update status']);
+		}
+	}
+
+
 	public function data_side_product_costing()
 	{
 		$this->price_list_model->get_json_product_costing();

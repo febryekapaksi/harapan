@@ -44,7 +44,7 @@ for ($i = 0; $i < $total_rows; $i++) {
 <div class="box box-primary">
     <div class="box-body">
         <form id="data-form" autocomplete="off">
-            <input type="hidden" name="id" value="<?= (!empty($procost->id)) ? $procost->id : '' ?>">
+            <input type="hidden" name="id" id="id" value="<?= (!empty($procost->id)) ? $procost->id : '' ?>">
             <div class="form-group row">
                 <div class="col-md-3">
                     <label for="">Product <span class='text-danger'>*</span></label>
@@ -168,8 +168,8 @@ for ($i = 0; $i < $total_rows; $i++) {
 
             <div class="form-group row">
                 <div class="col-md-12 text-center">
-                    <button type="submit" class="btn btn-primary approve" name="approve" id="approve"><i class="fa fa-check"></i> Approve</button>
-                    <button type="submit" class="btn btn-danger reject" name="reject" id="reject"><i class="fa fa-ban"></i> Reject</button>
+                    <a class="btn btn-primary approve" name="approve" id="approve" onclick="Approve()"><i class="fa fa-check"></i> Approve</a>
+                    <a class="btn btn-danger reject" name="reject" id="reject"><i class="fa fa-ban"></i> Reject</a>
                 </div>
             </div>
         </form>
@@ -334,5 +334,60 @@ for ($i = 0; $i < $total_rows; $i++) {
 
     function DelKompetitor(id) {
         $('#list_kompetitor #tr_' + id).remove();
+    }
+
+    function Approve() {
+        swal({
+                title: "Anda Yakin?",
+                text: "Data Akan Disetujui!",
+                type: "info",
+                showCancelButton: true,
+                confirmButtonText: "Ya, setuju!",
+                cancelButtonText: "Tidak!",
+                closeOnConfirm: false,
+                closeOnCancel: true
+            },
+            function(isConfirm) {
+                if (isConfirm) {
+                    id = $("#id").val();
+                    var baseurl = base_url + active_controller + 'approve/' + id
+                    $.ajax({
+                        url: baseurl,
+                        dataType: "json",
+                        type: 'POST',
+                        success: function(msg) {
+                            if (msg['save'] == '1') {
+                                swal({
+                                    title: "Sukses!",
+                                    text: "Data Berhasil Di Setujui",
+                                    type: "success",
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                window.location.href = base_url + active_controller;
+                            } else {
+                                swal({
+                                    title: "Gagal!",
+                                    text: "Data Gagal Di Setujui",
+                                    type: "error",
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                            };
+                            console.log(msg);
+                        },
+                        error: function(msg) {
+                            swal({
+                                title: "Gagal!",
+                                text: "Ajax Data Gagal Di Proses",
+                                type: "error",
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            console.log(msg);
+                        }
+                    });
+                }
+            });
     }
 </script>

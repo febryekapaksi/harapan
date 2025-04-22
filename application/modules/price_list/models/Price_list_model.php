@@ -85,10 +85,10 @@ class Price_list_model extends BF_Model
 			$warna = 'primary';
 			if ($row['status'] == 'A') {
 				$status_label = 'Approved';
-				$warna = 'success';
+				$warna = 'green';
 			} elseif ($row['status'] == 'R') {
 				$status_label = 'Rejected';
-				$warna = 'danger';
+				$warna = 'red';
 			}
 
 			// Tombol aksi hanya untuk WA dan R
