@@ -56,11 +56,6 @@ class Costing_rate extends Admin_Controller
             $ArrayInsert[$val]['updated_by']         = $username;
             $ArrayInsert[$val]['updated_date']       = $datetime;
         }
-        echo '<pre>';
-        print_r($ArrayInsert);
-        echo '</pre>';
-        die();
-
         $this->db->trans_start();
         $this->db->where('deleted_date', NULL);
         $this->db->update('costing_rate', array('deleted_by' => $username, 'deleted_date' => $datetime));
