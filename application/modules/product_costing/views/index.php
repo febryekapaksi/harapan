@@ -129,6 +129,7 @@
 
     });
 
+    // SHOW MODAL FOR ADD
     $(document).on('click', '.add-costing', function() {
         $("#head_title").html("<i class='fa fa-list-alt'></i><b>Tambah Data</b>");
         $.ajax({
@@ -139,6 +140,24 @@
                 $("#ModalView").html(data);
             }
         })
+    });
+
+    // SHOW MODAL FOR EDIT
+    $(document).on('click', '.edit', function() {
+        const id = $(this).data('id');
+
+        $("#head_title").html("<i class='fa fa-edit'></i><b>Edit Data</b>");
+        $.ajax({
+            type: 'POST',
+            url: siteurl + 'product_costing/edit',
+            data: {
+                id: id
+            }, // Kirim sebagai POST
+            success: function(data) {
+                $("#dialog-popup").modal();
+                $("#ModalView").html(data);
+            }
+        });
     });
 
     $(function() {

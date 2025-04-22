@@ -44,6 +44,7 @@ for ($i = 0; $i < $total_rows; $i++) {
 <div class="box box-primary">
     <div class="box-body">
         <form id="data-form" autocomplete="off">
+            <input type="hidden" name="id" value="<?= (!empty($procost->id)) ? $procost->id : '' ?>">
             <div class="form-group row">
                 <div class="col-md-3">
                     <label for="">Product <span class='text-danger'>*</span></label>
@@ -51,11 +52,14 @@ for ($i = 0; $i < $total_rows; $i++) {
                 <div class="col-md-9">
                     <select name="product_id" id="productSelect" class="form-control select2">
                         <option value="">-- Pilih Produk --</option>
-                        <?php foreach ($product as $item): ?>
-                            <option value="<?= $item['id'] ?>" data-harga="<?= $item['price_ref'] ?>">
+                        <?php foreach ($product as $item) {
+                            $code_lv4 = (!empty($procost->code_lv4)) ? $procost->code_lv4 : '';
+                            $selected = ($item['code_lv4'] == $code_lv4) ? 'selected' : '';
+                        ?>
+                            <option value="<?= $item['code_lv4'] ?>" data-harga="<?= $item['price_ref'] ?>" <?= $selected ?>>
                                 <?= $item['nama'] ?>
                             </option>
-                        <?php endforeach; ?>
+                        <?php } ?>
                     </select>
                 </div>
             </div>
@@ -64,7 +68,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Harga Beli</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide harga_beli" name="harga_beli" readonly>
+                    <input type="text" class="form-control divide harga_beli" name="harga_beli" value="<?= (!empty($procost->harga_beli)) ? $procost->harga_beli : '' ?>" readonly>
                 </div>
             </div>
             <hr>
@@ -73,7 +77,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya Import</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_import" name="biaya_import" readonly>
+                    <input type="text" class="form-control divide biaya_import" name="biaya_import" value="<?= (!empty($procost->biaya_import)) ? $procost->biaya_import : '' ?>" readonly>
                 </div>
             </div>
             <div class="form-group row">
@@ -81,7 +85,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya Cabang</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_cabang" name="biaya_cabang" readonly>
+                    <input type="text" class="form-control divide biaya_cabang" name="biaya_cabang" value="<?= (!empty($procost->biaya_cabang)) ? $procost->biaya_cabang : '' ?>" readonly>
                 </div>
             </div>
             <div class="form-group row">
@@ -89,7 +93,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya Logistik</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_logistik" name="biaya_logistik" readonly>
+                    <input type="text" class="form-control divide biaya_logistik" name="biaya_logistik" value="<?= (!empty($procost->biaya_logistik)) ? $procost->biaya_logistik : '' ?>" readonly>
                 </div>
             </div>
             <div class="form-group row">
@@ -97,7 +101,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya HO</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_ho" name="biaya_ho" readonly>
+                    <input type="text" class="form-control divide biaya_ho" name="biaya_ho" value="<?= (!empty($procost->biaya_ho)) ? $procost->biaya_ho : '' ?>" readonly>
                 </div>
             </div>
             <div class="form-group row">
@@ -105,7 +109,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya Marketing</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_marketing" name="biaya_marketing" readonly>
+                    <input type="text" class="form-control divide biaya_marketing" name="biaya_marketing" value="<?= (!empty($procost->biaya_marketing)) ? $procost->biaya_marketing : '' ?>" readonly>
                 </div>
             </div>
             <hr>
@@ -114,7 +118,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Product Costing</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide price" name="price" readonly>
+                    <input type="text" class="form-control divide price" name="price" value="<?= (!empty($procost->price)) ? $procost->price : '' ?>" readonly>
                 </div>
             </div>
             <hr>
@@ -134,7 +138,19 @@ for ($i = 0; $i < $total_rows; $i++) {
                             </tr>
                         </thead>
                         <tbody id='list_kompetitor'>
-
+                            <?php
+                            if (isset($kompetitor)) {
+                                $loop = 0;
+                                foreach ($kompetitor as $kp) {
+                                    $loop++;
+                                    echo "<tr id='tr_$loop'>";
+                                    echo "<td align='left'><input type='text' class='form-control input-sm' name='kompetitor[" . $loop . "][nama]' value='$kp->nama' id='kompetitor" . $loop . "_nama'></td>";
+                                    echo "<td align='left'><input type='text' class='form-control divide input-sm' name='kompetitor[" . $loop . "][harga]' value='$kp->harga' id='kompetitor" . $loop . "_harga'></td>";
+                                    echo "<td align='center'><button type='button' class='btn btn-sm btn-danger' title='Hapus Data' data-role='qtip' onClick='return DelKompetitor(" . $loop . ");'><i class='fa fa-trash-o'></i></button></td>";
+                                    echo "</tr>";
+                                }
+                            }
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -146,7 +162,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Propose Costing</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide propose_price" name="propose_price">
+                    <input type="text" class="form-control divide propose_price" value="<?= (!empty($procost->propose_price)) ? $procost->propose_price : '' ?>" name="propose_price">
                 </div>
             </div>
 

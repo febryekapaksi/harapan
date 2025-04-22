@@ -50,14 +50,43 @@ class Product_costing extends Admin_Controller
         $this->template->render('add', $data);
     }
 
+    public function edit()
+    {
+        $id = $this->input->post('id');
+        if (!$id) {
+            show_error("ID tidak ditemukan", 400);
+        }
+        $procost = $this->db->get_where('product_costing', ['id' => $id])->row();
+        $kompetitor = $this->db->get_where('product_costing_kompetitor', ['id_product_costing' => $procost->id])->result();
+
+        $product = $this->db->get_where('new_inventory_4', array('price_ref !=' => NULL))->result_array();
+        $costing = $this->db->get_where('costing_rate', array('deleted_date' => NULL))->result_array();
+
+        $data = [
+            'product'       => $product,
+            'costing'       => $costing,
+            'procost'       => $procost,
+            'kompetitor'    => $kompetitor,
+        ];
+        $this->template->title('Edit Costing');
+        $this->template->page_icon('fa fa-edit');
+        $this->template->render('add', $data);
+    }
+
     public function save()
     {
         $data = $this->input->post();
+        $id = $data['id']; // <-- id untuk update, bisa null/kosong saat insert
 
-        $id = $data['product_id'];
-        $id_product_costing = $this->product_costing_model->generate_id();
+        // Ambil data inventory
+        $id_product = $data['product_id'];
+        $inven = $this->db->get_where('new_inventory_4', ['code_lv4' => $id_product])->row();
+        if (!$inven) {
+            show_error('Produk tidak ditemukan.');
+        }
 
-        $inven = $this->db->get_where('new_inventory_4', array('id' => $id))->row();
+        $is_update = !empty($id);
+        $id_product_costing = $is_update ? $id : $this->product_costing_model->generate_id();
 
         $header = [
             'id'                => $id_product_costing,
@@ -75,23 +104,44 @@ class Product_costing extends Admin_Controller
             'price'             => $data['price'],
             'propose_price'     => $data['propose_price'],
             'status'            => "WA",
-            'created_by'        => $this->auth->user_id(),
-            'created_at'        => date('Y-m-d H:i:s'),
         ];
-        $this->db->insert('product_costing', $header);
 
-        $no = 0;
+        if ($is_update) {
+            $header['modified_by'] = $this->auth->user_id();
+            $header['modified_at'] = date('Y-m-d H:i:s');
+        } else {
+            $header['created_by'] = $this->auth->user_id();
+            $header['created_at'] = date('Y-m-d H:i:s');
+        }
+
+        // Insert/update product_costing
+        $this->db->trans_start();
+        if ($is_update) {
+            $this->db->where('id', $id);
+            $this->db->update('product_costing', $header);
+            $id_product_costing = $id;
+        } else {
+            $this->db->insert('product_costing', $header);
+            $id_product_costing = $header['id']; // pakai ID yang baru dibuat
+        }
+        // Hapus dan simpan ulang kompetitor
+        if ($is_update) {
+            $this->db->delete('product_costing_kompetitor', ['id_product_costing' => $id_product_costing]);
+        }
         if (isset($_POST['kompetitor']) && is_array($_POST['kompetitor'])) {
+            $kompetitor_data = [];
             foreach ($_POST['kompetitor'] as $komp) {
-                $no++;
-                $data = array(
-                    'id_product_costing'    => $id_product_costing,
-                    'nama'                  => $komp['nama'],
-                    'harga'                 => $komp['harga'],
-                );
-                $this->db->insert('product_costing_kompetitor', $data);
+                $kompetitor_data[] = [
+                    'id_product_costing' => $id_product_costing,
+                    'nama'               => $komp['nama'],
+                    'harga'              => str_replace(',', '', $komp['harga']),
+                ];
+            }
+            if (!empty($kompetitor_data)) {
+                $this->db->insert_batch('product_costing_kompetitor', $kompetitor_data);
             }
         }
+        $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();

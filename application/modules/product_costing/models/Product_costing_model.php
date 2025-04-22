@@ -93,8 +93,8 @@ class Product_costing_model extends BF_Model
             // Tombol aksi hanya untuk WA dan R
             $action = '';
             if (in_array($row['status'], ['WA', 'R'])) {
-                $action .= "<a href='" . site_url($this->uri->segment(1) . '/edit/' . $row['id']) . "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
-                $action .= "<a href='" . site_url($this->uri->segment(1) . '/delete/' . $row['id']) . "' class='btn btn-sm btn-danger' title='Delete' onclick=\"return confirm('Yakin hapus data ini?')\"><i class='fa fa-trash'></i></a>";
+                $action .= "<a href='javascript:void(0)' data-id='" . $row['id'] . "'  class='btn btn-sm btn-primary edit' data-id title='Edit'><i class='fa fa-edit'></i></a> ";
+                $action .= "<a class='btn btn-sm btn-danger delete' title='Delete'><i class='fa fa-trash'></i></a>";
             }
 
             $nestedData = [];
