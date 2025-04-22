@@ -23,7 +23,7 @@
 			<div class="col-md-2">
 				<select name="status" id="status" class='form-control select2'>
 					<option value="0">ALL STATUS</option>
-					<option value="N">Waiting Submission</option>
+					<!-- <option value="N">Waiting Submission</option> -->
 					<option value="WA">Waiting Approval</option>
 					<option value="A">Approved</option>
 					<option value="R">Rejected</option>
@@ -37,18 +37,11 @@
 						<th>#</th>
 						<th>Product Type</th>
 						<th>Product Name</th>
-						<!-- <th>Variant</th>
-			<th>Color</th>
-			<th>Surface</th> -->
-						<th class='text-right'>Total Weight</th>
-						<!-- <th class='text-right'>Price Material</th> -->
-						<!-- <th class='text-right'>Price MP</th> -->
-						<!-- <th class='text-right'>Product Costing</th> -->
-						<th class='text-right'>Price List USD</th>
-						<th class='text-right'>Price List IDR</th>
-						<th class='text-right'>Orindo (%)</th>
-						<th class='text-right'>Price Orindo</th>
-						<th>Status</th>
+						<th class='text-right'>Price List<br>(IDR)</th>
+						<th class='text-right'>Price Diajukan<br>(IDR)</th>
+						<th>Kompetitor</th>
+						<th>Status Price List</th>
+						<th width='10%'>Reason</th>
 						<th width='7%'>Action</th>
 					</tr>
 				</thead>
@@ -58,6 +51,24 @@
 		</div>
 	</div>
 	<!-- /.box-body -->
+
+	<div class="modal modal-default fade" id="dialog-popup" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+					<h4 class="modal-title" id="myModalLabel"><span class="fa fa-users"></span>&nbsp;Approval Product Costing</h4>
+				</div>
+				<div class="modal-body" id="ModalView">
+					...
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-danger" data-dismiss="modal">
+						<span class="glyphicon glyphicon-remove"></span> Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>
 
 <!-- DataTables -->
@@ -130,13 +141,30 @@
 		DataTables(status);
 	});
 
+	// SHOW MODAL FOR Approval
+	$(document).on('click', '.process', function() {
+		const id = $(this).data('id');
+
+		$("#head_title").html("<i class='fa fa-edit'></i><b>Edit Data</b>");
+		$.ajax({
+			type: 'POST',
+			url: siteurl + 'price_list/approval',
+			data: {
+				id: id
+			}, // Kirim sebagai POST
+			success: function(data) {
+				$("#dialog-popup").modal();
+				$("#ModalView").html(data);
+			}
+		});
+	});
 
 	function DataTables(status = null) {
 		var dataTable = $('#example1').DataTable({
 			"processing": true,
 			"serverSide": true,
 			"stateSave": true,
-			"autoWidth": true,
+			"autoWidth": false,
 			"destroy": true,
 			"responsive": true,
 			"aaSorting": [
@@ -153,7 +181,7 @@
 				[10, 20, 50, 100, 150]
 			],
 			"ajax": {
-				url: base_url + active_controller + 'data_side_product_price',
+				url: base_url + active_controller + 'data_side_product_costing',
 				type: "post",
 				data: function(d) {
 					d.status = status

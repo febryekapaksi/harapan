@@ -1,196 +1,173 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-class Price_list_model extends BF_Model{
+class Price_list_model extends BF_Model
+{
 
-    public function __construct()
-    {
-        parent::__construct();
+	public function __construct()
+	{
+		parent::__construct();
 
 		$this->ENABLE_ADD     = has_permission('Price_List.Add');
 		$this->ENABLE_MANAGE  = has_permission('Price_List.Manage');
 		$this->ENABLE_VIEW    = has_permission('Price_List.View');
 		$this->ENABLE_DELETE  = has_permission('Price_List.Delete');
-    }
+	}
 
-    public function get_data($table,$where_field='',$where_value=''){
-  		if($where_field !='' && $where_value!=''){
-  			$query = $this->db->get_where($table, array($where_field=>$where_value));
-  		}else{
-  			$query = $this->db->get($table);
-  		}
-
-  		return $query->result();
-  	}
-
-	public function get_data_where_array($table,$where){
-		if(!empty($where)){
-			$query = $this->db->get_where($table, $where);
-		}else{
+	public function get_data($table, $where_field = '', $where_value = '')
+	{
+		if ($where_field != '' && $where_value != '') {
+			$query = $this->db->get_where($table, array($where_field => $where_value));
+		} else {
 			$query = $this->db->get($table);
 		}
 
 		return $query->result();
 	}
 
-  	public function get_data_group($table,$where_field='',$where_value='',$where_group=''){
-  		if($where_field !='' && $where_value!=''){
-  			$query = $this->db->group_by($where_group)->get_where($table, array($where_field=>$where_value));
+	public function get_data_where_array($table, $where)
+	{
+		if (!empty($where)) {
+			$query = $this->db->get_where($table, $where);
+		} else {
+			$query = $this->db->get($table);
+		}
 
-  		}else{
-  			$query = $this->db->get($table);
-  		}
+		return $query->result();
+	}
 
-  		return $query->result();
-  	}
+	public function get_data_group($table, $where_field = '', $where_value = '', $where_group = '')
+	{
+		if ($where_field != '' && $where_value != '') {
+			$query = $this->db->group_by($where_group)->get_where($table, array($where_field => $where_value));
+		} else {
+			$query = $this->db->get($table);
+		}
 
-  	public function get_json_product_price(){
-		$controller			= ucfirst(strtolower($this->uri->segment(1)));
-		// $Arr_Akses			= getAcccesmenu($controller);
-		$requestData		= $_REQUEST;
-		$fetch					= $this->get_query_json_product_price(
-			$requestData['status'],
+		return $query->result();
+	}
+
+	public function get_json_product_costing()
+	{
+		$requestData = $_REQUEST;
+
+		$fetch = $this->get_query_json_product_costing(
 			$requestData['search']['value'],
 			$requestData['order'][0]['column'],
 			$requestData['order'][0]['dir'],
 			$requestData['start'],
 			$requestData['length']
 		);
-		$totalData			= $fetch['totalData'];
-		$totalFiltered	= $fetch['totalFiltered'];
-		$query					= $fetch['query'];
 
-		$data	= array();
-		$urut1  = 1;
-		$urut2  = 0;
-		foreach($query->result_array() as $row){
-			$total_data     = $totalData;
-			$start_dari     = $requestData['start'];
-			$asc_desc       = $requestData['order'][0]['dir'];
-			if($asc_desc == 'asc'){
-				$nomor = $urut1 + $start_dari;
-			}
-			if($asc_desc == 'desc'){
-				$nomor = ($total_data - $start_dari) - $urut2;
-			}
+		$totalData = $fetch['totalData'];
+		$totalFiltered = $fetch['totalFiltered'];
+		$query = $fetch['query'];
 
-			$variant_product 	= (!empty($row['variant_product']))?'; Variant '.$row['variant_product']:'';
-			$color_product 		= (!empty($row['color_product']))?'; Color '.$row['color_product']:'';
-			$surface_product 	= (!empty($row['surface_product']))?'; Surface '.$row['surface_product']:'';
+		$data = [];
+		$urut1 = 1;
 
-			$nestedData 	= array();
-			$nestedData[]	= "<div align='center'>".$nomor."</div>";
-			$nestedData[]	= "<div align='left'>".strtoupper(strtolower($row['nama_level1']))."</div>";
-			$nestedData[]	= "<div align='left'>".strtoupper($row['nama_level4'].$variant_product.$color_product.$surface_product)."</div>";
+		foreach ($query->result_array() as $row) {
+			$nomor = $urut1 + $requestData['start'];
 
-			// $nestedData[]	= "<div align='left'>".strtoupper(strtolower($row['variant_product']))."</div>";
-			// $nestedData[]	= "<div align='left'>".strtoupper(strtolower($row['color_product']))."</div>";
-			// $nestedData[]	= "<div align='left'>".strtoupper(strtolower($row['surface_product']))."</div>";
-			$nestedData[]	= "<div align='right'>".number_format($row['berat_material'],4)." Kg</div>";
-			// $nestedData[]	= "<div align='right'>".number_format($row['price_material'],2)."</div>";
-			// $nestedData[]	= "<div align='right'>".number_format($row['price_man_power'],2)."</div>";
-			// $nestedData[]	= "<div align='right'>".number_format($row['price_total'],2)."</div>";
-			$nestedData[]	= "<div align='right'>".number_format($row['price_list'],2)."</div>";
-			$nestedData[]	= "<div align='right'>".number_format($row['price_list_idr'],2)."</div>";
-			$nestedData[]	= "<div align='right'>".number_format($row['price_persen_orindo'],2)."</div>";
-			$nestedData[]	= "<div align='right'>".number_format($row['price_list_idr_orindo'],2)."</div>";
+			$this->db->where('id_product_costing', $row['id']);
+			$kompetitor = $this->db->get('product_costing_kompetitor')->result();
 
-			$status = 'Waiting Submission';
-			$warna = 'blue';
-			if($row['status'] == 'WA'){
-			  $status = 'Waiting Approval';
-			  $warna = 'purple';
-			}
-			if($row['status'] == 'A'){
-			  $status = 'Approved';
-			  $warna = 'green';
-			}
-			if($row['status'] == 'R'){
-				$status = 'Rejected';
-				$warna = 'red';
-			  }
-
-			$nestedData[]	= "<div align='left'><span class='badge bg-".$warna."'>".$status."</span></div>";
-
-        	
-			$view	= "";
-			$edit	= "";
-			if($row['category_bom'] == 'standard'){
-				$view	= "<a href='".site_url($this->uri->segment(1)).'/detail_costing_std/'.$row['no_bom']."' class='btn btn-sm btn-warning' title='Detail' data-role='qtip'><i class='fa fa-eye'></i></a>";
-			}
-			else{
-				if($row['category_bom'] == 'grid custom'){
-					$view	= "<a href='".site_url($this->uri->segment(1)).'/detail_costing_ass/'.$row['no_bom']."' class='btn btn-sm btn-warning' title='Detail' data-role='qtip'><i class='fa fa-eye'></i></a>";
+			$kompetitor_list = '';
+			if ($kompetitor) {
+				foreach ($kompetitor as $k) {
+					$kompetitor_list .= "<div><strong>{$k->nama}</strong>: " . number_format($k->harga, 2) . "</div>";
 				}
-				else{
-					$view	= "<a href='".site_url($this->uri->segment(1)).'/detail_costing/'.$row['no_bom']."' class='btn btn-sm btn-warning' title='Detail' data-role='qtip'><i class='fa fa-eye'></i></a>";
-				}
+			} else {
+				$kompetitor_list = '<div class="text-muted">-</div>';
 			}
-			
-			
-			if($row['status'] == 'WA' AND $this->ENABLE_MANAGE){
-				$edit	= "<a href='".site_url($this->uri->segment(1)).'/pengajuan_costing/'.$row['no_bom']."' class='btn btn-sm btn-success' title='Approval Price List' data-role='qtip'><i class='fa fa-check'></i></a>";
+
+
+			$status_label = 'Waiting Approval';
+			$warna = 'primary';
+			if ($row['status'] == 'A') {
+				$status_label = 'Approved';
+				$warna = 'success';
+			} elseif ($row['status'] == 'R') {
+				$status_label = 'Rejected';
+				$warna = 'danger';
 			}
-			$nestedData[]	= "	<div align='left'>
-								".$view."
-								".$edit."
-								</div>";
+
+			// Tombol aksi hanya untuk WA dan R
+			$action = '';
+			if (in_array($row['status'], ['WA', 'R'])) {
+				$action .= "<a href='javascript:void(0)' data-id='" . $row['id'] . "' class='btn btn-sm btn-success process' title='Process'><i class='fa fa-check'></i></a> ";
+				// $action .= "<a href='" . site_url($this->uri->segment(1) . '/delete/' . $row['id']) . "' class='btn btn-sm btn-danger' title='Delete' onclick=\"return confirm('Yakin hapus data ini?')\"><i class='fa fa-trash'></i></a>";
+			}
+
+			$nestedData = [];
+			$nestedData[] = "<div align='center'>{$nomor}</div>";
+			$nestedData[] = "<div align='left'>" . strtoupper($row['nama_level1']) . "</div>";
+			$nestedData[] = "<div align='left'>" . strtoupper($row['product_name']) . "</div>";
+			$nestedData[] = "<div align='right'>" . number_format($row['price'], 2) . "</div>";
+			$nestedData[] = "<div align='right'>" . number_format($row['propose_price'], 2) . "</div>";
+			$nestedData[] = $kompetitor_list;
+			$nestedData[] = "<span class='badge bg-{$warna}'>{$status_label}</span>";
+			$nestedData[] = htmlspecialchars($row['reason']);
+			$nestedData[] = "<div align='center'>{$action}</div>";
+
 			$data[] = $nestedData;
 			$urut1++;
-			$urut2++;
 		}
 
-		$json_data = array(
-			"draw"            	=> intval( $requestData['draw'] ),
-			"recordsTotal"    	=> intval( $totalData ),
-			"recordsFiltered" 	=> intval( $totalFiltered ),
-			"data"            	=> $data
-		);
+		$json_data = [
+			"draw"            => intval($requestData['draw']),
+			"recordsTotal"    => intval($totalData),
+			"recordsFiltered" => intval($totalFiltered),
+			"data"            => $data
+		];
 
 		echo json_encode($json_data);
 	}
 
-	public function get_query_json_product_price($status, $like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL){
-		$WHERE = "";
-		if($status != '0'){
-			$WHERE = "AND a.status = '".$status."'";
+	public function get_query_json_product_costing($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
+	{
+		$this->db->start_cache();
+		$this->db->select('pc.*, ni1.nama AS nama_level1');
+		$this->db->from('product_costing pc');
+		$this->db->join('new_inventory_1 ni1', 'pc.code_lv1 = ni1.code_lv1', 'left');
+		// $this->db->where('pc.deleted_at IS NULL'); // kalau pakai soft delete
+
+		if ($like_value) {
+			$this->db->group_start();
+			$this->db->like('pc.product_name', $like_value);
+			$this->db->or_like('ni1.nama', $like_value);
+			$this->db->group_end();
 		}
-		$sql = "SELECT
-					(@row:=@row+1) AS nomor,
-					a.*,
-					b.nama AS nama_level4,
-					d.variant_product,
-					d.color AS color_product,
-					d.surface AS surface_product,
-					c.nama AS nama_level1,
-					d.category AS category_bom
-				FROM
-					product_price a 
-					LEFT JOIN new_inventory_4 b ON a.code_lv4=b.code_lv4
-					LEFT JOIN new_inventory_1 c ON b.code_lv1=c.code_lv1
-					LEFT JOIN bom_header d ON a.no_bom=d.no_bom,
-					(SELECT @row:=0) r
-				WHERE 1=1 AND a.deleted_date IS NULL ".$WHERE." AND
-					(
-						a.no_bom LIKE '%".$this->db->escape_like_str($like_value)."%'
-						OR b.nama LIKE '%".$this->db->escape_like_str($like_value)."%'
-						OR d.variant_product LIKE '%".$this->db->escape_like_str($like_value)."%'
-					)
-		";
-		// echo $sql; exit;
+		$this->db->stop_cache();
 
-		$data['totalData'] = $this->db->query($sql)->num_rows();
-		$data['totalFiltered'] = $this->db->query($sql)->num_rows();
-		$columns_order_by = array(
-			0 => 'nomor',
-			1 => 'b.nama',
-			2 => 'c.nama'
-		);
+		$totalData = $this->db->count_all_results('', false);
+		$totalFiltered = $totalData;
 
-		$sql .= " ORDER BY a.no_bom DESC,  ".$columns_order_by[$column_order]." ".$column_dir." ";
-		$sql .= " LIMIT ".$limit_start." ,".$limit_length." ";
+		$columns_order_by = [
+			0 => 'pc.id',
+			1 => 'ni1.nama',
+			2 => 'pc.product_name',
+			3 => 'pc.price',
+			4 => 'pc.propose_price',
+			5 => 'pc.status',
+		];
 
-		$data['query'] = $this->db->query($sql);
-		return $data;
+		if ($column_order !== null && isset($columns_order_by[$column_order])) {
+			$this->db->order_by($columns_order_by[$column_order], $column_dir);
+		} else {
+			$this->db->order_by('pc.created_at', 'desc');
+		}
+
+		if ($limit_length != -1) {
+			$this->db->limit($limit_length, $limit_start);
+		}
+
+		$query = $this->db->get();
+		$this->db->flush_cache();
+
+		return [
+			'totalData' => $totalData,
+			'totalFiltered' => $totalFiltered,
+			'query' => $query
+		];
 	}
-
 }

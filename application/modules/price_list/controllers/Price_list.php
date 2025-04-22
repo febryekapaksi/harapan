@@ -1,115 +1,145 @@
 <?php
-defined('BASEPATH') OR exit('No direct script access allowed');
+defined('BASEPATH') or exit('No direct script access allowed');
 
 class Price_list extends Admin_Controller
 {
-    //Permission
-    protected $viewPermission 	= 'Price_List.View';
-    protected $addPermission  	= 'Price_List.Add';
-    protected $managePermission = 'Price_List.Manage';
-    protected $deletePermission = 'Price_List.Delete';
+	//Permission
+	protected $viewPermission 	= 'Price_List.View';
+	protected $addPermission  	= 'Price_List.Add';
+	protected $managePermission = 'Price_List.Manage';
+	protected $deletePermission = 'Price_List.Delete';
 
-   public function __construct()
-    {
-        parent::__construct();
+	public function __construct()
+	{
+		parent::__construct();
 
-        $this->load->model(array('Price_list/price_list_model','Product_price/product_price_model'
-                                ));
-        date_default_timezone_set('Asia/Bangkok');
-    }
+		$this->load->model(array(
+			'Price_list/price_list_model',
+			'Product_price/product_price_model'
+		));
+		date_default_timezone_set('Asia/Bangkok');
+	}
 
-    //========================================================BOM
+	//========================================================BOM
 
-    public function index(){
+	public function index()
+	{
 		$this->auth->restrict($this->viewPermission);
 		$session = $this->session->userdata('app_session');
 
 		$product_price 	= $this->db->select('MAX(update_date) AS updated_date')->get('product_price')->result();
-		$last_update 	= "Last Update: ".date('d-M-Y H:i:s',strtotime($product_price[0]->updated_date));
+		$last_update 	= "Last Update: " . date('d-M-Y H:i:s', strtotime($product_price[0]->updated_date));
 		$data = [
 			'product_lv1' => array(),
 			'last_update' => $last_update
 		];
-		
+
 		history("View index price list");
 		$this->template->title('Costing / Product & Price List');
-		$this->template->render('index',$data);
-    }
+		$this->template->render('index', $data);
+	}
 
-    public function data_side_product_price(){
-      $this->price_list_model->get_json_product_price();
-    }
+	public function approval()
+	{
+		$id = $this->input->post('id');
+		if (!$id) {
+			show_error("ID tidak ditemukan", 400);
+		}
+		$procost = $this->db->get_where('product_costing', ['id' => $id])->row();
+		$kompetitor = $this->db->get_where('product_costing_kompetitor', ['id_product_costing' => $procost->id])->result();
 
-	public function detail_costing(){
-		// $this->auth->restrict($this->viewPermission);
-		$no_bom 	= $this->uri->segment(3);
-		$product_price 		= $this->db->get_where('product_price',array('no_bom' => $no_bom,'deleted_date'=>NULL))->result_array();
-		$costing_rate = $this->db->get_where('costing_rate',array('deleted_date'=>NULL))->result_array();
-
-		//Material
-		$header 			= $this->db->get_where('bom_header',array('no_bom' => $no_bom))->result();
-		$detail   			= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'default'))->result_array();
-		$detail_additive   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'additive'))->result_array();
-		$detail_topping   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'topping'))->result_array();
-		$detail_accessories = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'accessories'))->result_array();
-		$detail_flat_sheet 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'flat sheet'))->result_array();
-		$detail_end_plate 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'end plate'))->result_array();
-		$detail_ukuran_jadi = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'ukuran jadi'))->result_array();
-		$product    		= $this->price_list_model->get_data_where_array('new_inventory_4',array('deleted_date'=>NULL,'category'=>'product'));
+		$product = $this->db->get_where('new_inventory_4', array('price_ref !=' => NULL))->result_array();
+		$costing = $this->db->get_where('costing_rate', array('deleted_date' => NULL))->result_array();
 
 		$data = [
-		  'no_bom' => $no_bom,
-		  'dataList' => $costing_rate,
-		  'product_price' => $product_price,
-		  'header' => $header,
-		  'detail' => $detail,
-		  'detail_additive' => $detail_additive,
-		  'detail_topping' => $detail_topping,
-		  'detail_accessories' => $detail_accessories,
-		  'detail_flat_sheet' => $detail_flat_sheet,
-		  'detail_end_plate' => $detail_end_plate,
-		  'detail_ukuran_jadi' => $detail_ukuran_jadi,
-		  'product' => $product,
-		  'GET_LEVEL4' => get_inventory_lv4(),
-		  'GET_ACC' => get_accessories(),
-		  'GET_PRICE_REF' => get_price_ref()
+			'product'       => $product,
+			'costing'       => $costing,
+			'procost'       => $procost,
+			'kompetitor'    => $kompetitor,
+		];
+		$this->template->title('Edit Costing');
+		$this->template->page_icon('fa fa-edit');
+		$this->template->render('add', $data);
+	}
+
+	public function data_side_product_costing()
+	{
+		$this->price_list_model->get_json_product_costing();
+	}
+
+	public function detail_costing()
+	{
+		// $this->auth->restrict($this->viewPermission);
+		$no_bom 	= $this->uri->segment(3);
+		$product_price 		= $this->db->get_where('product_price', array('no_bom' => $no_bom, 'deleted_date' => NULL))->result_array();
+		$costing_rate = $this->db->get_where('costing_rate', array('deleted_date' => NULL))->result_array();
+
+		//Material
+		$header 			= $this->db->get_where('bom_header', array('no_bom' => $no_bom))->result();
+		$detail   			= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'default'))->result_array();
+		$detail_additive   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'additive'))->result_array();
+		$detail_topping   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'topping'))->result_array();
+		$detail_accessories = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'accessories'))->result_array();
+		$detail_flat_sheet 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'flat sheet'))->result_array();
+		$detail_end_plate 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'end plate'))->result_array();
+		$detail_ukuran_jadi = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'ukuran jadi'))->result_array();
+		$product    		= $this->price_list_model->get_data_where_array('new_inventory_4', array('deleted_date' => NULL, 'category' => 'product'));
+
+		$data = [
+			'no_bom' => $no_bom,
+			'dataList' => $costing_rate,
+			'product_price' => $product_price,
+			'header' => $header,
+			'detail' => $detail,
+			'detail_additive' => $detail_additive,
+			'detail_topping' => $detail_topping,
+			'detail_accessories' => $detail_accessories,
+			'detail_flat_sheet' => $detail_flat_sheet,
+			'detail_end_plate' => $detail_end_plate,
+			'detail_ukuran_jadi' => $detail_ukuran_jadi,
+			'product' => $product,
+			'GET_LEVEL4' => get_inventory_lv4(),
+			'GET_ACC' => get_accessories(),
+			'GET_PRICE_REF' => get_price_ref()
 		];
 		$this->template->title('Costing Rate');
 		$this->template->render('detail_costing', $data);
 	}
 
-	public function detail_material(){
+	public function detail_material()
+	{
 		// $this->auth->restrict($this->viewPermission);
 		$no_bom 			= $this->input->post('no_bom');
-		
-		$header 			= $this->db->get_where('bom_header',array('no_bom' => $no_bom))->result();
-		$detail   			= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'default'))->result_array();
-		$detail_additive   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'additive'))->result_array();
-		$detail_topping   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'topping'))->result_array();
-		$detail_accessories = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'accessories'))->result_array();
-		$detail_flat_sheet 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'flat sheet'))->result_array();
-		$detail_end_plate 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'end plate'))->result_array();
-		$detail_ukuran_jadi = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'ukuran jadi'))->result_array();
-		$product    		= $this->price_list_model->get_data_where_array('new_inventory_4',array('deleted_date'=>NULL,'category'=>'product'));
+
+		$header 			= $this->db->get_where('bom_header', array('no_bom' => $no_bom))->result();
+		$detail   			= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'default'))->result_array();
+		$detail_additive   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'additive'))->result_array();
+		$detail_topping   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'topping'))->result_array();
+		$detail_accessories = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'accessories'))->result_array();
+		$detail_flat_sheet 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'flat sheet'))->result_array();
+		$detail_end_plate 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'end plate'))->result_array();
+		$detail_ukuran_jadi = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'ukuran jadi'))->result_array();
+		$product    		= $this->price_list_model->get_data_where_array('new_inventory_4', array('deleted_date' => NULL, 'category' => 'product'));
 
 		$data = [
-		  'header' => $header,
-		  'detail' => $detail,
-		  'detail_additive' => $detail_additive,
-		  'detail_topping' => $detail_topping,
-		  'detail_accessories' => $detail_accessories,
-		  'detail_flat_sheet' => $detail_flat_sheet,
-		  'detail_end_plate' => $detail_end_plate,
-		  'detail_ukuran_jadi' => $detail_ukuran_jadi,
-		  'product' => $product,
-		  'GET_LEVEL4' => get_inventory_lv4(),
-		  'GET_ACC' => get_accessories(),
-		  'GET_PRICE_REF' => get_price_ref()
+			'header' => $header,
+			'detail' => $detail,
+			'detail_additive' => $detail_additive,
+			'detail_topping' => $detail_topping,
+			'detail_accessories' => $detail_accessories,
+			'detail_flat_sheet' => $detail_flat_sheet,
+			'detail_end_plate' => $detail_end_plate,
+			'detail_ukuran_jadi' => $detail_ukuran_jadi,
+			'product' => $product,
+			'GET_LEVEL4' => get_inventory_lv4(),
+			'GET_ACC' => get_accessories(),
+			'GET_PRICE_REF' => get_price_ref()
 		];
 		$this->template->render('detail_bom_material', $data);
-  	}
+	}
 
-	public function update_product_price(){
+	public function update_product_price()
+	{
 		$session = $this->session->userdata('app_session');
 		$dateTime 	= date('Y-m-d H:i:s');
 		$id_user	= $session['id_user'];
@@ -121,7 +151,7 @@ class Price_list extends Admin_Controller
 		$date 		= date('YmdHis');
 
 		$GET_RATE_COSTING = get_rate_costing_rate();
-		$GET_RATE_MAN_POWER = $this->db->order_by('id','desc')->get('rate_man_power')->result();
+		$GET_RATE_MAN_POWER = $this->db->order_by('id', 'desc')->get('rate_man_power')->result();
 		$GET_LEVEL4 = get_inventory_lv4();
 		$GET_PRICE_REF = get_price_ref();
 		$GET_MACHINE_PRODUCT = get_machine_product();
@@ -138,19 +168,19 @@ class Price_list extends Admin_Controller
 		$ArrDetailToppingCustom = [];
 		foreach ($result as $key => $value) {
 			$no_bom = $value['no_bom'];
-			$kode 	= $date.'-'.$no_bom;
+			$kode 	= $date . '-' . $no_bom;
 
-			$detail   			= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'default'))->result_array();
-			$detail_additive   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'additive'))->result_array();
-			$detail_topping   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'topping'))->result_array();
+			$detail   			= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'default'))->result_array();
+			$detail_additive   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'additive'))->result_array();
+			$detail_topping   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'topping'))->result_array();
 
 			$BERAT_MINUS = 0;
-			if(!empty($detail_additive)){
-				foreach($detail_additive AS $val => $valx){
-					$detail_custom    = $this->db->get_where('bom_detail_custom',array('no_bom_detail'=>$valx['no_bom_detail'],'category'=>'additive'))->result();
+			if (!empty($detail_additive)) {
+				foreach ($detail_additive as $val => $valx) {
+					$detail_custom    = $this->db->get_where('bom_detail_custom', array('no_bom_detail' => $valx['no_bom_detail'], 'category' => 'additive'))->result();
 					$PENGURANGAN_BERAT = 0;
-					foreach($detail_custom AS $valx2){
-						$PENGURANGAN_BERAT += $valx2->weight * $valx2->persen /100;
+					foreach ($detail_custom as $valx2) {
+						$PENGURANGAN_BERAT += $valx2->weight * $valx2->persen / 100;
 					}
 					$BERAT_MINUS += $PENGURANGAN_BERAT;
 				}
@@ -159,18 +189,19 @@ class Price_list extends Admin_Controller
 			$TOTAL_PRICE_ALL = 0;
 			$TOTAL_BERAT_BERSIH = 0;
 			//default
-			if(!empty($detail)){
-				foreach($detail AS $val => $valx){ $val++;
-					$code_lv2		= (!empty($GET_LEVEL4[$valx['code_material']]['code_lv2']))?$GET_LEVEL4[$valx['code_material']]['code_lv2']:'-';
-					$price_ref      = (!empty($GET_PRICE_REF[$valx['code_material']]['price_ref']))?$GET_PRICE_REF[$valx['code_material']]['price_ref']:0;
-					$nm_category = strtolower(get_name('new_inventory_2','nama','code_lv2',$code_lv2));
-					$berat_pengurang_additive = ($nm_category == 'resin')?$BERAT_MINUS:0;
+			if (!empty($detail)) {
+				foreach ($detail as $val => $valx) {
+					$val++;
+					$code_lv2		= (!empty($GET_LEVEL4[$valx['code_material']]['code_lv2'])) ? $GET_LEVEL4[$valx['code_material']]['code_lv2'] : '-';
+					$price_ref      = (!empty($GET_PRICE_REF[$valx['code_material']]['price_ref'])) ? $GET_PRICE_REF[$valx['code_material']]['price_ref'] : 0;
+					$nm_category = strtolower(get_name('new_inventory_2', 'nama', 'code_lv2', $code_lv2));
+					$berat_pengurang_additive = ($nm_category == 'resin') ? $BERAT_MINUS : 0;
 
 					$berat_bersih = $valx['weight'] - $berat_pengurang_additive;
 					$total_price = $berat_bersih * $price_ref;
 					$TOTAL_PRICE_ALL += $total_price;
 					$TOTAL_BERAT_BERSIH += $berat_bersih;
-					$UNIQ = $val.'-'.$key;
+					$UNIQ = $val . '-' . $key;
 					$ArrDetailDefault[$UNIQ]['kode'] 			=  $kode;
 					$ArrDetailDefault[$UNIQ]['category'] 		=  $valx['category'];
 					$ArrDetailDefault[$UNIQ]['no_bom'] 			=  $valx['no_bom'];
@@ -192,9 +223,10 @@ class Price_list extends Admin_Controller
 			}
 
 			//additive
-			if(!empty($detail_additive)){
-				foreach($detail_additive AS $val => $valx){ $val++;
-					$UNIQ = $val.'-'.$key;
+			if (!empty($detail_additive)) {
+				foreach ($detail_additive as $val => $valx) {
+					$val++;
+					$UNIQ = $val . '-' . $key;
 					$ArrDetailAdditive[$UNIQ]['kode'] 			=  $kode;
 					$ArrDetailAdditive[$UNIQ]['category'] 		=  $valx['category'];
 					$ArrDetailAdditive[$UNIQ]['no_bom'] 			=  $valx['no_bom'];
@@ -209,14 +241,14 @@ class Price_list extends Admin_Controller
 					$ArrDetailAdditive[$UNIQ]['m2'] 				=  $valx['m2'];
 					$ArrDetailAdditive[$UNIQ]['file_upload'] 		=  $valx['file_upload'];
 
-					$detail_custom    = $this->db->get_where('bom_detail_custom',array('no_bom_detail'=>$valx['no_bom_detail'],'category'=>'additive'))->result_array();
-					foreach($detail_custom AS $val2 => $valx2){
-						$price_ref      = (!empty($GET_PRICE_REF[$valx2['code_material']]['price_ref']))?$GET_PRICE_REF[$valx2['code_material']]['price_ref']:0;
+					$detail_custom    = $this->db->get_where('bom_detail_custom', array('no_bom_detail' => $valx['no_bom_detail'], 'category' => 'additive'))->result_array();
+					foreach ($detail_custom as $val2 => $valx2) {
+						$price_ref      = (!empty($GET_PRICE_REF[$valx2['code_material']]['price_ref'])) ? $GET_PRICE_REF[$valx2['code_material']]['price_ref'] : 0;
 						$berat_bersih = $valx2['weight'];
 						$total_price    = $berat_bersih * $price_ref;
 						$TOTAL_PRICE_ALL += $total_price;
 						$TOTAL_BERAT_BERSIH += $berat_bersih;
-						$UNIQ = $val.'-'.$val2.'-'.$key;
+						$UNIQ = $val . '-' . $val2 . '-' . $key;
 						$ArrDetailAdditiveCustom[$UNIQ]['kode'] 				=  $kode;
 						$ArrDetailAdditiveCustom[$UNIQ]['category'] 			=  $valx2['category'];
 						$ArrDetailAdditiveCustom[$UNIQ]['no_bom'] 				=  $valx2['no_bom'];
@@ -234,9 +266,9 @@ class Price_list extends Admin_Controller
 			}
 
 			//topping
-			if(!empty($detail_topping)){
-				foreach($detail_topping AS $val => $valx){
-					$UNIQ = $val.'-'.$key;
+			if (!empty($detail_topping)) {
+				foreach ($detail_topping as $val => $valx) {
+					$UNIQ = $val . '-' . $key;
 					$ArrDetailTopping[$UNIQ]['kode'] 			=  $kode;
 					$ArrDetailTopping[$UNIQ]['category'] 		=  $valx['category'];
 					$ArrDetailTopping[$UNIQ]['no_bom'] 			=  $valx['no_bom'];
@@ -250,14 +282,14 @@ class Price_list extends Admin_Controller
 					$ArrDetailTopping[$UNIQ]['qty'] 				=  $valx['qty'];
 					$ArrDetailTopping[$UNIQ]['m2'] 				=  $valx['m2'];
 					$ArrDetailTopping[$UNIQ]['file_upload'] 		=  $valx['file_upload'];
-					$detail_custom    = $this->db->get_where('bom_detail_custom',array('no_bom_detail'=>$valx['no_bom_detail'],'category'=>'topping'))->result_array();
-					foreach($detail_custom AS $val2 => $valx2){
-						$price_ref      = (!empty($GET_PRICE_REF[$valx2['code_material']]['price_ref']))?$GET_PRICE_REF[$valx2['code_material']]['price_ref']:0;
+					$detail_custom    = $this->db->get_where('bom_detail_custom', array('no_bom_detail' => $valx['no_bom_detail'], 'category' => 'topping'))->result_array();
+					foreach ($detail_custom as $val2 => $valx2) {
+						$price_ref      = (!empty($GET_PRICE_REF[$valx2['code_material']]['price_ref'])) ? $GET_PRICE_REF[$valx2['code_material']]['price_ref'] : 0;
 						$berat_bersih    = $valx2['weight'];
 						$total_price    = $berat_bersih * $price_ref;
 						$TOTAL_PRICE_ALL += $total_price;
 						$TOTAL_BERAT_BERSIH += $berat_bersih;
-						$UNIQ = $val.'-'.$val2.'-'.$key;
+						$UNIQ = $val . '-' . $val2 . '-' . $key;
 						$ArrDetailToppingCustom[$UNIQ]['kode'] 			=  $kode;
 						$ArrDetailToppingCustom[$UNIQ]['category'] 		=  $valx2['category'];
 						$ArrDetailToppingCustom[$UNIQ]['no_bom'] 			=  $valx2['no_bom'];
@@ -286,34 +318,34 @@ class Price_list extends Admin_Controller
 			$ArrHeader[$key]['code_lv4'] 			= $code_level4;
 			$ArrHeader[$key]['product_master'] 		= $GET_LEVEL4[$code_level4]['nama'];
 			$ArrHeader[$key]['berat_material'] 		= $TOTAL_BERAT_BERSIH;
-			
+
 			$ArrHeader[$key]['update_by'] 			= $id_user;
 			$ArrHeader[$key]['update_date'] 		= $dateTime;
 			$ArrHeader[$key]['deleted_by'] 			= NULL;
 			$ArrHeader[$key]['deleted_date'] 		= NULL;
 
 
-			$cycletimeMaster 	= (!empty($GET_CYCLETIME[$code_level4]['ct_manpower']))?$GET_CYCLETIME[$code_level4]['ct_manpower']:0;
-			$cycletimeMesin 	= (!empty($GET_CYCLETIME[$code_level4]['ct_machine']))?$GET_CYCLETIME[$code_level4]['ct_machine']:0;
+			$cycletimeMaster 	= (!empty($GET_CYCLETIME[$code_level4]['ct_manpower'])) ? $GET_CYCLETIME[$code_level4]['ct_manpower'] : 0;
+			$cycletimeMesin 	= (!empty($GET_CYCLETIME[$code_level4]['ct_machine'])) ? $GET_CYCLETIME[$code_level4]['ct_machine'] : 0;
 			$rate_cycletime 	= 0;
 			$rate_cycletime_mch 	= 0;
-			if($cycletimeMaster > 0){
+			if ($cycletimeMaster > 0) {
 				$rate_cycletime 		= $cycletimeMaster / 60;
 				$rate_cycletime_mch 	= $cycletimeMesin / 60;
 			}
 			$rate_manpower 		= $GET_RATE_MAN_POWER[0]->upah_per_jam_dollar;
 
-			$kode_mesin = (!empty($GET_MACHINE_PRODUCT[$code_level4]))?$GET_MACHINE_PRODUCT[$code_level4]:0;
-			$kode_mold = (!empty($GET_MOLD_PRODUCT[$code_level4]))?$GET_MOLD_PRODUCT[$code_level4]:0;
-			
-			$rate_depresiasi 	= (!empty($GET_MACHINE_RATE[$kode_mesin]['biaya_mesin']))?$GET_MACHINE_RATE[$kode_mesin]['biaya_mesin']:0;
-			$rate_mould 		= (!empty($GET_MOLD_RATE[$kode_mold]['biaya_mesin']))?$GET_MOLD_RATE[$kode_mold]['biaya_mesin']:0;
+			$kode_mesin = (!empty($GET_MACHINE_PRODUCT[$code_level4])) ? $GET_MACHINE_PRODUCT[$code_level4] : 0;
+			$kode_mold = (!empty($GET_MOLD_PRODUCT[$code_level4])) ? $GET_MOLD_PRODUCT[$code_level4] : 0;
+
+			$rate_depresiasi 	= (!empty($GET_MACHINE_RATE[$kode_mesin]['biaya_mesin'])) ? $GET_MACHINE_RATE[$kode_mesin]['biaya_mesin'] : 0;
+			$rate_mould 		= (!empty($GET_MOLD_RATE[$kode_mold]['biaya_mesin'])) ? $GET_MOLD_RATE[$kode_mold]['biaya_mesin'] : 0;
 
 			// if('P423000121' == $code_level4){
 			// 	echo $kode_mesin.'<br>';
 			// 	echo $rate_depresiasi; exit;
 			// }
-			
+
 			$persen_indirect 	= $GET_RATE_COSTING[3];
 			$persen_consumable 	= $GET_RATE_COSTING[6];
 			$persen_packing 	= $GET_RATE_COSTING[7];
@@ -322,7 +354,7 @@ class Price_list extends Admin_Controller
 			$persen_fin_adm 	= $GET_RATE_COSTING[11];
 			$persen_mkt_sales 	= $GET_RATE_COSTING[12];
 			$persen_interest 	= $GET_RATE_COSTING[13];
-			$persen_profit 		= $GET_RATE_COSTING[14];	
+			$persen_profit 		= $GET_RATE_COSTING[14];
 			$persen_allowance 	= $GET_RATE_COSTING[18];
 
 			//1 material
@@ -409,114 +441,114 @@ class Price_list extends Admin_Controller
 		];
 
 		$this->db->trans_start();
-			if(!empty($ArrHeader)){
-				$this->db->update('product_price',$ArrUpdate);
-				
-				$this->db->insert_batch('product_price',$ArrHeader);
-			}
-			if(!empty($ArrDetailDefault)){
-				$this->db->insert_batch('product_price_bom_detail',$ArrDetailDefault);
-			}
-			if(!empty($ArrDetailAdditive)){
-				$this->db->insert_batch('product_price_bom_detail',$ArrDetailAdditive);
-			}
-			if(!empty($ArrDetailAdditiveCustom)){
-				$this->db->insert_batch('product_price_bom_detail_custom',$ArrDetailAdditiveCustom);
-			}
-			if(!empty($ArrDetailTopping)){
-				$this->db->insert_batch('product_price_bom_detail',$ArrDetailTopping);
-			}
-			if(!empty($ArrDetailToppingCustom)){
-				$this->db->insert_batch('product_price_bom_detail_custom',$ArrDetailToppingCustom);
-			}
-        $this->db->trans_complete();	
+		if (!empty($ArrHeader)) {
+			$this->db->update('product_price', $ArrUpdate);
 
-        if($this->db->trans_status() === FALSE){
-          $this->db->trans_rollback();
-          $status	= array(
-            'pesan'		=>'Failed process data!',
-            'status'	=> 0
-          );
-        } else {
-          $this->db->trans_commit();
-          $status	= array(
-            'pesan'		=>'Success process data!',
-            'status'	=> 1
-          );
-          history('Update product price');
-        }
-        echo json_encode($status);
+			$this->db->insert_batch('product_price', $ArrHeader);
+		}
+		if (!empty($ArrDetailDefault)) {
+			$this->db->insert_batch('product_price_bom_detail', $ArrDetailDefault);
+		}
+		if (!empty($ArrDetailAdditive)) {
+			$this->db->insert_batch('product_price_bom_detail', $ArrDetailAdditive);
+		}
+		if (!empty($ArrDetailAdditiveCustom)) {
+			$this->db->insert_batch('product_price_bom_detail_custom', $ArrDetailAdditiveCustom);
+		}
+		if (!empty($ArrDetailTopping)) {
+			$this->db->insert_batch('product_price_bom_detail', $ArrDetailTopping);
+		}
+		if (!empty($ArrDetailToppingCustom)) {
+			$this->db->insert_batch('product_price_bom_detail_custom', $ArrDetailToppingCustom);
+		}
+		$this->db->trans_complete();
 
-		
-
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			$status	= array(
+				'pesan'		=> 'Failed process data!',
+				'status'	=> 0
+			);
+		} else {
+			$this->db->trans_commit();
+			$status	= array(
+				'pesan'		=> 'Success process data!',
+				'status'	=> 1
+			);
+			history('Update product price');
+		}
+		echo json_encode($status);
 	}
 
-	public function detail_machine_mold(){
+	public function detail_machine_mold()
+	{
 		$id_product = $this->input->post('id_product');
 		$tanda 		= $this->input->post('tanda');
 		$cost 		= $this->input->post('cost');
-		$header = $this->db->get_where('cycletime_header',array('id_product' => $id_product, 'deleted_date'=>NULL))->result();
+		$header = $this->db->get_where('cycletime_header', array('id_product' => $id_product, 'deleted_date' => NULL))->result();
 		// print_r($header);
-		$title = ($tanda == 'machine')?'Machine':'Mold';
+		$title = ($tanda == 'machine') ? 'Machine' : 'Mold';
 		$data = [
-		  'id_product' => $id_product,
-		  'header' => $header,
-		  'tanda' => $tanda,
-		  'title' => $title,
-		  'cost' => $cost,
+			'id_product' => $id_product,
+			'header' => $header,
+			'tanda' => $tanda,
+			'title' => $title,
+			'cost' => $cost,
 		];
 		$this->template->render('detail_machine_mold', $data);
 	}
 
-	public function pengajuan_costing(){
+	public function pengajuan_costing()
+	{
 		// $this->auth->restrict($this->viewPermission);
 		$no_bom 	= $this->uri->segment(3);
-		$product_price 		= $this->db->get_where('product_price',array('no_bom' => $no_bom,'deleted_date'=>NULL))->result_array();
-		$costing_rate = $this->db->get_where('costing_rate',array('deleted_date'=>NULL))->result_array();
+		$product_price 		= $this->db->get_where('product_price', array('no_bom' => $no_bom, 'deleted_date' => NULL))->result_array();
+		$costing_rate = $this->db->get_where('costing_rate', array('deleted_date' => NULL))->result_array();
 
 		//Material
-		$header 			= $this->db->get_where('bom_header',array('no_bom' => $no_bom))->result();
-		$detail   			= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'default'))->result_array();
-		$detail_additive   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'additive'))->result_array();
-		$detail_topping   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'topping'))->result_array();
-		$detail_accessories = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'accessories'))->result_array();
-		$detail_flat_sheet 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'flat sheet'))->result_array();
-		$detail_end_plate 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'end plate'))->result_array();
-		$detail_ukuran_jadi = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'ukuran jadi'))->result_array();
-		$product    		= $this->price_list_model->get_data_where_array('new_inventory_4',array('deleted_date'=>NULL,'category'=>'product'));
+		$header 			= $this->db->get_where('bom_header', array('no_bom' => $no_bom))->result();
+		$detail   			= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'default'))->result_array();
+		$detail_additive   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'additive'))->result_array();
+		$detail_topping   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'topping'))->result_array();
+		$detail_accessories = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'accessories'))->result_array();
+		$detail_flat_sheet 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'flat sheet'))->result_array();
+		$detail_end_plate 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'end plate'))->result_array();
+		$detail_ukuran_jadi = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'ukuran jadi'))->result_array();
+		$product    		= $this->price_list_model->get_data_where_array('new_inventory_4', array('deleted_date' => NULL, 'category' => 'product'));
 
 		$detail_ipp_ukuranjadi = [];
-		if(!empty($product_price[0]['kode'])){
-			$kode 		= (!empty($product_price[0]['kode']))?$product_price[0]['kode']:0;
-			$detail_ipp_ukuranjadi  = $this->db->get_where('product_price_ukuran_jadi',array('kode' => $kode, 'deleted_date'=> null))->result_array();
+		if (!empty($product_price[0]['kode'])) {
+			$kode 		= (!empty($product_price[0]['kode'])) ? $product_price[0]['kode'] : 0;
+			$detail_ipp_ukuranjadi  = $this->db->get_where('product_price_ukuran_jadi', array('kode' => $kode, 'deleted_date' => null))->result_array();
 		}
 
 		// print_r($detail_ipp_ukuranjadi);
 		// exit;
 
 		$data = [
-		  'no_bom' => $no_bom,
-		  'dataList' => $costing_rate,
-		  'product_price' => $product_price,
-		  'header' => $header,
-		  'detail' => $detail,
-		  'detail_additive' => $detail_additive,
-		  'detail_topping' => $detail_topping,
-		  'detail_accessories' => $detail_accessories,
-		  'detail_flat_sheet' => $detail_flat_sheet,
-		  'detail_end_plate' => $detail_end_plate,
-		  'detail_ukuran_jadi' => $detail_ukuran_jadi,
-		  'product' => $product,
-		  'detail_ipp_ukuranjadi' => $detail_ipp_ukuranjadi,
-		  'GET_LEVEL4' => get_inventory_lv4(),
-		  'GET_ACC' => get_accessories(),
-		  'GET_PRICE_REF' => get_price_ref()
+			'no_bom' => $no_bom,
+			'dataList' => $costing_rate,
+			'product_price' => $product_price,
+			'header' => $header,
+			'detail' => $detail,
+			'detail_additive' => $detail_additive,
+			'detail_topping' => $detail_topping,
+			'detail_accessories' => $detail_accessories,
+			'detail_flat_sheet' => $detail_flat_sheet,
+			'detail_end_plate' => $detail_end_plate,
+			'detail_ukuran_jadi' => $detail_ukuran_jadi,
+			'product' => $product,
+			'detail_ipp_ukuranjadi' => $detail_ipp_ukuranjadi,
+			'GET_LEVEL4' => get_inventory_lv4(),
+			'GET_ACC' => get_accessories(),
+			'GET_PRICE_REF' => get_price_ref()
 		];
 		$this->template->title('Approval Price List');
 		$this->template->render('pengajuan_costing', $data);
 	}
 
-	public function confirm_product_price(){
+	public function confirm_product_price()
+	{
 		$session = $this->session->userdata('app_session');
 		$dateTime 	= date('Y-m-d H:i:s');
 		$id_user	= $session['id_user'];
@@ -525,11 +557,11 @@ class Price_list extends Admin_Controller
 		$id 	= $data['id'];
 		$status = $data['status'];
 		$reason = $data['reason'];
-		$price_list 	= str_replace(',','',$data['price_list']);
-		$price_list_idr = str_replace(',','',$data['price_list_idr']);
-		$kurs 			= str_replace(',','',$data['kurs']);
-		$price_persen_orindo 	= str_replace(',','',$data['price_persen_orindo']);
-		$price_list_idr_orindo 	= str_replace(',','',$data['price_list_idr_orindo']);
+		$price_list 	= str_replace(',', '', $data['price_list']);
+		$price_list_idr = str_replace(',', '', $data['price_list_idr']);
+		$kurs 			= str_replace(',', '', $data['kurs']);
+		$price_persen_orindo 	= str_replace(',', '', $data['price_persen_orindo']);
+		$price_list_idr_orindo 	= str_replace(',', '', $data['price_list_idr_orindo']);
 
 		$ArrUpdate = [
 			'status' => $status,
@@ -539,7 +571,7 @@ class Price_list extends Admin_Controller
 		];
 		$ArrPrice = [];
 		$ArrDetail = [];
-		if($status == 'A'){
+		if ($status == 'A') {
 			$ArrPrice = [
 				'kurs' => $kurs,
 				'price_list' => $price_list,
@@ -548,111 +580,110 @@ class Price_list extends Admin_Controller
 				'price_list_idr_orindo' => $price_list_idr_orindo
 			];
 
-			$ukuran_jadi_price = (!empty($data['ukuran_jadi_price']))?$data['ukuran_jadi_price']:[];
-			if(!empty($ukuran_jadi_price)){
+			$ukuran_jadi_price = (!empty($data['ukuran_jadi_price'])) ? $data['ukuran_jadi_price'] : [];
+			if (!empty($ukuran_jadi_price)) {
 				foreach ($ukuran_jadi_price as $key => $value) {
 					$ArrDetail[$key]['id'] 		= $value['id'];
-					$ArrDetail[$key]['app_price'] 			= str_replace(',','',$value['app_price']);
-					$ArrDetail[$key]['persen_orindo'] 		= str_replace(',','',$value['persen_orindo']);
-					$ArrDetail[$key]['harga_idr_orindo'] 	= str_replace(',','',$value['harga_idr_orindo']);
+					$ArrDetail[$key]['app_price'] 			= str_replace(',', '', $value['app_price']);
+					$ArrDetail[$key]['persen_orindo'] 		= str_replace(',', '', $value['persen_orindo']);
+					$ArrDetail[$key]['harga_idr_orindo'] 	= str_replace(',', '', $value['harga_idr_orindo']);
 				}
 			}
 		}
 
-		$ArrMerge = array_merge($ArrUpdate,$ArrPrice);
+		$ArrMerge = array_merge($ArrUpdate, $ArrPrice);
 
 		$this->db->trans_start();
-			$this->db->where('id',$id);
-			$this->db->update('product_price',$ArrMerge);
+		$this->db->where('id', $id);
+		$this->db->update('product_price', $ArrMerge);
 
-			if(!empty($ArrDetail)){
-				$this->db->update_batch('product_price_ukuran_jadi',$ArrDetail,'id');
-			}
-        $this->db->trans_complete();	
+		if (!empty($ArrDetail)) {
+			$this->db->update_batch('product_price_ukuran_jadi', $ArrDetail, 'id');
+		}
+		$this->db->trans_complete();
 
-        if($this->db->trans_status() === FALSE){
-          $this->db->trans_rollback();
-          $ArrayBack	= array(
-            'pesan'		=>'Failed process data!',
-            'status'	=> 0
-          );
-        } else {
-          $this->db->trans_commit();
-          $ArrayBack	= array(
-            'pesan'		=>'Success process data!',
-            'status'	=> 1
-          );
-          history('Confirm price list costing id: '.$id.' / '.$status);
-        }
-        echo json_encode($ArrayBack);
-
-		
-
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			$ArrayBack	= array(
+				'pesan'		=> 'Failed process data!',
+				'status'	=> 0
+			);
+		} else {
+			$this->db->trans_commit();
+			$ArrayBack	= array(
+				'pesan'		=> 'Success process data!',
+				'status'	=> 1
+			);
+			history('Confirm price list costing id: ' . $id . ' / ' . $status);
+		}
+		echo json_encode($ArrayBack);
 	}
 
-	public function detail_costing_std(){
+	public function detail_costing_std()
+	{
 		// $this->auth->restrict($this->viewPermission);
 		$no_bom 	= $this->uri->segment(3);
-		$product_price 		= $this->db->get_where('product_price',array('no_bom' => $no_bom,'deleted_date'=>NULL))->result_array();
-		$costing_rate = $this->db->get_where('costing_rate',array('deleted_date'=>NULL))->result_array();
+		$product_price 		= $this->db->get_where('product_price', array('no_bom' => $no_bom, 'deleted_date' => NULL))->result_array();
+		$costing_rate = $this->db->get_where('costing_rate', array('deleted_date' => NULL))->result_array();
 
 		//Material
-		$header 			= $this->db->get_where('bom_header',array('no_bom' => $no_bom))->result();
-		$detail   			= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'default'))->result_array();
-		$detail_additive   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'additive'))->result_array();
-		$detail_topping   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'topping'))->result_array();
-		$detail_accessories = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'accessories'))->result_array();
-		$detail_flat_sheet 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'flat sheet'))->result_array();
-		$detail_end_plate 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'end plate'))->result_array();
-		$detail_ukuran_jadi = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'ukuran jadi'))->result_array();
-		$product    		= $this->price_list_model->get_data_where_array('new_inventory_4',array('deleted_date'=>NULL,'category'=>'product'));
+		$header 			= $this->db->get_where('bom_header', array('no_bom' => $no_bom))->result();
+		$detail   			= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'default'))->result_array();
+		$detail_additive   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'additive'))->result_array();
+		$detail_topping   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'topping'))->result_array();
+		$detail_accessories = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'accessories'))->result_array();
+		$detail_flat_sheet 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'flat sheet'))->result_array();
+		$detail_end_plate 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'end plate'))->result_array();
+		$detail_ukuran_jadi = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'ukuran jadi'))->result_array();
+		$product    		= $this->price_list_model->get_data_where_array('new_inventory_4', array('deleted_date' => NULL, 'category' => 'product'));
 
 		$data = [
-		  'no_bom' => $no_bom,
-		  'dataList' => $costing_rate,
-		  'product_price' => $product_price,
-		  'header' => $header,
-		  'detail' => $detail,
-		  'detail_additive' => $detail_additive,
-		  'detail_topping' => $detail_topping,
-		  'detail_accessories' => $detail_accessories,
-		  'detail_flat_sheet' => $detail_flat_sheet,
-		  'detail_end_plate' => $detail_end_plate,
-		  'detail_ukuran_jadi' => $detail_ukuran_jadi,
-		  'product' => $product,
-		  'GET_LEVEL4' => get_inventory_lv4(),
-		  'GET_ACC' => get_accessories(),
-		  'GET_PRICE_REF' => get_price_ref()
+			'no_bom' => $no_bom,
+			'dataList' => $costing_rate,
+			'product_price' => $product_price,
+			'header' => $header,
+			'detail' => $detail,
+			'detail_additive' => $detail_additive,
+			'detail_topping' => $detail_topping,
+			'detail_accessories' => $detail_accessories,
+			'detail_flat_sheet' => $detail_flat_sheet,
+			'detail_end_plate' => $detail_end_plate,
+			'detail_ukuran_jadi' => $detail_ukuran_jadi,
+			'product' => $product,
+			'GET_LEVEL4' => get_inventory_lv4(),
+			'GET_ACC' => get_accessories(),
+			'GET_PRICE_REF' => get_price_ref()
 		];
 		$this->template->title('Costing Rate');
 		$this->template->render('detail_costing_std', $data);
 	}
 
-	public function detail_costing_ass(){
+	public function detail_costing_ass()
+	{
 		// $this->auth->restrict($this->viewPermission);
 		$no_bom 		= $this->uri->segment(3);
-		$product_price 	= $this->db->get_where('product_price',array('no_bom' => $no_bom,'deleted_date'=>NULL))->result_array();
-		$costing_rate 	= $this->db->get_where('costing_rate',array('deleted_date'=>NULL))->result_array();
-		$kode 			= (!empty($product_price[0]['kode']))?$product_price[0]['kode']:0;
-		$list_assembly 			= $this->db->not_like('category','addBO')->get_where('product_price_assembly',array('kode'=>$kode))->result_array(); 
-		$list_assembly_product 	= $this->db->like('category','addBO')->get_where('product_price_assembly',array('kode'=>$kode))->result_array(); 
-		$list_cutting_process 	= $this->db->like('category','addBO')->get_where('product_price_bom_detail',array('kode'=>$kode))->result_array(); 
+		$product_price 	= $this->db->get_where('product_price', array('no_bom' => $no_bom, 'deleted_date' => NULL))->result_array();
+		$costing_rate 	= $this->db->get_where('costing_rate', array('deleted_date' => NULL))->result_array();
+		$kode 			= (!empty($product_price[0]['kode'])) ? $product_price[0]['kode'] : 0;
+		$list_assembly 			= $this->db->not_like('category', 'addBO')->get_where('product_price_assembly', array('kode' => $kode))->result_array();
+		$list_assembly_product 	= $this->db->like('category', 'addBO')->get_where('product_price_assembly', array('kode' => $kode))->result_array();
+		$list_cutting_process 	= $this->db->like('category', 'addBO')->get_where('product_price_bom_detail', array('kode' => $kode))->result_array();
 
 		//Material
-		$header 			= $this->db->get_where('bom_header',array('no_bom' => $no_bom))->result();
-		$detail   			= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'default'))->result_array();
-		$detail_additive   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'additive'))->result_array();
-		$detail_topping   	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'topping'))->result_array();
-		$detail_accessories = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'accessories'))->result_array();
-		$detail_flat_sheet 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'flat sheet'))->result_array();
-		$detail_end_plate 	= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'end plate'))->result_array();
-		$detail_ukuran_jadi = $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'ukuran jadi'))->result_array();
-		$detail_others 		= $this->db->get_where('bom_detail',array('no_bom' => $no_bom, 'category'=>'others'))->result_array();
-		$product    		= $this->product_price_model->get_data_where_array('new_inventory_4',array('deleted_date'=>NULL,'category'=>'product'));
+		$header 			= $this->db->get_where('bom_header', array('no_bom' => $no_bom))->result();
+		$detail   			= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'default'))->result_array();
+		$detail_additive   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'additive'))->result_array();
+		$detail_topping   	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'topping'))->result_array();
+		$detail_accessories = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'accessories'))->result_array();
+		$detail_flat_sheet 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'flat sheet'))->result_array();
+		$detail_end_plate 	= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'end plate'))->result_array();
+		$detail_ukuran_jadi = $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'ukuran jadi'))->result_array();
+		$detail_others 		= $this->db->get_where('bom_detail', array('no_bom' => $no_bom, 'category' => 'others'))->result_array();
+		$product    		= $this->product_price_model->get_data_where_array('new_inventory_4', array('deleted_date' => NULL, 'category' => 'product'));
 
 		$detail_ipp_ukuranjadi = [];
-		if(!empty($product_price[0]['kode'])){
-			$detail_ipp_ukuranjadi  = $this->db->get_where('product_price_ukuran_jadi',array('kode' => $product_price[0]['kode'], 'deleted_date'=> null))->result_array();
+		if (!empty($product_price[0]['kode'])) {
+			$detail_ipp_ukuranjadi  = $this->db->get_where('product_price_ukuran_jadi', array('kode' => $product_price[0]['kode'], 'deleted_date' => null))->result_array();
 		}
 		// echo $this->db->last_query();
 		// echo $product_price[0]['kode'];
@@ -660,32 +691,29 @@ class Price_list extends Admin_Controller
 		// exit;
 
 		$data = [
-		  'no_bom' => $no_bom,
-		  'kode' => $kode,
-		  'dataList' => $costing_rate,
-		  'list_assembly' => $list_assembly,
-		  'list_assembly_product' => $list_assembly_product,
-		  'list_cutting_process' => $list_cutting_process,
-		  'product_price' => $product_price,
-		  'header' => $header,
-		  'detail' => $detail,
-		  'detail_additive' => $detail_additive,
-		  'detail_topping' => $detail_topping,
-		  'detail_accessories' => $detail_accessories,
-		  'detail_flat_sheet' => $detail_flat_sheet,
-		  'detail_end_plate' => $detail_end_plate,
-		  'detail_ukuran_jadi' => $detail_ukuran_jadi,
-		  'detail_others' => $detail_others,
-		  'product' => $product,
-		  'detail_ipp_ukuranjadi' => $detail_ipp_ukuranjadi,
-		  'GET_LEVEL4' => get_inventory_lv4(),
-		  'GET_ACC' => get_accessories(),
-		  'GET_PRICE_REF' => get_price_ref()
+			'no_bom' => $no_bom,
+			'kode' => $kode,
+			'dataList' => $costing_rate,
+			'list_assembly' => $list_assembly,
+			'list_assembly_product' => $list_assembly_product,
+			'list_cutting_process' => $list_cutting_process,
+			'product_price' => $product_price,
+			'header' => $header,
+			'detail' => $detail,
+			'detail_additive' => $detail_additive,
+			'detail_topping' => $detail_topping,
+			'detail_accessories' => $detail_accessories,
+			'detail_flat_sheet' => $detail_flat_sheet,
+			'detail_end_plate' => $detail_end_plate,
+			'detail_ukuran_jadi' => $detail_ukuran_jadi,
+			'detail_others' => $detail_others,
+			'product' => $product,
+			'detail_ipp_ukuranjadi' => $detail_ipp_ukuranjadi,
+			'GET_LEVEL4' => get_inventory_lv4(),
+			'GET_ACC' => get_accessories(),
+			'GET_PRICE_REF' => get_price_ref()
 		];
 		$this->template->title('Detail Price List Costing Custom');
 		$this->template->render('detail_costing_ass', $data);
 	}
-
 }
-
-?>

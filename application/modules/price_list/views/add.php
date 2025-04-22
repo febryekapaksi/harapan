@@ -1,298 +1,338 @@
 <?php
+$costing_map = [];
+foreach ($costing as $c) {
+    $costing_map[$c['element_costing']] = $c['rate'];
+}
 
-$no_bom          = (!empty($header))?$header[0]->no_bom:'';
-$id_product      = (!empty($header))?$header[0]->id_product:'';
-$waste_product   = (!empty($header))?$header[0]->waste_product:'';
-$waste_setting   = (!empty($header))?$header[0]->waste_setting:'';
-$variant_product   = (!empty($header))?$header[0]->variant_product:'';
+$costing_rate = [];
+$grouped_costing = [];
 
-// print_r($header);
+$current_group = null;
+$total_rows = count($costing);
+
+for ($i = 0; $i < $total_rows; $i++) {
+    $item = $costing[$i];
+    $judul = trim($item['judul']);
+    $element = trim(strip_tags($item['element_costing']));
+    $rate = floatval($item['rate']);
+
+    // Jika bukan sub-item (bukan diawali a., b., dst), anggap sebagai grup
+    if (!preg_match('/^[a-e]\./i', $element)) {
+        $current_group = $element;
+
+        // Lihat apakah item berikutnya adalah sub-item
+        $next = isset($costing[$i + 1]) ? $costing[$i + 1] : null;
+        $next_is_sub = $next && preg_match('/^[a-e]\./i', trim(strip_tags($next['element_costing'])));
+
+        if (!$next_is_sub) {
+            // Langsung punya rate sendiri (tanpa sub)
+            $costing_rate[$current_group] = $rate;
+            $grouped_costing[$current_group] = [$element => $rate];
+            $current_group = null; // Reset agar tidak menangkap item lain
+        } else {
+            // Grup akan diisi oleh sub-item setelah ini
+            $costing_rate[$current_group] = 0;
+            $grouped_costing[$current_group] = [];
+        }
+    } elseif ($current_group) {
+        // Sub-item dari grup aktif
+        $grouped_costing[$current_group][$element] = $rate;
+        $costing_rate[$current_group] += $rate;
+    }
+}
 ?>
-
- <div class="box box-primary">
+<div class="box box-primary">
     <div class="box-body">
-		<form id="data-form" method="post"><br>
-			<div class="form-group row">
-				<div class="col-md-2">
-					<label for="customer">Product Master <span class='text-red'>*</span></label>
-				</div>
-				<div class="col-md-4">
-					<input type="hidden" name="no_bom" value="<?=$no_bom;?>">
-					<select id="id_product" name="id_product" class="form-control input-md chosen-select" required>
-						<option value="0">Select An Option</option>
-						<?php foreach ($results['product'] as $product){
-						$sel = ($product->code_lv4 == $id_product)?'selected':'';
-						?>
-						<option value="<?= $product->code_lv4;?>" <?=$sel;?>><?= strtoupper(strtolower($product->nama))?></option>
-						<?php } ?>
-					</select>
-				</div>
-				<div class="col-md-2">
-					<label for="customer">Varian Product</label>
-				</div>
-				<div class="col-md-4">
-					<input type="text" name="variant_product" class='form-control input-md' placeholder='Variant Product' value="<?=$variant_product;?>">
-				</div>
-			</div>
-			<br>
-			<div class='box box-info'>
-				<div class='box-header'>
-					<h3 class='box-title'>Detail Material</h3>
-					<div class='box-tool pull-right'>
-						<!--<button type='button' data-id='frp_".$a."' class='btn btn-md btn-info panelSH'>SHOW</button>-->
-					</div>
-				</div>
-				<div class='box-body hide_header'>
-					<table class='table table-striped table-bordered table-hover table-condensed' width='100%'>
-						<thead>
-							<tr class='bg-blue'>
-								<th class='text-center' style='width: 4%;'>#</th>
-								<th class='text-center' style='width: 40%;'>Material Name</th>
-								<th class='text-center'>Weight /kg</th>
-								<th class='text-center' style='width: 4%;'>#</th>
-							</tr>
-						</thead>
-						<tbody>
-              <?php
-                $val = 0;
-                if(!empty($detail)){
-      						foreach($detail AS $val => $valx){ $val++;
-                    echo "<tr class='header_".$val."'>";
-                      echo "<td align='center'>".$val."</td>";
-                      echo "<td align='left'>";
-                      echo "<select name='Detail[".$val."][code_material]' class='chosen-select form-control input-sm inline-blockd material'>";
-                      echo "<option value='0'>Select Material Name</option>";
-                      foreach($material AS $valx4){
-                        $sel2 = ($valx4->code_lv4 == $valx['code_material'])?'selected':'';
-                        echo "<option value='".$valx4->code_lv4."' ".$sel2.">".strtoupper($valx4->nama)."</option>";
-                      }
-                      echo 		"</select>";
-                      echo "</td>";
-                      echo "<td align='left'>";
-                      echo "<input type='text' name='Detail[".$val."][weight]' class='form-control input-md autoNumeric4 qty' placeholder='Weight /kg' value='".$valx['weight']."'>";
-                      echo "</td>";
-                      echo "<td align='left'>";
-                      echo "&nbsp;<button type='button' class='btn btn-sm btn-danger delPart' title='Delete Part'><i class='fa fa-close'></i></button>";
-                      echo "</td>";
-                    echo "</tr>";
-                  }
-                }
-              ?>
-							<tr id='add_<?=$val?>'>
-								<td align='center'></td>
-								<td align='left'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type='button' class='btn btn-sm btn-warning addPart' title='Add Material'><i class='fa fa-plus'></i>&nbsp;&nbsp;Add Material</button></td>
-								<td align='center'></td>
-								<td align='center'></td>
-							</tr>
-						</tbody>
-					</table>
-					<br>
-					<div class="form-group row">
-						<div class="col-md-2">
-							<label for="customer">Waste Product (%)</label>
-						</div>
-						<div class="col-md-2">
-							<input type="text" name="waste_product" class='form-control input-md autoNumeric' value="<?=$waste_product;?>">
-						</div>
-					</div>
-					<div class="form-group row">
-						<div class="col-md-2">
-							<label for="customer">Waste Setting/Cleaning (%)</label>
-						</div>
-						<div class="col-md-2">
-							<input type="text" name="waste_setting" class='form-control input-md autoNumeric' value="<?=$waste_setting;?>">
-						</div>
-					</div>
-					<button type="button" class="btn btn-danger" style='float:right; margin-left:5px;' name="back" id="back"><i class="fa fa-reply"></i> Back</button>
-					<button type="submit" class="btn btn-primary" style='float:right;' name="save" id="save"><i class="fa fa-save"></i> Save</button>
+        <form id="data-form" autocomplete="off">
+            <input type="hidden" name="id" value="<?= (!empty($procost->id)) ? $procost->id : '' ?>">
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Product <span class='text-danger'>*</span></label>
+                </div>
+                <div class="col-md-9">
+                    <select name="product_id" id="productSelect" class="form-control select2">
+                        <option value="">-- Pilih Produk --</option>
+                        <?php foreach ($product as $item) {
+                            $code_lv4 = (!empty($procost->code_lv4)) ? $procost->code_lv4 : '';
+                            $selected = ($item['code_lv4'] == $code_lv4) ? 'selected' : '';
+                        ?>
+                            <option value="<?= $item['code_lv4'] ?>" data-harga="<?= $item['price_ref'] ?>" <?= $selected ?>>
+                                <?= $item['nama'] ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Harga Beli</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control divide harga_beli" name="harga_beli" value="<?= (!empty($procost->harga_beli)) ? $procost->harga_beli : '' ?>" readonly>
+                </div>
+            </div>
+            <hr>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Biaya Import</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control divide biaya_import" name="biaya_import" value="<?= (!empty($procost->biaya_import)) ? $procost->biaya_import : '' ?>" readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Biaya Cabang</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control divide biaya_cabang" name="biaya_cabang" value="<?= (!empty($procost->biaya_cabang)) ? $procost->biaya_cabang : '' ?>" readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Biaya Logistik</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control divide biaya_logistik" name="biaya_logistik" value="<?= (!empty($procost->biaya_logistik)) ? $procost->biaya_logistik : '' ?>" readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Biaya HO</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control divide biaya_ho" name="biaya_ho" value="<?= (!empty($procost->biaya_ho)) ? $procost->biaya_ho : '' ?>" readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Biaya Marketing</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control divide biaya_marketing" name="biaya_marketing" value="<?= (!empty($procost->biaya_marketing)) ? $procost->biaya_marketing : '' ?>" readonly>
+                </div>
+            </div>
+            <hr>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Product Costing</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control divide price" name="price" value="<?= (!empty($procost->price)) ? $procost->price : '' ?>" readonly>
+                </div>
+            </div>
+            <hr>
 
-				</div>
-			</div>
-		</form>
-	</div>
+            <div class="form-group row">
+                <div class="col-md-12">
+                    <table class='table table-bordered table-striped'>
+                        <thead>
+                            <tr class='bg-blue'>
+                                <td align='center' style="width: 60%;"><b>Nama Kompetitor</b></td>
+                                <td align='center' style="width: 30%;"><b>Harga</b></td>
+                                <td style="width: 50px;" align='center'>
+                                    <?php
+                                    echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-kompetitor'));
+                                    ?>
+                                </td>
+                            </tr>
+                        </thead>
+                        <tbody id='list_kompetitor'>
+                            <?php
+                            if (isset($kompetitor)) {
+                                $loop = 0;
+                                foreach ($kompetitor as $kp) {
+                                    $loop++;
+                                    echo "<tr id='tr_$loop'>";
+                                    echo "<td align='left'><input type='text' class='form-control input-sm' name='kompetitor[" . $loop . "][nama]' value='$kp->nama' id='kompetitor" . $loop . "_nama'></td>";
+                                    echo "<td align='left'><input type='text' class='form-control divide input-sm' name='kompetitor[" . $loop . "][harga]' value='$kp->harga' id='kompetitor" . $loop . "_harga'></td>";
+                                    echo "<td align='center'><button type='button' class='btn btn-sm btn-danger' title='Hapus Data' data-role='qtip' onClick='return DelKompetitor(" . $loop . ");'><i class='fa fa-trash-o'></i></button></td>";
+                                    echo "</tr>";
+                                }
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <hr>
+
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Propose Costing</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control divide propose_price" value="<?= (!empty($procost->propose_price)) ? $procost->propose_price : '' ?>" name="propose_price">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <div class="col-md-12 text-center">
+                    <button type="submit" class="btn btn-primary approve" name="approve" id="approve"><i class="fa fa-check"></i> Approve</button>
+                    <button type="submit" class="btn btn-danger reject" name="reject" id="reject"><i class="fa fa-ban"></i> Reject</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
-<script src="<?= base_url('assets/js/autoNumeric.js')?>"></script>
-<style media="screen">
-  .datepicker{
-    cursor: pointer;
-    padding-left: 12px;
-  }
-</style>
+<script src="<?= base_url('assets/js/number-divider.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
+
 <script type="text/javascript">
-	//$('#input-kendaraan').hide();
-	var base_url			= '<?php echo base_url(); ?>';
-	var active_controller	= '<?php echo($this->uri->segment(1)); ?>';
+    $(document).ready(function() {
+        $('.divide').divide();
+        $('.select2').select2({
+            width: '100%',
+        });
 
-	$(document).ready(function(){
-		$('.chosen-select').select2();
-		$( ".datepicker" ).datepicker();
-		$( ".autoNumeric4" ).autoNumeric('init', {mDec: '4', aPad: false});
+        const ImportRate = <?= isset($costing_map['Biaya Import']) ? $costing_map['Biaya Import'] : 0 ?>;
+        const CabangRate = <?= isset($costing_rate['A2. Cabang']) ? $costing_rate['A2. Cabang'] : 0 ?>;
+        const LogistikRate = <?= isset($costing_rate['A3. Logistik']) ? $costing_rate['A3. Logistik'] : 0 ?>;
+        const HORate = <?= isset($costing_rate['B1. Biaya HO']) ? $costing_rate['B1. Biaya HO'] : 0 ?>;
+        const MarketingRate = <?= isset($costing_rate['B2. Biaya Marketing']) ? $costing_rate['B2. Biaya Marketing'] : 0 ?>;
 
-		//add part
-		$(document).on('click', '.addPart', function(){
-			// loading_spinner();
-			var get_id 		= $(this).parent().parent().attr('id');
-			// console.log(get_id);
-			var split_id	= get_id.split('_');
-			var id 		= parseInt(split_id[1])+1;
-			var id_bef 	= split_id[1];
+        $('#productSelect').on('change', function() {
+            const harga = $(this).find(':selected').data('harga') || 0;
 
-			$.ajax({
-				url: base_url+active_controller+'/get_add/'+id,
-				cache: false,
-				type: "POST",
-				dataType: "json",
-				success: function(data){
-					$("#add_"+id_bef).before(data.header);
-					$("#add_"+id_bef).remove();
-					$('.chosen_select').select2({width: '100%'});
-					$('.autoNumeric4').autoNumeric('init', {mDec: '4', aPad: false});
-					swal.close();
-				},
-				error: function() {
-					swal({
-						title				: "Error Message !",
-						text				: 'Connection Time Out. Please try again..',
-						type				: "warning",
-						timer				: 3000,
-						showCancelButton	: false,
-						showConfirmButton	: false,
-						allowOutsideClick	: false
-					});
-				}
-			});
-		});
+            $('.harga_beli').val(harga);
 
-	   //delete part
-		$(document).on('click', '.delPart', function(){
-			var get_id 		= $(this).parent().parent().attr('class');
-			$("."+get_id).remove();
-		});
+            // Hitung biaya import otomatis
+            const biayaImport = harga * ImportRate;
+            const biayaCabang = harga * CabangRate;
+            const biayaLogistik = harga * LogistikRate;
+            const biayaHO = harga * HORate;
+            const biayaMarketing = harga * MarketingRate;
+            const productCosting = harga + biayaImport + biayaCabang + biayaLogistik + biayaHO + biayaMarketing;
+            $('.biaya_import').val(biayaImport);
+            $('.biaya_cabang').val(biayaCabang);
+            $('.biaya_logistik').val(biayaLogistik);
+            $('.biaya_ho').val(biayaHO);
+            $('.biaya_marketing').val(biayaMarketing);
+            $('.price').val(productCosting);
+        });
 
-    	//add part
-		$(document).on('click', '#back', function(){
-		    window.location.href = base_url + active_controller;
-		});
+        $('#add-kompetitor').click(function() {
+            var jumlah = $('#list_kompetitor').find('tr').length;
+            if (jumlah == 0 || jumlah == null) {
+                var ada = 0;
+                var loop = 1;
+            } else {
+                var nilai = $('#list_kompetitor tr:last').attr('id');
+                var jum1 = nilai.split('_');
+                var loop = parseInt(jum1[1]) + 1;
+            }
+            Template = '<tr id="tr_' + loop + '">';
+            Template += '<td align="left">';
+            Template += '<input type="text" class="form-control" name="kompetitor[' + loop + '][nama]" id="kompetitor_' + loop + '_nama">';
+            Template += '</td>';
+            Template += '<td align="left">';
+            Template += '<input type="text" class="form-control divide" name="kompetitor[' + loop + '][harga]" id="kompetitor_' + loop + '_harga">';
+            Template += '</td>';
+            Template += '<td align="center"><button type="button" class="btn btn-sm btn-danger" title="Hapus Data" data-role="qtip" onClick="return DelKompetitor(' + loop + ');"><i class="fa fa-trash-o"></i></button></td>';
+            Template += '</tr>';
+            $('#list_kompetitor').append(Template);
+            $('.divide').divide();
+        });
 
-		$('#save').click(function(e){
-			e.preventDefault();
-			var id_product		  	= $('#id_product').val();
-			var material	      	= $('.material').val();
-			var qty		        	= $('.qty').val();
+        $('#save').click(function(e) {
+            e.preventDefault();
+            var product = $('#productSelect').val();
 
-			if(id_product == '0' ){
-				swal({
-					title	: "Error Message!",
-					text	: 'Product name empty, select first ...',
-					type	: "warning"
-				});
+            if (product == '') {
+                swal({
+                    title: "Error Message!",
+                    text: 'Product empty, select first ...',
+                    type: "warning"
+                });
 
-				$('#save').prop('disabled',false);
-				return false;
-			}
-			if(material == '0' ){
-				swal({
-					title	: "Error Message!",
-					text	: 'Material name empty, select first ...',
-					type	: "warning"
-				});
+                $('#save').prop('disabled', false);
+                return false;
+            }
 
-				$('#save').prop('disabled',false);
-				return false;
-			}
-      		if(qty == '' ){
-				swal({
-					title	: "Error Message!",
-					text	: 'Weight empty, select first ...',
-					type	: "warning"
-				});
+            swal({
+                    title: "Are you sure?",
+                    text: "You will not be able to process again this data!",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "Yes, Process it!",
+                    cancelButtonText: "No, cancel process!",
+                    closeOnConfirm: true,
+                    closeOnCancel: false
+                },
+                function(isConfirm) {
+                    if (isConfirm) {
+                        var formData = new FormData($('#data-form')[0]);
+                        var baseurl = base_url + active_controller + '/save'
+                        $.ajax({
+                            url: baseurl,
+                            type: "POST",
+                            data: formData,
+                            cache: false,
+                            dataType: 'json',
+                            processData: false,
+                            contentType: false,
+                            success: function(data) {
+                                if (data.status == 1) {
+                                    swal({
+                                        title: "Save Success!",
+                                        text: data.pesan,
+                                        type: "success",
+                                        timer: 3000,
+                                        showCancelButton: false,
+                                        showConfirmButton: false,
+                                        allowOutsideClick: false
+                                    });
+                                    window.location.href = base_url + active_controller;
+                                } else {
 
-				$('#save').prop('disabled',false);
-				return false;
-			}
+                                    if (data.status == 2) {
+                                        swal({
+                                            title: "Save Failed!",
+                                            text: data.pesan,
+                                            type: "warning",
+                                            timer: 3000,
+                                            showCancelButton: false,
+                                            showConfirmButton: false,
+                                            allowOutsideClick: false
+                                        });
+                                    } else {
+                                        swal({
+                                            title: "Save Failed!",
+                                            text: data.pesan,
+                                            type: "warning",
+                                            timer: 3000,
+                                            showCancelButton: false,
+                                            showConfirmButton: false,
+                                            allowOutsideClick: false
+                                        });
+                                    }
 
-			swal({
-				  title: "Are you sure?",
-				  text: "You will not be able to process again this data!",
-				  type: "warning",
-				  showCancelButton: true,
-				  confirmButtonClass: "btn-danger",
-				  confirmButtonText: "Yes, Process it!",
-				  cancelButtonText: "No, cancel process!",
-				  closeOnConfirm: true,
-				  closeOnCancel: false
-				},
-				function(isConfirm) {
-				  if (isConfirm) {
-						var formData 	=new FormData($('#data-form')[0]);
-						var baseurl = base_url+active_controller+'/add'
-						$.ajax({
-							url			: baseurl,
-							type		: "POST",
-							data		: formData,
-							cache		: false,
-							dataType	: 'json',
-							processData	: false,
-							contentType	: false,
-							success		: function(data){
-								if(data.status == 1){
-									swal({
-										  title	: "Save Success!",
-										  text	: data.pesan,
-										  type	: "success",
-										  timer	: 3000,
-										  showCancelButton	: false,
-										  showConfirmButton	: false,
-										  allowOutsideClick	: false
-										});
-									window.location.href = base_url + active_controller;
-								}else{
+                                }
+                            },
+                            error: function() {
+                                swal({
+                                    title: "Error Message !",
+                                    text: 'An Error Occured During Process. Please try again..',
+                                    type: "warning",
+                                    timer: 7000,
+                                    showCancelButton: false,
+                                    showConfirmButton: false,
+                                    allowOutsideClick: false
+                                });
+                            }
+                        });
+                    } else {
+                        swal("Cancelled", "Data can be process again :)", "error");
+                        return false;
+                    }
+                });
+        });
 
-									if(data.status == 2){
-										swal({
-										  title	: "Save Failed!",
-										  text	: data.pesan,
-										  type	: "warning",
-										  timer	: 3000,
-										  showCancelButton	: false,
-										  showConfirmButton	: false,
-										  allowOutsideClick	: false
-										});
-									}else{
-										swal({
-										  title	: "Save Failed!",
-										  text	: data.pesan,
-										  type	: "warning",
-										  timer	: 3000,
-										  showCancelButton	: false,
-										  showConfirmButton	: false,
-										  allowOutsideClick	: false
-										});
-									}
+    });
 
-								}
-							},
-							error: function() {
-
-								swal({
-								  title				: "Error Message !",
-								  text				: 'An Error Occured During Process. Please try again..',
-								  type				: "warning",
-								  timer				: 7000,
-								  showCancelButton	: false,
-								  showConfirmButton	: false,
-								  allowOutsideClick	: false
-								});
-							}
-						});
-				  } else {
-					swal("Cancelled", "Data can be process again :)", "error");
-					return false;
-				  }
-			});
-		});
-
-});
-
+    function DelKompetitor(id) {
+        $('#list_kompetitor #tr_' + id).remove();
+    }
 </script>
