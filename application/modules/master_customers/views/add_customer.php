@@ -227,6 +227,19 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									</select>
 								</div>
 							</div>
+							<div class="form-group row">
+								<div class="col-md-6">
+									<label for="customer">Kategori Toko</label>
+								</div>
+								<div class="col-md-6">
+									<select name="kategori_toko" id="kategori_toko" class="form-control select">
+										<option value="">-- Pilih --</option>
+										<option value="Toko 1">Toko 1</option>
+										<option value="Toko 2">Toko 2</option>
+										<option value="Toko 3">Toko 3</option>
+									</select>
+								</div>
+							</div>
 						</div>
 					</div>
 
