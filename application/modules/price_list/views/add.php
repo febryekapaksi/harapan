@@ -176,6 +176,31 @@ for ($i = 0; $i < $total_rows; $i++) {
     </div>
 </div>
 
+<div class="modal fade" id="reject-modal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="form-reject">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h4 class="modal-title" id="rejectModalLabel">Alasan Penolakan</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="reject_id">
+                    <div class="form-group">
+                        <label for="reason">Alasan:</label>
+                        <textarea id="reason" name="reason" class="form-control" rows="4" required placeholder="Masukkan alasan penolakan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Tolak</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
 <script src="<?= base_url('assets/js/number-divider.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
 
@@ -392,66 +417,67 @@ for ($i = 0; $i < $total_rows; $i++) {
     }
 
     function Reject() {
-        // $('#dialog-popup').modal('hide');
-        swal({
-            title: "Tolak Pengajuan?",
-            text: "Berikan alasan penolakan:",
-            type: "input",
-            showCancelButton: true,
-            confirmButtonColor: "#DD6B55",
-            confirmButtonText: "Lanjutkan",
-            cancelButtonText: "Batal",
-            closeOnConfirm: false,
-            inputPlaceholder: "Masukkan alasan..."
-        }, function(inputValue) {
-            if (inputValue === false) return false;
-            if (inputValue.trim() === "") {
-                swal.showInputError("Alasan harus diisi!");
-                return false;
-            }
+        const id = $('#id').val(); // ambil id dari input hidden
+        $('#reject_id').val(id); // simpan ke form modal
+        $('#reason').val(''); // reset alasan
+        $('#reject-modal').modal('show'); // tampilkan modal
+    }
 
-            // KONFIRMASI KEDUA
-            swal({
-                title: "Yakin ingin menolak?",
-                text: "Data akan ditolak dengan alasan:\n\n" + inputValue,
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#d33",
-                confirmButtonText: "Ya, Tolak!",
-                cancelButtonText: "Batal",
-                closeOnConfirm: false
-            }, function(isConfirm) {
-                if (isConfirm) {
-                    const id = $("#id").val();
-                    $.ajax({
-                        url: base_url + active_controller + 'reject/' + id,
-                        type: 'POST',
-                        dataType: 'json',
-                        data: {
-                            reason: inputValue
-                        },
-                        success: function(res) {
-                            if (res.save == 1) {
-                                swal({
-                                    title: "Ditolak!",
-                                    text: "Data berhasil ditolak.",
-                                    type: "success",
-                                    timer: 1500,
-                                    showConfirmButton: false
-                                });
-                                setTimeout(() => {
-                                    window.location.href = base_url + active_controller;
-                                }, 1500);
-                            } else {
-                                swal("Gagal!", res.message, "error");
-                            }
-                        },
-                        error: function() {
-                            swal("Error", "Server error saat menolak data", "error");
-                        }
-                    });
+    // Saat form submit
+    $('#form-reject').submit(function(e) {
+        e.preventDefault();
+
+        const id = $('#reject_id').val();
+        const reason = $('#reason').val().trim();
+
+        if (reason === '') {
+            alert('Alasan penolakan harus diisi.');
+            return;
+        }
+
+        // Konfirmasi kedua pakai SweetAlert
+        swal({
+            title: "Konfirmasi Penolakan",
+            text: "Yakin ingin menolak data dengan alasan berikut?\n\n" + reason,
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonText: "Ya, Tolak",
+            cancelButtonText: "Batal",
+            closeOnConfirm: false
+        }, function(isConfirm) {
+            if (!isConfirm) return;
+
+            // Sembunyikan modal input
+            $('#reject-modal').modal('hide');
+
+            // Kirim AJAX ke backend
+            $.ajax({
+                url: base_url + active_controller + 'reject/' + id,
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    reason
+                },
+                success: function(res) {
+                    if (res.save == 1) {
+                        swal({
+                            title: "Ditolak!",
+                            text: "Data berhasil ditolak.",
+                            type: "success",
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+                        setTimeout(() => {
+                            window.location.href = base_url + active_controller;
+                        }, 1500);
+                    } else {
+                        swal("Gagal", res.message || "Penolakan gagal disimpan.", "error");
+                    }
+                },
+                error: function() {
+                    swal("Error", "Terjadi kesalahan saat memproses data.", "error");
                 }
             });
         });
-    }
+    });
 </script>
