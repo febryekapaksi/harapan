@@ -169,7 +169,7 @@ for ($i = 0; $i < $total_rows; $i++) {
             <div class="form-group row">
                 <div class="col-md-12 text-center">
                     <a class="btn btn-primary approve" name="approve" id="approve" onclick="Approve()"><i class="fa fa-check"></i> Approve</a>
-                    <a class="btn btn-danger reject" name="reject" id="reject"><i class="fa fa-ban"></i> Reject</a>
+                    <a class="btn btn-danger reject" name="reject" id="reject" onclick="Reject()"><i class="fa fa-ban"></i> Reject</a>
                 </div>
             </div>
         </form>
@@ -389,5 +389,69 @@ for ($i = 0; $i < $total_rows; $i++) {
                     });
                 }
             });
+    }
+
+    function Reject() {
+        // $('#dialog-popup').modal('hide');
+        swal({
+            title: "Tolak Pengajuan?",
+            text: "Berikan alasan penolakan:",
+            type: "input",
+            showCancelButton: true,
+            confirmButtonColor: "#DD6B55",
+            confirmButtonText: "Lanjutkan",
+            cancelButtonText: "Batal",
+            closeOnConfirm: false,
+            inputPlaceholder: "Masukkan alasan..."
+        }, function(inputValue) {
+            if (inputValue === false) return false;
+            if (inputValue.trim() === "") {
+                swal.showInputError("Alasan harus diisi!");
+                return false;
+            }
+
+            // KONFIRMASI KEDUA
+            swal({
+                title: "Yakin ingin menolak?",
+                text: "Data akan ditolak dengan alasan:\n\n" + inputValue,
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d33",
+                confirmButtonText: "Ya, Tolak!",
+                cancelButtonText: "Batal",
+                closeOnConfirm: false
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    const id = $("#id").val();
+                    $.ajax({
+                        url: base_url + active_controller + 'reject/' + id,
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {
+                            reason: inputValue
+                        },
+                        success: function(res) {
+                            if (res.save == 1) {
+                                swal({
+                                    title: "Ditolak!",
+                                    text: "Data berhasil ditolak.",
+                                    type: "success",
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+                                setTimeout(() => {
+                                    window.location.href = base_url + active_controller;
+                                }, 1500);
+                            } else {
+                                swal("Gagal!", res.message, "error");
+                            }
+                        },
+                        error: function() {
+                            swal("Error", "Server error saat menolak data", "error");
+                        }
+                    });
+                }
+            });
+        });
     }
 </script>

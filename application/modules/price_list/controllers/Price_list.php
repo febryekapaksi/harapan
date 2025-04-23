@@ -93,6 +93,42 @@ class Price_list extends Admin_Controller
 		}
 	}
 
+	// reject 
+	public function reject($id = null)
+	{
+		if (!$id) {
+			echo json_encode(['save' => 0, 'message' => 'ID tidak ditemukan']);
+			return;
+		}
+
+		$costing = $this->db->get_where('product_costing', ['id' => $id])->row();
+		if (!$costing) {
+			echo json_encode(['save' => 0, 'message' => 'Data tidak ditemukan']);
+			return;
+		}
+
+		$reason = $this->input->post('reason');
+		if (!$reason) {
+			echo json_encode(['save' => 0, 'message' => 'Alasan harus diisi']);
+			return;
+		}
+
+		$data = [
+			'status' => 'R',
+			'reason' => $reason,
+			'modified_by' => $this->auth->user_id(),
+			'modified_at' => date('Y-m-d H:i:s')
+		];
+
+		$this->db->where('id', $id);
+		$update = $this->db->update('product_costing', $data);
+
+		if ($update) {
+			echo json_encode(['save' => 1]);
+		} else {
+			echo json_encode(['save' => 0, 'message' => 'Gagal menyimpan alasan penolakan']);
+		}
+	}
 
 	public function data_side_product_costing()
 	{

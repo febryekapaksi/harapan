@@ -20,15 +20,15 @@
 			<div class="col-md-10">
 
 			</div>
-			<div class="col-md-2">
+			<!-- <div class="col-md-2">
 				<select name="status" id="status" class='form-control select2'>
 					<option value="0">ALL STATUS</option>
-					<!-- <option value="N">Waiting Submission</option> -->
+					<option value="N">Waiting Submission</option>
 					<option value="WA">Waiting Approval</option>
 					<option value="A">Approved</option>
 					<option value="R">Rejected</option>
 				</select>
-			</div>
+			</div> -->
 		</div>
 		<div class="table-responsive">
 			<table id="example1" class="table table-bordered table-striped">
@@ -41,7 +41,7 @@
 						<th class='text-right'>Price Diajukan<br>(IDR)</th>
 						<th>Kompetitor</th>
 						<th>Status Price List</th>
-						<th width='10%'>Reason</th>
+						<!-- <th width='10%'>Reason</th> -->
 						<th width='7%'>Action</th>
 					</tr>
 				</thead>

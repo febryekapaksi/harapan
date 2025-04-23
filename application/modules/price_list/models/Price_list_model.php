@@ -94,7 +94,7 @@ class Price_list_model extends BF_Model
 			// Tombol aksi hanya untuk WA dan R
 			$action = '';
 			if (in_array($row['status'], ['WA', 'R'])) {
-				$action .= "<a href='javascript:void(0)' data-id='" . $row['id'] . "' class='btn btn-sm btn-success process' title='Process'><i class='fa fa-check'></i></a> ";
+				$action .= "<a href='javascript:void(0)' data-id='" . $row['id'] . "' class='btn btn-sm btn-success process' title='Process'><i class='fa fa-check-square-o'></i></a> ";
 				// $action .= "<a href='" . site_url($this->uri->segment(1) . '/delete/' . $row['id']) . "' class='btn btn-sm btn-danger' title='Delete' onclick=\"return confirm('Yakin hapus data ini?')\"><i class='fa fa-trash'></i></a>";
 			}
 
@@ -106,7 +106,7 @@ class Price_list_model extends BF_Model
 			$nestedData[] = "<div align='right'>" . number_format($row['propose_price'], 2) . "</div>";
 			$nestedData[] = $kompetitor_list;
 			$nestedData[] = "<span class='badge bg-{$warna}'>{$status_label}</span>";
-			$nestedData[] = htmlspecialchars($row['reason']);
+			// $nestedData[] = htmlspecialchars($row['reason']);
 			$nestedData[] = "<div align='center'>{$action}</div>";
 
 			$data[] = $nestedData;
