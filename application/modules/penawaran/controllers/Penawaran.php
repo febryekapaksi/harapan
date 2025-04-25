@@ -30,17 +30,39 @@ class Penawaran extends Admin_Controller
     {
         $data['customers'] = $this->db->get('master_customers')->result_array();
         $data['products'] = $this->db->get_where('product_costing', ['status' => 'A'])->result_array();
-
-        // Ambil daftar TOP (Term of Payment)
         $payment_terms = $this->db
             ->where('group_by', 'top invoice')
             ->where('sts', 'Y')
             ->order_by('id', 'asc')
             ->get('list_help')
             ->result_array();
-
         $data['payment_terms'] = $payment_terms;
 
+        $this->template->render('form', $data);
+    }
+
+    public function edit($id_penawaran)
+    {
+        // Cek apakah data ada
+        $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
+
+        if (!$penawaran) {
+            show_404(); // Jika tidak ada, tampilkan error 404
+        }
+
+        // Ambil data detail produk terkait
+        $penawaran_detail = $this->db->get_where('penawaran_detail', ['id_penawaran' => $id_penawaran])->result_array();
+
+        // Data customer dan produk (jika diperlukan untuk select)
+        $data['customers'] = $this->db->get('master_customers')->result_array();
+        $data['products'] = $this->db->get('product_costing')->result_array();
+        $data['payment_terms'] = $this->db->where('group_by', 'top invoice')->where('sts', 'Y')->get('list_help')->result_array();
+
+        // Kirim data ke view
+        $data['penawaran'] = $penawaran;
+        $data['penawaran_detail'] = $penawaran_detail;
+
+        // View form edit
         $this->template->render('form', $data);
     }
 
@@ -124,48 +146,34 @@ class Penawaran extends Admin_Controller
         echo json_encode($status);
     }
 
-    public function hitung_harga_ajax()
+    public function pilih_harga_ajax()
     {
         $kategori_toko = $this->input->post('kategori_toko');
         $tipe_bayar = $this->input->post('tipe_bayar');
-        $harga_awal = floatval($this->input->post('harga_awal'));
+        $id_product = $this->input->post('id_product');
 
-        // Ambil urutan semua toko
-        $tokoList = $this->db->order_by('urutan', 'asc')->get('master_persentase')->result_array();
+        // Ambil dari tabel kalkulasi
+        $row = $this->db->get_where('master_kalkulasi_price_list', [
+            'id_product' => $id_product,
+            'toko' => $kategori_toko
+        ])->row_array();
 
-        $current_cash = $harga_awal;
-        $current_tempo = 0;
-        $harga_terpilih = null;
-
-        foreach ($tokoList as $index => $toko) {
-            $cash_percent = floatval($toko['cash']) / 100;
-            $tempo_percent = floatval($toko['tempo']) / 100;
-
-            if ($index > 0) {
-                $current_cash = $current_tempo + ($current_tempo * $cash_percent);
-            }
-
-            $current_tempo = $current_cash + ($current_cash * $tempo_percent);
-
-            if (strtolower($toko['nama']) === strtolower($kategori_toko)) {
-                $harga_terpilih = ($tipe_bayar == 'cash') ? $current_cash : $current_tempo;
-                break;
-            }
-        }
-
-        if (!$harga_terpilih) {
+        if (!$row) {
             return $this->output
                 ->set_content_type('application/json')
-                ->set_output(json_encode(['error' => true, 'message' => 'Data toko tidak ditemukan']));
+                ->set_output(json_encode(['error' => true, 'message' => 'Harga tidak ditemukan untuk toko yang dipilih.']));
         }
+
+        $harga = ($tipe_bayar === 'cash') ? $row['cash'] : $row['tempo'];
 
         return $this->output
             ->set_content_type('application/json')
             ->set_output(json_encode([
                 'error' => false,
-                'harga' => intval($harga_terpilih)
+                'harga' => intval($harga)
             ]));
     }
+
 
     public function get_nama_sales()
     {
@@ -191,8 +199,7 @@ class Penawaran extends Admin_Controller
         $this->penawaran_model->get_json_penawaran();
     }
 
-
-
+    // BUAT TEST TEST
     public function getHargaPenawaran($id_product, $nama_toko, $tipe_bayar)
     {
         // Ambil produk
@@ -259,12 +266,65 @@ class Penawaran extends Admin_Controller
 
     public function test()
     {
-        $data = $this->getHargaPenawaran('PC2500001', 'Toko 2', 'tempo');
+        // $data = $this->getHargaPenawaran('PC2500001', 'Toko 2', 'tempo');
+        $data = $this->getHargaSemuaToko('PC2500001');
 
-        if ($data['error']) {
-            echo $data['message'];
-        } else {
-            echo "Produk : {$data['nama_produk']}<br> Toko : {$data['toko']}, <br>Bayar : {$data['tipe_bayar']}, <br> Harga : Rp " . number_format($data['harga'], 2, ',', '.');
+        echo '<pre>';
+        print_r($data);
+        echo '</pre>';
+        die();
+    }
+
+    public function getHargaSemuaToko($id_product)
+    {
+        // Ambil produk
+        $product = $this->db->get_where('product_costing', ['id' => $id_product])->row_array();
+
+        if (!$product) {
+            return [
+                'error' => true,
+                'message' => 'Produk tidak ditemukan.'
+            ];
         }
+
+        $harga_awal = $product['propose_price'];
+
+        // Ambil data toko
+        $tokoList = $this->db->order_by('urutan', 'asc')->get('master_persentase')->result_array();
+
+        if (empty($tokoList)) {
+            return [
+                'error' => true,
+                'message' => 'Data master persentase kosong.'
+            ];
+        }
+
+        // Inisialisasi
+        $current_cash = $harga_awal;
+        $current_tempo = 0;
+        $result = [];
+
+        foreach ($tokoList as $index => $toko) {
+            $cash_percent = floatval($toko['cash']) / 100;
+            $tempo_percent = floatval($toko['tempo']) / 100;
+
+            if ($index > 0) {
+                $current_cash = $current_tempo + ($current_tempo * $cash_percent);
+            }
+
+            $current_tempo = $current_cash + ($current_cash * $tempo_percent);
+
+            $result[] = [
+                'toko' => $toko['nama'],
+                'cash' => intval($current_cash),
+                'tempo' => intval($current_tempo),
+            ];
+        }
+
+        return [
+            'error' => false,
+            'produk' => $product['product_name'],
+            'harga' => $result
+        ];
     }
 }

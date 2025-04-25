@@ -92,7 +92,7 @@ class Penawaran_model extends BF_Model
             }
 
             // Aksi tombol
-            $action = "<a href='javascript:void(0)' class='btn btn-sm btn-primary edit' data-id='{$row['id_penawaran']}'><i class='fa fa-edit'></i></a> ";
+            $action = "<a href='" . base_url("penawaran/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary'><i class='fa fa-edit'></i></a> ";
             $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger delete' data-id='{$row['id_penawaran']}'><i class='fa fa-trash'></i></a>";
 
             $nestedData = [];

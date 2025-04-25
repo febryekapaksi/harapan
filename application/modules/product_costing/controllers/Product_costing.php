@@ -160,6 +160,118 @@ class Product_costing extends Admin_Controller
         echo json_encode($status);
     }
 
+    public function generate_price_list_ajax()
+    {
+        if ($this->generate_price_list()) {
+            echo json_encode([
+                'error' => false,
+                'message' => 'Kalkulasi berhasil diperbarui.',
+                'last_update' => date('Y-m-d H:i:s')
+            ]);
+        } else {
+            echo json_encode([
+                'error' => true,
+                'message' => 'Produk atau toko kosong.'
+            ]);
+        }
+    }
+
+
+    public function generate_price_list()
+    {
+        $products = $this->db->get_where('product_costing', ['status' => 'A'])->result_array();
+        $tokoList = $this->db->order_by('urutan', 'asc')->get('master_persentase')->result_array();
+
+        if (empty($products) || empty($tokoList)) {
+            return false;
+        }
+
+        $this->db->truncate('master_kalkulasi_price_list');
+
+        foreach ($products as $product) {
+            $harga_awal = $product['propose_price'];
+            $current_cash = $harga_awal;
+
+            foreach ($tokoList as $index => $toko) {
+                $cash_percent = floatval($toko['cash']) / 100;
+                $tempo_percent = floatval($toko['tempo']) / 100;
+
+                $current_cash = $current_cash + ($current_cash * $cash_percent);
+                $current_tempo = $current_cash + ($current_cash * $tempo_percent);
+
+                $this->db->insert('master_kalkulasi_price_list', [
+                    'id_product' => $product['id'],
+                    'product_name' => $product['product_name'],
+                    'toko' => $toko['nama'],
+                    'cash' => floor($current_cash),
+                    'tempo' => floor($current_tempo),
+                    'created_at' => date('Y-m-d H:i:s')
+                ]);
+
+                $current_cash = $current_tempo;
+            }
+        }
+
+        return true;
+    }
+
+
+    public function list_price_list()
+    {
+        // Ambil semua toko dengan urutan (untuk header)
+        $tokoList = $this->db->order_by('urutan', 'asc')->get('master_persentase')->result_array();
+
+        // Ambil semua kalkulasi dari DB
+        $rows = $this->db->get('master_kalkulasi_price_list')->result_array();
+
+        // Kelompokkan berdasarkan produk
+        $groupedData = [];
+        foreach ($rows as $row) {
+            $groupedData[$row['product_name']][$row['toko']] = [
+                'cash' => $row['cash'],
+                'tempo' => $row['tempo']
+            ];
+        }
+
+        $this->template->render('kalkulasi_price_list', [
+            'tokoList' => $tokoList,
+            'groupedData' => $groupedData
+        ]);
+    }
+
+    public function master_persentase()
+    {
+        $data['persentase'] = $this->db->order_by('urutan', 'asc')->get('master_persentase')->result_array();
+        $this->template->render('master_persentase', $data);
+    }
+
+    public function save_persentase()
+    {
+        $data = $this->input->post('data');
+
+        // Bersihkan semua dulu
+        $this->db->truncate('master_persentase');
+
+        foreach ($data as $item) {
+            if (!isset($item['nama']) || trim($item['nama']) === '') continue;
+
+            $this->db->insert('master_persentase', [
+                'nama' => $item['nama'],
+                'urutan' => $item['urutan'],
+                'cash' => $item['cash'],
+                'tempo' => $item['tempo']
+            ]);
+        }
+
+        $this->generate_price_list();
+
+        echo json_encode([
+            'status' => 1,
+            'message' => 'Data berhasil diperbarui.'
+        ]);
+    }
+
+
     public function data_side_product_costing()
     {
         $this->product_costing_model->get_json_product_costing();

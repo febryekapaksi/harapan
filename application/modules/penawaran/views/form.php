@@ -1,18 +1,24 @@
 <div class="box box-primary">
     <div class="box-body">
         <form id="data-form" autocomplete="off">
-            <input type="hidden" name="id_penawaran">
+            <input type="hidden" name="id_penawaran" value="<?= isset($penawaran['id_penawaran']) ? $penawaran['id_penawaran'] : '' ?>">
             <div class="row">
                 <div class="col-md-12">
                     <div class="col-sm-6">
+
+                        <!-- No Penawaran -->
                         <div class="form-group row">
                             <div class="col-md-4">
-                                <label for="">No Penawaran</label>
+                                <label for="no_penawaran">No Penawaran</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" name="no_penawaran" id="no_penawaran" placeholder="Automatic" readonly>
+                                <input type="text" class="form-control" name="no_penawaran" id="no_penawaran"
+                                    value="<?= isset($penawaran['id_penawaran']) ? $penawaran['id_penawaran'] : 'Automatic' ?>"
+                                    placeholder="Automatic" readonly>
                             </div>
                         </div>
+
+                        <!-- Customer -->
                         <div class="form-group row">
                             <div class="col-md-4">
                                 <label for="id_customer">Customer</label>
@@ -25,7 +31,8 @@
                                             value="<?= $ctm['id_customer']; ?>"
                                             data-sales="<?= $ctm['id_karyawan'] ?>"
                                             data-email="<?= $ctm['email'] ?>"
-                                            data-toko="<?= $ctm['kategori_toko']; ?>">
+                                            data-toko="<?= $ctm['kategori_toko']; ?>"
+                                            <?= isset($penawaran['id_customer']) && $penawaran['id_customer'] == $ctm['id_customer'] ? 'selected' : '' ?>>
                                             <?= $ctm['name_customer']; ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -33,26 +40,33 @@
                             </div>
                         </div>
 
+                        <!-- Sales -->
                         <div class="form-group row">
                             <div class="col-md-4">
-                                <label for="">Sales</label>
+                                <label for="sales">Sales</label>
                             </div>
                             <div class="col-md-8">
                                 <input type="hidden" name="id_karyawan" id="id_karyawan">
-                                <input type="text" class="form-control" name="sales" id="sales">
+                                <input type="text" class="form-control" name="sales" id="sales"
+                                    value="<?= isset($penawaran['sales']) ? $penawaran['sales'] : '' ?>">
                             </div>
                         </div>
 
+                        <!-- Email -->
                         <div class="form-group row">
                             <div class="col-md-4">
-                                <label for="">Email</label>
+                                <label for="email">Email</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" name="email" id="email">
+                                <input type="text" class="form-control" name="email" id="email"
+                                    value="<?= isset($penawaran['email']) ? $penawaran['email'] : '' ?>">
                             </div>
                         </div>
+
                     </div>
                     <div class="col-sm-6">
+
+                        <!-- Term of Payment -->
                         <div class="form-group row">
                             <div class="col-md-4">
                                 <label for="payment_term">Term Of Payment</label>
@@ -61,36 +75,44 @@
                                 <select id="payment_term" name="payment_term" class="form-control select2" required>
                                     <option value="">-- Pilih --</option>
                                     <?php foreach ($payment_terms as $term): ?>
-                                        <option value="<?= htmlspecialchars($term['id']) ?>">
+                                        <option value="<?= htmlspecialchars($term['id']) ?>"
+                                            <?= isset($penawaran['payment_term']) && $penawaran['payment_term'] == $term['id'] ? 'selected' : '' ?>>
                                             <?= htmlspecialchars($term['name']) ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
                         </div>
+
+                        <!-- Quotation Date -->
                         <div class="form-group row">
                             <div class="col-md-4">
-                                <label for="">Quotation Date</label>
+                                <label for="quotation_date">Quotation Date</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="quotation_date" id="quotation_date">
+                                <input type="date" class="form-control" name="quotation_date" id="quotation_date"
+                                    value="<?= isset($penawaran['quotation_date']) ? date('Y-m-d', strtotime($penawaran['quotation_date'])) : '' ?>">
                             </div>
                         </div>
+
+                        <!-- Tipe Bayar -->
                         <div class="form-group row">
                             <div class="col-md-4">
-                                <label for="">Tipe Bayar</label>
+                                <label for="tipe_bayar">Tipe Bayar</label>
                             </div>
                             <div class="col-md-8">
                                 <select name="tipe_bayar" id="tipe_bayar" class="form-control select2">
                                     <option value="">-- Pilih --</option>
-                                    <option value="cash">Cash</option>
-                                    <option value="tempo">Tempo</option>
+                                    <option value="cash" <?= isset($penawaran['tipe_bayar']) && $penawaran['tipe_bayar'] == 'cash' ? 'selected' : '' ?>>Cash</option>
+                                    <option value="tempo" <?= isset($penawaran['tipe_bayar']) && $penawaran['tipe_bayar'] == 'tempo' ? 'selected' : '' ?>>Tempo</option>
                                 </select>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
+
             <hr>
             <div class="form-group row">
                 <div class="col-md-12">
@@ -114,8 +136,8 @@
                         <tbody id="list_product">
                             <?php
                             $loop = 0;
-                            if (!empty($detail_penawaran)) {
-                                foreach ($detail_penawaran as $dp) {
+                            if (!empty($penawaran_detail)) {
+                                foreach ($penawaran_detail as $dp) {
                                     $loop++;
                             ?>
                                     <tr id="tr_<?= $loop ?>">
@@ -126,7 +148,7 @@
                                                     <option value="<?= $item['id'] ?>"
                                                         data-price="<?= $item['propose_price'] ?>"
                                                         data-product="<?= $item['product_name'] ?>"
-                                                        <?= $item['id'] == $dp['product_id'] ? 'selected' : '' ?>>
+                                                        <?= $item['id'] == $dp['id_product'] ? 'selected' : '' ?>>
                                                         <?= $item['product_name'] ?>
                                                     </option>
                                                 <?php endforeach; ?>
@@ -134,8 +156,8 @@
                                         </td>
                                         <td hidden><input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $dp['product_name'] ?>"></td>
                                         <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>"></td>
-                                        <td><input type="text" class="form-control" name="product[<?= $loop ?>][stok]" id="stok_<?= $loop ?>" value="<?= $dp['stok'] ?>" readonly></td>
-                                        <td><input type="text" class="form-control divide price-list" name="product[<?= $loop ?>][price_list]" id="price_<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly></td>
+                                        <td><input type="text" class="form-control" name="product[<?= $loop ?>][stok]" id="stok_<?= $loop ?>" readonly></td>
+                                        <td><input type=" text" class="form-control divide price-list" name="product[<?= $loop ?>][price_list]" id="price_<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly></td>
                                         <td><input type="text" class="form-control penawaran divide" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>"></td>
                                         <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly></td>
                                         <td><input type="text" class="form-control divide total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
@@ -177,15 +199,15 @@
                         <tfoot>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>Total Harga Penawaran</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="total_penawaran" id="total_penawaran" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control divide" name="total_penawaran" id="total_penawaran" value="<?= isset($penawaran['total_penawaran']) ? $penawaran['total_penawaran'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>Total Harga Price List</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="total_price_list" id="total_price_list" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control divide" name="total_price_list" id="total_price_list" value="<?= isset($penawaran['total_price_list']) ? $penawaran['total_price_list'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>Total % Discount</strong></td>
-                                <td colspan="2"><input type="text" class="form-control" name="total_diskon_persen" id="total_diskon_persen" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control" name="total_diskon_persen" id="total_diskon_persen" value="<?= isset($penawaran['total_diskon_persen']) ? $penawaran['total_diskon_persen'] : '' ?>" readonly></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -461,7 +483,6 @@
     function hitungHarga(loopIndex) {
         const productSelect = $(`.product-select[data-loop="${loopIndex}"]`);
         const idProduct = productSelect.val();
-        const hargaAwal = productSelect.find(':selected').data('price');
 
         const idCustomer = $('#id_customer').val();
         const kategoriToko = $('#id_customer option:selected').data('toko');
@@ -469,24 +490,23 @@
 
         if (idProduct && kategoriToko && tipeBayar) {
             $.ajax({
-                url: '<?= base_url('penawaran/hitung_harga_ajax') ?>',
+                url: base_url + 'penawaran/pilih_harga_ajax',
                 type: 'POST',
                 data: {
                     id_product: idProduct,
                     kategori_toko: kategoriToko,
-                    tipe_bayar: tipeBayar,
-                    harga_awal: hargaAwal
+                    tipe_bayar: tipeBayar
                 },
                 dataType: 'json',
                 success: function(res) {
                     if (res.error) {
-                        alert(res.message);
+                        Swal.fire('Gagal', res.message, 'warning');
                     } else {
                         $(`#price_${loopIndex}`).val(res.harga);
                     }
                 },
                 error: function() {
-                    alert('Gagal mengambil data harga.');
+                    Swal.fire('Gagal', 'Terjadi kesalahan saat mengambil data harga.', 'error');
                 }
             });
         }
