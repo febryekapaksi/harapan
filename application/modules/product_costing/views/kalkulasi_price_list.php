@@ -22,15 +22,15 @@
         <table class="table table-bordered table-striped">
             <thead class="bg-blue">
                 <tr>
-                    <th rowspan="2">Produk</th>
+                    <th rowspan="2" class="text-center" style="vertical-align: middle;">Produk</th>
                     <?php foreach ($tokoList as $toko): ?>
                         <th colspan="2" class="text-center"><?= $toko['nama'] ?></th>
                     <?php endforeach; ?>
                 </tr>
                 <tr>
                     <?php foreach ($tokoList as $toko): ?>
-                        <th>Cash</th>
-                        <th>Tempo</th>
+                        <th class="text-center">Cash</th>
+                        <th class="text-center">Tempo</th>
                     <?php endforeach; ?>
                 </tr>
             </thead>

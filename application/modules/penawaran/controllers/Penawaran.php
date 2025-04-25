@@ -28,7 +28,12 @@ class Penawaran extends Admin_Controller
 
     public function add()
     {
-        $data['customers'] = $this->db->get('master_customers')->result_array();
+        $data['customers'] = $this->db
+            ->where('deleted', 0)
+            ->where('deleted_by', null)
+            ->get('master_customers')
+            ->result_array();
+
         $data['products'] = $this->db->get_where('product_costing', ['status' => 'A'])->result_array();
         $payment_terms = $this->db
             ->where('group_by', 'top invoice')
