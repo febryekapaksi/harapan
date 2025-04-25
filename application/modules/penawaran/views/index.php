@@ -90,7 +90,7 @@
                 [10, 20, 50, 100, 150]
             ],
             "ajax": {
-                url: base_url + active_controller + 'data_side_product_costing',
+                url: base_url + active_controller + 'data_side_penawaran',
                 type: "post",
                 data: function(d) {
                     d.status = status
