@@ -204,12 +204,13 @@ for ($i = 0; $i < $total_rows; $i++) {
             const biayaHO = (harga * HORate) / 100;
             const biayaMarketing = (harga * MarketingRate) / 100;
             const productCosting = harga + biayaImport + biayaCabang + biayaLogistik + biayaHO + biayaMarketing;
-            $('.biaya_import').val(biayaImport);
-            $('.biaya_cabang').val(biayaCabang);
-            $('.biaya_logistik').val(biayaLogistik);
-            $('.biaya_ho').val(biayaHO);
-            $('.biaya_marketing').val(biayaMarketing);
-            $('.price').val(productCosting);
+
+            $('.biaya_import').val(Math.floor(biayaImport)).trigger('change');
+            $('.biaya_cabang').val(Math.floor(biayaCabang)).trigger('change');
+            $('.biaya_logistik').val(Math.floor(biayaLogistik)).trigger('change');
+            $('.biaya_ho').val(Math.floor(biayaHO)).trigger('change');
+            $('.biaya_marketing').val(Math.floor(biayaMarketing)).trigger('change');
+            $('.price').val(Math.floor(productCosting)).trigger('change');
         });
 
         $('#add-kompetitor').click(function() {
