@@ -198,11 +198,11 @@ for ($i = 0; $i < $total_rows; $i++) {
             $('.harga_beli').val(harga);
 
             // Hitung biaya import otomatis
-            const biayaImport = harga * ImportRate;
-            const biayaCabang = harga * CabangRate;
-            const biayaLogistik = harga * LogistikRate;
-            const biayaHO = harga * HORate;
-            const biayaMarketing = harga * MarketingRate;
+            const biayaImport = (harga * ImportRate) / 100;
+            const biayaCabang = (harga * CabangRate) / 100;
+            const biayaLogistik = (harga * LogistikRate) / 100;
+            const biayaHO = (harga * HORate) / 100;
+            const biayaMarketing = (harga * MarketingRate) / 100;
             const productCosting = harga + biayaImport + biayaCabang + biayaLogistik + biayaHO + biayaMarketing;
             $('.biaya_import').val(biayaImport);
             $('.biaya_cabang').val(biayaCabang);
