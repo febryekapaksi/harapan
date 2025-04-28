@@ -237,6 +237,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 										<option value="Toko 1">Toko 1</option>
 										<option value="Toko 2">Toko 2</option>
 										<option value="Toko 3">Toko 3</option>
+										<option value="Dropship">Dropship</option>
 									</select>
 								</div>
 							</div>
