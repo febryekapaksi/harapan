@@ -209,6 +209,18 @@
                                 <td colspan="6" class="text-right"><strong>Total % Discount</strong></td>
                                 <td colspan="2"><input type="text" class="form-control" name="total_diskon_persen" id="total_diskon_persen" value="<?= isset($penawaran['total_diskon_persen']) ? $penawaran['total_diskon_persen'] : '' ?>" readonly></td>
                             </tr>
+                            <tr>
+                                <td colspan="6" class="text-right"><strong>DPP</strong></td>
+                                <td colspan="2"><input type="text" class="form-control divide" name="dpp" id="dpp" value="<?= isset($penawaran['dpp']) ? $penawaran['dpp'] : '' ?>" readonly></td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-right"><strong>PPn</strong></td>
+                                <td colspan="2"><input type="text" class="form-control divide" name="ppn" id="ppn" value="<?= isset($penawaran['ppn']) ? $penawaran['ppn'] : '' ?>" readonly></td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-right"><strong>Grand Total</strong></td>
+                                <td colspan="2"><input type="text" class="form-control divide" name="grand_total" id="grand_total" value="<?= isset($penawaran['grand_total']) ? $penawaran['grand_total'] : '' ?>" readonly></td>
+                            </tr>
                         </tfoot>
                     </table>
                 </div>
@@ -445,7 +457,6 @@
         let totalPriceList = 0;
         let totalDiskon = 0;
 
-
         $('.total-harga').each(function() {
             const val = parseFloat($(this).val().replaceAll(',', '')) || 0;
             totalPenawaran += val;
@@ -461,9 +472,17 @@
             totalDiskon += val
         })
 
+        const dpp = (11 / 12) * totalPenawaran;
+        const ppn = (12 * dpp) / 100;
+        const grand_total = dpp + ppn;
+
+
         $('#total_penawaran').val(totalPenawaran.toLocaleString('id-ID'));
         $('#total_price_list').val(totalPriceList.toLocaleString('id-ID'));
         $('#total_diskon_persen').val(totalDiskon.toFixed(2));
+        $('#dpp').val(Math.floor(dpp));
+        $('#ppn').val(Math.floor(ppn));
+        $('#grand_total').val(Math.floor(grand_total));
     }
 
     //fungsi hitung total perbaris
@@ -472,7 +491,7 @@
         const price = parseFloat($(`#price_${loop}`).val()) || 0;
         const offer = parseFloat($(`#penawaran_${loop}`).val()) || 0;
 
-        const diskon = price ? ((price - offer) / price) * 100 : 0;
+        const diskon = offer ? ((offer - price) / price) * 100 : 0;
         const total = qty * offer;
 
         $(`#diskon_${loop}`).val(diskon.toFixed(2));

@@ -107,11 +107,15 @@ class Product_costing extends Admin_Controller
         ];
 
         if ($is_update) {
+            // Ambil revisi terakhir
+            $last = $this->db->select('revisi')->get_where('product_costing', ['id' => $id])->row();
+            $header['revisi'] = $last ? intval($last->revisi) + 1 : 1;
             $header['modified_by'] = $this->auth->user_id();
             $header['modified_at'] = date('Y-m-d H:i:s');
         } else {
             $header['created_by'] = $this->auth->user_id();
             $header['created_at'] = date('Y-m-d H:i:s');
+            $header['revisi'] = 0;
         }
 
         // Insert/update product_costing

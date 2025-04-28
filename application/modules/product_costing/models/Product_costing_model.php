@@ -97,6 +97,10 @@ class Product_costing_model extends BF_Model
                 $action .= "<a class='btn btn-sm btn-danger delete' title='Delete'><i class='fa fa-trash'></i></a>";
             }
 
+            if (in_array($row['status'], ['A'])) {
+                $action .= "<a href='javascript:void(0)' data-id='" . $row['id'] . "'  class='btn btn-sm btn-primary edit' data-id title='Ubah Harga'><i class='fa fa-edit'></i></a> ";
+            }
+
             $nestedData = [];
             $nestedData[] = "<div align='center'>{$nomor}</div>";
             $nestedData[] = "<div align='left'>" . strtoupper($row['nama_level1']) . "</div>";
