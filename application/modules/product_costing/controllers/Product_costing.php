@@ -4,10 +4,10 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class Product_costing extends Admin_Controller
 {
     //Permission
-    protected $viewPermission     = 'Product_Price.View';
-    protected $addPermission      = 'Product_Price.Add';
-    protected $managePermission   = 'Product_Price.Manage';
-    protected $deletePermission   = 'Product_Price.Delete';
+    protected $viewPermission     = 'Product_Costing.View';
+    protected $addPermission      = 'Product_Costing.Add';
+    protected $managePermission   = 'Product_Costing.Manage';
+    protected $deletePermission   = 'Product_Costing.Delete';
 
     public function __construct()
     {

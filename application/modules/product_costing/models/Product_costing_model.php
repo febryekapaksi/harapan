@@ -7,10 +7,10 @@ class Product_costing_model extends BF_Model
     {
         parent::__construct();
 
-        $this->ENABLE_ADD     = has_permission('Product_Price.Add');
-        $this->ENABLE_MANAGE  = has_permission('Product_Price.Manage');
-        $this->ENABLE_VIEW    = has_permission('Product_Price.View');
-        $this->ENABLE_DELETE  = has_permission('Product_Price.Delete');
+        $this->ENABLE_ADD     = has_permission('Product_Costing.Add');
+        $this->ENABLE_MANAGE  = has_permission('Product_Costing.Manage');
+        $this->ENABLE_VIEW    = has_permission('Product_Costing.View');
+        $this->ENABLE_DELETE  = has_permission('Product_Costing.Delete');
     }
 
     public function get_data($table, $where_field = '', $where_value = '')
