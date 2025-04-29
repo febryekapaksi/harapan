@@ -7,27 +7,10 @@
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 
 <div class="box">
-    <div class="box-header">
-        <span class="pull-left">
-            <a href="<?= site_url('penawaran/add') ?>" class='btn btn-primary'><i class="fa fa-plus"></i>&emsp;Penawaran</a>
-        </span>
-    </div>
+    <!-- <div class="box-header">
+    </div> -->
     <!-- /.box-header -->
     <div class="box-body">
-        <!-- <div class="form-group row">
-            <div class="col-md-10">
-
-            </div>
-            <div class="col-md-2">
-                <select name="status" id="status" class='form-control select2'>
-                    <option value="0">ALL STATUS</option>
-                    <option value="N">Waiting Submission</option>
-                    <option value="WA">Waiting Approval</option>
-                    <option value="A">Approved</option>
-                    <option value="R">Rejected</option>
-                </select>
-            </div>
-        </div> -->
         <div class="table-responsive">
             <table id="example1" class="table table-bordered table-striped">
                 <thead>
@@ -36,7 +19,6 @@
                         <th class="text-center">Date</th>
                         <th class="text-center">Cust</th>
                         <th class="text-center">Quotation No.</th>
-                        <th class="text-center">Rev</th>
                         <th class="text-center">Status</th>
                         <th width='7%'>Action</th>
                     </tr>
@@ -90,7 +72,7 @@
                 [10, 20, 50, 100, 150]
             ],
             "ajax": {
-                url: base_url + active_controller + 'data_side_penawaran',
+                url: base_url + active_controller + 'data_side_approval_manager',
                 type: "post",
                 data: function(d) {
                     d.status = status

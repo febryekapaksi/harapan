@@ -42,6 +42,7 @@ class Penawaran extends Admin_Controller
             ->get('list_help')
             ->result_array();
         $data['payment_terms'] = $payment_terms;
+        $data['mode'] = "add";
 
         $this->template->render('form', $data);
     }
@@ -66,6 +67,7 @@ class Penawaran extends Admin_Controller
         // Kirim data ke view
         $data['penawaran'] = $penawaran;
         $data['penawaran_detail'] = $penawaran_detail;
+        $data['mode'] = "edit";
 
         // View form edit
         $this->template->render('form', $data);
@@ -90,8 +92,23 @@ class Penawaran extends Admin_Controller
             'total_penawaran'       => str_replace(',', '', $data['total_penawaran']),
             'total_price_list'      => str_replace(',', '', $data['total_price_list']),
             'total_diskon_persen'   => $data['total_diskon_persen'],
+            'dpp'                   => str_replace(',', '', $data['dpp']),
+            'ppn'                   => str_replace(',', '', $data['ppn']),
+            'grand_total'           => str_replace(',', '', $data['grand_total']),
             'status'                => "WA",
         ];
+
+        $level_approval = 'M'; // default
+        if (isset($_POST['product']) && is_array($_POST['product'])) {
+            foreach ($_POST['product'] as $pro) {
+                $diskon = floatval($pro['diskon']);
+                if ($diskon < -2) {
+                    $level_approval = 'D';
+                    break;
+                }
+            }
+        }
+        $header['level_approval'] = $level_approval;
 
         if ($is_update) {
             $header['modified_by'] = $this->auth->user_id();
@@ -151,6 +168,137 @@ class Penawaran extends Admin_Controller
         echo json_encode($status);
     }
 
+    public function approval_manager()
+    {
+        $this->template->render('list_approval_manager');
+    }
+
+    public function approve_manager($id_penawaran)
+    {
+        $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
+
+        if (!$penawaran) {
+            show_404();
+        }
+
+        $penawaran_detail = $this->db->get_where('penawaran_detail', ['id_penawaran' => $id_penawaran])->result_array();
+
+        $data['customers'] = $this->db->get('master_customers')->result_array();
+        $data['products'] = $this->db->get('product_costing')->result_array();
+        $data['payment_terms'] = $this->db->where('group_by', 'top invoice')->where('sts', 'Y')->get('list_help')->result_array();
+
+        // Kirim data ke view
+        $data['penawaran'] = $penawaran;
+        $data['penawaran_detail'] = $penawaran_detail;
+        $data['mode'] = 'approval_manager';
+
+        // View form edit
+        $this->template->render('form', $data);
+    }
+
+    public function save_approval_manager()
+    {
+        $post = $this->input->post();
+        $id_penawaran = $post['id_penawaran'];
+
+        if (empty($id_penawaran)) {
+            echo json_encode(['status' => 0, 'pesan' => 'ID penawaran tidak ditemukan']);
+            return;
+        }
+
+        $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
+
+        if (!$penawaran) {
+            echo json_encode(['status' => 0, 'pesan' => 'Data penawaran tidak ditemukan']);
+            return;
+        }
+
+        // Cek apakah butuh direksi (jika approval_level DIREKSI → lanjut ke direksi, kalau MANAGER → final)
+        $update = [
+            'approved_by_manager' => $this->auth->user_id(),
+            'approved_at_manager' => date('Y-m-d H:i:s')
+        ];
+
+        if ($penawaran['approval_level'] === 'D') {
+            $update['status'] = 'WA'; // masih tunggu direksi
+        } else {
+            $update['status'] = 'A'; // final approved
+        }
+
+        $this->db->where('id_penawaran', $id_penawaran);
+        $this->db->update('penawaran', $update);
+
+        echo json_encode([
+            'status' => 1,
+            'pesan' => 'Penawaran berhasil diapprove oleh manager.'
+        ]);
+    }
+
+
+    public function approval_direksi()
+    {
+        $this->template->render('list_approval_direksi');
+    }
+
+    public function approve_direksi($id_penawaran)
+    {
+        // Cek apakah data ada
+        $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
+
+        if (!$penawaran) {
+            show_404(); // Jika tidak ada, tampilkan error 404
+        }
+
+        // Ambil data detail produk terkait
+        $penawaran_detail = $this->db->get_where('penawaran_detail', ['id_penawaran' => $id_penawaran])->result_array();
+
+        // Data customer dan produk (jika diperlukan untuk select)
+        $data['customers'] = $this->db->get('master_customers')->result_array();
+        $data['products'] = $this->db->get('product_costing')->result_array();
+        $data['payment_terms'] = $this->db->where('group_by', 'top invoice')->where('sts', 'Y')->get('list_help')->result_array();
+
+        // Kirim data ke view
+        $data['penawaran'] = $penawaran;
+        $data['penawaran_detail'] = $penawaran_detail;
+        $data['mode'] = 'approval_direksi';
+
+        // View form edit
+        $this->template->render('form', $data);
+    }
+
+    public function save_approval_direksi()
+    {
+        $post = $this->input->post();
+        $id_penawaran = $post['id_penawaran'];
+
+        if (empty($id_penawaran)) {
+            echo json_encode(['status' => 0, 'pesan' => 'ID penawaran tidak ditemukan']);
+            return;
+        }
+
+        $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
+
+        if (!$penawaran) {
+            echo json_encode(['status' => 0, 'pesan' => 'Data penawaran tidak ditemukan']);
+            return;
+        }
+
+        $this->db->where('id_penawaran', $id_penawaran);
+        $this->db->update('penawaran', [
+            'status' => 'A', // FINAL Approved
+            'approved_by_direksi' => $this->auth->user_id(),
+            'approved_at_direksi' => date('Y-m-d H:i:s')
+        ]);
+
+        echo json_encode([
+            'status' => 1,
+            'pesan' => 'Approval direksi berhasil diproses.'
+        ]);
+    }
+
+
+
+    // FUNGSI BUAT AJAX SERVERSIDE
     public function pilih_harga_ajax()
     {
         $kategori_toko = $this->input->post('kategori_toko');
@@ -179,7 +327,6 @@ class Penawaran extends Admin_Controller
             ]));
     }
 
-
     public function get_nama_sales()
     {
         $id_karyawan = $this->input->post('id_karyawan');
@@ -202,6 +349,16 @@ class Penawaran extends Admin_Controller
     public function data_side_penawaran()
     {
         $this->penawaran_model->get_json_penawaran();
+    }
+
+    public function data_side_approval_manager()
+    {
+        $this->penawaran_model->get_json_approval_manager();
+    }
+
+    public function data_side_approval_direksi()
+    {
+        $this->penawaran_model->get_json_approval_direksi();
     }
 
     // BUAT TEST TEST

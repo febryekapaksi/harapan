@@ -227,8 +227,21 @@
             </div>
             <div class="form-group row">
                 <div class="col-md-12 text-center">
-                    <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
-                    <a class="btn btn-default" onclick="window.history.back(); return false;"><i class="fa fa-reply"></i> Batal</a>
+                    <?php if ($mode == 'add' || $mode == 'edit'): ?>
+                        <button type="submit" class="btn btn-primary" name="save" id="save">
+                            <i class="fa fa-save"></i> Save
+                        </button>
+                    <?php elseif ($mode == 'approval_manager' || $mode == 'approval_direksi'): ?>
+                        <button type="submit" class="btn btn-success" name="approve" id="approve" data-role="<?= $mode ?>">
+                            <i class="fa fa-check"></i> Approve
+                        </button>
+                        <button type="button" class="btn btn-danger" id="reject">
+                            <i class="fa fa-times"></i> Reject
+                        </button>
+                    <?php endif; ?>
+                    <a class="btn btn-default" onclick="window.history.back(); return false;">
+                        <i class="fa fa-reply"></i> Batal
+                    </a>
                 </div>
             </div>
         </form>
@@ -399,6 +412,102 @@
                                         allowOutsideClick: false
                                     });
                                     window.location.href = base_url + active_controller;
+                                } else {
+
+                                    if (data.status == 2) {
+                                        swal({
+                                            title: "Save Failed!",
+                                            text: data.pesan,
+                                            type: "warning",
+                                            timer: 3000,
+                                            showCancelButton: false,
+                                            showConfirmButton: false,
+                                            allowOutsideClick: false
+                                        });
+                                    } else {
+                                        swal({
+                                            title: "Save Failed!",
+                                            text: data.pesan,
+                                            type: "warning",
+                                            timer: 3000,
+                                            showCancelButton: false,
+                                            showConfirmButton: false,
+                                            allowOutsideClick: false
+                                        });
+                                    }
+
+                                }
+                            },
+                            error: function() {
+                                swal({
+                                    title: "Error Message !",
+                                    text: 'An Error Occured During Process. Please try again..',
+                                    type: "warning",
+                                    timer: 7000,
+                                    showCancelButton: false,
+                                    showConfirmButton: false,
+                                    allowOutsideClick: false
+                                });
+                            }
+                        });
+                    } else {
+                        swal("Cancelled", "Data can be process again :)", "error");
+                        return false;
+                    }
+                });
+        });
+
+        // APPROVE DIGABUNG
+        $('#approve').click(function(e) {
+            e.preventDefault();
+
+            var customer = $('#id_customer').val();
+            if (customer == '') {
+                swal({
+                    title: "Error Message!",
+                    text: 'Customer empty, select first ...',
+                    type: "warning"
+                });
+                return false;
+            }
+
+            var role = $(this).data('role');
+            var actionUrl = base_url + active_controller + 'save_' + (role === 'approval_direksi' ? 'approval_direksi' : 'approval_manager');
+            console.log(actionUrl)
+            swal({
+                    title: "Are you sure?",
+                    text: "You will not be able to process again this data!",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-danger",
+                    confirmButtonText: "Yes, Process it!",
+                    cancelButtonText: "No, cancel process!",
+                    closeOnConfirm: true,
+                    closeOnCancel: false
+                },
+                function(isConfirm) {
+                    if (isConfirm) {
+                        var formData = new FormData($('#data-form')[0]);
+                        $.ajax({
+                            url: actionUrl,
+                            type: "POST",
+                            data: formData,
+                            cache: false,
+                            dataType: 'json',
+                            processData: false,
+                            contentType: false,
+                            success: function(data) {
+                                if (data.status == 1) {
+                                    swal({
+                                        title: "Save Success!",
+                                        text: data.pesan,
+                                        type: "success",
+                                        timer: 3000,
+                                        showCancelButton: false,
+                                        showConfirmButton: false,
+                                        allowOutsideClick: false
+                                    });
+                                    window.location.href = base_url + active_controller + (role === 'approval_direksi' ? 'approval_direksi' : 'approval_manager');
                                 } else {
 
                                     if (data.status == 2) {
