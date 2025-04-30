@@ -104,9 +104,10 @@ class Penawaran_model extends BF_Model
 
             $nestedData = [];
             $nestedData[] = "<div align='left'>{$nomor}</div>";
-            $nestedData[] = "<div align='left'>" . date('d/m/Y', strtotime($row['quotation_date'])) . "</div>";
-            $nestedData[] = "<div align='left'>" . strtoupper($row['name_customer']) . "</div>";
             $nestedData[] = "<div align='left'>" . $row['id_penawaran'] . "</div>";
+            $nestedData[] = "<div align='left'>" . strtoupper($row['name_customer']) . "</div>";
+            $nestedData[] = "<div align='left'>" . date('d-M-Y', strtotime($row['quotation_date'])) . "</div>";
+            $nestedData[] = "<div align='left'>" . number_format($row['total_penawaran'], 2) . "</div>";
             $nestedData[] = "<div align='center'>" . $row['revisi'] . "</div>";
             $nestedData[] = "<div align='center'><span class='badge bg-{$warna}'>{$status_label}</span></div>";
             $nestedData[] = "<div align='center'>{$action}</div>";
@@ -129,7 +130,7 @@ class Penawaran_model extends BF_Model
     {
         $this->db->start_cache();
 
-        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.approval_level, c.name_customer');
+        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.approval_level, p.total_penawaran, c.name_customer');
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 
