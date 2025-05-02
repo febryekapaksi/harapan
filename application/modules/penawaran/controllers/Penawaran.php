@@ -120,7 +120,7 @@ class Penawaran extends Admin_Controller
 
         $this->db->trans_start();
         if ($is_update) {
-            $this->db->where('id', $id);
+            $this->db->where('id_penawaran', $id);
             $this->db->update('penawaran', $header);
             $id_penawaran = $id;
         } else {
