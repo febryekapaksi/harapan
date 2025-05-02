@@ -54,7 +54,7 @@ class Penawaran_model extends BF_Model
         $max_id = $row['max_id'];
         $max_id1 = (int) substr($max_id, 4, 5);
         $counter = $max_id1 + 1;
-        $idcust = "QU/" . $thn . str_pad($counter, 5, "0", STR_PAD_LEFT);
+        $idcust = "QU-" . $thn . str_pad($counter, 5, "0", STR_PAD_LEFT);
         return $idcust;
     }
 
