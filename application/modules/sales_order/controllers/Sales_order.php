@@ -53,7 +53,20 @@ class Sales_order extends Admin_Controller
   public function edit($id_so)
   {
     $so = $this->db->get_where('sales_order', ['no_so' => $id_so])->row_array();
+    $so_detail = $this->db->get_where('sales_order_detail', ['no_so' => $id_so])->result_array();
     $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $so['id_penawaran']])->row_array();
+
+    // Kirim data ke view
+    $data = [
+      'so' => $so,
+      'so_detail' => $so_detail,
+      'penawaran' => $penawaran,
+      'customers' => $this->db->get('master_customers')->result_array(),
+      'products' => $this->db->get('product_costing')->result_array(),
+      'payment_terms' => $this->db->where('group_by', 'top invoice')->where('sts', 'Y')->get('list_help')->result_array(),
+    ];
+
+    $this->template->render('form', $data);
   }
 
   public function save()

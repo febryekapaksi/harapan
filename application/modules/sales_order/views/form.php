@@ -13,8 +13,8 @@
                             </div>
                             <div class="col-md-8">
                                 <input type="text" class="form-control" name="no_so" id="no_so"
-                                    value=""
-                                    placeholder="Automatic" readonly>
+                                    value="<?= isset($so['no_so']) ? $so['no_so'] : '' ?>"
+                                    readonly>
                             </div>
                         </div>
 
