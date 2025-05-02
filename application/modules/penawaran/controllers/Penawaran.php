@@ -213,13 +213,13 @@ class Penawaran extends Admin_Controller
             return;
         }
 
-        // Cek apakah butuh direksi (jika approval_level DIREKSI → lanjut ke direksi, kalau MANAGER → final)
+        // Cek apakah butuh direksi (jika level_approval DIREKSI → lanjut ke direksi, kalau MANAGER → final)
         $update = [
             'approved_by_manager' => $this->auth->user_id(),
             'approved_at_manager' => date('Y-m-d H:i:s')
         ];
 
-        if ($penawaran['approval_level'] === 'D') {
+        if ($penawaran['level_approval'] == 'D') {
             $update['status'] = 'WA'; // masih tunggu direksi
         } else {
             $update['status'] = 'A'; // final approved
