@@ -18,6 +18,20 @@
                             </div>
                         </div>
 
+                        <!-- Dropship / Toko -->
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="price_mode">Price Mode</label>
+                            </div>
+                            <div class="col-md-8">
+                                <select name="price_mode" id="price_mode" class="form-control select2">
+                                    <option value="" selected>-- Pilih --</option>
+                                    <option value="toko">Toko</option>
+                                    <option value="dropship">Dropship</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <!-- Customer -->
                         <div class="form-group row">
                             <div class="col-md-4">
@@ -40,18 +54,6 @@
                             </div>
                         </div>
 
-                        <!-- Sales -->
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="sales">Sales</label>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="hidden" name="id_karyawan" id="id_karyawan">
-                                <input type="text" class="form-control" name="sales" id="sales"
-                                    value="<?= isset($penawaran['sales']) ? $penawaran['sales'] : '' ?>">
-                            </div>
-                        </div>
-
                         <!-- Email -->
                         <div class="form-group row">
                             <div class="col-md-4">
@@ -65,6 +67,18 @@
 
                     </div>
                     <div class="col-sm-6">
+
+                        <!-- Sales -->
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="sales">Sales</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="hidden" name="id_karyawan" id="id_karyawan">
+                                <input type="text" class="form-control" name="sales" id="sales"
+                                    value="<?= isset($penawaran['sales']) ? $penawaran['sales'] : '' ?>">
+                            </div>
+                        </div>
 
                         <!-- Term of Payment -->
                         <div class="form-group row">
@@ -157,10 +171,10 @@
                                         <td hidden><input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $dp['product_name'] ?>"></td>
                                         <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>"></td>
                                         <td><input type="text" class="form-control" name="product[<?= $loop ?>][stok]" id="stok_<?= $loop ?>" readonly></td>
-                                        <td><input type=" text" class="form-control divide price-list" name="product[<?= $loop ?>][price_list]" id="price_<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly></td>
-                                        <td><input type="text" class="form-control penawaran divide" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>"></td>
+                                        <td><input type=" text" class="form-control moneyFormat price-list" name="product[<?= $loop ?>][price_list]" id="price_<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly></td>
+                                        <td><input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>"></td>
                                         <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly></td>
-                                        <td><input type="text" class="form-control divide total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
+                                        <td><input type="text" class="form-control moneyFormat total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
                                         <td align="center">
                                             <button type="button" class="btn btn-sm btn-danger" onclick="DelProduct(<?= $loop ?>)"><i class="fa fa-trash-o"></i></button>
                                         </td>
@@ -177,7 +191,8 @@
                                             <option value="">-- Pilih Produk --</option>
                                             <?php foreach ($products as $item): ?>
                                                 <option value="<?= $item['id'] ?>" data-price="<?= $item['propose_price'] ?>"
-                                                    data-product="<?= $item['product_name'] ?>">
+                                                    data-product="<?= $item['product_name'] ?>"
+                                                    data-dropship-price="<?= $item['dropship_price'] ?>">
                                                     <?= $item['product_name'] ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -186,10 +201,10 @@
                                     <td hidden><input type="hidden" name="product[1][product_name]" id="product_name_1"></td>
                                     <td><input type="number" class="form-control qty-input" name="product[1][qty]" id="qty_1"></td>
                                     <td><input type="text" class="form-control" name="product[1][stok]" id="stok_1" readonly></td>
-                                    <td><input type="text" class="form-control divide price-list" name="product[1][price_list]" id="price_1" readonly></td>
-                                    <td><input type="text" class="form-control penawaran divide" name="product[1][harga_penawaran]" id="penawaran_1"></td>
+                                    <td><input type="text" class="form-control moneyFormat price-list" name="product[1][price_list]" id="price_1" readonly></td>
+                                    <td><input type="text" class="form-control penawaran moneyFormat" name="product[1][harga_penawaran]" id="penawaran_1"></td>
                                     <td><input type="text" class="form-control diskon" name="product[1][diskon]" id="diskon_1" readonly></td>
-                                    <td><input type="text" class="form-control divide total-harga" name="product[1][total]" id="total_1" readonly></td>
+                                    <td><input type="text" class="form-control moneyFormat total-harga" name="product[1][total]" id="total_1" readonly></td>
                                     <td align="center">
                                         <button type="button" class="btn btn-sm btn-danger" onclick="DelProduct(1)"><i class="fa fa-trash-o"></i></button>
                                     </td>
@@ -199,11 +214,11 @@
                         <tfoot>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>Total Harga Penawaran</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="total_penawaran" id="total_penawaran" value="<?= isset($penawaran['total_penawaran']) ? $penawaran['total_penawaran'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_penawaran" id="total_penawaran" value="<?= isset($penawaran['total_penawaran']) ? $penawaran['total_penawaran'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>Total Harga Price List</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="total_price_list" id="total_price_list" value="<?= isset($penawaran['total_price_list']) ? $penawaran['total_price_list'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_price_list" id="total_price_list" value="<?= isset($penawaran['total_price_list']) ? $penawaran['total_price_list'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>Total % Discount</strong></td>
@@ -211,15 +226,15 @@
                             </tr>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>DPP</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="dpp" id="dpp" value="<?= isset($penawaran['dpp']) ? $penawaran['dpp'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="dpp" id="dpp" value="<?= isset($penawaran['dpp']) ? $penawaran['dpp'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>PPn</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="ppn" id="ppn" value="<?= isset($penawaran['ppn']) ? $penawaran['ppn'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="ppn" id="ppn" value="<?= isset($penawaran['ppn']) ? $penawaran['ppn'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>Grand Total</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="grand_total" id="grand_total" value="<?= isset($penawaran['grand_total']) ? $penawaran['grand_total'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="grand_total" id="grand_total" value="<?= isset($penawaran['grand_total']) ? $penawaran['grand_total'] : '' ?>" readonly></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -248,13 +263,15 @@
     </div>
 </div>
 
-<script src="<?= base_url('assets/js/number-divider.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/jquery-inputmask/jquery.inputmask.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
+
 <script>
     $(document).ready(function() {
         $('.select2').select2({
             width: '100%'
         });
-        $('.divide').divide();
+        moneyFormat('.moneyFormat')
 
 
         // TAMBAH LIST PRODUCT
@@ -278,10 +295,10 @@
                     <td hidden><input type="hidden" name="product[${loop}][product_name]" id="product_name_${loop}"></td>
                     <td><input type="number" class="form-control qty-input" name="product[${loop}][qty]" id="qty_${loop}"></td>
                     <td><input type="text" class="form-control" name="product[${loop}][stok]" id="stok_${loop}" readonly></td>
-                    <td><input type="text" class="form-control divide price-list" name="product[${loop}][price_list]" id="price_${loop}" readonly></td>
-                    <td><input type="text" class="form-control penawaran divide" name="product[${loop}][harga_penawaran]" id="penawaran_${loop}"></td>
+                    <td><input type="text" class="form-control moneyFormat price-list" name="product[${loop}][price_list]" id="price_${loop}" readonly></td>
+                    <td><input type="text" class="form-control penawaran moneyFormat" name="product[${loop}][harga_penawaran]" id="penawaran_${loop}"></td>
                     <td><input type="text" class="form-control diskon" name="product[${loop}][diskon]" id="diskon_${loop}" readonly></td>
-                    <td><input type="text" class="form-control divide total-harga" name="product[${loop}][total]" id="total_${loop}" readonly></td>
+                    <td><input type="text" class="form-control moneyFormat total-harga" name="product[${loop}][total]" id="total_${loop}" readonly></td>
                     <td>
                         <button type="button" class="btn btn-sm btn-danger" onclick="DelProduct(${loop})"><i class="fa fa-trash-o"></i></button>
                     </td>
@@ -290,7 +307,7 @@
             $(`#tr_${loop} .select2`).select2({
                 width: '100%'
             });
-            $(`#tr_${loop} .divide`).divide();
+            moneyFormat('.moneyFormat')
         });
 
         // saat produk dipilih ambil harga dan stok 
@@ -300,6 +317,10 @@
             const price = selected.data('price') || 0;
             const stock = selected.data('stock') || 0;
             const product = selected.data('product');
+
+            console.log(price)
+            console.log(stock)
+            console.log(product)
 
             $(`#price_${loop}`).val(price);
             $(`#stok_${loop}`).val(stock);
@@ -347,18 +368,45 @@
             }
         });
 
-        // Trigger untuk mengambil data toko dan tipe bayar
-        $('#id_customer, #tipe_bayar').change(function() {
+        // Triger untuk merubah price mode
+        $('#price_mode').change(function() {
             $('.product-select').each(function() {
                 const loopIndex = $(this).data('loop');
-                hitungHarga(loopIndex);
+                const mode = $('#price_mode').val();
+
+                if (mode === 'dropship') {
+                    setDropshipPrice(loopIndex);
+                } else {
+                    hitungHarga(loopIndex);
+                }
+            });
+        });
+
+        // Trigger untuk mengambil data toko dan tipe bayar
+        $('#id_customer, #tipe_bayar').change(function() {
+            const mode = $('#price_mode').val();
+
+            $('.product-select').each(function() {
+                const loopIndex = $(this).data('loop');
+
+                if (mode === 'dropship') {
+                    setDropshipPrice(loopIndex);
+                } else {
+                    hitungHarga(loopIndex);
+                }
             });
         });
 
         // Trigger untuk mengambil harga dari product costing sebagai price list 
         $(document).on('change', '.product-select', function() {
             const loopIndex = $(this).data('loop');
-            hitungHarga(loopIndex);
+            const mode = $('#price_mode').val();
+
+            if (mode === 'dropship') {
+                setDropshipPrice(loopIndex);
+            } else {
+                hitungHarga(loopIndex);
+            }
         });
 
         // SAVE PENAWARAN
@@ -586,22 +634,24 @@
         const grand_total = dpp + ppn;
 
 
-        $('#total_penawaran').val(totalPenawaran.toLocaleString('id-ID'));
-        $('#total_price_list').val(totalPriceList.toLocaleString('id-ID'));
-        $('#total_diskon_persen').val(totalDiskon.toFixed(2));
-        $('#dpp').val(Math.floor(dpp));
-        $('#ppn').val(Math.floor(ppn));
-        $('#grand_total').val(Math.floor(grand_total));
+        $('#total_penawaran').val(totalPenawaran);
+        $('#total_price_list').val(totalPriceList);
+        $('#total_diskon_persen').val(totalDiskon);
+        $('#dpp').val(dpp);
+        $('#ppn').val(ppn);
+        $('#grand_total').val(grand_total);
     }
 
     //fungsi hitung total perbaris
     function hitungTotal(loop) {
         const qty = parseFloat($(`#qty_${loop}`).val()) || 0;
-        const price = parseFloat($(`#price_${loop}`).val()) || 0;
-        const offer = parseFloat($(`#penawaran_${loop}`).val()) || 0;
+        const price = parseFloat($(`#price_${loop}`).val().replace(/,/g, '')) || 0;
+        const offer = parseFloat($(`#penawaran_${loop}`).val().replace(/,/g, '')) || 0;
+        // console.log(offer)
 
         const diskon = offer ? ((offer - price) / price) * 100 : 0;
         const total = qty * offer;
+
 
         $(`#diskon_${loop}`).val(diskon.toFixed(2));
         $(`#total_${loop}`).val(total);
@@ -638,5 +688,29 @@
                 }
             });
         }
+    }
+
+    // SET HARGA UNTUK DROPSHIP
+    function setDropshipPrice(loopIndex) {
+        const productSelect = $(`.product-select[data-loop="${loopIndex}"]`);
+        const dropshipPrice = parseFloat(productSelect.find('option:selected').data('dropship-price')) || 0;
+
+        $(`#price_${loopIndex}`).val(dropshipPrice); // isi ke input price_list
+    }
+
+    function moneyFormat(e) {
+        $(e).inputmask({
+            alias: "decimal",
+            digits: 2,
+            radixPoint: ".",
+            autoGroup: true,
+            placeholder: "0",
+            rightAlign: false,
+            allowMinus: false,
+            integerDigits: 13,
+            groupSeparator: ",",
+            digitsOptional: false,
+            showMaskOnHover: true,
+        })
     }
 </script>

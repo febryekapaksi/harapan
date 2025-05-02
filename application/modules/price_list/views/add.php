@@ -68,7 +68,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Harga Beli</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide harga_beli" name="harga_beli" value="<?= (!empty($procost->harga_beli)) ? $procost->harga_beli : '' ?>" readonly>
+                    <input type="text" class="form-control moneyFormat harga_beli" name="harga_beli" value="<?= (!empty($procost->harga_beli)) ? $procost->harga_beli : '' ?>" readonly>
                 </div>
             </div>
             <hr>
@@ -77,7 +77,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya Import</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_import" name="biaya_import" value="<?= (!empty($procost->biaya_import)) ? $procost->biaya_import : '' ?>" readonly>
+                    <input type="text" class="form-control moneyFormat biaya_import" name="biaya_import" value="<?= (!empty($procost->biaya_import)) ? $procost->biaya_import : '' ?>" readonly>
                 </div>
             </div>
             <div class="form-group row">
@@ -85,7 +85,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya Cabang</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_cabang" name="biaya_cabang" value="<?= (!empty($procost->biaya_cabang)) ? $procost->biaya_cabang : '' ?>" readonly>
+                    <input type="text" class="form-control moneyFormat biaya_cabang" name="biaya_cabang" value="<?= (!empty($procost->biaya_cabang)) ? $procost->biaya_cabang : '' ?>" readonly>
                 </div>
             </div>
             <div class="form-group row">
@@ -93,7 +93,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya Logistik</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_logistik" name="biaya_logistik" value="<?= (!empty($procost->biaya_logistik)) ? $procost->biaya_logistik : '' ?>" readonly>
+                    <input type="text" class="form-control moneyFormat biaya_logistik" name="biaya_logistik" value="<?= (!empty($procost->biaya_logistik)) ? $procost->biaya_logistik : '' ?>" readonly>
                 </div>
             </div>
             <div class="form-group row">
@@ -101,7 +101,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya HO</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_ho" name="biaya_ho" value="<?= (!empty($procost->biaya_ho)) ? $procost->biaya_ho : '' ?>" readonly>
+                    <input type="text" class="form-control moneyFormat biaya_ho" name="biaya_ho" value="<?= (!empty($procost->biaya_ho)) ? $procost->biaya_ho : '' ?>" readonly>
                 </div>
             </div>
             <div class="form-group row">
@@ -109,7 +109,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Biaya Marketing</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide biaya_marketing" name="biaya_marketing" value="<?= (!empty($procost->biaya_marketing)) ? $procost->biaya_marketing : '' ?>" readonly>
+                    <input type="text" class="form-control moneyFormat biaya_marketing" name="biaya_marketing" value="<?= (!empty($procost->biaya_marketing)) ? $procost->biaya_marketing : '' ?>" readonly>
                 </div>
             </div>
             <hr>
@@ -118,7 +118,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Product Costing</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide price" name="price" value="<?= (!empty($procost->price)) ? $procost->price : '' ?>" readonly>
+                    <input type="text" class="form-control moneyFormat price" name="price" value="<?= (!empty($procost->price)) ? $procost->price : '' ?>" readonly>
                 </div>
             </div>
             <hr>
@@ -145,7 +145,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                                     $loop++;
                                     echo "<tr id='tr_$loop'>";
                                     echo "<td align='left'><input type='text' class='form-control input-sm' name='kompetitor[" . $loop . "][nama]' value='$kp->nama' id='kompetitor" . $loop . "_nama'></td>";
-                                    echo "<td align='left'><input type='text' class='form-control divide input-sm' name='kompetitor[" . $loop . "][harga]' value='$kp->harga' id='kompetitor" . $loop . "_harga'></td>";
+                                    echo "<td align='left'><input type='text' class='form-control moneyFormat input-sm' name='kompetitor[" . $loop . "][harga]' value='$kp->harga' id='kompetitor" . $loop . "_harga'></td>";
                                     echo "<td align='center'><button type='button' class='btn btn-sm btn-danger' title='Hapus Data' data-role='qtip' onClick='return DelKompetitor(" . $loop . ");'><i class='fa fa-trash-o'></i></button></td>";
                                     echo "</tr>";
                                 }
@@ -162,7 +162,7 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <label for="">Propose Costing</label>
                 </div>
                 <div class="col-md-9">
-                    <input type="text" class="form-control divide propose_price" value="<?= (!empty($procost->propose_price)) ? $procost->propose_price : '' ?>" name="propose_price">
+                    <input type="text" class="form-control moneyFormat propose_price" value="<?= (!empty($procost->propose_price)) ? $procost->propose_price : '' ?>" name="propose_price">
                 </div>
             </div>
 
@@ -201,15 +201,15 @@ for ($i = 0; $i < $total_rows; $i++) {
 </div>
 
 
-<script src="<?= base_url('assets/js/number-divider.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/jquery-inputmask/jquery.inputmask.js') ?>"></script>
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $('.divide').divide();
         $('.select2').select2({
             width: '100%',
         });
+        moneyFormat('.moneyFormat')
 
         const ImportRate = <?= isset($costing_map['Biaya Import']) ? $costing_map['Biaya Import'] : 0 ?>;
         const CabangRate = <?= isset($costing_rate['A2. Cabang']) ? $costing_rate['A2. Cabang'] : 0 ?>;
@@ -252,12 +252,13 @@ for ($i = 0; $i < $total_rows; $i++) {
             Template += '<input type="text" class="form-control" name="kompetitor[' + loop + '][nama]" id="kompetitor_' + loop + '_nama">';
             Template += '</td>';
             Template += '<td align="left">';
-            Template += '<input type="text" class="form-control divide" name="kompetitor[' + loop + '][harga]" id="kompetitor_' + loop + '_harga">';
+            Template += '<input type="text" class="form-control moneyFormat" name="kompetitor[' + loop + '][harga]" id="kompetitor_' + loop + '_harga">';
             Template += '</td>';
             Template += '<td align="center"><button type="button" class="btn btn-sm btn-danger" title="Hapus Data" data-role="qtip" onClick="return DelKompetitor(' + loop + ');"><i class="fa fa-trash-o"></i></button></td>';
             Template += '</tr>';
             $('#list_kompetitor').append(Template);
-            $('.divide').divide();
+            moneyFormat('.moneyFormat')
+
         });
 
         $('#save').click(function(e) {
@@ -421,6 +422,22 @@ for ($i = 0; $i < $total_rows; $i++) {
         $('#reject_id').val(id); // simpan ke form modal
         $('#reason').val(''); // reset alasan
         $('#reject-modal').modal('show'); // tampilkan modal
+    }
+
+    function moneyFormat(e) {
+        $(e).inputmask({
+            alias: "decimal",
+            digits: 2,
+            radixPoint: ".",
+            autoGroup: true,
+            placeholder: "0",
+            rightAlign: false,
+            allowMinus: false,
+            integerDigits: 13,
+            groupSeparator: ",",
+            digitsOptional: false,
+            showMaskOnHover: true,
+        })
     }
 
     // Saat form submit
