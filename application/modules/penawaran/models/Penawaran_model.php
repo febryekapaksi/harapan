@@ -83,10 +83,10 @@ class Penawaran_model extends BF_Model
 
             // Warna status
             if ($row['status'] == 'WA') {
-                if ($row['approval_level'] == 'M') {
+                if ($row['level_approval'] == 'M') {
                     $status_label = 'Waiting Approval Manager';
                     $warna = 'secondary';
-                } else if ($row['approval_level'] == 'D') {
+                } else if ($row['level_approval'] == 'D') {
                     $status_label = 'Waiting Approval Direksi';
                     $warna = 'secondary';
                 }
@@ -130,7 +130,7 @@ class Penawaran_model extends BF_Model
     {
         $this->db->start_cache();
 
-        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.approval_level, p.total_penawaran, c.name_customer');
+        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, p.total_penawaran, c.name_customer');
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 
@@ -237,11 +237,11 @@ class Penawaran_model extends BF_Model
 
     public function get_query_json_approval_manager($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
     {
-        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.approval_level, c.name_customer');
+        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, c.name_customer');
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
         $this->db->where('p.status', 'WA');
-        $this->db->where('p.approval_level IS NOT NULL', null, false);
+        $this->db->where('p.level_approval IS NOT NULL', null, false);
         $this->db->where('p.approved_by_manager IS NULL', null, false);
 
         if ($like_value) {
@@ -308,7 +308,7 @@ class Penawaran_model extends BF_Model
             $nomor = $urut + $requestData['start'];
 
             if ($row['status'] == 'WA') {
-                if ($row['approval_level'] == 'D') {
+                if ($row['level_approval'] == 'D') {
                     $status_label = 'Waiting Approval Direksi';
                     $warna = 'secondary';
                 }
@@ -348,11 +348,11 @@ class Penawaran_model extends BF_Model
 
     public function get_query_json_approval_direksi($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
     {
-        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.approval_level, c.name_customer');
+        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, c.name_customer');
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
         $this->db->where('p.status', 'WA');
-        $this->db->where('p.approval_level', 'D');
+        $this->db->where('p.level_approval', 'D');
         $this->db->where('p.approved_by_manager IS NOT NULL', null, false);
 
         if ($like_value) {
