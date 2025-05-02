@@ -109,7 +109,7 @@ class Sales_order_model extends BF_Model
 
 	public function get_query_json_penawaran($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
 	{
-		$this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.approval_level, p.total_penawaran, p.sales, c.name_customer, so.no_so, so.nilai_so');
+		$this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, p.total_penawaran, p.sales, c.name_customer, so.no_so, so.nilai_so');
 		$this->db->from('penawaran p');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 		$this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left');
