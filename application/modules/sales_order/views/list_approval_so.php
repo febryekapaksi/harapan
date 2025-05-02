@@ -1,8 +1,8 @@
 <?php
-$ENABLE_ADD     = has_permission('Sales_Order_New.Add');
-$ENABLE_MANAGE  = has_permission('Sales_Order_New.Manage');
-$ENABLE_VIEW    = has_permission('Sales_Order_New.View');
-$ENABLE_DELETE  = has_permission('Sales_Order_New.Delete');
+$ENABLE_ADD     = has_permission('Sales_Order.Add');
+$ENABLE_MANAGE  = has_permission('Sales_Order.Manage');
+$ENABLE_VIEW    = has_permission('Sales_Order.View');
+$ENABLE_DELETE  = has_permission('Sales_Order.Delete');
 ?>
 <style type="text/css">
     thead input {
