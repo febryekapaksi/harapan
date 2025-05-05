@@ -91,7 +91,8 @@
                                 <label for="tgl_so">SO Date <span style="color: red;">*</span></label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="tgl_so" id="tgl_so" value="" required>
+                                <input type="date" class="form-control" name="tgl_so" id="tgl_so"
+                                    value="<?= isset($so['tgl_so']) ? date('Y-m-d', strtotime($so['tgl_so'])) : '' ?>" required>
                             </div>
                         </div>
 
@@ -157,7 +158,7 @@
                                             <input type="hidden" name="product[<?= $loop ?>][id_product]" value="<?= $dp['id_product'] ?>">
                                         </td>
                                         <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>" readonly></td>
-                                        <td><input type="text" class="form-control penawaran divide" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>" readonly></td>
+                                        <td><input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>" readonly></td>
                                         <td><input type="text" class="form-control" name="product[<?= $loop ?>][stok]" id="stok_<?= $loop ?>" readonly></td>
                                         <td><input type="text" class="form-control" name="product[<?= $loop ?>][selisih]" id="selisih_<?= $loop ?>" readonly></td>
                                         <td><input type="text" class="form-control" name="product[<?= $loop ?>][pr]" id="pr_<?= $loop ?>" readonly></td>
@@ -169,7 +170,47 @@
                                                 <option value="Distributor">Distributor</option>
                                             </select>
                                         </td>
-                                        <td><input type="text" class="form-control divide total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
+                                        <td><input type="text" class="form-control moneyFormat total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
+                                    </tr>
+                                <?php }
+                            } elseif (!empty($so_detail)) {
+                                foreach ($so_detail as $sd) {
+                                    $loop++;
+                                ?>
+                                    <tr id="tr_<?= $loop ?>">
+                                        <td hidden>
+                                            <input type="hidden" name="product[<?= $loop ?>][id_penawaran]" id="id_penawaran_<?= $loop ?>" value="<?= $sd['id_penawaran'] ?>">
+                                            <input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $sd['product'] ?>">
+                                        </td>
+
+                                        <td>
+                                            <select name="product[<?= $loop ?>][id_product]" class="form-control product-select select2" data-loop="<?= $loop ?>" disabled>
+                                                <option value="">-- Pilih Produk --</option>
+                                                <?php foreach ($products as $item): ?>
+                                                    <option value="<?= $item['id'] ?>"
+                                                        data-price="<?= $item['propose_price'] ?>"
+                                                        data-product="<?= $item['product_name'] ?>"
+                                                        <?= $item['id'] == $sd['id_product'] ? 'selected' : '' ?>>
+                                                        <?= $item['product_name'] ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                            <input type="hidden" name="product[<?= $loop ?>][id_product]" value="<?= $sd['id_product'] ?>">
+                                        </td>
+                                        <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $sd['qty_order'] ?>" readonly></td>
+                                        <td><input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $sd['product_price'] ?>" readonly></td>
+                                        <td><input type="text" class="form-control" name="product[<?= $loop ?>][stok]" id="stok_<?= $loop ?>" readonly></td>
+                                        <td><input type="text" class="form-control" name="product[<?= $loop ?>][selisih]" id="selisih_<?= $loop ?>" readonly></td>
+                                        <td><input type="text" class="form-control" name="product[<?= $loop ?>][pr]" id="pr_<?= $loop ?>" readonly></td>
+                                        <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $sd['diskon_persen'] ?>" readonly></td>
+                                        <td>
+                                            <select name="product[<?= $loop ?>][pengiriman]" id="pengiriman_<?= $loop ?>" class="form-control select2" required>
+                                                <option value="">-- Pilih --</option>
+                                                <option value="Direct" <?= ($sd['pengiriman'] == 'Direct') ? 'selected' : '' ?>>Direct Customer</option>
+                                                <option value="Distributor" <?= ($sd['pengiriman'] == 'Distributor') ? 'selected' : '' ?>>Distributor</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" class="form-control total-harga moneyFormat" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $sd['total_harga'] ?>" readonly></td>
                                     </tr>
                             <?php }
                             } ?>
@@ -177,11 +218,11 @@
                         <tfoot>
                             <tr>
                                 <td colspan="8" class="text-right"><strong>Total Harga</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="total_penawaran" id="total_penawaran" value="<?= isset($penawaran['total_penawaran']) ? $penawaran['total_penawaran'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_penawaran" id="total_penawaran" value="<?= isset($penawaran['total_penawaran']) ? $penawaran['total_penawaran'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="text-right"><strong>Total Harga Price List</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="total_price_list" id="total_price_list" value="<?= isset($penawaran['total_price_list']) ? $penawaran['total_price_list'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_price_list" id="total_price_list" value="<?= isset($penawaran['total_price_list']) ? $penawaran['total_price_list'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="text-right"><strong>Total % Discount</strong></td>
@@ -189,15 +230,15 @@
                             </tr>
                             <tr>
                                 <td colspan="8" class="text-right"><strong>DPP</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="dpp" id="dpp" value="<?= isset($penawaran['dpp']) ? $penawaran['dpp'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="dpp" id="dpp" value="<?= isset($penawaran['dpp']) ? $penawaran['dpp'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="text-right"><strong>PPn</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="ppn" id="ppn" value="<?= isset($penawaran['ppn']) ? $penawaran['ppn'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="ppn" id="ppn" value="<?= isset($penawaran['ppn']) ? $penawaran['ppn'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="text-right"><strong>Grand Total</strong></td>
-                                <td colspan="2"><input type="text" class="form-control divide" name="grand_total" id="grand_total" value="<?= isset($penawaran['grand_total']) ? $penawaran['grand_total'] : '' ?>" readonly></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="grand_total" id="grand_total" value="<?= isset($penawaran['grand_total']) ? $penawaran['grand_total'] : '' ?>" readonly></td>
                             </tr>
                         </tfoot>
                     </table>
@@ -213,7 +254,8 @@
                                 <label for="">Due Date Credit</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="due_date_credit">
+                                <input type="date" class="form-control" name="due_date_credit"
+                                    value="<?= isset($so['due_date_credit']) ? date('Y-m-d', strtotime($so['due_date_credit'])) : '' ?>">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -221,7 +263,8 @@
                                 <label for="">Credit Limit</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" name="credit_limit">
+                                <input type="text" class="form-control moneyFormat" name="credit_limit"
+                                    value="<?= isset($so['credit_limit']) ? $so['credit_limit'] : '' ?>">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -229,7 +272,8 @@
                                 <label for="">Outstanding</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" name="outstanding">
+                                <input type="text" class="form-control moneyFormat" name="outstanding"
+                                    value="<?= isset($so['outstanding']) ? $so['outstanding'] : '' ?>">
                             </div>
                         </div>
                     </div>
@@ -239,7 +283,8 @@
                                 <label for="">Total SO</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control divide" name="total_so" id="total_so">
+                                <input type="text" class="form-control moneyFormat" name="total_so" id="total_so"
+                                    <?= isset($so['grand_total']) ? $so['grand_total'] : '' ?>>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -247,7 +292,8 @@
                                 <label for="">Over Limit</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" name="over_limit">
+                                <input type="text" class="form-control moneyFormat" name="over_limit"
+                                    value="<?= isset($so['over_limit']) ? $so['over_limit'] : '' ?>">
                             </div>
                         </div>
                         <div class="form-group row">
@@ -255,7 +301,8 @@
                                 <label for="">Status Credit Limit</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" name="status_credit_limit">
+                                <input type="text" class="form-control" name="status_credit_limit"
+                                    value="<?= isset($so['status_credit_limit']) ? $so['status_credit_limit'] : '' ?>">
                             </div>
                         </div>
                     </div>
@@ -278,13 +325,13 @@
     </div>
 </div>
 
-<script src="<?= base_url('assets/js/number-divider.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/jquery-inputmask/jquery.inputmask.js') ?>"></script>
 <script>
     $(document).ready(function() {
         $('.select2').select2({
             width: '100%'
         });
-        $('.divide').divide();
+        moneyFormat('.moneyFormat')
 
         const grandTotal = $('#grand_total').val();
         $('#total_so').val(grandTotal);
@@ -384,4 +431,20 @@
                 });
         });
     })
+
+    function moneyFormat(e) {
+        $(e).inputmask({
+            alias: "decimal",
+            digits: 2,
+            radixPoint: ".",
+            autoGroup: true,
+            placeholder: "0",
+            rightAlign: false,
+            allowMinus: false,
+            integerDigits: 13,
+            groupSeparator: ",",
+            digitsOptional: false,
+            showMaskOnHover: true,
+        })
+    }
 </script>
