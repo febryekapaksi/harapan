@@ -1,3 +1,7 @@
+<?php
+$readonly = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'readonly' : '');
+$disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'disabled' : '');
+?>
 <div class="box box-primary">
     <div class="box-body">
         <form id="data-form" autocomplete="off">
@@ -24,11 +28,14 @@
                                 <label for="price_mode">Price Mode</label>
                             </div>
                             <div class="col-md-8">
-                                <select name="price_mode" id="price_mode" class="form-control select2">
+                                <select name="price_mode" id="price_mode" class="form-control select2" <?= $disabled ?>>
                                     <option value="" selected>-- Pilih --</option>
-                                    <option value="toko">Toko</option>
-                                    <option value="dropship">Dropship</option>
+                                    <option value="toko" <?= (isset($penawaran['price_mode']) && $penawaran['price_mode'] == 'toko') ? 'selected' : '' ?>>Toko</option>
+                                    <option value="dropship" <?= (isset($penawaran['price_mode']) && $penawaran['price_mode'] == 'dropship') ? 'selected' : '' ?>>Dropship</option>
                                 </select>
+                                <?php if ($mode == 'approval_manager' || $mode == 'approval_direksi'): ?>
+                                    <input type="hidden" name="price_mode" value="<?= isset($penawaran['price_mode']) ? $penawaran['price_mode'] : '' ?>">
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -38,7 +45,7 @@
                                 <label for="id_customer">Customer</label>
                             </div>
                             <div class="col-md-8">
-                                <select name="id_customer" id="id_customer" class="form-control select2">
+                                <select name="id_customer" id="id_customer" class="form-control select2" <?= $disabled ?>>
                                     <option value="">-- Pilih ---</option>
                                     <?php foreach ($customers as $ctm): ?>
                                         <option
@@ -60,7 +67,7 @@
                                 <label for="email">Email</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" name="email" id="email"
+                                <input type="text" class="form-control" name="email" id="email" <?= $readonly ?>
                                     value="<?= isset($penawaran['email']) ? $penawaran['email'] : '' ?>">
                             </div>
                         </div>
@@ -75,7 +82,7 @@
                             </div>
                             <div class="col-md-8">
                                 <input type="hidden" name="id_karyawan" id="id_karyawan">
-                                <input type="text" class="form-control" name="sales" id="sales"
+                                <input type="text" class="form-control" name="sales" id="sales" <?= $readonly ?>
                                     value="<?= isset($penawaran['sales']) ? $penawaran['sales'] : '' ?>">
                             </div>
                         </div>
@@ -86,7 +93,7 @@
                                 <label for="payment_term">Term Of Payment</label>
                             </div>
                             <div class="col-md-8">
-                                <select id="payment_term" name="payment_term" class="form-control select2" required>
+                                <select id="payment_term" name="payment_term" class="form-control select2" required <?= $disabled ?>>
                                     <option value="">-- Pilih --</option>
                                     <?php foreach ($payment_terms as $term): ?>
                                         <option value="<?= htmlspecialchars($term['id']) ?>"
@@ -104,7 +111,7 @@
                                 <label for="quotation_date">Quotation Date</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="quotation_date" id="quotation_date"
+                                <input type="date" class="form-control" name="quotation_date" id="quotation_date" <?= $readonly ?>
                                     value="<?= isset($penawaran['quotation_date']) ? date('Y-m-d', strtotime($penawaran['quotation_date'])) : '' ?>">
                             </div>
                         </div>
@@ -115,7 +122,7 @@
                                 <label for="tipe_bayar">Tipe Bayar</label>
                             </div>
                             <div class="col-md-8">
-                                <select name="tipe_bayar" id="tipe_bayar" class="form-control select2">
+                                <select name="tipe_bayar" id="tipe_bayar" class="form-control select2" <?= $disabled ?>>
                                     <option value="">-- Pilih --</option>
                                     <option value="cash" <?= isset($penawaran['tipe_bayar']) && $penawaran['tipe_bayar'] == 'cash' ? 'selected' : '' ?>>Cash</option>
                                     <option value="tempo" <?= isset($penawaran['tipe_bayar']) && $penawaran['tipe_bayar'] == 'tempo' ? 'selected' : '' ?>>Tempo</option>
@@ -156,12 +163,13 @@
                             ?>
                                     <tr id="tr_<?= $loop ?>">
                                         <td>
-                                            <select name="product[<?= $loop ?>][id_product]" class="form-control product-select select2" data-loop="<?= $loop ?>">
+                                            <select name="product[<?= $loop ?>][id_product]" class="form-control product-select select2" data-loop="<?= $loop ?>" <?= $disabled ?>>
                                                 <option value="">-- Pilih Produk --</option>
                                                 <?php foreach ($products as $item): ?>
                                                     <option value="<?= $item['id'] ?>"
                                                         data-price="<?= $item['propose_price'] ?>"
                                                         data-product="<?= $item['product_name'] ?>"
+                                                        data-dropship-price="<?= $item['dropship_price'] ?>"
                                                         <?= $item['id'] == $dp['id_product'] ? 'selected' : '' ?>>
                                                         <?= $item['product_name'] ?>
                                                     </option>
@@ -169,10 +177,10 @@
                                             </select>
                                         </td>
                                         <td hidden><input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $dp['product_name'] ?>"></td>
-                                        <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>"></td>
+                                        <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>" <?= $readonly ?>></td>
                                         <td><input type="text" class="form-control" name="product[<?= $loop ?>][stok]" id="stok_<?= $loop ?>" readonly></td>
                                         <td><input type=" text" class="form-control moneyFormat price-list" name="product[<?= $loop ?>][price_list]" id="price_<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly></td>
-                                        <td><input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>"></td>
+                                        <td><input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>" <?= $readonly ?>></td>
                                         <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly></td>
                                         <td><input type="text" class="form-control moneyFormat total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
                                         <td align="center">
@@ -282,7 +290,7 @@
 
             let options = '<option value="">-- Pilih Produk --</option>';
             products.forEach(item => {
-                options += `<option value="${item.id}" data-price="${item.propose_price}" data-product="${item.product_name}">${item.product_name}</option>`;
+                options += `<option value="${item.id}" data-price="${item.propose_price}" data-product="${item.product_name}" data-dropship-price="${item.dropship_price}">${item.product_name}</option>`;
             });
 
             let row = `
@@ -317,10 +325,6 @@
             const price = selected.data('price') || 0;
             const stock = selected.data('stock') || 0;
             const product = selected.data('product');
-
-            console.log(price)
-            console.log(stock)
-            console.log(product)
 
             $(`#price_${loop}`).val(price);
             $(`#stok_${loop}`).val(stock);
@@ -647,11 +651,9 @@
         const qty = parseFloat($(`#qty_${loop}`).val()) || 0;
         const price = parseFloat($(`#price_${loop}`).val().replace(/,/g, '')) || 0;
         const offer = parseFloat($(`#penawaran_${loop}`).val().replace(/,/g, '')) || 0;
-        // console.log(offer)
 
         const diskon = offer ? ((offer - price) / price) * 100 : 0;
         const total = qty * offer;
-
 
         $(`#diskon_${loop}`).val(diskon.toFixed(2));
         $(`#total_${loop}`).val(total);

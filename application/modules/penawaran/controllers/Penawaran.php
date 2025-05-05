@@ -84,6 +84,7 @@ class Penawaran extends Admin_Controller
         $header = [
             'id_penawaran'          => $id_penawaran,
             'id_customer'           => $data['id_customer'],
+            'price_mode'            => $data['price_mode'],
             'sales'                 => $data['sales'],
             'email'                 => $data['email'],
             'payment_term'          => $data['payment_term'],

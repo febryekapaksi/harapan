@@ -83,11 +83,11 @@ class Penawaran_model extends BF_Model
 
             // Warna status
             if ($row['status'] == 'WA') {
-                if ($row['level_approval'] == 'M') {
-                    $status_label = 'Waiting Approval Manager';
-                    $warna = 'secondary';
-                } else if ($row['level_approval'] == 'D') {
+                if ($row['level_approval'] == 'D' && $row['approved_by_manager'] != null) {
                     $status_label = 'Waiting Approval Direksi';
+                    $warna = 'secondary';
+                } else {
+                    $status_label = 'Waiting Approval Manager';
                     $warna = 'secondary';
                 }
             } elseif ($row['status'] == 'R') {
@@ -130,7 +130,7 @@ class Penawaran_model extends BF_Model
     {
         $this->db->start_cache();
 
-        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, p.total_penawaran, c.name_customer');
+        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.approved_by_manager, p.level_approval, p.total_penawaran, c.name_customer');
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 

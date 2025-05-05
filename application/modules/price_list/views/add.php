@@ -121,6 +121,14 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <input type="text" class="form-control moneyFormat price" name="price" value="<?= (!empty($procost->price)) ? $procost->price : '' ?>" readonly>
                 </div>
             </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Dropship Price</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control moneyFormat dropship_price" name="dropship_price" value="<?= (!empty($procost->dropship_price)) ? $procost->dropship_price : '' ?>" readonly>
+                </div>
+            </div>
             <hr>
 
             <div class="form-group row">
