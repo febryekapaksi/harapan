@@ -5,13 +5,14 @@
             <!-- Hidden ID jika mode edit -->
             <?php if (!empty($target->id)): ?>
                 <input type="hidden" name="id" value="<?= $target->id ?>">
+                <input type="hidden" name="id_karyawan" value="<?= $target->id_karyawan ?>">
             <?php endif; ?>
 
             <!-- Pilih Sales -->
             <div class="form-group row">
                 <label class="col-md-3 control-label">Sales</label>
                 <div class="col-md-9">
-                    <select name="id_karyawan" class="form-control" id="sales-select" required <?= isset($target->id_karyawan) ? 'disabled' : '' ?>>
+                    <select name="id_karyawan" class="form-control select2" id="sales-select" required <?= isset($target->id_karyawan) ? 'disabled' : '' ?>>
                         <option value="">-- Pilih Sales --</option>
                         <?php foreach ($sales as $s): ?>
                             <option
