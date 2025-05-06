@@ -80,11 +80,162 @@ class Master_komisi extends Admin_Controller
 
     // Master Faktor Komisi Penyelesaian Tunggakan
 
-    public function komisi_penyelesaian_tunggakan()
+    public function komisi_penyelesaian()
     {
         $this->template->page_icon('fa fa-money');
-        $this->template->title('Master Komisi Penyelesaian Tunggakan');
+        $this->template->title('Master Faktor Komisi Penyelesaian Tunggakan');
 
-        $this->template->render('index_tunggakan');
+        $data = [
+            'result' => $this->db->get('master_komisi_penyelesaian')->result(),
+        ];
+
+        $this->template->render('index_penyelesaian', $data);
+    }
+
+    public function add_penyelesaian($id = null)
+    {
+        $data['komisi'] = $this->db->get_where('master_komisi_penyelesaian', ['id' => $id])->row();
+
+        $this->template->render('form_penyelesaian', $data);
+    }
+
+    public function save_penyelesaian()
+    {
+        $post = $this->input->post();
+        $id = isset($post['id']) ? $post['id'] : null; // ← penting
+
+        $data = [
+            'komisi_penyelesaian' => $post['komisi_penyelesaian'],
+            'keterangan' => $post['keterangan'],
+        ];
+
+        $this->db->trans_start();
+
+        if (empty($id)) {
+            $this->db->insert('master_komisi_penyelesaian', $data);
+        } else {
+            $this->db->where('id', $id)->update('master_komisi_penyelesaian', $data);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $status = [
+                'pesan' => 'Failed process data!',
+                'status' => 0
+            ];
+        } else {
+            $this->db->trans_commit();
+            $status = [
+                'pesan' => 'Success process data!',
+                'status' => 1
+            ];
+        }
+
+        echo json_encode($status);
+    }
+
+
+    public function delete()
+    {
+        $this->auth->restrict($this->deletePermission);
+
+        $id = $this->input->post('id');
+
+        if (!$id) {
+            echo json_encode([
+                'pesan' => 'ID tidak valid.',
+                'status' => 0
+            ]);
+            return;
+        }
+
+        $this->db->trans_begin();
+
+        $this->db->where('id', $id)->delete("master_komisi_penyelesaian");
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $status = [
+                'pesan' => 'Failed process data!',
+                'status' => 0
+            ];
+        } else {
+            $this->db->trans_commit();
+            $status = [
+                'pesan' => 'Success process data!',
+                'status' => 1
+            ];
+        }
+
+        echo json_encode($status);
+    }
+
+    // Master Target Penjualan
+    public function index_target()
+    {
+        $this->template->page_icon('fa fa-dollar');
+        $this->template->title('Target Penjualan');
+
+        $data['target'] = $this->db->get('target_penjualan')->result_array();
+        $data['bulan'] = $this->db->order_by('bulan_no', 'asc')->get('cr_bulan')->result_array();
+
+        $this->template->render('index_target', $data);
+    }
+
+    public function add_target($id = null)
+    {
+        $data['target'] = $this->db->get_where('target_penjualan', ['id' => $id])->row();
+        $data['bulan'] = $this->db->order_by('bulan_no', 'asc')->get('cr_bulan')->result_array();
+        $data['sales'] = $this->db->where('department', '2')->get('employee')->result_array();
+
+        $this->template->render('form_target', $data);
+    }
+
+    public function save_target()
+    {
+        $post = $this->input->post();
+        $id = isset($post['id']) ? $post['id'] : null;
+
+        // Ambil data bulan dari tabel cr_bulan
+        $bulan = $this->db->order_by('bulan_no', 'ASC')->get('cr_bulan')->result();
+
+        // Siapkan data
+        $data = [
+            'id_karyawan' => $post['id_karyawan'],
+            'nm_karyawan' => $post['nm_karyawan'],
+        ];
+
+        foreach ($bulan as $b) {
+            $key = $b->bulan_id;
+            $data[$key] = isset($post[$key]) ? str_replace(',', '', $post[$key]) : 0;
+        }
+
+        $this->db->trans_start();
+
+        if (empty($id)) {
+            $this->db->insert('target_penjualan', $data);
+        } else {
+            $this->db->where('id', $id)->update('target_penjualan', $data);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $status = [
+                'pesan' => 'Failed process data!',
+                'status' => 0
+            ];
+        } else {
+            $this->db->trans_commit();
+            $status = [
+                'pesan' => 'Success process data!',
+                'status' => 1
+            ];
+        }
+
+        echo json_encode($status);
     }
 }

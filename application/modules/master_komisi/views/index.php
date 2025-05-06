@@ -2,7 +2,7 @@
     <div class="box-body">
         <form id="form-komisi">
             <table class="table table-bordered" id="table-komisi">
-                <thead>
+                <thead class="bg-blue">
                     <tr>
                         <th class="text-center" width="30%">Dari</th>
                         <th class="text-center" width="30%">Sampai</th>
