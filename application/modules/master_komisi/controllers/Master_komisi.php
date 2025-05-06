@@ -238,4 +238,39 @@ class Master_komisi extends Admin_Controller
 
         echo json_encode($status);
     }
+
+    public function delete_target()
+    {
+        $this->auth->restrict($this->deletePermission);
+
+        $id = $this->input->post('id');
+
+        if (!$id) {
+            echo json_encode([
+                'pesan' => 'ID tidak valid.',
+                'status' => 0
+            ]);
+            return;
+        }
+
+        $this->db->trans_begin();
+
+        $this->db->where('id', $id)->delete("target_penjualan");
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $status = [
+                'pesan' => 'Failed process data!',
+                'status' => 0
+            ];
+        } else {
+            $this->db->trans_commit();
+            $status = [
+                'pesan' => 'Success process data!',
+                'status' => 1
+            ];
+        }
+
+        echo json_encode($status);
+    }
 }
