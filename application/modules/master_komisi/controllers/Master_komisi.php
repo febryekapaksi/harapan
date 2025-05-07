@@ -178,7 +178,7 @@ class Master_komisi extends Admin_Controller
         $this->template->page_icon('fa fa-dollar');
         $this->template->title('Target Penjualan');
 
-        $data['target'] = $this->db->get('target_penjualan')->result_array();
+        $data['target'] = $this->db->order_by('id', 'asc')->get('target_penjualan')->result_array();
         $data['bulan'] = $this->db->order_by('bulan_no', 'asc')->get('cr_bulan')->result_array();
 
         $this->template->render('index_target', $data);
