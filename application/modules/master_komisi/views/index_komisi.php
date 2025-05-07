@@ -6,55 +6,53 @@ $ENABLE_DELETE  = has_permission('Master_Komisi.Delete');
 ?>
 <div class="box box-primary">
     <div class="box-header">
-        <?php if ($ENABLE_ADD) : ?>
-            <a class="btn btn-success btn-sm add" href="javascript:void(0)" title="Add"><i class="fa fa-plus">&nbsp;</i> Set Target</a>
-        <?php endif; ?>
+        <div class="row">
+            <div class="col-md-6">
+                <?php if ($ENABLE_ADD) : ?>
+                    <a class="btn btn-success add" href="javascript:void(0)" title="Add">
+                        <i class="fa fa-plus"></i> Perhitungan Komisi
+                    </a>
+                <?php endif; ?>
+            </div>
 
-        <span class="pull-right">
-        </span>
+            <div class="col-md-6 text-right">
+                <form method="get" id="filter-form" class="form-inline">
+                    <div class="form-group">
+                        <select name="bulan" id="bulan" class="form-control select2" style="width: 200px;">
+                            <option value="">- Pilih Bulan -</option>
+                            <?php foreach ($bulan as $b): ?>
+                                <option value="<?= $b['bulan_id'] ?>" <?= isset($_GET['bulan']) && $_GET['bulan'] === $b['bulan_id'] ? 'selected' : '' ?>>
+                                    <?= $b['bulan'] ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary ml-2">
+                        <i class="fa fa-filter"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+
     </div>
     <div class="box-body">
-        <table class="table table-bordered" id="table-target">
-            <thead class="bg-blue">
-                <tr>
-                    <th>Sales</th>
-                    <?php foreach ($bulan as $b): ?>
-                        <th class="text-center"><?= ucfirst($b['bulan_id']) ?></th>
-                    <?php endforeach; ?>
-                    <th class="text-center">Aksi</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($target as $row): ?>
-                    <?php
-                    $total = 0;
-                    foreach ($bulan as $b) {
-                        $key = $b['bulan_id'];
-                        $total += isset($row[$key]) ? $row[$key] : 0;
-                    }
-                    ?>
+        <div class="table-responsive">
+            <table id="example1" class="table table-bordered table-striped">
+                <thead class="bg-blue">
                     <tr>
-                        <td><?= ucfirst($row['nm_karyawan']) ?></td>
-                        <?php foreach ($bulan as $b): ?>
-                            <td class="text-right">
-                                <?= number_format(isset($row[$b['bulan_id']]) ? $row[$b['bulan_id']] : 0, 2) ?>
-                            </td>
-                        <?php endforeach; ?>
-                        <td class="text-center">
-                            <?php if ($ENABLE_MANAGE) : ?>
-                                <a class="btn btn-primary btn-sm edit" href="javascript:void(0)" title="Edit" data-id="<?= $row['id'] ?>"><i class="fa fa-edit"></i>
-                                </a>
-                            <?php endif; ?>
-
-                            <?php if ($ENABLE_DELETE) : ?>
-                                <a class="btn btn-danger btn-sm delete" href="javascript:void(0)" title="Delete" data-id="<?= $row['id'] ?>"><i class="fa fa-trash"></i>
-                                </a>
-                            <?php endif; ?>
-                        </td>
+                        <th>#</th>
+                        <th>Nama Sales</th>
+                        <th>Bulan</th>
+                        <th>Kinerja Pembayaran Ontime</th>
+                        <th>Kinerja Pembayaran Tunggakan</th>
+                        <th>Kinerja Penjualan</th>
+                        <th>Nilai Komisi</th>
+                        <th></th>
                     </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -73,19 +71,25 @@ $ENABLE_DELETE  = has_permission('Master_Komisi.Delete');
     </div>
 </div>
 
+<script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
 <script>
     $(document).ready(function() {
-        $('.select2').select2({
-            width: '100%',
+        $('.select2').select2({});
+        DataTables();
+
+        $('#filter-form').on('submit', function(e) {
+            e.preventDefault();
+            $('#example1').DataTable().ajax.reload();
         });
 
         $(document).on('click', '.edit', function(e) {
             var id = $(this).data('id');
-            $("#head_title").html("<b>Form Target Penjualan Sales</b>");
+            $("#head_title").html("<b>Form Perhitungan Komisi</b>");
             $.ajax({
                 type: 'POST',
-                url: siteurl + active_controller + '/add_target/' + id,
+                url: siteurl + active_controller + '/add_komisi/' + id,
                 success: function(data) {
                     $("#dialog-popup").modal();
                     $("#ModalView").html(data);
@@ -95,10 +99,10 @@ $ENABLE_DELETE  = has_permission('Master_Komisi.Delete');
         });
 
         $(document).on('click', '.add', function() {
-            $("#head_title").html("<b>Form Target Penjualan Sales</b>");
+            $("#head_title").html("<b>Form Perhitungan Komisi</b>");
             $.ajax({
                 type: 'POST',
-                url: siteurl + active_controller + '/add_target/',
+                url: siteurl + active_controller + '/add_komisi/',
                 success: function(data) {
                     $("#dialog-popup").modal();
                     $("#ModalView").html(data);
@@ -124,7 +128,7 @@ $ENABLE_DELETE  = has_permission('Master_Komisi.Delete');
                 function() {
                     $.ajax({
                         type: 'POST',
-                        url: siteurl + active_controller + 'save_target',
+                        url: siteurl + active_controller + 'save_komisi',
                         dataType: "json",
                         data: data,
                         success: function(data) {
@@ -177,7 +181,7 @@ $ENABLE_DELETE  = has_permission('Master_Komisi.Delete');
                 function() {
                     $.ajax({
                         type: 'POST',
-                        url: siteurl + active_controller + '/delete_target',
+                        url: siteurl + active_controller + '/delete_komisi',
                         dataType: "json",
                         data: {
                             'id': id
@@ -213,4 +217,44 @@ $ENABLE_DELETE  = has_permission('Master_Komisi.Delete');
 
         })
     });
+
+    function DataTables() {
+        var dataTable = $('#example1').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "stateSave": true,
+            "autoWidth": false,
+            "destroy": true,
+            "responsive": true,
+            "aaSorting": [
+                [1, "asc"]
+            ],
+            "columnDefs": [{
+                "targets": 'no-sort',
+                "orderable": false,
+            }],
+            "sPaginationType": "simple_numbers",
+            "iDisplayLength": 10,
+            "aLengthMenu": [
+                [10, 20, 50, 100, 150],
+                [10, 20, 50, 100, 150]
+            ],
+            "ajax": {
+                url: base_url + active_controller + 'data_side_komisi',
+                type: "post",
+                data: function(d) {
+                    d.bulan = $('#bulan').val();
+                },
+                error: function(xhr, error, thrown) {
+                    console.log("AJAX Error:", xhr.responseText);
+                },
+                cache: false,
+                error: function() {
+                    $(".my-grid-error").html("");
+                    $("#my-grid").append('<tbody class="my-grid-error"><tr><th colspan="3">No data found in the server</th></tr></tbody>');
+                    $("#my-grid_processing").css("display", "none");
+                }
+            }
+        });
+    }
 </script>

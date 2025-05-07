@@ -36,7 +36,7 @@ class Master_komisi extends Admin_Controller
         $this->template->page_icon('fa fa-percent');
         $this->template->title('Master Komisi Tagihan Ontime');
 
-        $data['mode'] = 'tagihan_ontime';
+        $data['mode'] = 'ontime';
         $data['komisi'] = $this->db->where('komisi_type', 'tagihan_ontime')->get('master_komisi')->result_array();
         $this->template->render('index', $data);
     }
@@ -46,7 +46,7 @@ class Master_komisi extends Admin_Controller
         $this->template->page_icon('fa fa-percent');
         $this->template->title('Master Komisi Pembayaran Tunggakan');
 
-        $data['mode'] = 'pembayaran_tunggakan';
+        $data['mode'] = 'tunggakan';
         $data['komisi'] = $this->db->where('komisi_type', 'pembayaran_tunggakan')->get('master_komisi')->result_array();
         $this->template->render('index', $data);
     }
@@ -256,6 +256,112 @@ class Master_komisi extends Admin_Controller
         $this->db->trans_begin();
 
         $this->db->where('id', $id)->delete("target_penjualan");
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $status = [
+                'pesan' => 'Failed process data!',
+                'status' => 0
+            ];
+        } else {
+            $this->db->trans_commit();
+            $status = [
+                'pesan' => 'Success process data!',
+                'status' => 1
+            ];
+        }
+
+        echo json_encode($status);
+    }
+
+    // BUAT PERHITUNGAN KOMISI
+    public function data_side_komisi()
+    {
+        $bulan = $this->input->post('bulan');
+        $this->master_komisi_model->get_json_komisi($bulan);
+    }
+
+    public function index_komisi()
+    {
+        $this->template->page_icon('fa fa-money');
+        $this->template->title('Daftar Perhitungan Komisi');
+
+        $data = [
+            'bulan' => $this->db->order_by('bulan_no', 'asc')->get('cr_bulan')->result_array(),
+        ];
+
+        $this->template->render('index_komisi', $data);
+    }
+
+    public function get_koefisien()
+    {
+        $type = $this->input->post('komisi_type');
+        $persen = $this->input->post('persen');
+
+        $row = $this->db
+            ->where('komisi_type', $type)
+            ->where('dari <=', $persen)
+            ->where('sampai >', $persen)
+            ->get('master_komisi')
+            ->row();
+
+        if ($row) {
+            echo json_encode(['success' => true, 'koefisien' => (float) $row->koefisien]);
+        } else {
+            echo json_encode(['success' => false]);
+        }
+    }
+
+    public function add_komisi($id = null)
+    {
+        $data = [
+            'sales' => $this->db->where('department', '2')->get('employee')->result_array(),
+            'bulan' => $this->db->order_by('bulan_no', 'asc')->get('cr_bulan')->result_array(),
+            'komisi' => $this->db->get_where('komisi_realisasi', ['id' => $id])->row(),
+        ];
+        $this->template->render('form_komisi', $data);
+    }
+
+    public function save_komisi()
+    {
+        $post = $this->input->post();
+        $id = isset($post['id']) ? $post['id'] : null;
+
+        // Siapkan data yang akan disimpan
+        $data = [
+            'id_karyawan'              => $post['id_karyawan'],
+            'nm_karyawan'              => $post['nm_karyawan'],
+            'bulan_id'                 => $post['bulan_id'],
+            'bulan'                    => $post['bulan'],
+            'tahun'                    => date('Y'),
+            'target_ontime'            => str_replace(',', '', $post['target_ontime']),
+            'realisasi_ontime'         => str_replace(',', '', $post['realisasi_ontime']),
+            'persentase_ontime'        => str_replace(',', '', $post['persentase_ontime']),
+            'koefisien_ontime'         => str_replace(',', '', $post['koefisien_ontime']),
+            'nilai_komisi_ontime'      => str_replace(',', '', $post['nilai_komisi_ontime']),
+            'target_tunggakan'         => str_replace(',', '', $post['target_tunggakan']),
+            'realisasi_tunggakan'      => str_replace(',', '', $post['realisasi_tunggakan']),
+            'persentase_tunggakan'     => str_replace(',', '', $post['persentase_tunggakan']),
+            'koefisien_tunggakan'      => str_replace(',', '', $post['koefisien_tunggakan']),
+            'nilai_komisi_tunggakan'   => str_replace(',', '', $post['nilai_komisi_tunggakan']),
+            'total_ontime_tunggakan'   => str_replace(',', '', $post['total_ontime_tunggakan']),
+            'target_penjualan'         => str_replace(',', '', $post['target_penjualan']),
+            'realisasi_penjualan'      => str_replace(',', '', $post['realisasi_penjualan']),
+            'persentase_penjualan'     => str_replace(',', '', $post['persentase_penjualan']),
+            'koefisien_penjualan'      => str_replace(',', '', $post['koefisien_penjualan']),
+            'nilai_komisi_penjualan'   => str_replace(',', '', $post['nilai_komisi_penjualan']),
+            'grand_total'              => str_replace(',', '', $post['grand_total']),
+        ];
+
+        $this->db->trans_start();
+
+        if (empty($id)) {
+            $this->db->insert('komisi_realisasi', $data);
+        } else {
+            $this->db->where('id', $id)->update('komisi_realisasi', $data);
+        }
+
+        $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
