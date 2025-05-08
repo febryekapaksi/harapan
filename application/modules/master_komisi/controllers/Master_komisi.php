@@ -37,7 +37,7 @@ class Master_komisi extends Admin_Controller
         $this->template->title('Master Komisi Tagihan Ontime');
 
         $data['mode'] = 'ontime';
-        $data['komisi'] = $this->db->where('komisi_type', 'tagihan_ontime')->get('master_komisi')->result_array();
+        $data['komisi'] = $this->db->where('komisi_type', 'ontime')->get('master_komisi')->result_array();
         $this->template->render('index', $data);
     }
 
@@ -47,7 +47,7 @@ class Master_komisi extends Admin_Controller
         $this->template->title('Master Komisi Pembayaran Tunggakan');
 
         $data['mode'] = 'tunggakan';
-        $data['komisi'] = $this->db->where('komisi_type', 'pembayaran_tunggakan')->get('master_komisi')->result_array();
+        $data['komisi'] = $this->db->where('komisi_type', 'tunggakan')->get('master_komisi')->result_array();
         $this->template->render('index', $data);
     }
 
