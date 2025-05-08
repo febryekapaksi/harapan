@@ -166,6 +166,49 @@ class Sales_order extends Admin_Controller
     echo json_encode($status);
   }
 
+  // PRINTOUT
+  public function print_so($no_so)
+  {
+    $this->template->page_icon('fa fa-list');
+
+    // Ambil data sales order utama + penawaran + customer
+    $get_so = $this->db
+      ->select('so.*, c.*, p.quotation_date, p.total_penawaran, p.tipe_bayar,
+                  e1.nm_karyawan AS created_by,
+                  e2.nm_karyawan AS approved_by')
+      ->from('sales_order so')
+      ->join('penawaran p', 'p.id_penawaran = so.id_penawaran', 'left')
+      ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
+      ->join('employee e1', 'e1.id = so.created_by', 'left')
+      ->join('employee e2', 'e2.id = so.approved_by', 'left')
+      ->where('so.no_so', $no_so)
+      ->get()
+      ->row();
+
+    // Ambil detail item SO dan unit dari ms_satuan
+    $get_so_detail = $this->db
+      ->select('d.*, i.id_unit, s.code AS unit')
+      ->from('sales_order_detail d')
+      ->join('product_costing p', 'p.id = d.id_product', 'left')
+      ->join('new_inventory_4 i', 'i.code_lv4 = p.code_lv4', 'left')
+      ->join('ms_satuan s', 's.id = i.id_unit', 'left')
+      ->where('d.no_so', $no_so)
+      ->order_by('d.id', 'ASC')
+      ->get()
+      ->result();
+
+    $data = [
+      'data_so' => $get_so,
+      'data_so_detail' => $get_so_detail
+    ];
+
+    // echo '<pre>';
+    // print_r($data);
+    // echo '</pre>';
+    // die();
+    $this->load->view('print_so', ['results' => $data]);
+  }
+
   // SERVERSIDE
   public function data_side_penawaran()
   {

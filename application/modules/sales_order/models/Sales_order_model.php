@@ -75,6 +75,7 @@ class Sales_order_model extends BF_Model
 			// Aksi tombol
 			if (!empty($row['no_so'])) {
 				$action = "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-primary'><i class='fa fa-edit'></i> </a> ";
+				$action .= "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning'><i class='fa fa-print'></i> </a> ";
 			} else {
 				$action = "<a href='" . base_url("sales_order/add/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success'><i class='fa fa-plus'></i> Create SO</a> ";
 			}

@@ -169,6 +169,47 @@ class Penawaran extends Admin_Controller
         echo json_encode($status);
     }
 
+    // Bagian Print out
+    public function print_penawaran($id_penawaran)
+    {
+        $this->template->page_icon('fa fa-list');
+
+        // Ambil data penawaran utama dari tabel 'penawaran' + join 'master_customers'
+        $get_penawaran = $this->db
+            ->select('p.*, c.*, 
+                    e1.nm_karyawan AS created_by,
+                    e2.nm_karyawan AS approved_by_manager,
+                    e3.nm_karyawan AS approved_by_direksi')
+            ->from('penawaran p')
+            ->join('master_customers c', 'p.id_customer = c.id_customer', 'left')
+            ->join('employee e1', 'e1.id = p.created_by', 'left')
+            ->join('employee e2', 'e2.id = p.approved_by_manager', 'left')
+            ->join('employee e3', 'e3.id = p.approved_by_direksi', 'left')
+            ->where('p.id_penawaran', $id_penawaran)
+            ->get()
+            ->row();
+
+        // Ambil detail item penawaran (tabel penawaran_detail dan join terkait bisa disesuaikan)
+        $get_penawaran_detail = $this->db->select('d.*')
+            ->from('penawaran_detail d')
+            ->where('d.id_penawaran', $id_penawaran)
+            ->order_by('d.id', 'ASC')
+            ->get()
+            ->result();
+
+        // Bangun data yang akan dikirim ke view
+        $data = [
+            'data_penawaran' => $get_penawaran,
+            'data_penawaran_detail' => $get_penawaran_detail,
+        ];
+
+        // Kirim ke view
+        $this->load->view('print_penawaran', ['results' => $data]);
+    }
+
+
+    // Bagian Approval 
+
     public function approval_manager()
     {
         $this->template->render('list_approval_manager');

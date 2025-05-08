@@ -20,7 +20,6 @@ $ENABLE_DELETE  = has_permission('Quotation.Delete');
     .custom-list .marker {
         display: inline-block;
         width: 20px;
-        /* Adjust as necessary */
         text-align: center;
     }
 
@@ -230,7 +229,7 @@ $ENABLE_DELETE  = has_permission('Quotation.Delete');
                     $harga_ses_diskon += $other_cost->total_nilai;
                 }
 
-                foreach($results['list_other_item'] as $other_item) {
+                foreach ($results['list_other_item'] as $other_item) {
 
                     $get_other_detail = $this->db->query("
                         SELECT
@@ -240,7 +239,7 @@ $ENABLE_DELETE  = has_permission('Quotation.Delete');
                             new_inventory_4 a
                             LEFT JOIN ms_satuan b ON b.id = a.id_unit
                         WHERE
-                            a.code_lv4 = '".$other_item->id_other."'
+                            a.code_lv4 = '" . $other_item->id_other . "'
 
                         UNION ALL
 
@@ -251,20 +250,20 @@ $ENABLE_DELETE  = has_permission('Quotation.Delete');
                             accessories a
                             LEFT JOIN ms_satuan b ON b.id = a.id_unit
                         WHERE
-                            a.id = '".$other_item->id_other."'
+                            a.id = '" . $other_item->id_other . "'
                     ")->row();
 
                     echo '<tr>';
-                    echo '<td class="text-center">'.$no.'</td>';
-                    echo '<td class="text-left">'.$other_item->nm_other.'</td>';
-                    echo '<td class="text-center">'.$get_other_detail->product_code.'</td>';
+                    echo '<td class="text-center">' . $no . '</td>';
+                    echo '<td class="text-left">' . $other_item->nm_other . '</td>';
+                    echo '<td class="text-center">' . $get_other_detail->product_code . '</td>';
                     echo '<td class="text-center">-</td>';
                     echo '<td class="text-center">-</td>';
                     echo '<td class="text-center">-</td>';
-                    echo '<td class="text-center">'.number_format($other_item->qty).'</td>';
-                    echo '<td class="text-center">'.ucfirst($get_other_detail->nm_unit).'</td>';
-                    echo '<td class="text-left">'.$results['data_penawaran']->currency.' '.number_format($other_item->harga).'</td>';
-                    echo '<td class="text-left">'.$results['data_penawaran']->currency.' '.number_format($other_item->total).'</td>';
+                    echo '<td class="text-center">' . number_format($other_item->qty) . '</td>';
+                    echo '<td class="text-center">' . ucfirst($get_other_detail->nm_unit) . '</td>';
+                    echo '<td class="text-left">' . $results['data_penawaran']->currency . ' ' . number_format($other_item->harga) . '</td>';
+                    echo '<td class="text-left">' . $results['data_penawaran']->currency . ' ' . number_format($other_item->total) . '</td>';
                     echo '</tr>';
 
                     $harga_seb_diskon += $other_item->total;
@@ -282,15 +281,15 @@ $ENABLE_DELETE  = has_permission('Quotation.Delete');
                     <th class="text-right" colspan="9">TOTAL NETT</th>
                     <th class="text-right"><?= $results['data_penawaran']->currency ?> <?= number_format($harga_seb_diskon) ?></th>
                 </tr>
-                <?php 
-                    if($results['show_disc'] !== '' && $results['show_disc'] !== null) {
-                        echo '
+                <?php
+                if ($results['show_disc'] !== '' && $results['show_disc'] !== null) {
+                    echo '
                             <tr>
                                 <th class="text-right" colspan="9">DISCOUNT</th>
-                                <th class="text-right">'.$results['data_penawaran']->currency.' '. number_format($ttl_diskon) .'</th>
+                                <th class="text-right">' . $results['data_penawaran']->currency . ' ' . number_format($ttl_diskon) . '</th>
                             </tr>
                         ';
-                    }
+                }
                 ?>
                 <tr>
                     <th class="text-right" colspan="9">VAT <?= number_format($results['data_penawaran']->ppn) ?>%</th>
