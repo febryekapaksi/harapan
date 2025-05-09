@@ -202,10 +202,6 @@ class Sales_order extends Admin_Controller
       'data_so_detail' => $get_so_detail
     ];
 
-    // echo '<pre>';
-    // print_r($data);
-    // echo '</pre>';
-    // die();
     $this->load->view('print_so', ['results' => $data]);
   }
 

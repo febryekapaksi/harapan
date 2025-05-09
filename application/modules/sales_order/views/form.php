@@ -1,3 +1,14 @@
+<style>
+    .text-green {
+        color: green;
+        font-weight: bold;
+    }
+
+    .text-red {
+        color: red;
+        font-weight: bold;
+    }
+</style>
 <div class="box box-primary">
     <div class="box-body">
         <form id="data-form" autocomplete="off">
@@ -254,7 +265,7 @@
                                 <label for="">Due Date Credit</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="due_date_credit"
+                                <input type="date" class="form-control" name="due_date_credit" id="due_date_credit"
                                     value="<?= isset($so['due_date_credit']) ? date('Y-m-d', strtotime($so['due_date_credit'])) : '' ?>">
                             </div>
                         </div>
@@ -263,7 +274,7 @@
                                 <label for="">Credit Limit</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control moneyFormat" name="credit_limit"
+                                <input type="text" class="form-control moneyFormat" name="credit_limit" id="credit_limit"
                                     value="<?= isset($so['credit_limit']) ? $so['credit_limit'] : '' ?>">
                             </div>
                         </div>
@@ -272,7 +283,7 @@
                                 <label for="">Outstanding</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control moneyFormat" name="outstanding"
+                                <input type="text" class="form-control moneyFormat" name="outstanding" id="outstanding"
                                     value="<?= isset($so['outstanding']) ? $so['outstanding'] : '' ?>">
                             </div>
                         </div>
@@ -292,7 +303,7 @@
                                 <label for="">Over Limit</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control moneyFormat" name="over_limit"
+                                <input type="text" class="form-control moneyFormat" name="over_limit" id="over_limit"
                                     value="<?= isset($so['over_limit']) ? $so['over_limit'] : '' ?>">
                             </div>
                         </div>
@@ -301,8 +312,7 @@
                                 <label for="">Status Credit Limit</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control" name="status_credit_limit"
-                                    value="<?= isset($so['status_credit_limit']) ? $so['status_credit_limit'] : '' ?>">
+                                <label id="status_credit_limit" class="form-control" style="border: none; padding-top: 7px;"></label>
                             </div>
                         </div>
                     </div>
@@ -430,6 +440,11 @@
                     }
                 });
         });
+
+        // Trigger penetuan credit limit
+        $('#credit_limit, #total_so, #outstanding').on('input', function() {
+            updateCreditStatus();
+        });
     })
 
     function moneyFormat(e) {
@@ -446,5 +461,28 @@
             digitsOptional: false,
             showMaskOnHover: true,
         })
+    }
+
+    function toNumber(val) {
+        return parseFloat((val || "0").replace(/[^0-9.-]+/g, '')) || 0;
+    }
+
+    function updateCreditStatus() {
+        const creditLimit = toNumber($('#credit_limit').val());
+        const totalSO = toNumber($('#total_so').val());
+        const outstanding = toNumber($('#outstanding').val());
+
+        const selisih = (totalSO + outstanding) - creditLimit;
+
+        if (creditLimit === 0) {
+            $('#status_credit_limit').text("Tidak Overlimit").removeClass('text-red').addClass('text-green');
+            $('#over_limit').val("0");
+        } else if (selisih > 0) {
+            $('#status_credit_limit').text("Overlimit").removeClass('text-green').addClass('text-red');
+            $('#over_limit').val(selisih.toFixed(2));
+        } else {
+            $('#status_credit_limit').text("Tidak Overlimit").removeClass('text-red').addClass('text-green');
+            $('#over_limit').val("0");
+        }
     }
 </script>
