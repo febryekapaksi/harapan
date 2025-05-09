@@ -338,6 +338,42 @@ class Penawaran extends Admin_Controller
         ]);
     }
 
+    // reject 
+    public function reject($id = null)
+    {
+        if (!$id) {
+            echo json_encode(['save' => 0, 'message' => 'ID tidak ditemukan']);
+            return;
+        }
+
+        $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id])->row();
+        if (!$penawaran) {
+            echo json_encode(['save' => 0, 'message' => 'Data tidak ditemukan']);
+            return;
+        }
+
+        $reason = $this->input->post('reason');
+        if (!$reason) {
+            echo json_encode(['save' => 0, 'message' => 'Alasan harus diisi']);
+            return;
+        }
+
+        $data = [
+            'status' => 'R',
+            'reject_reason' => $reason,
+            'modified_by' => $this->auth->user_id(),
+            'modified_at' => date('Y-m-d H:i:s')
+        ];
+
+        $this->db->where('id_penawaran', $id);
+        $update = $this->db->update('penawaran', $data);
+
+        if ($update) {
+            echo json_encode(['save' => 1]);
+        } else {
+            echo json_encode(['save' => 0, 'message' => 'Gagal menyimpan alasan penolakan']);
+        }
+    }
 
 
     // FUNGSI BUAT AJAX SERVERSIDE

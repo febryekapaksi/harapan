@@ -5,7 +5,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
 <div class="box box-primary">
     <div class="box-body">
         <form id="data-form" autocomplete="off">
-            <input type="hidden" name="id_penawaran" value="<?= isset($penawaran['id_penawaran']) ? $penawaran['id_penawaran'] : '' ?>">
+            <input type="hidden" name="id_penawaran" id="id_penawaran" value="<?= isset($penawaran['id_penawaran']) ? $penawaran['id_penawaran'] : '' ?>">
             <div class="row">
                 <div class="col-md-12">
                     <div class="col-sm-6">
@@ -258,9 +258,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                         <button type="submit" class="btn btn-success" name="approve" id="approve" data-role="<?= $mode ?>">
                             <i class="fa fa-check"></i> Approve
                         </button>
-                        <button type="button" class="btn btn-danger" id="reject">
-                            <i class="fa fa-times"></i> Reject
-                        </button>
+                        <a class="btn btn-danger reject" name="reject" id="reject" onclick="Reject()"><i class="fa fa-ban"></i> Reject</a>
                     <?php endif; ?>
                     <a class="btn btn-default" onclick="window.history.back(); return false;">
                         <i class="fa fa-reply"></i> Batal
@@ -268,6 +266,30 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                 </div>
             </div>
         </form>
+    </div>
+</div>
+
+<div class="modal fade" id="reject-modal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="form-reject">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h4 class="modal-title" id="rejectModalLabel">Alasan Penolakan</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="reject_id">
+                    <div class="form-group">
+                        <label for="reason">Alasan:</label>
+                        <textarea id="reason" name="reason" class="form-control" rows="4" required placeholder="Masukkan alasan penolakan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Tolak</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -604,8 +626,73 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                     }
                 });
         });
+
+        // Saat form submit
+        $('#form-reject').submit(function(e) {
+            e.preventDefault();
+
+            const id = $('#reject_id').val();
+            const reason = $('#reason').val().trim();
+
+            if (reason === '') {
+                alert('Alasan penolakan harus diisi.');
+                return;
+            }
+
+            // Konfirmasi kedua pakai SweetAlert
+            swal({
+                title: "Konfirmasi Penolakan",
+                text: "Yakin ingin menolak data dengan alasan berikut?\n\n" + reason,
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Tolak",
+                cancelButtonText: "Batal",
+                closeOnConfirm: false
+            }, function(isConfirm) {
+                if (!isConfirm) return;
+
+                // Sembunyikan modal input
+                $('#reject-modal').modal('hide');
+
+                // Kirim AJAX ke backend
+                $.ajax({
+                    url: base_url + active_controller + 'reject/' + id,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        reason
+                    },
+                    success: function(res) {
+                        if (res.save == 1) {
+                            swal({
+                                title: "Ditolak!",
+                                text: "Data berhasil ditolak.",
+                                type: "success",
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            setTimeout(() => {
+                                window.location.href = base_url + active_controller;
+                            }, 1500);
+                        } else {
+                            swal("Gagal", res.message || "Penolakan gagal disimpan.", "error");
+                        }
+                    },
+                    error: function() {
+                        swal("Error", "Terjadi kesalahan saat memproses data.", "error");
+                    }
+                });
+            });
+        });
     });
 
+    //fungsi reject
+    function Reject() {
+        const id = $('#id_penawaran').val(); // ambil id dari input hidden
+        $('#reject_id').val(id); // simpan ke form modal
+        $('#reason').val(''); // reset alasan
+        $('#reject-modal').modal('show'); // tampilkan modal
+    }
 
     //fungsi hapus baris
     function DelProduct(id) {
