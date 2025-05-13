@@ -577,7 +577,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Nomor NPWP/KTP</label>
+										<label for="customer">Nomor NPWP/KTP <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="npwp" value="<?= $cus->npwp ?>" required name="npwp" placeholder="Nomor NPWP">
@@ -585,7 +585,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Nama NPWP/KTP</label>
+										<label for="customer">Nama NPWP/KTP <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="npwp_name" value='<?= $cus->npwp_name ?>' required name="npwp_name" placeholder="Nama NPWP">
@@ -593,7 +593,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Alamat NPWP</label>
+										<label for="customer">Alamat NPWP/KTP <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="npwp_address" value='<?= $cus->npwp_address ?>' required name="npwp_address" placeholder="Alamat NPWP">
@@ -601,7 +601,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="id_category_customer">Term Of Payment</label>
+										<label for="id_category_customer">Term Of Payment <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<select id="payment_term" name="payment_term" class="form-control select" required <?= $disabled ?>>
@@ -617,7 +617,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Nominal DP</label>
+										<label for="customer">Nominal DP <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="nominal_dp" value='<?= $cus->nominal_dp ?>' required name="nominal_dp">
@@ -625,7 +625,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="id_category_customer">Sisa Pembayaran</label>
+										<label for="id_category_customer">Sisa Pembayaran <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<select id="sisa_pembayaran" name="sisa_pembayaran" class="form-control select" required>
@@ -645,7 +645,7 @@ foreach ($results['rate'] as $rate) {
 							<div class="col-sm-12">
 								<div class="form-group-row">
 									<div class="col-md-3">
-										<label for="customer">Hari Terima</label>
+										<label for="customer">Hari Terima <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-9">
 										<label>
