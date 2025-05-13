@@ -81,8 +81,18 @@
                                     <td><?= $label ?></td>
                                     <td><input type="text" name="target_<?= $key ?>" id="target_<?= $key ?>" class="form-control moneyFormat" value="<?= isset($komisi) ? number_format($komisi->{'target_' . $key}, 2) : '' ?>"></td>
                                     <td><input type="text" name="realisasi_<?= $key ?>" id="realisasi_<?= $key ?>" class="form-control moneyFormat" value="<?= isset($komisi) ? number_format($komisi->{'realisasi_' . $key}, 2) : '' ?>"></td>
-                                    <td><input type="text" name="persentase_<?= $key ?>" id="persentase_<?= $key ?>" class="form-control" readonly value="<?= isset($komisi) ? number_format($komisi->{'persentase_' . $key}, 2) : '' ?>"></td>
-                                    <td><input type="text" name="koefisien_<?= $key ?>" id="koefisien_<?= $key ?>" class="form-control" readonly value="<?= isset($komisi) ? number_format($komisi->{'koefisien_' . $key}, 2) : '' ?>"></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <input type="text" name="persentase_<?= $key ?>" id="persentase_<?= $key ?>" class="form-control" readonly value="<?= isset($komisi) ? number_format($komisi->{'persentase_' . $key}, 2) : '' ?>">
+                                            <span class="input-group-addon"><i class="fa fa-percent"></i></span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <input type="text" name="koefisien_<?= $key ?>" id="koefisien_<?= $key ?>" class="form-control" readonly value="<?= isset($komisi) ? number_format($komisi->{'koefisien_' . $key}, 2) : '' ?>">
+                                            <span class="input-group-addon"><i class="fa fa-percent"></i></span>
+                                        </div>
+                                    </td>
                                     <td><input type="text" name="nilai_komisi_<?= $key ?>" id="nilai_komisi_<?= $key ?>" class="form-control moneyFormat" readonly value="<?= isset($komisi) ? number_format($komisi->{'nilai_komisi_' . $key}, 2) : '' ?>"></td>
                                 </tr>
                             <?php endforeach; ?>
@@ -96,8 +106,18 @@
                                 <td>Pencapaian Penjualan</td>
                                 <td><input type="text" name="target_penjualan" id="target_penjualan" class="form-control moneyFormat" value="<?= isset($komisi) ? number_format($komisi->target_penjualan, 2) : '' ?>"></td>
                                 <td><input type="text" name="realisasi_penjualan" id="realisasi_penjualan" class="form-control moneyFormat" value="<?= isset($komisi) ? number_format($komisi->realisasi_penjualan, 2) : '' ?>"></td>
-                                <td><input type="text" name="persentase_penjualan" id="persentase_penjualan" class="form-control" readonly value="<?= isset($komisi) ? number_format($komisi->persentase_penjualan, 2) : '' ?>"></td>
-                                <td><input type="text" name="koefisien_penjualan" id="koefisien_penjualan" class="form-control" readonly value="<?= isset($komisi) ? number_format($komisi->koefisien_penjualan, 2) : '' ?>"></td>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="text" name="persentase_penjualan" id="persentase_penjualan" class="form-control" readonly value="<?= isset($komisi) ? number_format($komisi->persentase_penjualan, 2) : '' ?>">
+                                        <span class="input-group-addon"><i class="fa fa-percent"></i></span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="input-group">
+                                        <input type="text" name="koefisien_penjualan" id="koefisien_penjualan" class="form-control" readonly value="<?= isset($komisi) ? number_format($komisi->koefisien_penjualan, 2) : '' ?>">
+                                        <span class="input-group-addon"><i class="fa fa-percent"></i></span>
+                                    </div>
+                                </td>
                                 <td><input type="text" name="nilai_komisi_penjualan" id="nilai_komisi_penjualan" class="form-control moneyFormat" readonly value="<?= isset($komisi) ? number_format($komisi->nilai_komisi_penjualan, 2) : '' ?>"></td>
                             </tr>
 
@@ -168,7 +188,7 @@
         getKoefisien(key, persentase, function(koef) {
             const koefNum = parseFloat(koef) || 0;
 
-            const nilai = realisasi * koefNum;
+            const nilai = realisasi * (koefNum / 100);
 
             $(`#koefisien_${key}`).val(koefNum.toFixed(2));
             $(`#nilai_komisi_${key}`).val(nilai.toFixed(2));
@@ -190,7 +210,7 @@
 
             const koefNum = parseFloat(koef) || 0;
 
-            const nilai = total_ontime_tunggakan * koefNum;
+            const nilai = (total_ontime_tunggakan * koefNum) / 100;
 
             $(`#koefisien_${penjualan}`).val(koefNum.toFixed(2));
             $(`#nilai_komisi_${penjualan}`).val(nilai.toFixed(2));
