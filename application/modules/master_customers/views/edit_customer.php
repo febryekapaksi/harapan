@@ -33,7 +33,7 @@ foreach ($results['rate'] as $rate) {
 										<label for="id_category_customer">Category Customer</label>
 									</div>
 									<div class="col-md-6">
-										<select id="id_category_customer" name="id_category_customer" class="form-control select" required>
+										<select id="id_category_customer" name="id_category_customer" class="form-control select">
 											<option value="">--Pilih--</option>
 											<?php foreach ($results['category'] as $category) {
 												$select = $cus->id_category_customer == $category->id_category_customer ? 'selected' : '';
@@ -45,7 +45,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Nama Customer</label>
+										<label for="customer">Nama Customer <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="name_customer" value='<?= $cus->name_customer ?>' required name="name_customer" placeholder="Nama Customer">
@@ -54,7 +54,7 @@ foreach ($results['rate'] as $rate) {
 
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Telephone</label>
+										<label for="customer">Telephone <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="telephone" value='<?= $cus->telephone ?>' required name="telephone" placeholder="Nomor Telephone">
@@ -73,12 +73,12 @@ foreach ($results['rate'] as $rate) {
 										<label for="customer">Fax</label>
 									</div>
 									<div class="col-md-6">
-										<input type="text" class="form-control" id="fax" required name="fax" value='<?= $cus->fax ?>' placeholder="Nomor Fax">
+										<input type="text" class="form-control" id="fax" name="fax" value='<?= $cus->fax ?>' placeholder="Nomor Fax">
 									</div>
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Email</label>
+										<label for="customer">Email <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="email" required name="email" value='<?= $cus->name_customer ?>' placeholder="email@domain.adress">
@@ -86,7 +86,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Tanggal Mulai</label>
+										<label for="customer">Tanggal Mulai <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="date" class="form-control" id="start_date" required name="start_date" value='<?= $cus->start_date ?>' placeholder="Tanggal Mulai">
@@ -94,7 +94,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="id_category_customer">Marketing</label>
+										<label for="id_category_customer">Sales</label>
 									</div>
 									<div class="col-md-6">
 										<select id="id_karyawan" name="id_karyawan" class="form-control select" required>
@@ -109,7 +109,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Channel Pemasaran</label>
+										<label for="customer">Channel Pemasaran <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<div class="row">
@@ -143,7 +143,7 @@ foreach ($results['rate'] as $rate) {
 							<div class="col-sm-6">
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="id_category_supplier">Provinsi</label>
+										<label for="id_category_supplier">Provinsi <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<select id="id_prov" name="id_prov" class="form-control select" onchange="get_kota()" required>
@@ -159,7 +159,7 @@ foreach ($results['rate'] as $rate) {
 
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="id_category_supplier">Kota</label>
+										<label for="id_category_supplier">Kota <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<select id="id_kota" name="id_kota" class="form-control select" required>
@@ -175,7 +175,7 @@ foreach ($results['rate'] as $rate) {
 
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Alamat</label>
+										<label for="customer">Alamat <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<textarea type="text" name="address_office" id="address_office" class="form-control input-sm required w70" placeholder="Alamat" readonly><?= $cus->address_office ?></textarea>
@@ -187,12 +187,12 @@ foreach ($results['rate'] as $rate) {
 										<label for="customer">Kode Pos</label>
 									</div>
 									<div class="col-md-6">
-										<input type="text" class="form-control" id="zip_code" value='<?= $cus->zip_code ?>' required name="zip_code" placeholder="Kode Pos" readonly>
+										<input type="text" class="form-control" id="zip_code" value='<?= $cus->zip_code ?>' name="zip_code" placeholder="Kode Pos" readonly>
 									</div>
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Longtitude</label>
+										<label for="customer">Longitude <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="longitude" value='<?= $cus->longitude ?>' required name="longitude" placeholder="Longtitude" readonly>
@@ -200,7 +200,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Latitude</label>
+										<label for="customer">Latitude <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="latitude" value='<?= $cus->latitude ?>' required name="latitude" placeholder="Latitude" readonly>
@@ -208,7 +208,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Status</label>
+										<label for="customer">Status <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<label>
@@ -238,7 +238,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Kategori Customer</label>
+										<label for="customer">Kategori Customer <span class="text-red">*</span></label>
 									</div>
 									<div class="col-md-6">
 										<select name="kategori_cust" id="kategori_cust" class="form-control select">
@@ -276,15 +276,15 @@ foreach ($results['rate'] as $rate) {
 									</div>
 									<div class="col-md-6">
 										<label>
-											<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="Yes" <?= (($rate->ontime == 'Yes') ? 'checked' : '') ?> required> Yes
+											<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="Yes" <?= (($rate->ontime == 'Yes') ? 'checked' : '') ?>> Yes
 										</label>
 										&nbsp;
 										<label>
-											<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="No" <?= (($rate->ontime == 'No') ? 'checked' : '') ?> required> No
+											<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="No" <?= (($rate->ontime == 'No') ? 'checked' : '') ?>> No
 										</label>
 										&nbsp;
 										<label>
-											<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="New" <?= (($rate->ontime == 'New') ? 'checked' : '') ?> required> New
+											<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="New" <?= (($rate->ontime == 'New') ? 'checked' : '') ?>> New
 										</label>
 									</div>
 								</div>
@@ -294,11 +294,11 @@ foreach ($results['rate'] as $rate) {
 									</div>
 									<div class="col-md-6">
 										<label>
-											<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="Yes" <?= (($rate->toko_sendiri == 'Yes') ? 'checked' : '') ?> required> Yes
+											<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="Yes" <?= (($rate->toko_sendiri == 'Yes') ? 'checked' : '') ?>> Yes
 										</label>
 										&nbsp;
 										<label>
-											<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="No" <?= (($rate->toko_sendiri == 'No') ? 'checked' : '') ?> required> No
+											<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="No" <?= (($rate->toko_sendiri == 'No') ? 'checked' : '') ?>> No
 										</label>
 									</div>
 								</div>
@@ -326,15 +326,15 @@ foreach ($results['rate'] as $rate) {
 									</div>
 									<div class="col-md-6">
 										<label>
-											<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="Yes" <?= (($rate->attitude == 'Yes') ? 'checked' : '') ?> required> Yes
+											<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="Yes" <?= (($rate->attitude == 'Yes') ? 'checked' : '') ?>> Yes
 										</label>
 										&nbsp;
 										<label>
-											<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="No" <?= (($rate->attitude == 'No') ? 'checked' : '') ?> required> No
+											<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="No" <?= (($rate->attitude == 'No') ? 'checked' : '') ?>> No
 										</label>
 										&nbsp;
 										<label>
-											<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="New" <?= (($rate->attitude == 'New') ? 'checked' : '') ?> required> New
+											<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="New" <?= (($rate->attitude == 'New') ? 'checked' : '') ?>> New
 										</label>
 									</div>
 								</div>
@@ -352,11 +352,11 @@ foreach ($results['rate'] as $rate) {
 									</div>
 									<div class="col-md-6">
 										<label>
-											<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="Yes" <?= (($rate->pbb == 'Yes') ? 'checked' : '') ?> required> Yes
+											<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="Yes" <?= (($rate->pbb == 'Yes') ? 'checked' : '') ?>> Yes
 										</label>
 										&nbsp;
 										<label>
-											<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="No" <?= (($rate->pbb == 'No') ? 'checked' : '') ?> required> No
+											<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="No" <?= (($rate->pbb == 'No') ? 'checked' : '') ?>> No
 										</label>
 										&nbsp;
 									</div>
@@ -577,7 +577,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Nomor NPWP/PKP</label>
+										<label for="customer">Nomor NPWP/KTP</label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="npwp" value="<?= $cus->npwp ?>" required name="npwp" placeholder="Nomor NPWP">
@@ -585,7 +585,7 @@ foreach ($results['rate'] as $rate) {
 								</div>
 								<div class="form-group row">
 									<div class="col-md-6">
-										<label for="customer">Nama NPWP/PKP</label>
+										<label for="customer">Nama NPWP/KTP</label>
 									</div>
 									<div class="col-md-6">
 										<input type="text" class="form-control" id="npwp_name" value='<?= $cus->npwp_name ?>' required name="npwp_name" placeholder="Nama NPWP">
@@ -604,14 +604,14 @@ foreach ($results['rate'] as $rate) {
 										<label for="id_category_customer">Term Of Payment</label>
 									</div>
 									<div class="col-md-6">
-										<select id="payment_term" name="payment_term" class="form-control select" required>
-											<option value="<?= $cus->payment_term ?>"><?= $cus->payment_term ?></option>
-											<option value="Cash Before Delivery">Cash Before Delivery</option>
-											<option value="Cash on Delivery">Cash on Delivery</option>
-											<option value="30 Day">30 Day-</option>
-											<option value="45 Day">45 Day</option>
-											<option value="60 Day">60 Day</option>
-											<option value="DP">DP</option>
+										<select id="payment_term" name="payment_term" class="form-control select" required <?= $disabled ?>>
+											<option value="">-- Pilih --</option>
+											<?php foreach ($results['payment_terms'] as $terms): ?>
+												<option value="<?= htmlspecialchars($terms->id) ?>"
+													<?= isset($cus->payment_term) && $cus->payment_term == $terms->id ? 'selected' : '' ?>>
+													<?= htmlspecialchars($terms->name) ?>
+												</option>
+											<?php endforeach; ?>
 										</select>
 									</div>
 								</div>
@@ -620,7 +620,7 @@ foreach ($results['rate'] as $rate) {
 										<label for="customer">Nominal DP</label>
 									</div>
 									<div class="col-md-6">
-										<input type="text" class="form-control" id="nominal_dp" value='<?= $cus->nominal_dp ?>' required name="nominal_dp" placeholder="Alamat NPWP">
+										<input type="text" class="form-control" id="nominal_dp" value='<?= $cus->nominal_dp ?>' required name="nominal_dp">
 									</div>
 								</div>
 								<div class="form-group row">
@@ -649,31 +649,31 @@ foreach ($results['rate'] as $rate) {
 									</div>
 									<div class="col-md-9">
 										<label>
-											<input type="checkbox" class="radio-control" id="senin" name="senin" <?= (($cus->senin == 'Y') ? 'checked' : '') ?> value="Y" required> Senin
+											<input type="checkbox" class="radio-control hari-checkbox" id="senin" name="senin" <?= (($cus->senin == 'Y') ? 'checked' : '') ?> value="Y"> Senin
 										</label>
 										&nbsp
 										<label>
-											<input type="checkbox" class="radio-control" id="selasa" name="selasa" <?= (($cus->selasa == 'Y') ? 'checked' : '') ?> value="Y" required> Selasa
+											<input type="checkbox" class="radio-control hari-checkbox" id="selasa" name="selasa" <?= (($cus->selasa == 'Y') ? 'checked' : '') ?> value="Y"> Selasa
 										</label>
 										&nbsp
 										<label>
-											<input type="checkbox" class="radio-control" id="rabu" name="rabu" <?= (($cus->rabu == 'Y') ? 'checked' : '') ?> value="Y" required> Rabu
+											<input type="checkbox" class="radio-control hari-checkbox" id="rabu" name="rabu" <?= (($cus->rabu == 'Y') ? 'checked' : '') ?> value="Y"> Rabu
 										</label>
 										&nbsp
 										<label>
-											<input type="checkbox" class="radio-control" id="kamis" name="kamis" <?= (($cus->kamis == 'Y') ? 'checked' : '') ?> value="Y" required> Kamis
+											<input type="checkbox" class="radio-control hari-checkbox" id="kamis" name="kamis" <?= (($cus->kamis == 'Y') ? 'checked' : '') ?> value="Y"> Kamis
 										</label>
 										&nbsp
 										<label>
-											<input type="checkbox" class="radio-control" id="jumat" name="jumat" <?= (($cus->jumat == 'Y') ? 'checked' : '') ?> value="Y" required> Jumat
+											<input type="checkbox" class="radio-control hari-checkbox" id="jumat" name="jumat" <?= (($cus->jumat == 'Y') ? 'checked' : '') ?> value="Y"> Jumat
 										</label>
 										&nbsp
 										<label>
-											<input type="checkbox" class="radio-control" id="sabtu" name="sabtu" <?= (($cus->sabtu == 'Y') ? 'checked' : '') ?> value="Y" required> Sabtu
+											<input type="checkbox" class="radio-control hari-checkbox" id="sabtu" name="sabtu" <?= (($cus->sabtu == 'Y') ? 'checked' : '') ?> value="Y"> Sabtu
 										</label>
 										&nbsp
 										<label>
-											<input type="checkbox" class="radio-control" id="minggu" name="minggu" <?= (($cus->minggu == 'Y') ? 'checked' : '') ?> value="Y" required> Minggu
+											<input type="checkbox" class="radio-control hari-checkbox" id="minggu" name="minggu" <?= (($cus->minggu == 'Y') ? 'checked' : '') ?> value="Y"> Minggu
 										</label>
 									</div>
 								</div>
@@ -725,28 +725,7 @@ foreach ($results['rate'] as $rate) {
 									<div class="form-group row">
 										<div class="col-md-12">
 											<label>
-												<input type="checkbox" class="radio-control" id="berita_acara" name="berita_acara" <?= (($cus->berita_acara == 'Y') ? 'checked' : '') ?> value="Y" required> Berita Acara
-											</label>
-										</div>
-									</div>
-									<div class="form-group row">
-										<div class="col-md-12">
-											<label>
-												<input type="checkbox" class="radio-control" id="faktur" name="faktur" <?= (($cus->faktur == 'Y') ? 'checked' : '') ?> value="Y" required> Faktur Pajak
-											</label>
-										</div>
-									</div>
-									<div class="form-group row">
-										<div class="col-md-12">
-											<label>
-												<input type="checkbox" class="radio-control" id="tdp" name="tdp" <?= (($cus->tdp == 'Y') ? 'checked' : '') ?> value="Y" required> TDP
-											</label>
-										</div>
-									</div>
-									<div class="form-group row">
-										<div class="col-md-12">
-											<label>
-												<input type="checkbox" class="radio-control" id="real_po" name="real_po" <?= (($cus->real_po == 'Y') ? 'checked' : '') ?> value="Y" required> Real PO
+												<input type="checkbox" class="radio-control payterm-checkbox" id="invoice" name="invoice" <?= (($cus->inovice == 'Y') ? 'checked' : '') ?> value="Y"> Invoice
 											</label>
 										</div>
 									</div>
@@ -755,28 +734,7 @@ foreach ($results['rate'] as $rate) {
 									<div class="form-group row">
 										<div class="col-md-12">
 											<label>
-												<input type="checkbox" class="radio-control" id="ttd_specimen" name="ttd_specimen" <?= (($cus->ttd_specimen == 'Y') ? 'checked' : '') ?> value="Y" required> TTD Specimen / Tax Invoice Serial Number
-											</label>
-										</div>
-									</div>
-									<div class="form-group row">
-										<div class="col-md-12">
-											<label>
-												<input type="checkbox" class="radio-control" id="payement_certificate" name="payement_certificate" <?= (($cus->payement_certificate == 'Y') ? 'checked' : '') ?> value="Y" required> Payment Certificate
-											</label>
-										</div>
-									</div>
-									<div class="form-group row">
-										<div class="col-md-12">
-											<label>
-												<input type="checkbox" class="radio-control" id="photo" name="photo" <?= (($cus->photo == 'Y') ? 'checked' : '') ?> value="Y" required> Photo
-											</label>
-										</div>
-									</div>
-									<div class="form-group row">
-										<div class="col-md-12">
-											<label>
-												<input type="checkbox" class="radio-control" id="siup" name="siup" <?= (($cus->siup == 'Y') ? 'checked' : '') ?> value="Y" required> SIUP
+												<input type="checkbox" class="radio-control payterm-checkbox" id="sj" name="sj" <?= (($cus->sj == 'Y') ? 'checked' : '') ?> value="Y"> SJ
 											</label>
 										</div>
 									</div>
@@ -785,28 +743,7 @@ foreach ($results['rate'] as $rate) {
 									<div class="form-group row">
 										<div class="col-md-12">
 											<label>
-												<input type="checkbox" class="radio-control" id="spk" name="spk" <?= (($cus->spk == 'Y') ? 'checked' : '') ?> value="Y" required> SPK
-											</label>
-										</div>
-									</div>
-									<div class="form-group row">
-										<div class="col-md-12">
-											<label>
-												<input type="checkbox" class="radio-control" id="delivery_order" name="delivery_order" <?= (($cus->delivery_order == 'Y') ? 'checked' : '') ?> value="Y" required> Delivery Order
-											</label>
-										</div>
-									</div>
-									<div class="form-group row">
-										<div class="col-md-12">
-											<label>
-												<input type="checkbox" class="radio-control" id="need_npwp" name="need_npwp" <?= (($cus->need_npwp == 'Y') ? 'checked' : '') ?> value="Y" required> NPWP
-											</label>
-										</div>
-									</div>
-									<div class="form-group row">
-										<div class="col-md-12">
-											<label>
-												<input type="checkbox" class="radio-control" id="ditagih" name="ditagih" <?= (($cus->ditagih == 'Y') ? 'checked' : '') ?> value="Y" value="Y" required> Ditagih Kolektor/Sales
+												<input type="checkbox" class="radio-control payterm-checkbox" id="faktur" name="faktur" <?= (($cus->faktur == 'Y') ? 'checked' : '') ?> value="Y"> Faktur Pajak
 											</label>
 										</div>
 									</div>
@@ -960,13 +897,26 @@ foreach ($results['rate'] as $rate) {
 		});
 
 
-		$('#simpan-com').click(function(e) {
+		$('#data-form').submit(function(e) {
 			e.preventDefault();
-			var deskripsi = $('#deskripsi').val();
-			var image = $('#image').val();
-			var idtype = $('#inventory_1').val();
 
-			var data, xhr;
+			const checkboxes = document.querySelectorAll(".hari-checkbox");
+			const paytermcbb = document.querySelectorAll(".payterm-checkbox");
+			const oneChecked = Array.from(checkboxes).some(cb => cb.checked);
+			const onePaytermcbb = Array.from(paytermcbb).some(cb => cb.checked);
+
+			// Jika salah satu checkbox group belum dipilih, tampilkan alert dan hentikan proses
+			if (!oneChecked) {
+				alert("Pilih minimal satu hari terima!");
+				return false; // ini penting
+			}
+
+			if (!onePaytermcbb) {
+				alert("Pilih minimal satu syarat pembayaran!");
+				return false; // ini penting
+			}
+
+			// Jika validasi lolos, baru tampilkan swal konfirmasi
 			swal({
 					title: "Are you sure?",
 					text: "You will not be able to process again this data!",
@@ -982,6 +932,7 @@ foreach ($results['rate'] as $rate) {
 					if (isConfirm) {
 						var formData = new FormData($('#data-form')[0]);
 						var baseurl = siteurl + 'master_customers/saveEditcustomer';
+
 						$.ajax({
 							url: baseurl,
 							type: "POST",
@@ -1003,33 +954,18 @@ foreach ($results['rate'] as $rate) {
 									});
 									window.location.href = base_url + active_controller;
 								} else {
-
-									if (data.status == 2) {
-										swal({
-											title: "Save Failed!",
-											text: data.pesan,
-											type: "warning",
-											timer: 7000,
-											showCancelButton: false,
-											showConfirmButton: false,
-											allowOutsideClick: false
-										});
-									} else {
-										swal({
-											title: "Save Failed!",
-											text: data.pesan,
-											type: "warning",
-											timer: 7000,
-											showCancelButton: false,
-											showConfirmButton: false,
-											allowOutsideClick: false
-										});
-									}
-
+									swal({
+										title: "Save Failed!",
+										text: data.pesan,
+										type: "warning",
+										timer: 7000,
+										showCancelButton: false,
+										showConfirmButton: false,
+										allowOutsideClick: false
+									});
 								}
 							},
 							error: function() {
-
 								swal({
 									title: "Error Message !",
 									text: 'An Error Occured During Process. Please try again..',
@@ -1043,10 +979,10 @@ foreach ($results['rate'] as $rate) {
 						});
 					} else {
 						swal("Cancelled", "Data can be process again :)", "error");
-						return false;
 					}
 				});
 		});
+
 
 	});
 

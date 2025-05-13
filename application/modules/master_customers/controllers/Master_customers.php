@@ -64,6 +64,8 @@ class Master_customers extends Admin_Controller
 		$prof = $this->Customer_model->get_data('provinsi');
 		$kota = $this->Customer_model->get_data('kota');
 		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
+		$payment_terms = $this->db->get_where('list_help', array('group_by' => 'top invoice', 'sts' => "Y"))->result();
+
 		$data = [
 			'cus'	=> $cus,
 			'category' => $category,
@@ -73,6 +75,7 @@ class Master_customers extends Admin_Controller
 			'kota' => $kota,
 			'prof' => $prof,
 			'pic' => $pic,
+			'payment_terms' => $payment_terms,
 			'karyawan' => $karyawan
 		];
 		$this->template->set('results', $data);
@@ -94,6 +97,8 @@ class Master_customers extends Admin_Controller
 		$prof = $this->Customer_model->get_data('provinsi');
 		$kota = $this->Customer_model->get_data('kota');
 		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
+		$payment_terms = $this->db->get_where('list_help', array('group_by' => 'top invoice', 'sts' => "Y"))->result();
+
 		$data = [
 			'cus'	=> $cus,
 			'category' => $category,
@@ -103,6 +108,7 @@ class Master_customers extends Admin_Controller
 			'kota' => $kota,
 			'prof' => $prof,
 			'pic' => $pic,
+			'payment_terms' => $payment_terms,
 			'karyawan' => $karyawan
 		];
 		$this->template->set('results', $data);
@@ -160,11 +166,15 @@ class Master_customers extends Admin_Controller
 		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
 		$prof = $this->Customer_model->get_data('provinsi');
 		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
+		$payment_terms = $this->db->get_where('list_help', array('group_by' => 'top invoice', 'sts' => "Y"))->result();
+
 		$data = [
 			'category' => $category,
 			'prof' => $prof,
-			'karyawan' => $karyawan
+			'karyawan' => $karyawan,
+			'payment_terms' => $payment_terms,
 		];
+
 		$this->template->set('results', $data);
 		$this->template->title('Add Customer');
 		$this->template->render('add_customer');
@@ -443,6 +453,16 @@ class Master_customers extends Admin_Controller
 		} else {
 			$ditagih = 'N';
 		};
+		if (isset($post['sj'])) {
+			$sj = 'Y';
+		} else {
+			$sj = 'N';
+		};
+		if (isset($post['inovice'])) {
+			$inovice = 'Y';
+		} else {
+			$inovice = 'N';
+		};
 
 		$chanel = [];
 		if ($this->input->post('chanel_toko')) {
@@ -501,6 +521,8 @@ class Master_customers extends Admin_Controller
 			'minggu'				=> $minggu,
 			'berita_acara'			=> $berita_acara,
 			'faktur'				=> $faktur,
+			'sj'					=> $sj,
+			'invoice'				=> $invoice,
 			'tdp'					=> $tdp,
 			'real_po'				=> $real_po,
 			'ttd_specimen'			=> $ttd_specimen,
@@ -689,6 +711,16 @@ class Master_customers extends Admin_Controller
 		} else {
 			$ditagih = 'N';
 		};
+		if (isset($post['sj'])) {
+			$sj = 'Y';
+		} else {
+			$sj = 'N';
+		};
+		if (isset($post['invoice'])) {
+			$invoice = 'Y';
+		} else {
+			$invoice = 'N';
+		};
 
 		$chanel = [];
 		if ($this->input->post('chanel_toko')) {
@@ -745,6 +777,8 @@ class Master_customers extends Admin_Controller
 			'minggu'				=> $minggu,
 			'berita_acara'			=> $berita_acara,
 			'faktur'				=> $faktur,
+			'sj'					=> $sj,
+			'invoice'				=> $invoice,
 			'tdp'					=> $tdp,
 			'real_po'				=> $real_po,
 			'ttd_specimen'			=> $ttd_specimen,

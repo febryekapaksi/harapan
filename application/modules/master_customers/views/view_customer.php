@@ -578,7 +578,7 @@ foreach ($results['rate'] as $rate) {
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-md-6">
-                                        <label for="customer">Nomor NPWP/PKP</label>
+                                        <label for="customer">Nomor NPWP/KTP</label>
                                     </div>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="npwp" value="<?= $cus->npwp ?>" required name="npwp" placeholder="Nomor NPWP">
@@ -586,7 +586,7 @@ foreach ($results['rate'] as $rate) {
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-md-6">
-                                        <label for="customer">Nama NPWP/PKP</label>
+                                        <label for="customer">Nama NPWP/KTP</label>
                                     </div>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="npwp_name" value='<?= $cus->npwp_name ?>' required name="npwp_name" placeholder="Nama NPWP">
@@ -605,14 +605,14 @@ foreach ($results['rate'] as $rate) {
                                         <label for="id_category_customer">Term Of Payment</label>
                                     </div>
                                     <div class="col-md-6">
-                                        <select id="payment_term" name="payment_term" class="form-control select" required>
-                                            <option value="<?= $cus->payment_term ?>"><?= $cus->payment_term ?></option>
-                                            <option value="Cash Before Delivery">Cash Before Delivery</option>
-                                            <option value="Cash on Delivery">Cash on Delivery</option>
-                                            <option value="30 Day">30 Day-</option>
-                                            <option value="45 Day">45 Day</option>
-                                            <option value="60 Day">60 Day</option>
-                                            <option value="DP">DP</option>
+                                        <select id="payment_term" name="payment_term" class="form-control select" required <?= $disabled ?>>
+                                            <option value="">-- Pilih --</option>
+                                            <?php foreach ($results['payment_terms'] as $terms): ?>
+                                                <option value="<?= htmlspecialchars($terms->id) ?>"
+                                                    <?= isset($cus->payment_term) && $cus->payment_term == $terms->id ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($terms->name) ?>
+                                                </option>
+                                            <?php endforeach; ?>
                                         </select>
                                     </div>
                                 </div>
@@ -621,7 +621,7 @@ foreach ($results['rate'] as $rate) {
                                         <label for="customer">Nominal DP</label>
                                     </div>
                                     <div class="col-md-6">
-                                        <input type="text" class="form-control" id="nominal_dp" value='<?= $cus->nominal_dp ?>' required name="nominal_dp" placeholder="Alamat NPWP">
+                                        <input type="text" class="form-control" id="nominal_dp" value='<?= $cus->nominal_dp ?>' required name="nominal_dp">
                                     </div>
                                 </div>
                                 <div class="form-group row">
@@ -726,28 +726,7 @@ foreach ($results['rate'] as $rate) {
                                     <div class="form-group row">
                                         <div class="col-md-12">
                                             <label>
-                                                <input type="checkbox" class="radio-control" id="berita_acara" name="berita_acara" <?= (($cus->berita_acara == 'Y') ? 'checked' : '') ?> value="Y" required> Berita Acara
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-md-12">
-                                            <label>
-                                                <input type="checkbox" class="radio-control" id="faktur" name="faktur" <?= (($cus->faktur == 'Y') ? 'checked' : '') ?> value="Y" required> Faktur Pajak
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-md-12">
-                                            <label>
-                                                <input type="checkbox" class="radio-control" id="tdp" name="tdp" <?= (($cus->tdp == 'Y') ? 'checked' : '') ?> value="Y" required> TDP
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-md-12">
-                                            <label>
-                                                <input type="checkbox" class="radio-control" id="real_po" name="real_po" <?= (($cus->real_po == 'Y') ? 'checked' : '') ?> value="Y" required> Real PO
+                                                <input type="checkbox" class="radio-control payterm-checkbox" id="invoice" name="invoice" <?= (($cus->inovice == 'Y') ? 'checked' : '') ?> value="Y"> Invoice
                                             </label>
                                         </div>
                                     </div>
@@ -756,28 +735,7 @@ foreach ($results['rate'] as $rate) {
                                     <div class="form-group row">
                                         <div class="col-md-12">
                                             <label>
-                                                <input type="checkbox" class="radio-control" id="ttd_specimen" name="ttd_specimen" <?= (($cus->ttd_specimen == 'Y') ? 'checked' : '') ?> value="Y" required> TTD Specimen / Tax Invoice Serial Number
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-md-12">
-                                            <label>
-                                                <input type="checkbox" class="radio-control" id="payement_certificate" name="payement_certificate" <?= (($cus->payement_certificate == 'Y') ? 'checked' : '') ?> value="Y" required> Payment Certificate
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-md-12">
-                                            <label>
-                                                <input type="checkbox" class="radio-control" id="photo" name="photo" <?= (($cus->photo == 'Y') ? 'checked' : '') ?> value="Y" required> Photo
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-md-12">
-                                            <label>
-                                                <input type="checkbox" class="radio-control" id="siup" name="siup" <?= (($cus->siup == 'Y') ? 'checked' : '') ?> value="Y" required> SIUP
+                                                <input type="checkbox" class="radio-control payterm-checkbox" id="sj" name="sj" <?= (($cus->sj == 'Y') ? 'checked' : '') ?> value="Y"> SJ
                                             </label>
                                         </div>
                                     </div>
@@ -786,28 +744,7 @@ foreach ($results['rate'] as $rate) {
                                     <div class="form-group row">
                                         <div class="col-md-12">
                                             <label>
-                                                <input type="checkbox" class="radio-control" id="spk" name="spk" <?= (($cus->spk == 'Y') ? 'checked' : '') ?> value="Y" required> SPK
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-md-12">
-                                            <label>
-                                                <input type="checkbox" class="radio-control" id="delivery_order" name="delivery_order" <?= (($cus->delivery_order == 'Y') ? 'checked' : '') ?> value="Y" required> Delivery Order
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-md-12">
-                                            <label>
-                                                <input type="checkbox" class="radio-control" id="need_npwp" name="need_npwp" <?= (($cus->need_npwp == 'Y') ? 'checked' : '') ?> value="Y" required> NPWP
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="form-group row">
-                                        <div class="col-md-12">
-                                            <label>
-                                                <input type="checkbox" class="radio-control" id="ditagih" name="ditagih" <?= (($cus->ditagih == 'Y') ? 'checked' : '') ?> value="Y" value="Y" required> Ditagih Kolektor/Sales
+                                                <input type="checkbox" class="radio-control payterm-checkbox" id="faktur" name="faktur" <?= (($cus->faktur == 'Y') ? 'checked' : '') ?> value="Y"> Faktur Pajak
                                             </label>
                                         </div>
                                     </div>

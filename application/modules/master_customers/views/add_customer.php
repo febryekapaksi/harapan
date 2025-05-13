@@ -28,7 +28,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="id_category_customer">Category Customer</label>
 								</div>
 								<div class="col-md-6">
-									<select id="id_category_customer" name="id_category_customer" class="form-control select" required>
+									<select id="id_category_customer" name="id_category_customer" class="form-control select">
 										<option value="">--pilih--</option>
 										<?php foreach ($results['category'] as $category) { ?>
 											<option value="<?= $category->id_category_customer ?>"><?= ucfirst(strtolower($category->name_category_customer)) ?></option>
@@ -38,7 +38,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Nama Customer</label>
+									<label for="customer">Nama Customer <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<input type="text" class="form-control" id="name_customer" required name="name_customer" placeholder="Nama Customer">
@@ -47,7 +47,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Telephone</label>
+									<label for="customer">Telephone <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<input type="text" class="form-control" id="telephone" required name="telephone" placeholder="Nomor Telephone">
@@ -71,7 +71,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Email</label>
+									<label for="customer">Email <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<input type="text" class="form-control" id="email" required name="email" placeholder="email@domain.adress">
@@ -79,7 +79,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Tanggal Mulai</label>
+									<label for="customer">Tanggal Mulai <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<input type="date" class="form-control" id="start_date" required name="start_date" placeholder="Tanggal Mulai">
@@ -87,7 +87,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="id_category_customer">Marketing</label>
+									<label for="id_category_customer">Sales</label>
 								</div>
 								<div class="col-md-6">
 									<select id="id_karyawan" name="id_karyawan" class="form-control select" required>
@@ -100,7 +100,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Channel Pemasaran</label>
+									<label for="customer">Channel Pemasaran <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<div class="row">
@@ -129,7 +129,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 						<div class="col-sm-6">
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="id_category_supplier">Provinsi</label>
+									<label for="id_category_supplier">Provinsi <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<select id="id_prov" name="id_prov" class="form-control select" onchange="get_kota()" required>
@@ -143,7 +143,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="id_category_supplier">Kota</label>
+									<label for="id_category_supplier">Kota <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<select id="id_kota" name="id_kota" class="form-control select" required>
@@ -154,7 +154,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Alamat</label>
+									<label for="customer">Alamat <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<textarea type="text" name="address_office" id="address_office" class="form-control input-sm required w70" placeholder="Alamat"></textarea>
@@ -166,12 +166,12 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="customer">Kode Pos</label>
 								</div>
 								<div class="col-md-6">
-									<input type="text" class="form-control" id="zip_code" required name="zip_code" placeholder="Kode Pos">
+									<input type="text" class="form-control" id="zip_code" name="zip_code" placeholder="Kode Pos">
 								</div>
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Longtitude</label>
+									<label for="customer">Longitude <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<input type="text" class="form-control" id="longitude" required name="longitude" placeholder="Longtitude">
@@ -179,7 +179,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Latitude</label>
+									<label for="customer">Latitude <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<input type="text" class="form-control" id="latitude" required name="latitude" placeholder="Latitude">
@@ -187,7 +187,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Status</label>
+									<label for="customer">Status <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<label>
@@ -217,10 +217,10 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Kategori Customer</label>
+									<label for="customer">Kategori Customer <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
-									<select name="kategori_cust" id="kategori_cust" class="form-control select">
+									<select name="kategori_cust" id="kategori_cust" class="form-control select" required>
 										<option value="">-- Pilih --</option>
 										<option value="Distributor">Distributor</option>
 										<option value="Retail">Retail</option>
@@ -255,15 +255,15 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								</div>
 								<div class="col-md-6">
 									<label>
-										<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="Yes" required> Yes
+										<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="Yes"> Yes
 									</label>
 									&nbsp;
 									<label>
-										<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="No" required> No
+										<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="No"> No
 									</label>
 									&nbsp;
 									<label>
-										<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="New" required> New
+										<input type="radio" class="radio-control" id="ontime" name="data4[ontime]" value="New"> New
 									</label>
 								</div>
 							</div>
@@ -273,11 +273,11 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								</div>
 								<div class="col-md-6">
 									<label>
-										<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="Yes" required> Yes
+										<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="Yes"> Yes
 									</label>
 									&nbsp;
 									<label>
-										<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="No" required> No
+										<input type="radio" class="radio-control" id="toko_sendiri" name="data4[toko_sendiri]" value="No"> No
 									</label>
 								</div>
 							</div>
@@ -305,15 +305,15 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								</div>
 								<div class="col-md-6">
 									<label>
-										<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="Yes" required> Yes
+										<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="Yes"> Yes
 									</label>
 									&nbsp;
 									<label>
-										<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="No" required> No
+										<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="No"> No
 									</label>
 									&nbsp;
 									<label>
-										<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="New" required> New
+										<input type="radio" class="radio-control" id="attitude" name="data4[attitude]" value="New"> New
 									</label>
 								</div>
 							</div>
@@ -331,11 +331,11 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								</div>
 								<div class="col-md-6">
 									<label>
-										<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="Yes" required> Yes
+										<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="Yes"> Yes
 									</label>
 									&nbsp;
 									<label>
-										<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="No" required> No
+										<input type="radio" class="radio-control" id="pbb" name="data4[pbb]" value="No"> No
 									</label>
 									&nbsp;
 								</div>
@@ -432,8 +432,9 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 											foreach (['name_pic', 'phone_pic', 'email_pic', 'position_pic'] as $field) {
 												$value = ($field == 'position_pic') ? $row['name'] : '';
 												$readonly = ($field == 'position_pic') ? 'readonly' : '';
+												$required = ($row['name'] === 'PIC' && $field !== 'position_pic') ? 'required' : '';
 												echo "<td align='left'>";
-												echo "<input type='text' class='form-control input-sm' name='data1[$loop][$field]' id='data1_{$loop}_{$field}' value='$value' $readonly required>";
+												echo "<input type='text' class='form-control input-sm' name='data1[$loop][$field]' id='data1_{$loop}_{$field}' value='$value' $readonly $required>";
 												echo "</td>";
 											}
 											echo "<td></td>";
@@ -461,7 +462,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="id_supplier">Nama Bank</label>
 								</div>
 								<div class="col-md-6">
-									<input type="text" class="form-control" id="name_bank" required name="name_bank" placeholder="Nama Bank">
+									<input type="text" class="form-control" id="name_bank" name="name_bank" placeholder="Nama Bank">
 								</div>
 							</div>
 
@@ -470,7 +471,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="id_category_supplier">Nomor Akun</label>
 								</div>
 								<div class="col-md-6">
-									<input type="text" class="form-control" id="no_rekening" required name="no_rekening" placeholder="No Rekening">
+									<input type="text" class="form-control" id="no_rekening" name="no_rekening" placeholder="No Rekening">
 								</div>
 							</div>
 
@@ -479,7 +480,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="customer">Nama Akun</label>
 								</div>
 								<div class="col-md-6">
-									<input type="text" class="form-control" id="nama_rekening" required name="nama_rekening" placeholder="Nama Rekening">
+									<input type="text" class="form-control" id="nama_rekening" name="nama_rekening" placeholder="Nama Rekening">
 								</div>
 							</div>
 
@@ -488,7 +489,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="customer">Alamat Bank</label>
 								</div>
 								<div class="col-md-6">
-									<textarea type="text" name="alamat_bank" id="alamat_bank" class="form-control input-sm required w70" placeholder="Alamat_Bank"></textarea>
+									<textarea type="text" name="alamat_bank" id="alamat_bank" class="form-control input-sm w70" placeholder="Alamat_Bank"></textarea>
 								</div>
 							</div>
 
@@ -497,7 +498,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="customer">Swift Code</label>
 								</div>
 								<div class="col-md-6">
-									<input type="text" class="form-control" id="swift_code" required name="swift_code" placeholder="Swift Code">
+									<input type="text" class="form-control" id="swift_code" name="swift_code" placeholder="Swift Code">
 								</div>
 							</div>
 						</div>
@@ -509,7 +510,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Nomor NPWP/PKP</label>
+									<label for="customer">Nomor NPWP/KTP <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<input type="text" class="form-control" id="npwp" required name="npwp" placeholder="Nomor NPWP">
@@ -517,7 +518,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Nama NPWP/PKP</label>
+									<label for="customer">Nama NPWP/KTP <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<input type="text" class="form-control" id="npwp_name" required name="npwp_name" placeholder="Nama NPWP">
@@ -525,43 +526,42 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							</div>
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Alamat NPWP</label>
+									<label for="customer">Alamat NPWP/KTP <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<input type="text" class="form-control" id="npwp_address" required name="npwp_address" placeholder="Alamat NPWP">
 								</div>
 							</div>
-							<div class="form-group row" hidden>
+							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="id_category_customer">Term Of Payment</label>
+									<label for="customer">Term Of Payment <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<select id="payment_term" name="payment_term" class="form-control select" required>
-										<option value="">--Pilih--</option>
-										<option value="Cash Before Delivery">Cash Before Delivery</option>
-										<option value="Cash on Delivery">Cash on Delivery</option>
-										<option value="30 Day">30 Day-</option>
-										<option value="45 Day">45 Day</option>
-										<option value="60 Day">60 Day</option>
-										<option value="DP">DP</option>
+										<option value="">-- Pilih --</option>
+										<?php foreach ($results['payment_terms'] as $terms): ?>
+											<option value="<?= htmlspecialchars($terms->id) ?>">
+												<?= htmlspecialchars($terms->name) ?>
+											</option>
+										<?php endforeach; ?>
 									</select>
 								</div>
 							</div>
-							<div class="form-group row " hidden>
+							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="customer">Nominal DP</label>
+									<label for="customer">Nominal DP <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
-									<input type="text" class="form-control" id="nominal_dp" required name="nominal_dp" placeholder="Alamat NPWP">
+									<input type="text" class="form-control" id="nominal_dp" value='' name="nominal_dp">
 								</div>
 							</div>
-							<div class="form-group row" hidden>
+							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="id_category_customer">Sisa Pembayaran</label>
+									<label for="id_category_customer">Sisa Pembayaran <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
 									<select id="sisa_pembayaran" name="sisa_pembayaran" class="form-control select" required>
-										<option value="">--Pilih--</option>
+										<option value="">-- Pilih --</option>
 										<option value="15 After Delifery">15 After Delifery</option>
 										<option value="30 After Delifery">30 After Delifery</option>
 									</select>
@@ -577,35 +577,35 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 						<div class="col-sm-12">
 							<div class="form-group-row">
 								<div class="col-md-3">
-									<label for="customer">Hari Terima</label>
+									<label for="customer">Hari Terima <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-9">
 									<label>
-										<input type="checkbox" class="radio-control" id="senin" name="senin" value="Y" required> Senin
+										<input type="checkbox" class="radio-control hari-checkbox" id="senin" name="senin" value="Y"> Senin
 									</label>
 									&nbsp
 									<label>
-										<input type="checkbox" class="radio-control" id="selasa" name="selasa" value="Y" required> Selasa
+										<input type="checkbox" class="radio-control hari-checkbox" id="selasa" name="selasa" value="Y"> Selasa
 									</label>
 									&nbsp
 									<label>
-										<input type="checkbox" class="radio-control" id="rabu" name="rabu" value="Y" required> Rabu
+										<input type="checkbox" class="radio-control hari-checkbox" id="rabu" name="rabu" value="Y"> Rabu
 									</label>
 									&nbsp
 									<label>
-										<input type="checkbox" class="radio-control" id="kamis" name="kamis" value="Y" required> Kamis
+										<input type="checkbox" class="radio-control hari-checkbox" id="kamis" name="kamis" value="Y"> Kamis
 									</label>
 									&nbsp
 									<label>
-										<input type="checkbox" class="radio-control" id="jumat" name="jumat" value="Y" required> Jumat
+										<input type="checkbox" class="radio-control hari-checkbox" id="jumat" name="jumat" value="Y"> Jumat
 									</label>
 									&nbsp
 									<label>
-										<input type="checkbox" class="radio-control" id="sabtu" name="sabtu" value="Y" required> Sabtu
+										<input type="checkbox" class="radio-control hari-checkbox" id="sabtu" name="sabtu" value="Y"> Sabtu
 									</label>
 									&nbsp
 									<label>
-										<input type="checkbox" class="radio-control" id="minggu" name="minggu" value="Y" required> Minggu
+										<input type="checkbox" class="radio-control hari-checkbox" id="minggu" name="minggu" value="Y"> Minggu
 									</label>
 								</div>
 							</div>
@@ -622,13 +622,13 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 										<label for="customer">Start</label>
 									</div>
 									<div class="col-md-4">
-										<input type="time" class="form-control" id="start_recive" required name="start_recive" placeholder="Latitude">
+										<input type="time" class="form-control" id="start_recive" name="start_recive" placeholder="Latitude">
 									</div>
 									<div class="col-md-2">
 										<label for="customer">END</label>
 									</div>
 									<div class="col-md-4">
-										<input type="time" class="form-control" id="end_recive" required name="end_recive" placeholder="Latitude">
+										<input type="time" class="form-control" id="end_recive" name="end_recive" placeholder="Latitude">
 									</div>
 								</div>
 							</div>
@@ -641,7 +641,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								</div>
 								<div class="form-group row">
 									<div class="col-md-12">
-										<textarea type="text" name="address_invoice" id="address_invoice" class="form-control input-sm required w70" placeholder="Alamat"></textarea>
+										<textarea type="text" name="address_invoice" id="address_invoice" class="form-control input-sm w70" placeholder="Alamat"></textarea>
 									</div>
 								</div>
 							</div>
@@ -657,28 +657,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								<div class="form-group row">
 									<div class="col-md-12">
 										<label>
-											<input type="checkbox" class="radio-control" id="berita_acara" name="berita_acara" value="Y" required> Berita Acara
-										</label>
-									</div>
-								</div>
-								<div class="form-group row">
-									<div class="col-md-12">
-										<label>
-											<input type="checkbox" class="radio-control" id="faktur" name="faktur" value="Y" required> Faktur Pajak
-										</label>
-									</div>
-								</div>
-								<div class="form-group row">
-									<div class="col-md-12">
-										<label>
-											<input type="checkbox" class="radio-control" id="tdp" name="tdp" value="Y" required> TDP
-										</label>
-									</div>
-								</div>
-								<div class="form-group row">
-									<div class="col-md-12">
-										<label>
-											<input type="checkbox" class="radio-control" id="real_po" name="real_po" value="Y" required> Real PO
+											<input type="checkbox" class="radio-control payterm-checkbox" id="invoice" name="invoice" value="Y"> Invoice
 										</label>
 									</div>
 								</div>
@@ -687,28 +666,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								<div class="form-group row">
 									<div class="col-md-12">
 										<label>
-											<input type="checkbox" class="radio-control" id="ttd_specimen" name="ttd_specimen" value="Y" required> TTD Specimen / Tax Invoice Serial Number
-										</label>
-									</div>
-								</div>
-								<div class="form-group row">
-									<div class="col-md-12">
-										<label>
-											<input type="checkbox" class="radio-control" id="payement_certificate" name="payement_certificate" value="Y" required> Payment Certificate
-										</label>
-									</div>
-								</div>
-								<div class="form-group row">
-									<div class="col-md-12">
-										<label>
-											<input type="checkbox" class="radio-control" id="photo" name="photo" value="Y" required> Photo
-										</label>
-									</div>
-								</div>
-								<div class="form-group row">
-									<div class="col-md-12">
-										<label>
-											<input type="checkbox" class="radio-control" id="siup" name="siup" value="Y" required> SIUP
+											<input type="checkbox" class="radio-control" id="sj" name="sj" value="Y"> SJ
 										</label>
 									</div>
 								</div>
@@ -717,28 +675,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								<div class="form-group row">
 									<div class="col-md-12">
 										<label>
-											<input type="checkbox" class="radio-control" id="spk" name="spk" value="Y" required> SPK
-										</label>
-									</div>
-								</div>
-								<div class="form-group row">
-									<div class="col-md-12">
-										<label>
-											<input type="checkbox" class="radio-control" id="delivery_order" name="delivery_order" value="Y" required> Delivery Order
-										</label>
-									</div>
-								</div>
-								<div class="form-group row">
-									<div class="col-md-12">
-										<label>
-											<input type="checkbox" class="radio-control" id="need_npwp" name="need_npwp" value="Y" required> NPWP
-										</label>
-									</div>
-								</div>
-								<div class="form-group row">
-									<div class="col-md-12">
-										<label>
-											<input type="checkbox" class="radio-control" id="ditagih" name="ditagih" value="Y" required> Ditagih Kolektor/Sales
+											<input type="checkbox" class="radio-control" id="faktur" name="faktur" value="Y"> Faktur Pajak
 										</label>
 									</div>
 								</div>
@@ -759,17 +696,15 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 
 <script src="<?= base_url('assets/js/number-divider.min.js') ?>"></script>
 <script type="text/javascript">
-	//$('#input-kendaraan').hide();
-	$('.divide').divide();
-	var base_url = '<?php echo base_url(); ?>';
-	var active_controller = '<?php echo ($this->uri->segment(1)); ?>';
-
 	$(document).ready(function() {
+		$('.divide').divide();
+		var base_url = '<?php echo base_url(); ?>';
+		var active_controller = '<?php echo ($this->uri->segment(1)); ?>';
+
 		var data_pay = <?php echo json_encode($results['supplier']); ?>;
 		$('.select').select2({
 			width: '100%'
 		});
-		///INPUT PERKIRAAN KIRIM
 
 
 		var max_fields2 = 10; //maximum input boxes allowed
@@ -814,8 +749,6 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 			$(this).parent('div').remove();
 			x2--;
 		})
-
-
 
 		$('#add-payment').click(function() {
 			var jumlah = $('#list_payment').find('tr').length;
@@ -894,13 +827,26 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 		});
 
 
-		$('#simpan-com').click(function(e) {
+		$('#data-form').submit(function(e) {
 			e.preventDefault();
-			var deskripsi = $('#deskripsi').val();
-			var image = $('#image').val();
-			var idtype = $('#inventory_1').val();
 
-			var data, xhr;
+			const checkboxes = document.querySelectorAll(".hari-checkbox");
+			const paytermcbb = document.querySelectorAll(".payterm-checkbox");
+			const oneChecked = Array.from(checkboxes).some(cb => cb.checked);
+			const onePaytermcbb = Array.from(paytermcbb).some(cb => cb.checked);
+
+			// Jika salah satu checkbox group belum dipilih, tampilkan alert dan hentikan proses
+			if (!oneChecked) {
+				alert("Pilih minimal satu hari terima!");
+				return false; // ini penting
+			}
+
+			if (!onePaytermcbb) {
+				alert("Pilih minimal satu syarat pembayaran!");
+				return false; // ini penting
+			}
+
+			// Jika validasi lolos, baru tampilkan swal konfirmasi
 			swal({
 					title: "Are you sure?",
 					text: "You will not be able to process again this data!",
@@ -916,6 +862,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 					if (isConfirm) {
 						var formData = new FormData($('#data-form')[0]);
 						var baseurl = siteurl + 'master_customers/saveNewcustomer';
+
 						$.ajax({
 							url: baseurl,
 							type: "POST",
@@ -937,33 +884,18 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									});
 									window.location.href = base_url + active_controller;
 								} else {
-
-									if (data.status == 2) {
-										swal({
-											title: "Save Failed!",
-											text: data.pesan,
-											type: "warning",
-											timer: 7000,
-											showCancelButton: false,
-											showConfirmButton: false,
-											allowOutsideClick: false
-										});
-									} else {
-										swal({
-											title: "Save Failed!",
-											text: data.pesan,
-											type: "warning",
-											timer: 7000,
-											showCancelButton: false,
-											showConfirmButton: false,
-											allowOutsideClick: false
-										});
-									}
-
+									swal({
+										title: "Save Failed!",
+										text: data.pesan,
+										type: "warning",
+										timer: 7000,
+										showCancelButton: false,
+										showConfirmButton: false,
+										allowOutsideClick: false
+									});
 								}
 							},
 							error: function() {
-
 								swal({
 									title: "Error Message !",
 									text: 'An Error Occured During Process. Please try again..',
@@ -977,7 +909,6 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 						});
 					} else {
 						swal("Cancelled", "Data can be process again :)", "error");
-						return false;
 					}
 				});
 		});
