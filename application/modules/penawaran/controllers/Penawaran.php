@@ -96,20 +96,39 @@ class Penawaran extends Admin_Controller
             'dpp'                   => str_replace(',', '', $data['dpp']),
             'ppn'                   => str_replace(',', '', $data['ppn']),
             'grand_total'           => str_replace(',', '', $data['grand_total']),
-            'status'                => "WA",
         ];
 
-        $level_approval = 'M'; // default
+        // Buat nentuin status dan level approval
+        $level_approval = 'M';
+        $status = 'WA';
+        $surplus_only = true;
+
         if (isset($_POST['product']) && is_array($_POST['product'])) {
             foreach ($_POST['product'] as $pro) {
                 $diskon = floatval($pro['diskon']);
+
                 if ($diskon < -2) {
+                    // Diskon minus terlalu besar, butuh approval direksi
                     $level_approval = 'D';
-                    break;
+                    $status = 'WA';
+                    $surplus_only = false;
+                    break; // langsung berhenti
                 }
+
+                if ($diskon >= -2 && $diskon <= 0) {
+                    // Masih dalam range toleransi → butuh approval manager
+                    $surplus_only = false;
+                }
+            }
+
+            // Kalau semua diskon > 0% (surplus semua), langsung approve
+            if ($surplus_only) {
+                $status = 'A'; // auto approve
             }
         }
         $header['level_approval'] = $level_approval;
+        $header['status'] = $status;
+
 
         if ($is_update) {
             $header['modified_by'] = $this->auth->user_id();
@@ -243,11 +262,6 @@ class Penawaran extends Admin_Controller
         $post = $this->input->post();
         $id_penawaran = $post['id_penawaran'];
 
-        if (empty($id_penawaran)) {
-            echo json_encode(['status' => 0, 'pesan' => 'ID penawaran tidak ditemukan']);
-            return;
-        }
-
         $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
 
         if (!$penawaran) {
@@ -255,26 +269,53 @@ class Penawaran extends Admin_Controller
             return;
         }
 
-        // Cek apakah butuh direksi (jika level_approval DIREKSI → lanjut ke direksi, kalau MANAGER → final)
+        // Siapkan data header update
         $update = [
             'approved_by_manager' => $this->auth->user_id(),
             'approved_at_manager' => date('Y-m-d H:i:s')
         ];
 
+        // Cek apakah level approval butuh direksi
         if ($penawaran['level_approval'] == 'D') {
-            $update['status'] = 'WA'; // masih tunggu direksi
+            $update['status'] = 'WA'; // Tunggu approval Direksi
         } else {
-            $update['status'] = 'A'; // final approved
+            $update['status'] = 'A'; // Final approval dari Manager
         }
 
+        // Simpan update ke penawaran
         $this->db->where('id_penawaran', $id_penawaran);
         $this->db->update('penawaran', $update);
 
+        // Proses revisi data produk (penawaran_detail)
+        if (isset($post['product']) && is_array($post['product'])) {
+            $product_data = [];
+
+            foreach ($post['product'] as $pro) {
+                $product_data[] = [
+                    'id_penawaran'      => $id_penawaran,
+                    'id_product'        => $pro['id_product'],
+                    'product_name'      => $pro['product_name'],
+                    'qty'               => (int) $pro['qty'],
+                    'price_list'        => str_replace(',', '', $pro['price_list']),
+                    'harga_penawaran'   => str_replace(',', '', $pro['harga_penawaran']),
+                    'diskon'            => $pro['diskon'],
+                    'total'             => str_replace(',', '', $pro['total']),
+                ];
+            }
+
+            if (!empty($product_data)) {
+                $this->db->where('id_penawaran', $id_penawaran)->delete('penawaran_detail');
+
+                $this->db->insert_batch('penawaran_detail', $product_data);
+            }
+        }
+
         echo json_encode([
             'status' => 1,
-            'pesan' => 'Penawaran berhasil diapprove oleh manager.'
+            'pesan' => 'Penawaran berhasil diapprove oleh Manager.'
         ]);
     }
+
 
 
     public function approval_direksi()
@@ -359,11 +400,17 @@ class Penawaran extends Admin_Controller
         }
 
         $data = [
-            'status' => 'R',
+            'status' => "R",
             'reject_reason' => $reason,
             'modified_by' => $this->auth->user_id(),
             'modified_at' => date('Y-m-d H:i:s')
         ];
+
+        if ($penawaran->level_approval == "D" && $penawaran->approved_by_manager !== null) {
+            $data['status'] = "WA";
+            $data['approved_by_manager'] = null;
+            $data['approved_at_manager'] = null;
+        }
 
         $this->db->where('id_penawaran', $id);
         $update = $this->db->update('penawaran', $data);

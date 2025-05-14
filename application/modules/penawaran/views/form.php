@@ -53,6 +53,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                             data-sales="<?= $ctm['id_karyawan'] ?>"
                                             data-email="<?= $ctm['email'] ?>"
                                             data-toko="<?= $ctm['kategori_toko']; ?>"
+                                            data-terms="<?= $ctm['payment_term'] ?>"
                                             <?= isset($penawaran['id_customer']) && $penawaran['id_customer'] == $ctm['id_customer'] ? 'selected' : '' ?>>
                                             <?= $ctm['name_customer']; ?>
                                         </option>
@@ -176,11 +177,19 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                                 <?php endforeach; ?>
                                             </select>
                                         </td>
-                                        <td hidden><input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $dp['product_name'] ?>"></td>
+                                        <td hidden>
+                                            <?php if ($mode == 'approval_manager'): ?>
+                                                <input type="hidden" name="product[<?= $loop ?>][id_product]" value="<?= $dp['id_product'] ?>">
+                                            <?php endif; ?>
+                                            <input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $dp['product_name'] ?>">
+                                        </td>
                                         <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>" <?= $readonly ?>></td>
                                         <td><input type="text" class="form-control" name="product[<?= $loop ?>][stok]" id="stok_<?= $loop ?>" readonly></td>
                                         <td><input type=" text" class="form-control moneyFormat price-list" name="product[<?= $loop ?>][price_list]" id="price_<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly></td>
-                                        <td><input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>" <?= $readonly ?>></td>
+                                        <td>
+                                            <input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>"
+                                                <?= ($mode == 'approval_manager' && isset($penawaran) && $penawaran['status'] == 'WA' && $penawaran['level_approval'] == 'D') ? '' : 'readonly' ?>>
+                                        </td>
                                         <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly></td>
                                         <td><input type="text" class="form-control moneyFormat total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
                                         <td align="center">
@@ -244,6 +253,11 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                 <td colspan="6" class="text-right"><strong>Grand Total</strong></td>
                                 <td colspan="2"><input type="text" class="form-control moneyFormat" name="grand_total" id="grand_total" value="<?= isset($penawaran['grand_total']) ? $penawaran['grand_total'] : '' ?>" readonly></td>
                             </tr>
+                            <?php if ($mode == 'approval_manager' && $penawaran['level_approval'] == 'D' && $penawaran['reject_reason'] != null): ?>
+                                <tr>
+                                    <td colspan="8">Revisi : <span class="text-red"><?= $penawaran['reject_reason'] ?></span></td>
+                                </tr>
+                            <?php endif; ?>
                         </tfoot>
                     </table>
                 </div>
@@ -362,10 +376,12 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
             hitungAllTotal();
         });
 
-        // Trigger untuk mengambil nama sales
+        // Trigger untuk mengambil data dari select customer
         $('#id_customer').change(function() {
             const idKaryawan = $(this).find(':selected').data('sales');
             const email = $(this).find(':selected').data('email');
+            var selectedPaymentTerm = $(this).find('option:selected').data('terms');
+            $('#payment_term').val(selectedPaymentTerm).trigger('change');
 
             if (idKaryawan) {
                 $.ajax({
@@ -535,16 +551,6 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
         $('#approve').click(function(e) {
             e.preventDefault();
 
-            var customer = $('#id_customer').val();
-            if (customer == '') {
-                swal({
-                    title: "Error Message!",
-                    text: 'Customer empty, select first ...',
-                    type: "warning"
-                });
-                return false;
-            }
-
             var role = $(this).data('role');
             var actionUrl = base_url + active_controller + 'save_' + (role === 'approval_direksi' ? 'approval_direksi' : 'approval_manager');
             console.log(actionUrl)
@@ -562,6 +568,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                 function(isConfirm) {
                     if (isConfirm) {
                         var formData = new FormData($('#data-form')[0]);
+                        formData.append('id_penawaran', $('#id_penawaran').val());
                         $.ajax({
                             url: actionUrl,
                             type: "POST",
