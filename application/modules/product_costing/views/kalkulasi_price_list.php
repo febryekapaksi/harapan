@@ -23,6 +23,7 @@
             <thead class="bg-blue">
                 <tr>
                     <th rowspan="2" class="text-center" style="vertical-align: middle;">Produk</th>
+                    <th rowspan="2" class="text-center" style="vertical-align: middle;">Dropship</th>
                     <?php foreach ($tokoList as $toko): ?>
                         <th colspan="2" class="text-center"><?= $toko['nama'] ?></th>
                     <?php endforeach; ?>
@@ -38,6 +39,9 @@
                 <?php foreach ($groupedData as $product => $hargaPerToko): ?>
                     <tr>
                         <td><?= $product ?></td>
+                        <td align="right">
+                            <?= isset($hargaPerToko['dropship_price']) ? number_format($hargaPerToko['dropship_price'], 0, ',', '.') : '-' ?>
+                        </td>
                         <?php foreach ($tokoList as $toko):
                             $harga = isset($hargaPerToko[$toko['nama']]) ? $hargaPerToko[$toko['nama']] : ['cash' => 0, 'tempo' => 0];
                         ?>

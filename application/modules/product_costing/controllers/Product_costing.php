@@ -204,14 +204,16 @@ class Product_costing extends Admin_Controller
                 $current_cash = $current_cash + ($current_cash * $cash_percent);
                 $current_tempo = $current_cash + ($current_cash * $tempo_percent);
 
-                $this->db->insert('master_kalkulasi_price_list', [
+                $data = [
                     'id_product' => $product['id'],
                     'product_name' => $product['product_name'],
                     'toko' => $toko['nama'],
-                    'cash' => floor($current_cash),
-                    'tempo' => floor($current_tempo),
+                    'cash' => ceil($current_cash / 100) * 100,
+                    'tempo' => ceil($current_tempo / 100) * 100,
                     'created_at' => date('Y-m-d H:i:s')
-                ]);
+                ];
+
+                $this->db->insert('master_kalkulasi_price_list', $data);
 
                 $current_cash = $current_tempo;
             }
@@ -229,13 +231,35 @@ class Product_costing extends Admin_Controller
         // Ambil semua kalkulasi dari DB
         $rows = $this->db->get('master_kalkulasi_price_list')->result_array();
 
-        // Kelompokkan berdasarkan produk
+        // Ambil data dropship dari tabel product_costing
+        $costing = $this->db->select('id, product_name, dropship_price')->get('product_costing')->result_array();
+
+        // Buat mapping dropship berdasarkan product_name
+        $dropshipMap = [];
+        foreach ($costing as $item) {
+            $dropshipMap[$item['product_name']] = $item['dropship_price'];
+        }
+
+        // Kelompokkan berdasarkan produk + tambah dropship
         $groupedData = [];
         foreach ($rows as $row) {
-            $groupedData[$row['product_name']][$row['toko']] = [
+            $product = $row['product_name'];
+            $toko = $row['toko'];
+
+            // Inisialisasi array produk jika belum ada
+            if (!isset($groupedData[$product])) {
+                $groupedData[$product] = [];
+            }
+
+            $groupedData[$product][$toko] = [
                 'cash' => $row['cash'],
                 'tempo' => $row['tempo']
             ];
+
+            // Tambahkan dropship jika tersedia
+            if (isset($dropshipMap[$product])) {
+                $groupedData[$product]['dropship_price'] = $dropshipMap[$product];
+            }
         }
 
         $this->template->render('kalkulasi_price_list', [
@@ -243,6 +267,7 @@ class Product_costing extends Admin_Controller
             'groupedData' => $groupedData
         ]);
     }
+
 
     public function master_persentase()
     {

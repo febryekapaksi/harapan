@@ -226,7 +226,8 @@ if (isset($grouped_costing['A2. Cabang'])) {
 
             // untuk biaya khusus (dropship)
             const biayaGajiTunjangan = (harga * GajiTunjanganRate) / 100;
-            const dropshipPrice = harga + biayaGajiTunjangan + biayaHO + biayaMarketing;
+            const rawDropshipPrice = harga + biayaGajiTunjangan + biayaHO + biayaMarketing;
+            const dropshipPrice = Math.ceil(rawDropshipPrice / 100) * 100;
 
             $('.biaya_import').val(biayaImport).trigger('change');
             $('.biaya_cabang').val(biayaCabang).trigger('change');
