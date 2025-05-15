@@ -77,91 +77,13 @@
 <!-- DataTables -->
 <script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
+
 
 <!-- page script -->
 <script type="text/javascript">
-    $(document).on('click', '#btnUpdate', function(e) {
-        e.preventDefault()
-        swal({
-                title: "Anda Yakin?",
-                text: "Menarik Price Ref & BOM Terbaru !",
-                type: "warning",
-                showCancelButton: true,
-                confirmButtonClass: "btn-info",
-                confirmButtonText: "Ya, Update!",
-                cancelButtonText: "Batal",
-                closeOnConfirm: false
-            },
-            function() {
-                $.ajax({
-                    type: 'POST',
-                    url: base_url + active_controller + '/update_product_price',
-                    dataType: "json",
-                    //   data:{'id':id},
-                    success: function(result) {
-                        if (result.status == '1') {
-                            swal({
-                                    title: "Sukses",
-                                    text: "Data berhasil diupdate.",
-                                    type: "success"
-                                },
-                                function() {
-                                    window.location.reload(true);
-                                })
-                        } else {
-                            swal({
-                                title: "Error",
-                                text: "Data error. Gagal diupdate",
-                                type: "error"
-                            })
-
-                        }
-                    },
-                    error: function() {
-                        swal({
-                            title: "Error",
-                            text: "Data error. Gagal request Ajax",
-                            type: "error"
-                        })
-                    }
-                })
-            });
-
-    });
-
-    // SHOW MODAL FOR ADD
-    $(document).on('click', '.add-costing', function() {
-        $("#head_title").html("<i class='fa fa-list-alt'></i><b>Tambah Data</b>");
-        $.ajax({
-            type: 'POST',
-            url: siteurl + 'product_costing/add',
-            success: function(data) {
-                $("#dialog-popup").modal();
-                $("#ModalView").html(data);
-            }
-        })
-    });
-
-    // SHOW MODAL FOR EDIT
-    $(document).on('click', '.edit', function() {
-        const id = $(this).data('id');
-
-        $("#head_title").html("<i class='fa fa-edit'></i><b>Edit Data</b>");
-        $.ajax({
-            type: 'POST',
-            url: siteurl + 'product_costing/edit',
-            data: {
-                id: id
-            }, // Kirim sebagai POST
-            success: function(data) {
-                $("#dialog-popup").modal();
-                $("#ModalView").html(data);
-            }
-        });
-    });
-
-    $(function() {
-        $('.select2').select2({
+    $(document).ready(function() {
+        $('.select').select2({
             width: '100%'
         });
 
@@ -172,8 +94,87 @@
 
         var status = $('#status').val()
         DataTables(status);
-    });
 
+        $(document).on('click', '#btnUpdate', function(e) {
+            e.preventDefault()
+            swal({
+                    title: "Anda Yakin?",
+                    text: "Menarik Price Ref & BOM Terbaru !",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonClass: "btn-info",
+                    confirmButtonText: "Ya, Update!",
+                    cancelButtonText: "Batal",
+                    closeOnConfirm: false
+                },
+                function() {
+                    $.ajax({
+                        type: 'POST',
+                        url: base_url + active_controller + '/update_product_price',
+                        dataType: "json",
+                        //   data:{'id':id},
+                        success: function(result) {
+                            if (result.status == '1') {
+                                swal({
+                                        title: "Sukses",
+                                        text: "Data berhasil diupdate.",
+                                        type: "success"
+                                    },
+                                    function() {
+                                        window.location.reload(true);
+                                    })
+                            } else {
+                                swal({
+                                    title: "Error",
+                                    text: "Data error. Gagal diupdate",
+                                    type: "error"
+                                })
+
+                            }
+                        },
+                        error: function() {
+                            swal({
+                                title: "Error",
+                                text: "Data error. Gagal request Ajax",
+                                type: "error"
+                            })
+                        }
+                    })
+                });
+
+        });
+
+        // SHOW MODAL FOR ADD
+        $(document).on('click', '.add-costing', function() {
+            $("#head_title").html("<i class='fa fa-list-alt'></i><b>Tambah Data</b>");
+            $.ajax({
+                type: 'POST',
+                url: siteurl + 'product_costing/add',
+                success: function(data) {
+                    $("#dialog-popup").modal();
+                    $("#ModalView").html(data);
+                }
+            })
+        });
+
+        // SHOW MODAL FOR EDIT
+        $(document).on('click', '.edit', function() {
+            const id = $(this).data('id');
+
+            $("#head_title").html("<i class='fa fa-edit'></i><b>Edit Data</b>");
+            $.ajax({
+                type: 'POST',
+                url: siteurl + 'product_costing/edit',
+                data: {
+                    id: id
+                }, // Kirim sebagai POST
+                success: function(data) {
+                    $("#dialog-popup").modal();
+                    $("#ModalView").html(data);
+                }
+            });
+        });
+    });
 
     function DataTables(status = null) {
         var dataTable = $('#example1').DataTable({

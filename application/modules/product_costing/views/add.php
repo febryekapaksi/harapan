@@ -61,7 +61,7 @@ if (isset($grouped_costing['A2. Cabang'])) {
                     <label for="">Product <span class='text-danger'>*</span></label>
                 </div>
                 <div class="col-md-9">
-                    <select name="product_id" id="productSelect" class="form-control select2">
+                    <select name="product_id" id="productSelect" class="form-control select">
                         <option value="">-- Pilih Produk --</option>
                         <?php foreach ($product as $item) {
                             $code_lv4 = (!empty($procost->code_lv4)) ? $procost->code_lv4 : '';
@@ -217,13 +217,13 @@ if (isset($grouped_costing['A2. Cabang'])) {
     </div>
 </div>
 
-<script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/jquery-inputmask/jquery.inputmask.js') ?>"></script>
 
 <script type="text/javascript">
     $(document).ready(function() {
-        $('.select2').select2({
+        $('.select').select2({
             width: '100%',
+            dropdownParent: $('#dialog-popup'),
         });
         moneyFormat('.moneyFormat')
 
