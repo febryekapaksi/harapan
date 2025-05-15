@@ -127,23 +127,7 @@ class Product_costing_model extends BF_Model
 
     public function get_query_json_product_costing($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
     {
-        $this->db->start_cache();
-        $this->db->select('pc.*, ni1.nama AS nama_level1');
-        $this->db->from('product_costing pc');
-        $this->db->join('new_inventory_1 ni1', 'pc.code_lv1 = ni1.code_lv1', 'left');
-        // $this->db->where('pc.deleted_at IS NULL'); // kalau pakai soft delete
-
-        if ($like_value) {
-            $this->db->group_start();
-            $this->db->like('pc.product_name', $like_value);
-            $this->db->or_like('ni1.nama', $like_value);
-            $this->db->group_end();
-        }
-        $this->db->stop_cache();
-
-        $totalData = $this->db->count_all_results('', false);
-        $totalFiltered = $totalData;
-
+        // Daftar kolom yang bisa diurutkan (disesuaikan dengan DataTables frontend)
         $columns_order_by = [
             0 => 'pc.id',
             1 => 'ni1.nama',
@@ -152,6 +136,45 @@ class Product_costing_model extends BF_Model
             4 => 'pc.propose_price',
             5 => 'pc.status',
         ];
+
+        // =====================
+        // 1. Hitung totalData
+        // =====================
+        $this->db->select('pc.id');
+        $this->db->from('product_costing pc');
+        $this->db->join('new_inventory_1 ni1', 'pc.code_lv1 = ni1.code_lv1', 'left');
+        // $this->db->where('pc.deleted_at IS NULL'); // opsional: jika soft delete
+        $totalData = $this->db->count_all_results();
+
+        // ============================
+        // 2. Hitung totalFiltered
+        // ============================
+        $this->db->select('pc.id');
+        $this->db->from('product_costing pc');
+        $this->db->join('new_inventory_1 ni1', 'pc.code_lv1 = ni1.code_lv1', 'left');
+
+        if ($like_value) {
+            $this->db->group_start();
+            $this->db->like('pc.product_name', $like_value);
+            $this->db->or_like('ni1.nama', $like_value);
+            $this->db->group_end();
+        }
+
+        $totalFiltered = $this->db->count_all_results();
+
+        // ============================
+        // 3. Ambil data paginasi
+        // ============================
+        $this->db->select('pc.*, ni1.nama AS nama_level1');
+        $this->db->from('product_costing pc');
+        $this->db->join('new_inventory_1 ni1', 'pc.code_lv1 = ni1.code_lv1', 'left');
+
+        if ($like_value) {
+            $this->db->group_start();
+            $this->db->like('pc.product_name', $like_value);
+            $this->db->or_like('ni1.nama', $like_value);
+            $this->db->group_end();
+        }
 
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
@@ -164,8 +187,10 @@ class Product_costing_model extends BF_Model
         }
 
         $query = $this->db->get();
-        $this->db->flush_cache();
 
+        // ============================
+        // 4. Return hasil
+        // ============================
         return [
             'totalData' => $totalData,
             'totalFiltered' => $totalFiltered,

@@ -137,9 +137,28 @@ class Penawaran_model extends BF_Model
 
     public function get_query_json_penawaran($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
     {
-        $this->db->start_cache();
+        $columns_order_by = [
+            0 => 'p.quotation_date',
+            1 => 'p.quotation_date',
+            2 => 'c.name_customer',
+            3 => 'p.id_penawaran',
+            4 => 'p.revisi',
+            5 => 'p.status'
+        ];
 
-        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.approved_by_manager, p.level_approval, p.total_penawaran, c.name_customer');
+        // =====================
+        // 1. Hitung totalData
+        // =====================
+        $this->db->select('p.id_penawaran');
+        $this->db->from('penawaran p');
+        $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
+        // $this->db->where('p.deleted_at IS NULL'); // jika soft delete
+        $totalData = $this->db->count_all_results();
+
+        // ============================
+        // 2. Hitung totalFiltered
+        // ============================
+        $this->db->select('p.id_penawaran');
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 
@@ -150,19 +169,21 @@ class Penawaran_model extends BF_Model
             $this->db->group_end();
         }
 
-        $this->db->stop_cache();
+        $totalFiltered = $this->db->count_all_results();
 
-        $totalData = $this->db->count_all_results('', false);
-        $totalFiltered = $totalData;
+        // ============================
+        // 3. Ambil data paginasi
+        // ============================
+        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.approved_by_manager, p.level_approval, p.total_penawaran, c.name_customer');
+        $this->db->from('penawaran p');
+        $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 
-        $columns_order_by = [
-            0 => 'p.quotation_date',
-            1 => 'p.quotation_date',
-            2 => 'c.name_customer',
-            3 => 'p.id_penawaran',
-            4 => 'p.revisi',
-            5 => 'p.status'
-        ];
+        if ($like_value) {
+            $this->db->group_start();
+            $this->db->like('p.id_penawaran', $like_value);
+            $this->db->or_like('c.name_customer', $like_value);
+            $this->db->group_end();
+        }
 
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
@@ -175,14 +196,17 @@ class Penawaran_model extends BF_Model
         }
 
         $query = $this->db->get();
-        $this->db->flush_cache();
 
+        // ============================
+        // 4. Return hasil
+        // ============================
         return [
             'totalData' => $totalData,
             'totalFiltered' => $totalFiltered,
             'query' => $query
         ];
     }
+
 
     public function get_json_approval_manager()
     {
