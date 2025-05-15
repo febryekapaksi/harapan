@@ -101,8 +101,11 @@ class Product_costing extends Admin_Controller
             'biaya_logistik'    => str_replace(',', '', $data['biaya_logistik']),
             'biaya_ho'          => str_replace(',', '', $data['biaya_ho']),
             'biaya_marketing'   => str_replace(',', '', $data['biaya_marketing']),
+            'biaya_interest'    => str_replace(',', '', $data['biaya_interest']),
+            'biaya_profit'      => str_replace(',', '', $data['biaya_profit']),
             'price'             => str_replace(',', '', $data['price']),
             'dropship_price'    => str_replace(',', '', $data['dropship_price']),
+            'dropship_tempo'    => str_replace(',', '', $data['dropship_tempo']),
             'propose_price'     => str_replace(',', '', $data['propose_price']),
             'status'            => "WA",
         ];
@@ -232,12 +235,15 @@ class Product_costing extends Admin_Controller
         $rows = $this->db->get('master_kalkulasi_price_list')->result_array();
 
         // Ambil data dropship dari tabel product_costing
-        $costing = $this->db->select('id, product_name, dropship_price')->get('product_costing')->result_array();
+        $costing = $this->db->select('id, product_name, dropship_price, dropship_tempo')->get('product_costing')->result_array();
 
         // Buat mapping dropship berdasarkan product_name
         $dropshipMap = [];
         foreach ($costing as $item) {
-            $dropshipMap[$item['product_name']] = $item['dropship_price'];
+            $dropshipMap[$item['product_name']] = [
+                'dropship_price' => $item['dropship_price'],
+                'dropship_tempo' => $item['dropship_tempo']
+            ];
         }
 
         // Kelompokkan berdasarkan produk + tambah dropship
@@ -257,9 +263,8 @@ class Product_costing extends Admin_Controller
             ];
 
             // Tambahkan dropship jika tersedia
-            if (isset($dropshipMap[$product])) {
-                $groupedData[$product]['dropship_price'] = $dropshipMap[$product];
-            }
+            $groupedData[$product]['dropship_price'] = $dropshipMap[$product]['dropship_price'];
+            $groupedData[$product]['dropship_tempo'] = $dropshipMap[$product]['dropship_tempo'];
         }
 
         $this->template->render('kalkulasi_price_list', [

@@ -112,6 +112,22 @@ for ($i = 0; $i < $total_rows; $i++) {
                     <input type="text" class="form-control moneyFormat biaya_marketing" name="biaya_marketing" value="<?= (!empty($procost->biaya_marketing)) ? $procost->biaya_marketing : '' ?>" readonly>
                 </div>
             </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Biaya Interest</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control moneyFormat biaya_interest" name="biaya_interest" value="<?= (!empty($procost->biaya_interest)) ? $procost->biaya_interest : '' ?>" readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Biaya Profit</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control moneyFormat biaya_profit" name="biaya_profit" value="<?= (!empty($procost->biaya_profit)) ? $procost->biaya_profit : '' ?>" readonly>
+                </div>
+            </div>
             <hr>
             <div class="form-group row">
                 <div class="col-md-3">
@@ -123,10 +139,16 @@ for ($i = 0; $i < $total_rows; $i++) {
             </div>
             <div class="form-group row">
                 <div class="col-md-3">
-                    <label for="">Dropship Price</label>
+                    <label for="">Dropship Price Cash</label>
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-3">
                     <input type="text" class="form-control moneyFormat dropship_price" name="dropship_price" value="<?= (!empty($procost->dropship_price)) ? $procost->dropship_price : '' ?>" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label for="">Dropship Price Tempo</label>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control moneyFormat dropship_tempo" name="dropship_tempo" value="<?= (!empty($procost->dropship_tempo)) ? $procost->dropship_tempo : '' ?>" readonly>
                 </div>
             </div>
             <hr>

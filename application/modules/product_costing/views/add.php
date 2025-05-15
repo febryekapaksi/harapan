@@ -123,6 +123,22 @@ if (isset($grouped_costing['A2. Cabang'])) {
                     <input type="text" class="form-control moneyFormat biaya_marketing" name="biaya_marketing" value="<?= (!empty($procost->biaya_marketing)) ? $procost->biaya_marketing : '' ?>" readonly>
                 </div>
             </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Biaya Interest</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control moneyFormat biaya_interest" name="biaya_interest" value="<?= (!empty($procost->biaya_interest)) ? $procost->biaya_interest : '' ?>" readonly>
+                </div>
+            </div>
+            <div class="form-group row">
+                <div class="col-md-3">
+                    <label for="">Biaya Profit</label>
+                </div>
+                <div class="col-md-9">
+                    <input type="text" class="form-control moneyFormat biaya_profit" name="biaya_profit" value="<?= (!empty($procost->biaya_profit)) ? $procost->biaya_profit : '' ?>" readonly>
+                </div>
+            </div>
             <hr>
             <div class="form-group row">
                 <div class="col-md-3">
@@ -134,10 +150,16 @@ if (isset($grouped_costing['A2. Cabang'])) {
             </div>
             <div class="form-group row">
                 <div class="col-md-3">
-                    <label for="">Dropship Price</label>
+                    <label for="">Dropship Price Cash</label>
                 </div>
-                <div class="col-md-9">
+                <div class="col-md-3">
                     <input type="text" class="form-control moneyFormat dropship_price" name="dropship_price" value="<?= (!empty($procost->dropship_price)) ? $procost->dropship_price : '' ?>" readonly>
+                </div>
+                <div class="col-md-3">
+                    <label for="">Dropship Price Tempo</label>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control moneyFormat dropship_tempo" name="dropship_tempo" value="<?= (!empty($procost->dropship_tempo)) ? $procost->dropship_tempo : '' ?>" readonly>
                 </div>
             </div>
             <hr>
@@ -210,6 +232,8 @@ if (isset($grouped_costing['A2. Cabang'])) {
         const LogistikRate = <?= isset($costing_rate['A3. Logistik']) ? $costing_rate['A3. Logistik'] : 0 ?>;
         const HORate = <?= isset($costing_rate['B1. Biaya HO']) ? $costing_rate['B1. Biaya HO'] : 0 ?>;
         const MarketingRate = <?= isset($costing_rate['B2. Biaya Marketing']) ? $costing_rate['B2. Biaya Marketing'] : 0 ?>;
+        const InterestRate = <?= isset($costing_rate['B3. Interest']) ? $costing_rate['B3. Interest'] : 0 ?>;
+        const ProfitRate = <?= isset($costing_rate['B4. Profit']) ? $costing_rate['B4. Profit'] : 0 ?>;
         const GajiTunjanganRate = <?= isset($rate_gaji) ? $rate_gaji  : 0 ?>
 
         $('#productSelect').on('change', function() {
@@ -222,20 +246,27 @@ if (isset($grouped_costing['A2. Cabang'])) {
             const biayaLogistik = (harga * LogistikRate) / 100;
             const biayaHO = (harga * HORate) / 100;
             const biayaMarketing = (harga * MarketingRate) / 100;
-            const productCosting = harga + biayaImport + biayaCabang + biayaLogistik + biayaHO + biayaMarketing;
+            const biayaInterest = (harga * InterestRate) / 100;
+            const biayaProfit = (harga * ProfitRate) / 100;
+            const productCosting = harga + biayaImport + biayaCabang + biayaLogistik + biayaHO + biayaMarketing + biayaInterest + biayaProfit;
 
             // untuk biaya khusus (dropship)
             const biayaGajiTunjangan = (harga * GajiTunjanganRate) / 100;
             const rawDropshipPrice = harga + biayaGajiTunjangan + biayaHO + biayaMarketing;
             const dropshipPrice = Math.ceil(rawDropshipPrice / 100) * 100;
+            const rawDropshipTempo = (dropshipPrice * (2 / 100)) + dropshipPrice;
+            const dropshipTempo = Math.ceil(rawDropshipTempo / 100) * 100;
 
             $('.biaya_import').val(biayaImport).trigger('change');
             $('.biaya_cabang').val(biayaCabang).trigger('change');
             $('.biaya_logistik').val(biayaLogistik).trigger('change');
             $('.biaya_ho').val(biayaHO).trigger('change');
             $('.biaya_marketing').val(biayaMarketing).trigger('change');
+            $('.biaya_interest').val(biayaInterest).trigger('change');
+            $('.biaya_profit').val(biayaProfit).trigger('change');
             $('.price').val(productCosting).trigger('change');
             $('.dropship_price').val(dropshipPrice).trigger('change');
+            $('.dropship_tempo').val(dropshipTempo).trigger('change');
         });
 
         $('#add-kompetitor').click(function() {
