@@ -313,6 +313,7 @@
                             </div>
                             <div class="col-md-8">
                                 <label id="status_credit_limit" class="form-control" style="border: none; padding-top: 7px;"></label>
+                                <input type="hidden" name="status_credit_limit">
                             </div>
                         </div>
                     </div>
@@ -474,15 +475,23 @@
 
         const selisih = (totalSO + outstanding) - creditLimit;
 
+        let status = "";
+
         if (creditLimit === 0) {
-            $('#status_credit_limit').text("Tidak Overlimit").removeClass('text-red').addClass('text-green');
+            status = "Tidak Overlimit";
+            $('#status_credit_limit').text(status).removeClass('text-red').addClass('text-green');
             $('#over_limit').val("0");
         } else if (selisih > 0) {
-            $('#status_credit_limit').text("Overlimit").removeClass('text-green').addClass('text-red');
+            status = "Overlimit";
+            $('#status_credit_limit').text(status).removeClass('text-green').addClass('text-red');
             $('#over_limit').val(selisih.toFixed(2));
         } else {
-            $('#status_credit_limit').text("Tidak Overlimit").removeClass('text-red').addClass('text-green');
+            status = "Tidak Overlimit";
+            $('#status_credit_limit').text(status).removeClass('text-red').addClass('text-green');
             $('#over_limit').val("0");
         }
+
+        // ✅ Simpan ke input hidden agar ikut terkirim
+        $('input[name="status_credit_limit"]').val(status);
     }
 </script>
