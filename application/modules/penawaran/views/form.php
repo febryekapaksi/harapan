@@ -22,6 +22,17 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                             </div>
                         </div>
 
+                        <!-- Quotation Date -->
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="quotation_date">Quotation Date</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="date" class="form-control" name="quotation_date" id="quotation_date" <?= $readonly ?>
+                                    value="<?= isset($penawaran['quotation_date']) ? date('Y-m-d', strtotime($penawaran['quotation_date'])) : '' ?>">
+                            </div>
+                        </div>
+
                         <!-- Dropship / Toko -->
                         <div class="form-group row">
                             <div class="col-md-4">
@@ -38,6 +49,23 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                 <?php endif; ?>
                             </div>
                         </div>
+
+                        <!-- Tipe Bayar -->
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="tipe_bayar">Tipe Bayar</label>
+                            </div>
+                            <div class="col-md-8">
+                                <select name="tipe_bayar" id="tipe_bayar" class="form-control select2" <?= $disabled ?>>
+                                    <option value="">-- Pilih --</option>
+                                    <option value="cash" <?= isset($penawaran['tipe_bayar']) && $penawaran['tipe_bayar'] == 'cash' ? 'selected' : '' ?>>Cash</option>
+                                    <option value="tempo" <?= isset($penawaran['tipe_bayar']) && $penawaran['tipe_bayar'] == 'tempo' ? 'selected' : '' ?>>Tempo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-sm-6">
 
                         <!-- Customer -->
                         <div class="form-group row">
@@ -73,9 +101,6 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                             </div>
                         </div>
 
-                    </div>
-                    <div class="col-sm-6">
-
                         <!-- Sales -->
                         <div class="form-group row">
                             <div class="col-md-4">
@@ -106,28 +131,14 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                             </div>
                         </div>
 
-                        <!-- Quotation Date -->
+                        <!-- Freight -->
                         <div class="form-group row">
                             <div class="col-md-4">
-                                <label for="quotation_date">Quotation Date</label>
+                                <label for="freight">Freight Cost</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="quotation_date" id="quotation_date" <?= $readonly ?>
-                                    value="<?= isset($penawaran['quotation_date']) ? date('Y-m-d', strtotime($penawaran['quotation_date'])) : '' ?>">
-                            </div>
-                        </div>
-
-                        <!-- Tipe Bayar -->
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="tipe_bayar">Tipe Bayar</label>
-                            </div>
-                            <div class="col-md-8">
-                                <select name="tipe_bayar" id="tipe_bayar" class="form-control select2" <?= $disabled ?>>
-                                    <option value="">-- Pilih --</option>
-                                    <option value="cash" <?= isset($penawaran['tipe_bayar']) && $penawaran['tipe_bayar'] == 'cash' ? 'selected' : '' ?>>Cash</option>
-                                    <option value="tempo" <?= isset($penawaran['tipe_bayar']) && $penawaran['tipe_bayar'] == 'tempo' ? 'selected' : '' ?>>Tempo</option>
-                                </select>
+                                <input type="text" class="form-control moneyFormat" name="freight" id="freight" <?= $readonly ?>
+                                    value="<?= isset($penawaran['freight']) ? $penawaran['freight'] : '' ?>">
                             </div>
                         </div>
 
@@ -171,6 +182,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                                         data-price="<?= $item['propose_price'] ?>"
                                                         data-product="<?= $item['product_name'] ?>"
                                                         data-dropship-price="<?= $item['dropship_price'] ?>"
+                                                        data-dropship-tempo="<?= $item['dropship_tempo'] ?>"
                                                         <?= $item['id'] == $dp['id_product'] ? 'selected' : '' ?>>
                                                         <?= $item['product_name'] ?>
                                                     </option>
@@ -209,7 +221,8 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                             <?php foreach ($products as $item): ?>
                                                 <option value="<?= $item['id'] ?>" data-price="<?= $item['propose_price'] ?>"
                                                     data-product="<?= $item['product_name'] ?>"
-                                                    data-dropship-price="<?= $item['dropship_price'] ?>">
+                                                    data-dropship-price="<?= $item['dropship_price'] ?>"
+                                                    data-dropship-tempo="<?= $item['dropship_tempo'] ?>">
                                                     <?= $item['product_name'] ?>
                                                 </option>
                                             <?php endforeach; ?>
@@ -240,6 +253,14 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                             <tr>
                                 <td colspan="6" class="text-right"><strong>Total % Discount</strong></td>
                                 <td colspan="2"><input type="text" class="form-control" name="total_diskon_persen" id="total_diskon_persen" value="<?= isset($penawaran['total_diskon_persen']) ? $penawaran['total_diskon_persen'] : '' ?>" readonly></td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-right"><strong>Total Harga + Freight</strong></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_harga_freight" id="total_harga_freight" value="<?= isset($penawaran['total_harga_freight']) ? $penawaran['total_harga_freight'] : '' ?>" readonly></td>
+                            </tr>
+                            <tr>
+                                <td colspan="6" class="text-right"><strong>Total Harga + Freight (Exclude PPN)</strong></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_harga_freight_exppn" id="total_harga_freight_exppn" value="<?= isset($penawaran['total_harga_freight_exppn']) ? $penawaran['total_harga_freight_exppn'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="6" class="text-right"><strong>DPP</strong></td>
@@ -710,7 +731,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
     function hitungAllTotal() {
         let totalPenawaran = 0;
         let totalPriceList = 0;
-        let totalDiskon = 0;
+        // let totalDiskon = 0;
 
         $('.total-harga').each(function() {
             const val = parseFloat($(this).val().replaceAll(',', '')) || 0;
@@ -722,19 +743,27 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
             totalPriceList += val
         });
 
-        $('.diskon').each(function() {
-            const val = parseFloat($(this).val()) || 0;
-            totalDiskon += val
-        })
+        // $('.diskon').each(function() {
+        //     const val = parseFloat($(this).val()) || 0;
+        //     totalDiskon += val
+        // })
+        const totalDiskon = ((totalPenawaran - totalPriceList) / totalPriceList) * 100;
 
-        const dpp = (11 / 12) * totalPenawaran;
+        const freight = parseFloat($('#freight').val().replaceAll(',', '')) || 0;
+
+        const totalHargaFreight = totalPenawaran + freight;
+        const excludePPn = totalHargaFreight / 1.11;
+
+        const dpp = (excludePPn * 11) / 12;
         const ppn = (12 * dpp) / 100;
-        const grand_total = dpp + ppn;
+        const grand_total = excludePPn + ppn;
 
 
         $('#total_penawaran').val(totalPenawaran);
         $('#total_price_list').val(totalPriceList);
-        $('#total_diskon_persen').val(totalDiskon);
+        $('#total_diskon_persen').val(totalDiskon.toFixed(2));
+        $('#total_harga_freight').val(totalHargaFreight);
+        $('#total_harga_freight_exppn').val(excludePPn);
         $('#dpp').val(dpp);
         $('#ppn').val(ppn);
         $('#grand_total').val(grand_total);
@@ -788,11 +817,20 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
 
     // SET HARGA UNTUK DROPSHIP
     function setDropshipPrice(loopIndex) {
+        const tipeBayar = $('#tipe_bayar').val();
         const productSelect = $(`.product-select[data-loop="${loopIndex}"]`);
         const dropshipPrice = parseFloat(productSelect.find('option:selected').data('dropship-price')) || 0;
+        const dropshipTempo = parseFloat(productSelect.find('option:selected').data('dropship-tempo')) || 0;
 
-        $(`#price_${loopIndex}`).val(dropshipPrice); // isi ke input price_list
+        if (tipeBayar === 'cash') {
+            $(`#price_${loopIndex}`).val(dropshipPrice);
+        } else if (tipeBayar === 'tempo') {
+            $(`#price_${loopIndex}`).val(dropshipTempo);
+        } else {
+            $(`#price_${loopIndex}`).val(''); // fallback jika tidak ada yang sesuai
+        }
     }
+
 
     function moneyFormat(e) {
         $(e).inputmask({

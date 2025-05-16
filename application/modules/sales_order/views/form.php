@@ -177,8 +177,8 @@
                                         <td>
                                             <select name="product[<?= $loop ?>][pengiriman]" id="pengiriman_<?= $loop ?>" class="form-control select2" required>
                                                 <option value="">-- Pilih --</option>
-                                                <option value="Direct">Direct Customer</option>
-                                                <option value="Distributor">Distributor</option>
+                                                <option value="Dropship">Dropship</option>
+                                                <option value="Gudang">Gudang SBF/NBO</option>
                                             </select>
                                         </td>
                                         <td><input type="text" class="form-control moneyFormat total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
@@ -236,8 +236,20 @@
                                 <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_price_list" id="total_price_list" value="<?= isset($penawaran['total_price_list']) ? $penawaran['total_price_list'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
+                                <td colspan="8" class="text-right"><strong>Freight Cost</strong></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="freight" id="freight" value="<?= isset($penawaran['freight']) ? $penawaran['freight'] : ''; ?>" readonly></td>
+                            </tr>
+                            <tr>
                                 <td colspan="8" class="text-right"><strong>Total % Discount</strong></td>
                                 <td colspan="2"><input type="text" class="form-control" name="total_diskon_persen" id="total_diskon_persen" value="<?= isset($penawaran['total_diskon_persen']) ? $penawaran['total_diskon_persen'] : '' ?>" readonly></td>
+                            </tr>
+                            <tr>
+                                <td colspan="8" class="text-right"><strong>Total Harga + Freight</strong></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_harga_freight" id="total_harga_freight" value="<?= isset($penawaran['total_harga_freight']) ? $penawaran['total_harga_freight'] : '' ?>" readonly></td>
+                            </tr>
+                            <tr>
+                                <td colspan="8" class="text-right"><strong>Total Harga + Freight (Exclude PPN)</strong></td>
+                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_harga_freight_exppn" id="total_harga_freight_exppn" value="<?= isset($penawaran['total_harga_freight_exppn']) ? $penawaran['total_harga_freight_exppn'] : '' ?>" readonly></td>
                             </tr>
                             <tr>
                                 <td colspan="8" class="text-right"><strong>DPP</strong></td>

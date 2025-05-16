@@ -82,20 +82,23 @@ class Penawaran extends Admin_Controller
         $id_penawaran = $is_update ? $id : $this->penawaran_model->generate_id();
 
         $header = [
-            'id_penawaran'          => $id_penawaran,
-            'id_customer'           => $data['id_customer'],
-            'price_mode'            => $data['price_mode'],
-            'sales'                 => $data['sales'],
-            'email'                 => $data['email'],
-            'payment_term'          => $data['payment_term'],
-            'quotation_date'        => date('Y-m-d H:i:s', strtotime($data['quotation_date'])),
-            'tipe_bayar'            => $data['tipe_bayar'],
-            'total_penawaran'       => str_replace(',', '', $data['total_penawaran']),
-            'total_price_list'      => str_replace(',', '', $data['total_price_list']),
-            'total_diskon_persen'   => $data['total_diskon_persen'],
-            'dpp'                   => str_replace(',', '', $data['dpp']),
-            'ppn'                   => str_replace(',', '', $data['ppn']),
-            'grand_total'           => str_replace(',', '', $data['grand_total']),
+            'id_penawaran'              => $id_penawaran,
+            'id_customer'               => $data['id_customer'],
+            'price_mode'                => $data['price_mode'],
+            'sales'                     => $data['sales'],
+            'email'                     => $data['email'],
+            'payment_term'              => $data['payment_term'],
+            'quotation_date'            => date('Y-m-d H:i:s', strtotime($data['quotation_date'])),
+            'tipe_bayar'                => $data['tipe_bayar'],
+            'freight'                   => str_replace(',', '', $data['freight']),
+            'total_penawaran'           => str_replace(',', '', $data['total_penawaran']),
+            'total_price_list'          => str_replace(',', '', $data['total_price_list']),
+            'total_diskon_persen'       => $data['total_diskon_persen'],
+            'total_harga_freight'       => str_replace(',', '', $data['total_harga_freight']),
+            'total_harga_freight_exppn' => str_replace(',', '', $data['total_harga_freight_exppn']),
+            'dpp'                       => str_replace(',', '', $data['dpp']),
+            'ppn'                       => str_replace(',', '', $data['ppn']),
+            'grand_total'               => str_replace(',', '', $data['grand_total']),
         ];
 
         // Buat nentuin status dan level approval
