@@ -128,7 +128,7 @@ class Dashboard extends Admin_Controller
 			'over2' => $over2
 		);
 
-		$this->template->render('index', $data);
+		$this->template->render('harapan', $data);
 	}
 
 	public function purchase()
@@ -1257,18 +1257,18 @@ class Dashboard extends Admin_Controller
 					->like('a.no_po', $item->kode_trans, 'both')
 					->get()
 					->result();
-				foreach($get_id_inv_inc as $item_id) {
+				foreach ($get_id_inv_inc as $item_id) {
 					$list_invoice .= '<a href="javascript:void(0);" class="view_invoice" data-id="' . $item_id->id . '" data-tipe="(Incoming)">No. ' . $item_id->id . ' (Incoming)</a> <br><br>';
 				}
 			}
 
 			$get_kode_trans_inc_stok = $this->db->select('a.kode_trans')
-			->from('warehouse_adjustment a')
-			->join('tr_purchase_order b', 'b.no_po = a.no_ipp')
-			->where('b.no_surat', $item_po->no_surat)
-			->where('a.category', 'incoming stok')
-			->get()
-			->result();
+				->from('warehouse_adjustment a')
+				->join('tr_purchase_order b', 'b.no_po = a.no_ipp')
+				->where('b.no_surat', $item_po->no_surat)
+				->where('a.category', 'incoming stok')
+				->get()
+				->result();
 
 			foreach ($get_kode_trans_inc_stok as $item) {
 				$get_id_inv_inc = $this->db->select('a.id')
@@ -1276,18 +1276,18 @@ class Dashboard extends Admin_Controller
 					->like('a.no_po', $item->kode_trans, 'both')
 					->get()
 					->result();
-				foreach($get_id_inv_inc as $item_id) {
+				foreach ($get_id_inv_inc as $item_id) {
 					$list_invoice .= '<a href="javascript:void(0);" class="view_invoice" data-id="' . $item_id->id . '" data-tipe="(Incoming)">No. ' . $item_id->id . ' (Incoming)</a> <br><br>';
 				}
 			}
 
 			$get_kode_trans_inc_non_rutin = $this->db->select('a.kode_trans')
-			->from('warehouse_adjustment a')
-			->join('tr_purchase_order b', 'b.no_surat = a.no_ipp')
-			->where('b.no_surat', $item_po->no_surat)
-			->where('a.category', 'incoming non rutin')
-			->get()
-			->result();
+				->from('warehouse_adjustment a')
+				->join('tr_purchase_order b', 'b.no_surat = a.no_ipp')
+				->where('b.no_surat', $item_po->no_surat)
+				->where('a.category', 'incoming non rutin')
+				->get()
+				->result();
 
 			foreach ($get_kode_trans_inc_non_rutin as $item) {
 				$get_id_inv_inc = $this->db->select('a.id')
@@ -1295,7 +1295,7 @@ class Dashboard extends Admin_Controller
 					->like('a.no_po', $item->kode_trans, 'both')
 					->get()
 					->result();
-				foreach($get_id_inv_inc as $item_id) {
+				foreach ($get_id_inv_inc as $item_id) {
 					$list_invoice .= '<a href="javascript:void(0);" class="view_invoice" data-id="' . $item_id->id . '" data-tipe="(Incoming)">No. ' . $item_id->id . ' (Incoming)</a> <br><br>';
 				}
 			}
