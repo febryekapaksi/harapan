@@ -177,13 +177,12 @@ $ENABLE_DELETE  = has_permission('Sales_Order.Delete');
     <table>
         <thead>
             <tr>
-                <th>No</th>
-                <th>No Barang</th>
+                <th width="50px">No</th>
                 <th>Nama Barang</th>
                 <th>Qty</th>
                 <th>Unit</th>
-                <th>Harga Satuan</th>
-                <th>Disc</th>
+                <th>Harga Penawaran</th>
+                <th>Discount</th>
                 <th>Jumlah</th>
             </tr>
         </thead>
@@ -193,8 +192,7 @@ $ENABLE_DELETE  = has_permission('Sales_Order.Delete');
             foreach ($details as $d):
                 $no++; ?>
                 <tr>
-                    <td><?= $no ?></td>
-                    <td><?= $d->id_product ?></td>
+                    <td class="text-center"><?= $no ?></td>
                     <td><?= $d->product ?></td>
                     <td class="text-center"><?= $d->qty_order ?></td>
                     <td class="text-center"><?= strtoupper($d->unit) ?></td>
@@ -215,7 +213,7 @@ $ENABLE_DELETE  = has_permission('Sales_Order.Delete');
         <tr>
             <td width="10%">Terbilang</td>
             <td width="60%"><strong><em><?= ucfirst(number_to_words($total)) ?> Rupiah</em></strong></td>
-            <td width="15%">Sub Total</td>
+            <td width="15%">Total Harga Penawaran</td>
             <td width="15%" class="text-right"><?= number_format($total) ?></td>
         </tr>
         <tr>
@@ -228,16 +226,8 @@ $ENABLE_DELETE  = has_permission('Sales_Order.Delete');
             <td class="text-right"><?= $p->total_diskon_persen ?>%</td>
         </tr>
         <tr>
-            <td>DPP</td>
-            <td class="text-right"><?= number_format($p->dpp) ?></td>
-        </tr>
-        <tr>
-            <td>PPN 11%</td>
-            <td class="text-right"><?= number_format($p->ppn) ?></td>
-        </tr>
-        <tr>
-            <td>Ongkos Kirim</td>
-            <td class="text-right">0</td>
+            <td>Freight</td>
+            <td class="text-right"><?= number_format($p->freight) ?></td>
         </tr>
         <tr class="bold">
             <td>Total Order</td>

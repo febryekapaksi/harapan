@@ -164,25 +164,24 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
     <table>
         <thead>
             <tr>
-                <th>Item</th>
-                <th>Item Description</th>
+                <th width="50px">No</th>
+                <th>Nama Produk</th>
                 <th>Qty</th>
-                <th>Unit Price</th>
-                <th>Disc</th>
-                <th>Tax</th>
-                <th>Amount</th>
+                <th>Harga Penawaran</th>
+                <th>Discount</th>
+                <th>Jumlah</th>
             </tr>
         </thead>
         <tbody>
             <?php $total = 0;
+            $no = 1;
             foreach ($details as $d): ?>
                 <tr>
-                    <td><?= $d->id_product ?></td>
+                    <td class="text-center"><?= $no++ ?></td>
                     <td><?= $d->product_name ?></td>
                     <td class="text-center"><?= $d->qty ?></td>
                     <td class="text-right"><?= number_format($d->price_list) ?></td>
                     <td class="text-center"><?= $d->diskon ?>%</td>
-                    <td class="text-center"></td>
                     <td class="text-right">
                         <?php $amount = $d->qty * $d->harga_penawaran;
                         echo number_format($amount);
@@ -198,7 +197,7 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
         <tr>
             <td width="10%">Say</td>
             <td width="60%"><strong><em><?= ucfirst(number_to_words($total)) ?> Rupiah</em></strong></td>
-            <td width="15%">Sub Total</td>
+            <td width="15%">Total Harga Penawaran</td>
             <td width="15%" class="text-right"><?= number_format($total) ?></td>
         </tr>
         <tr>
@@ -207,23 +206,16 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
                 CL <?= number_format($p->total_penawaran) ?><br>
                 <?= strtoupper($p->tipe_bayar) ?>
             </td>
-            <td>Discount</td>
+        </tr>
+        <tr>
+            <td>Total Diskon %</td>
             <td class="text-right"><?= $p->total_diskon_persen ?>%</td>
-        </tr>
-        <tr>
-            <td>DPP</td>
-            <td class="text-right"><?= number_format($p->dpp) ?></td>
-        </tr>
-        <tr>
-            <td>PPN 11%</td>
-            <td class="text-right"><?= number_format($p->ppn) ?></td>
-        </tr>
         <tr>
             <td>Freight</td>
-            <td class="text-right">0</td>
+            <td class="text-right"><?= number_format($p->freight) ?></td>
         </tr>
         <tr class="bold">
-            <td>Total Invoice</td>
+            <td>Grand Total</td>
             <td class="text-right"><?= number_format($p->grand_total) ?></td>
         </tr>
     </table>
