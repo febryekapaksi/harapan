@@ -101,9 +101,9 @@ class Customer_model extends BF_Model
 
     public function getCustomer()
     {
-        $this->db->select('a.*, c.nama_kota as nama_kota, d.nm_karyawan as nama_karyawan');
+        $this->db->select('a.*, c.kabkot nama_kota, d.nm_karyawan as nama_karyawan');
         $this->db->from('master_customers a');
-        $this->db->join('kota c', 'c.id_kota=a.id_kota', 'left');
+        $this->db->join('kabkot c', 'c.id_kabkot=a.id_kabkot', 'left');
         $this->db->join('employee d', 'd.id=a.id_karyawan', 'left');
         $this->db->where('a.deleted', '0');
         $query = $this->db->get();

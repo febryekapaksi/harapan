@@ -140,6 +140,26 @@ foreach ($results['rate'] as $rate) {
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="customer">Status <span class="text-red">*</span></label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label>
+                                                    <input type="radio" class="radio-control" id="activation" name="activation" value="aktif" <?= (($cus->activation == 'aktif') ? 'checked' : '') ?> required> Aktif
+                                                </label>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label>
+                                                    <input type="radio" class="radio-control" id="activation" name="activation" value="inaktif" <?= (($cus->activition == 'inaktif') ? 'checked' : '') ?> required> Non aktif
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-sm-6">
                                 <div class="form-group row">
@@ -149,10 +169,10 @@ foreach ($results['rate'] as $rate) {
                                     <div class="col-md-6">
                                         <select id="id_prov" name="id_prov" class="form-control select" onchange="get_kota()" required>
                                             <option value="">--Pilih--</option>
-                                            <?php foreach ($results['prof'] as $prof) {
-                                                $select = $cus->id_prov == $prof->id_prov ? 'selected' : '';
+                                            <?php foreach ($results['prov'] as $prov) {
+                                                $select = $cus->id_prov == $prov->id_prov ? 'selected' : '';
                                             ?>
-                                                <option value="<?= $prof->id_prov ?>" <?= $select ?>><?= ucfirst(strtolower($prof->nama)) ?></option>
+                                                <option value="<?= $prov->id_prov ?>" <?= $select ?>><?= $prov->provinsi ?></option>
                                             <?php } ?>
                                         </select>
                                     </div>
@@ -160,15 +180,31 @@ foreach ($results['rate'] as $rate) {
 
                                 <div class="form-group row">
                                     <div class="col-md-6">
-                                        <label for="id_category_supplier">Kota</label>
+                                        <label for="">Kabupaten/Kota</label>
                                     </div>
                                     <div class="col-md-6">
-                                        <select id="id_kota" name="id_kota" class="form-control select" required>
+                                        <select id="id_kabkot" name="id_kabkot" class="form-control select" required>
                                             <option value="">--Pilih--</option>
-                                            <?php foreach ($results['kota'] as $kota) {
-                                                $select = $cus->id_kota == $kota->id_kota ? 'selected' : '';
+                                            <?php foreach ($results['kabkot'] as $kabkot) {
+                                                $select = $cus->id_kabkot == $kabkot->id_kabkot ? 'selected' : '';
                                             ?>
-                                                <option value="<?= $kota->id_kota ?>" <?= $select ?>><?= ucfirst(strtolower($kota->nama_kota)) ?></option>
+                                                <option value="<?= $kabkot->id_kabkot ?>" <?= $select ?>><?= $kabkot->kabkot ?></option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group row">
+                                    <div class="col-md-6">
+                                        <label for="">Kecamatan <span class="text-red">*</span></label>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <select id="id_kec" name="id_kec" class="form-control select" required>
+                                            <option value="">--Pilih--</option>
+                                            <?php foreach ($results['kec'] as $kec) {
+                                                $select = $cus->id_kec == $kec->id_kec ? 'selected' : '';
+                                            ?>
+                                                <option value="<?= $kec->id_kec ?>" <?= $select ?>><?= $kec->kecamatan ?></option>
                                             <?php } ?>
                                         </select>
                                     </div>
@@ -205,19 +241,6 @@ foreach ($results['rate'] as $rate) {
                                     </div>
                                     <div class="col-md-6">
                                         <input type="text" class="form-control" id="latitude" value='<?= $cus->latitude ?>' required name="latitude" placeholder="Latitude" readonly>
-                                    </div>
-                                </div>
-                                <div class="form-group row">
-                                    <div class="col-md-6">
-                                        <label for="customer">Status</label>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label>
-                                            <input type="radio" class="radio-control" id="activation" name="activation" value="aktif" <?= (($cus->activation == 'aktif') ? 'checked' : '') ?> required> Aktif
-                                        </label>
-                                        <label>
-                                            <input type="radio" class="radio-control" id="activation" name="activation" value="inaktif" <?= (($cus->activition == 'inaktif') ? 'checked' : '') ?> required> Non aktif
-                                        </label>
                                     </div>
                                 </div>
 

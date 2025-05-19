@@ -125,6 +125,25 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									</div>
 								</div>
 							</div>
+							<div class="form-group row">
+								<div class="col-md-6">
+									<label for="customer">Status <span class="text-red">*</span></label>
+								</div>
+								<div class="col-md-6">
+									<div class="row">
+										<div class="col-md-6">
+											<label>
+												<input type="radio" class="radio-control" id="activation" name="activation" value="aktif" required> Aktif
+											</label>
+										</div>
+										<div class="col-md-6">
+											<label>
+												<input type="radio" class="radio-control" id="activation" name="activation" value="inaktif" required> Non aktif
+											</label>
+										</div>
+									</div>
+								</div>
+							</div>
 						</div>
 						<div class="col-sm-6">
 							<div class="form-group row">
@@ -134,8 +153,8 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								<div class="col-md-6">
 									<select id="id_prov" name="id_prov" class="form-control select" onchange="get_kota()" required>
 										<option value="">--Pilih--</option>
-										<?php foreach ($results['prof'] as $prof) { ?>
-											<option value="<?= $prof->id_prov ?>"><?= ucfirst(strtolower($prof->nama)) ?></option>
+										<?php foreach ($results['prov'] as $prov) { ?>
+											<option value="<?= $prov->id_prov ?>"><?= $prov->provinsi ?></option>
 										<?php } ?>
 									</select>
 								</div>
@@ -143,10 +162,21 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 
 							<div class="form-group row">
 								<div class="col-md-6">
-									<label for="id_category_supplier">Kota <span class="text-red">*</span></label>
+									<label for="id_category_supplier">Kabupaten/Kota <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
-									<select id="id_kota" name="id_kota" class="form-control select" required>
+									<select id="id_kabkot" name="id_kabkot" class="form-control select" onchange="get_kec()" required>
+										<option value="">--Pilih--</option>
+									</select>
+								</div>
+							</div>
+
+							<div class="form-group row">
+								<div class="col-md-6">
+									<label for="">Kecamatan <span class="text-red">*</span></label>
+								</div>
+								<div class="col-md-6">
+									<select id="id_kec" name="id_kec" class="form-control select" required>
 										<option value="">--Pilih--</option>
 									</select>
 								</div>
@@ -183,19 +213,6 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 								</div>
 								<div class="col-md-6">
 									<input type="text" class="form-control" id="latitude" required name="latitude" placeholder="Latitude">
-								</div>
-							</div>
-							<div class="form-group row">
-								<div class="col-md-6">
-									<label for="customer">Status <span class="text-red">*</span></label>
-								</div>
-								<div class="col-md-6">
-									<label>
-										<input type="radio" class="radio-control" id="activation" name="activation" value="aktif" required> Aktif
-									</label>
-									<label>
-										<input type="radio" class="radio-control" id="activation" name="activation" value="inaktif" required> Non aktif
-									</label>
 								</div>
 							</div>
 
@@ -707,7 +724,6 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 			dropdownParent: $('#dialog-popup')
 		});
 
-
 		var max_fields2 = 10; //maximum input boxes allowed
 		var wrapper2 = $(".input_fields_wrap2"); //Fields wrapper
 		var add_button2 = $(".add_field_button2"); //Add button ID
@@ -932,13 +948,32 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 	}
 
 	function get_kota() {
-		var id_prov = $("#id_prov").val();
+		const id_prov = $("#id_prov").val();
+
 		$.ajax({
 			type: "GET",
 			url: siteurl + 'master_customers/getkota',
-			data: "id_prov=" + id_prov,
+			data: {
+				id_prov: id_prov
+			},
 			success: function(html) {
-				$("#id_kota").html(html);
+				$("#id_kabkot").html(html);
+				$("#id_kec").html("<option value=''>--Pilih--</option>");
+			}
+		});
+	}
+
+
+	function get_kec() {
+		var id_kabkot = $("#id_kabkot").val();
+		$.ajax({
+			type: "GET",
+			url: siteurl + 'master_customers/getkecamatan',
+			data: {
+				id_kabkot: id_kabkot
+			},
+			success: function(html) {
+				$("#id_kec").html(html);
 			}
 		});
 	}

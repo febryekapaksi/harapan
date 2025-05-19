@@ -61,8 +61,9 @@ class Master_customers extends Admin_Controller
 		$exis = $this->db->get_where('child_customer_existing', array('id_customer' => $id))->result();
 		$rate = $this->db->get_where('child_customer_rate', array('id_customer' => $id))->result();
 		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
-		$prof = $this->Customer_model->get_data('provinsi');
-		$kota = $this->Customer_model->get_data('kota');
+		$prov = $this->Customer_model->get_data('prov');
+		$kabkot = $this->Customer_model->get_data('kabkot');
+		$kec = $this->Customer_model->get_data('kec');
 		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
 		$payment_terms = $this->db->get_where('list_help', array('group_by' => 'top invoice', 'sts' => "Y"))->result();
 
@@ -72,8 +73,9 @@ class Master_customers extends Admin_Controller
 			'cate' => $cate,
 			'exis' => $exis,
 			'rate' => $rate,
-			'kota' => $kota,
-			'prof' => $prof,
+			'kec' => $kec,
+			'kabkot' => $kabkot,
+			'prov' => $prov,
 			'pic' => $pic,
 			'payment_terms' => $payment_terms,
 			'karyawan' => $karyawan
@@ -94,8 +96,9 @@ class Master_customers extends Admin_Controller
 		$exis = $this->db->get_where('child_customer_existing', array('id_customer' => $id))->result();
 		$rate = $this->db->get_where('child_customer_rate', array('id_customer' => $id))->result();
 		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
-		$prof = $this->Customer_model->get_data('provinsi');
-		$kota = $this->Customer_model->get_data('kota');
+		$prov = $this->Customer_model->get_data('prov');
+		$kabkot = $this->Customer_model->get_data('kabkot');
+		$kec = $this->Customer_model->get_data('kec');
 		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
 		$payment_terms = $this->db->get_where('list_help', array('group_by' => 'top invoice', 'sts' => "Y"))->result();
 
@@ -105,8 +108,9 @@ class Master_customers extends Admin_Controller
 			'cate' => $cate,
 			'exis' => $exis,
 			'rate' => $rate,
-			'kota' => $kota,
-			'prof' => $prof,
+			'kec' => $kec,
+			'kabkot' => $kabkot,
+			'prov' => $prov,
 			'pic' => $pic,
 			'payment_terms' => $payment_terms,
 			'karyawan' => $karyawan
@@ -164,13 +168,13 @@ class Master_customers extends Admin_Controller
 		$this->template->page_icon('fa fa-pencil');
 		$aktif = 'active';
 		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
-		$prof = $this->Customer_model->get_data('provinsi');
+		$prov = $this->Customer_model->get_data('prov');
 		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
 		$payment_terms = $this->db->get_where('list_help', array('group_by' => 'top invoice', 'sts' => "Y"))->result();
 
 		$data = [
 			'category' => $category,
-			'prof' => $prof,
+			'prov' => $prov,
 			'karyawan' => $karyawan,
 			'payment_terms' => $payment_terms,
 		];
@@ -486,7 +490,8 @@ class Master_customers extends Admin_Controller
 			'start_date'		    => $post['start_date'],
 			'id_karyawan'		    => $post['id_karyawan'],
 			'id_prov'		    	=> $post['id_prov'],
-			'id_kota'		    	=> $post['id_kota'],
+			'id_kabkot'		    	=> $post['id_kabkot'],
+			'id_kec'		    	=> $post['id_kec'],
 			'address_office'		=> $post['address_office'],
 			'zip_code'		    	=> $post['zip_code'],
 			'longitude'		    	=> $post['longitude'],
@@ -742,7 +747,8 @@ class Master_customers extends Admin_Controller
 			'start_date'		    => $post['start_date'],
 			'id_karyawan'		    => $post['id_karyawan'],
 			'id_prov'		    	=> $post['id_prov'],
-			'id_kota'		    	=> $post['id_kota'],
+			'id_kabkot'		    	=> $post['id_kabkot'],
+			'id_kec'		    	=> $post['id_kec'],
 			'address_office'		=> $post['address_office'],
 			'zip_code'		    	=> $post['zip_code'],
 			'longitude'		    	=> $post['longitude'],
@@ -1187,18 +1193,28 @@ class Master_customers extends Admin_Controller
 
 		echo json_encode($status);
 	}
+
 	function getkota()
 	{
 		$id_prov = $_GET['id_prov'];
-		$data = $this->Customer_model->carikota($id_prov);
-		echo "<select id='id_kota' name='id_kota' class='form-control input-sm select2'>";
+		$data = $this->db->like('id_kabkot', $id_prov, 'after')->get('kabkot')->result();
+
 		echo "<option value=''>--Pilih--</option>";
-		foreach ($data as $key => $st) :
-			echo "<option value='$st->id_kota' set_select('id_kota', $st->id_prov, isset($data->id_prov) && $data->id_prov == $st->id_prov)>$st->nama_kota
-                    </option>";
-		endforeach;
-		echo "</select>";
+		foreach ($data as $kabkot) {
+			echo "<option value='$kabkot->id_kabkot'>$kabkot->kabkot</option>";
+		}
 	}
+	function getkecamatan()
+	{
+		$id_kabkot = $_GET['id_kabkot'];
+		$data = $this->db->like('id_kec', $id_kabkot, 'after')->get('kec')->result();
+
+		echo "<option value=''>--Pilih--</option>";
+		foreach ($data as $kec) {
+			echo "<option value='$kec->id_kec'>$kec->kecamatan</option>";
+		}
+	}
+
 	public function saveNewinventoryold()
 	{
 		$this->auth->restrict($this->addPermission);
