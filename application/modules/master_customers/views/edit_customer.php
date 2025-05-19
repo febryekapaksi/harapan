@@ -796,7 +796,8 @@ foreach ($results['rate'] as $rate) {
 	$(document).ready(function() {
 		var data_pay = <?php echo json_encode($results['supplier']); ?>;
 		$('.select').select2({
-			width: '100%'
+			width: '100%',
+			dropdownParent: $('#dialog-popup')
 		});
 		///INPUT PERKIRAAN KIRIM
 
