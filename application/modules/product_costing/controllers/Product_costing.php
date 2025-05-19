@@ -38,7 +38,15 @@ class Product_costing extends Admin_Controller
 
     public function add()
     {
-        $product = $this->db->get_where('new_inventory_4', array('price_ref !=' => NULL))->result_array();
+        $product = $this->db
+            ->select('new_inventory_4.*')
+            ->from('new_inventory_4')
+            ->join('product_costing', 'product_costing.code_lv4 = new_inventory_4.code_lv4', 'left')
+            ->where('new_inventory_4.price_ref IS NOT NULL')
+            ->where('product_costing.code_lv4 IS NULL') // belum terdaftar
+            ->get()
+            ->result_array();
+
         $costing = $this->db->get_where('costing_rate', array('deleted_date' => NULL))->result_array();
 
         $data = [
@@ -224,7 +232,6 @@ class Product_costing extends Admin_Controller
 
         return true;
     }
-
 
     public function list_price_list()
     {
