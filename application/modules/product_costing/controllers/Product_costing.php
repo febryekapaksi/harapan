@@ -235,7 +235,11 @@ class Product_costing extends Admin_Controller
         $rows = $this->db->get('master_kalkulasi_price_list')->result_array();
 
         // Ambil data dropship dari tabel product_costing
-        $costing = $this->db->select('id, product_name, dropship_price, dropship_tempo')->get('product_costing')->result_array();
+        $costing = $this->db
+            ->select('id, product_name, dropship_price, dropship_tempo')
+            ->where('status', 'A')
+            ->get('product_costing')
+            ->result_array();
 
         // Buat mapping dropship berdasarkan product_name
         $dropshipMap = [];
