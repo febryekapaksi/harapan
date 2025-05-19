@@ -721,7 +721,6 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 		var data_pay = <?php echo json_encode($results['supplier']); ?>;
 		$('.select').select2({
 			width: '100%',
-			dropdownParent: $('#dialog-popup')
 		});
 
 		var max_fields2 = 10; //maximum input boxes allowed

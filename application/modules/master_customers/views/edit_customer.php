@@ -554,7 +554,7 @@ foreach ($results['rate'] as $rate) {
 										<label for="id_supplier">Nama Bank</label>
 									</div>
 									<div class="col-md-6">
-										<input type="text" class="form-control" id="name_bank" value="<?= $cus->name_bank ?>" required name="name_bank" placeholder="Nama Bank">
+										<input type="text" class="form-control" id="name_bank" value="<?= $cus->name_bank ?>" name="name_bank" placeholder="Nama Bank">
 									</div>
 								</div>
 
@@ -563,7 +563,7 @@ foreach ($results['rate'] as $rate) {
 										<label for="id_category_supplier">Nomor Akun</label>
 									</div>
 									<div class="col-md-6">
-										<input type="text" class="form-control" id="no_rekening" value="<?= $cus->no_rekening ?>" required name="no_rekening" placeholder="No Rekening">
+										<input type="text" class="form-control" id="no_rekening" value="<?= $cus->no_rekening ?>" name="no_rekening" placeholder="No Rekening">
 									</div>
 								</div>
 
@@ -572,7 +572,7 @@ foreach ($results['rate'] as $rate) {
 										<label for="customer">Nama Akun</label>
 									</div>
 									<div class="col-md-6">
-										<input type="text" class="form-control" id="nama_rekening" value="<?= $cus->nama_rekening ?>" required name="nama_rekening" placeholder="Nama Rekening">
+										<input type="text" class="form-control" id="nama_rekening" value="<?= $cus->nama_rekening ?>" name="nama_rekening" placeholder="Nama Rekening">
 									</div>
 								</div>
 
@@ -581,7 +581,7 @@ foreach ($results['rate'] as $rate) {
 										<label for="customer">Alamat Bank</label>
 									</div>
 									<div class="col-md-6">
-										<textarea type="text" name="alamat_bank" id="alamat_bank" class="form-control input-sm required w70" placeholder="Alamat_Bank"><?= $cus->alamat_bank ?></textarea>
+										<textarea type="text" name="alamat_bank" id="alamat_bank" class="form-control input-sm  w70" placeholder="Alamat_Bank"><?= $cus->alamat_bank ?></textarea>
 									</div>
 								</div>
 
@@ -590,7 +590,7 @@ foreach ($results['rate'] as $rate) {
 										<label for="customer">Swift Code</label>
 									</div>
 									<div class="col-md-6">
-										<input type="text" class="form-control" id="swift_code" value="<?= $cus->swift_code ?>" required name="swift_code" placeholder="Swift Code">
+										<input type="text" class="form-control" id="swift_code" value="<?= $cus->swift_code ?>" name="swift_code" placeholder="Swift Code">
 									</div>
 								</div>
 							</div>
@@ -797,7 +797,6 @@ foreach ($results['rate'] as $rate) {
 		var data_pay = <?php echo json_encode($results['supplier']); ?>;
 		$('.select').select2({
 			width: '100%',
-			dropdownParent: $('#dialog-popup')
 		});
 		///INPUT PERKIRAAN KIRIM
 
