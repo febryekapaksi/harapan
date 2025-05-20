@@ -589,7 +589,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="id_supplier">Nama Bank</label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="name_bank" value="<?= $cus->name_bank ?>" name="name_bank" placeholder="Nama Bank">
+                                <input type="text" class="form-control" id="name_bank" value="<?= $cus->name_bank ?>" name="name_bank" placeholder="Nama Bank" <?= $disabled ?>>
                             </div>
                         </div>
 
@@ -598,7 +598,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="id_category_supplier">Nomor Akun</label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="no_rekening" value="<?= $cus->no_rekening ?>" name="no_rekening" placeholder="No Rekening">
+                                <input type="text" class="form-control" id="no_rekening" value="<?= $cus->no_rekening ?>" name="no_rekening" placeholder="No Rekening" <?= $disabled ?>>
                             </div>
                         </div>
 
@@ -607,7 +607,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="customer">Nama Akun</label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="nama_rekening" value="<?= $cus->nama_rekening ?>" name="nama_rekening" placeholder="Nama Rekening">
+                                <input type="text" class="form-control" id="nama_rekening" value="<?= $cus->nama_rekening ?>" name="nama_rekening" placeholder="Nama Rekening" <?= $disabled ?>>
                             </div>
                         </div>
 
@@ -616,7 +616,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="customer">Alamat Bank</label>
                             </div>
                             <div class="col-md-6">
-                                <textarea type="text" name="alamat_bank" id="alamat_bank" class="form-control w70" placeholder="Alamat Bank"><?= $cus->alamat_bank ?></textarea>
+                                <textarea type="text" name="alamat_bank" id="alamat_bank" class="form-control w70" placeholder="Alamat Bank" <?= $disabled ?>><?= $cus->alamat_bank ?></textarea>
                             </div>
                         </div>
 
@@ -625,7 +625,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="customer">Swift Code</label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="swift_code" value="<?= $cus->swift_code ?>" name="swift_code" placeholder="Swift Code">
+                                <input type="text" class="form-control" id="swift_code" value="<?= $cus->swift_code ?>" name="swift_code" placeholder="Swift Code" <?= $disabled ?>>
                             </div>
                         </div>
                     </div>
@@ -640,7 +640,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="customer">Nomor NPWP/KTP <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="npwp" value="<?= $cus->npwp ?>" required name="npwp" placeholder="Nomor NPWP">
+                                <input type="text" class="form-control" id="npwp" value="<?= $cus->npwp ?>" required name="npwp" placeholder="Nomor NPWP" <?= $disabled ?>>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -648,7 +648,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="customer">Nama NPWP/KTP <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="npwp_name" value='<?= $cus->npwp_name ?>' required name="npwp_name" placeholder="Nama NPWP">
+                                <input type="text" class="form-control" id="npwp_name" value='<?= $cus->npwp_name ?>' required name="npwp_name" placeholder="Nama NPWP" <?= $disabled ?>>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -656,7 +656,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="customer">Alamat NPWP/KTP <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="npwp_address" value='<?= $cus->npwp_address ?>' required name="npwp_address" placeholder="Alamat NPWP">
+                                <input type="text" class="form-control" id="npwp_address" value='<?= $cus->npwp_address ?>' required name="npwp_address" placeholder="Alamat NPWP" <?= $disabled ?>>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -680,7 +680,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="customer">Nominal DP <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" id="nominal_dp" value='<?= $cus->nominal_dp ?>' required name="nominal_dp">
+                                <input type="text" class="form-control" id="nominal_dp" value='<?= $cus->nominal_dp ?>' required name="nominal_dp" <?= $disabled ?>>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -688,7 +688,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label for="id_category_customer">Sisa Pembayaran <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-6">
-                                <select id="sisa_pembayaran" name="sisa_pembayaran" class="form-control select" required>
+                                <select id="sisa_pembayaran" name="sisa_pembayaran" class="form-control select" <?= $disabled ?> required>
                                     <option value="<?= $cus->sisa_pembayaran ?>"><?= $cus->sisa_pembayaran ?></option>
                                     <option value="15 After Delifery">15 After Delifery</option>
                                     <option value="30 After Delifery">30 After Delifery</option>
@@ -711,31 +711,31 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                             </div>
                             <div class="col-md-9">
                                 <label>
-                                    <input type="checkbox" class="radio-control hari-checkbox" id="senin" name="senin" <?= (($cus->senin == 'Y') ? 'checked' : '') ?> value="Y"> Senin
+                                    <input type="checkbox" class="radio-control hari-checkbox" id="senin" name="senin" <?= (($cus->senin == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> Senin
                                 </label>
                                 &nbsp
                                 <label>
-                                    <input type="checkbox" class="radio-control hari-checkbox" id="selasa" name="selasa" <?= (($cus->selasa == 'Y') ? 'checked' : '') ?> value="Y"> Selasa
+                                    <input type="checkbox" class="radio-control hari-checkbox" id="selasa" name="selasa" <?= (($cus->selasa == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> Selasa
                                 </label>
                                 &nbsp
                                 <label>
-                                    <input type="checkbox" class="radio-control hari-checkbox" id="rabu" name="rabu" <?= (($cus->rabu == 'Y') ? 'checked' : '') ?> value="Y"> Rabu
+                                    <input type="checkbox" class="radio-control hari-checkbox" id="rabu" name="rabu" <?= (($cus->rabu == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> Rabu
                                 </label>
                                 &nbsp
                                 <label>
-                                    <input type="checkbox" class="radio-control hari-checkbox" id="kamis" name="kamis" <?= (($cus->kamis == 'Y') ? 'checked' : '') ?> value="Y"> Kamis
+                                    <input type="checkbox" class="radio-control hari-checkbox" id="kamis" name="kamis" <?= (($cus->kamis == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> Kamis
                                 </label>
                                 &nbsp
                                 <label>
-                                    <input type="checkbox" class="radio-control hari-checkbox" id="jumat" name="jumat" <?= (($cus->jumat == 'Y') ? 'checked' : '') ?> value="Y"> Jumat
+                                    <input type="checkbox" class="radio-control hari-checkbox" id="jumat" name="jumat" <?= (($cus->jumat == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> Jumat
                                 </label>
                                 &nbsp
                                 <label>
-                                    <input type="checkbox" class="radio-control hari-checkbox" id="sabtu" name="sabtu" <?= (($cus->sabtu == 'Y') ? 'checked' : '') ?> value="Y"> Sabtu
+                                    <input type="checkbox" class="radio-control hari-checkbox" id="sabtu" name="sabtu" <?= (($cus->sabtu == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> Sabtu
                                 </label>
                                 &nbsp
                                 <label>
-                                    <input type="checkbox" class="radio-control hari-checkbox" id="minggu" name="minggu" <?= (($cus->minggu == 'Y') ? 'checked' : '') ?> value="Y"> Minggu
+                                    <input type="checkbox" class="radio-control hari-checkbox" id="minggu" name="minggu" <?= (($cus->minggu == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> Minggu
                                 </label>
                             </div>
                         </div>
@@ -752,13 +752,13 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                     <label for="customer">Start</label>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="time" class="form-control" id="start_recive" value='<?= $cus->start_recive ?>' required name="start_recive" placeholder="Latitude">
+                                    <input type="time" class="form-control" id="start_recive" value='<?= $cus->start_recive ?>' required name="start_recive" placeholder="Latitude" <?= $disabled ?>>
                                 </div>
                                 <div class="col-md-2">
                                     <label for="customer">END</label>
                                 </div>
                                 <div class="col-md-4">
-                                    <input type="time" class="form-control" id="end_recive" value='<?= $cus->end_recive ?>' required name="end_recive" placeholder="Latitude">
+                                    <input type="time" class="form-control" id="end_recive" value='<?= $cus->end_recive ?>' required name="end_recive" placeholder="Latitude" <?= $disabled ?>>
                                 </div>
                             </div>
                         </div>
@@ -771,7 +771,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                             </div>
                             <div class="form-group row">
                                 <div class="col-md-12">
-                                    <textarea type="text" name="address_invoice" id="address_invoice" class="form-control required w70" placeholder="Alamat"><?= $cus->adress_invoice ?></textarea>
+                                    <textarea type="text" name="address_invoice" id="address_invoice" class="form-control required w70" placeholder="Alamat" <?= $disabled ?>><?= $cus->adress_invoice ?></textarea>
                                 </div>
                             </div>
                         </div>
@@ -789,7 +789,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                             <div class="form-group row">
                                 <div class="col-md-12">
                                     <label>
-                                        <input type="checkbox" class="radio-control payterm-checkbox" id="invoice" name="invoice" <?= (($cus->inovice == 'Y') ? 'checked' : '') ?> value="Y"> Invoice
+                                        <input type="checkbox" class="radio-control payterm-checkbox" id="invoice" name="invoice" <?= (($cus->inovice == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> Invoice
                                     </label>
                                 </div>
                             </div>
@@ -798,7 +798,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                             <div class="form-group row">
                                 <div class="col-md-12">
                                     <label>
-                                        <input type="checkbox" class="radio-control payterm-checkbox" id="sj" name="sj" <?= (($cus->sj == 'Y') ? 'checked' : '') ?> value="Y"> SJ
+                                        <input type="checkbox" class="radio-control payterm-checkbox" id="sj" name="sj" <?= (($cus->sj == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> SJ
                                     </label>
                                 </div>
                             </div>
@@ -807,7 +807,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                             <div class="form-group row">
                                 <div class="col-md-12">
                                     <label>
-                                        <input type="checkbox" class="radio-control payterm-checkbox" id="faktur" name="faktur" <?= (($cus->faktur == 'Y') ? 'checked' : '') ?> value="Y"> Faktur Pajak
+                                        <input type="checkbox" class="radio-control payterm-checkbox" id="faktur" name="faktur" <?= (($cus->faktur == 'Y') ? 'checked' : '') ?> value="Y" <?= $disabled ?>> Faktur Pajak
                                     </label>
                                 </div>
                             </div>
