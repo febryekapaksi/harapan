@@ -151,7 +151,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="id_category_supplier">Provinsi <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
-									<select id="id_prov" name="id_prov" class="form-control select" onchange="get_kota()" required>
+									<select id="id_prov" name="id_prov" class="form-control select-wilayah" onchange="get_kota()" required>
 										<option value="">--Pilih--</option>
 										<?php foreach ($results['prov'] as $prov) { ?>
 											<option value="<?= $prov->id_prov ?>"><?= $prov->provinsi ?></option>
@@ -165,7 +165,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="id_category_supplier">Kabupaten/Kota <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
-									<select id="id_kabkot" name="id_kabkot" class="form-control select" onchange="get_kec()" required>
+									<select id="id_kabkot" name="id_kabkot" class="form-control select-wilayah" onchange="get_kec()" required>
 										<option value="">--Pilih--</option>
 									</select>
 								</div>
@@ -176,7 +176,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 									<label for="">Kecamatan <span class="text-red">*</span></label>
 								</div>
 								<div class="col-md-6">
-									<select id="id_kec" name="id_kec" class="form-control select" required>
+									<select id="id_kec" name="id_kec" class="form-control select-wilayah" required>
 										<option value="">--Pilih--</option>
 									</select>
 								</div>
@@ -719,8 +719,13 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 		var active_controller = '<?php echo ($this->uri->segment(1)); ?>';
 
 		var data_pay = <?php echo json_encode($results['supplier']); ?>;
+		$('.select-wilayah').select2({
+			width: '100%',
+			dropdownParent: $("#dialog-popup")
+		});
 		$('.select').select2({
 			width: '100%',
+			dropdownParent: $("#dialog-popup")
 		});
 
 		var max_fields2 = 10; //maximum input boxes allowed

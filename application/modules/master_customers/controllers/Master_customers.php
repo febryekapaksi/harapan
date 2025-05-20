@@ -50,6 +50,228 @@ class Master_customers extends Admin_Controller
 		$this->template->title('Master Customer');
 		$this->template->render('index');
 	}
+	public function add()
+	{
+		$this->auth->restrict($this->viewPermission);
+		$aktif = 'active';
+		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
+		$prov = $this->Customer_model->get_data('prov');
+		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
+		$payment_terms = $this->db->get_where('list_help', array('group_by' => 'top invoice', 'sts' => "Y"))->result();
+
+		$data = [
+			'category' => $category,
+			'prov' => $prov,
+			'karyawan' => $karyawan,
+			'payment_terms' => $payment_terms,
+		];
+
+		$this->template->set('results', $data);
+		$this->template->title('Tambah Customer');
+		$this->template->page_icon('fa fa-users');
+		$this->template->render('add');
+	}
+	public function edit($id)
+	{
+		$this->auth->restrict($this->viewPermission);
+		$aktif = 'active';
+		$cus = $this->db->get_where('master_customers', array('id_customer' => $id))->result();
+		$pic = $this->db->get_where('child_customer_pic', array('id_customer' => $id))->result();
+		$cate = $this->db->get_where('child_category_customer', array('id_customer' => $id))->result();
+		$exis = $this->db->get_where('child_customer_existing', array('id_customer' => $id))->result();
+		$rate = $this->db->get_where('child_customer_rate', array('id_customer' => $id))->result();
+		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
+		$prov = $this->Customer_model->get_data('prov');
+		$kabkot = $this->Customer_model->get_data('kabkot');
+		$kec = $this->Customer_model->get_data('kec');
+		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
+		$payment_terms = $this->db->get_where('list_help', array('group_by' => 'top invoice', 'sts' => "Y"))->result();
+
+		$data = [
+			'cus'	=> $cus,
+			'category' => $category,
+			'cate' => $cate,
+			'exis' => $exis,
+			'rate' => $rate,
+			'kec' => $kec,
+			'kabkot' => $kabkot,
+			'prov' => $prov,
+			'pic' => $pic,
+			'payment_terms' => $payment_terms,
+			'karyawan' => $karyawan
+		];
+
+		$this->template->set('results', $data);
+		$this->template->title('Edit Customer');
+		$this->template->page_icon('fa fa-users');
+		$this->template->render('add');
+	}
+	public function save()
+	{
+		$this->auth->restrict($this->addPermission);
+		$post = $this->input->post();
+
+		// Ambil flags Y/N
+		$flags = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu', 'berita_acara', 'faktur', 'tdp', 'real_po', 'ttd_specimen', 'payement_certificate', 'photo', 'siup', 'spk', 'delivery_order', 'need_npwp', 'ditagih', 'sj', 'invoice'];
+		foreach ($flags as $field) {
+			$$field = isset($post[$field]) ? 'Y' : 'N';
+		}
+
+		$chanel = [];
+		if ($this->input->post('chanel_toko')) $chanel[] = $this->input->post('chanel_toko');
+		if ($this->input->post('chanel_project')) $chanel[] = $this->input->post('chanel_project');
+
+		$isUpdate = isset($post['id_customer']) && !empty($post['id_customer']);
+		$code = $isUpdate ? $post['id_customer'] : $this->Customer_model->generate_id();
+
+		$header = [
+			'id_category_customer' => $post['id_category_customer'],
+			'name_customer' => $post['name_customer'],
+			'telephone' => $post['telephone'],
+			'telephone_2' => $post['telephone_2'],
+			'fax' => $post['fax'],
+			'email' => $post['email'],
+			'start_date' => $post['start_date'],
+			'id_karyawan' => $post['id_karyawan'],
+			'id_prov' => $post['id_prov'],
+			'id_kabkot' => $post['id_kabkot'],
+			'id_kec' => $post['id_kec'],
+			'address_office' => $post['address_office'],
+			'zip_code' => $post['zip_code'],
+			'longitude' => $post['longitude'],
+			'latitude' => $post['latitude'],
+			'activation' => $post['activation'],
+			'facility' => $post['facility'],
+			'kategori_cust' => $post['kategori_cust'],
+			'kategori_toko' => $post['kategori_toko'],
+			'chanel_pemasaran' => implode(', ', $chanel),
+			'persentase' => $post['persentase'],
+			'tahun_mulai' => $post['tahun_mulai'],
+			'name_bank' => $post['name_bank'],
+			'no_rekening' => $post['no_rekening'],
+			'nama_rekening' => $post['nama_rekening'],
+			'alamat_bank' => $post['alamat_bank'],
+			'swift_code' => $post['swift_code'],
+			'npwp' => $post['npwp'],
+			'npwp_name' => $post['npwp_name'],
+			'npwp_address' => $post['npwp_address'],
+			'payment_term' => $post['payment_term'],
+			'nominal_dp' => $post['nominal_dp'],
+			'sisa_pembayaran' => $post['sisa_pembayaran'],
+			'start_recive' => $post['start_recive'],
+			'end_recive' => $post['end_recive'],
+			'adress_invoice' => $post['address_invoice'],
+			'senin' => $senin,
+			'selasa' => $selasa,
+			'rabu' => $rabu,
+			'kamis' => $kamis,
+			'jumat' => $jumat,
+			'sabtu' => $sabtu,
+			'minggu' => $minggu,
+			'berita_acara' => $berita_acara,
+			'faktur' => $faktur,
+			'sj' => $sj,
+			'invoice' => $invoice,
+			'tdp' => $tdp,
+			'real_po' => $real_po,
+			'ttd_specimen' => $ttd_specimen,
+			'payement_certificate' => $payement_certificate,
+			'photo' => $photo,
+			'siup' => $siup,
+			'spk' => $spk,
+			'delivery_order' => $delivery_order,
+			'need_npwp' => $need_npwp,
+			'ditagih' => $ditagih,
+			'deleted' => '0',
+			'created_on' => date('Y-m-d H:i:s'),
+			'created_by' => $this->auth->user_id()
+		];
+
+		$this->db->trans_begin();
+
+		if ($isUpdate) {
+			$this->db->where('id_customer', $code)->update('master_customers', $header);
+			$this->db->delete('child_customer_pic', ['id_customer' => $code]);
+			$this->db->delete('child_category_customer', ['id_customer' => $code]);
+			$this->db->delete('child_customer_existing', ['id_customer' => $code]);
+			$this->db->delete('child_customer_rate', ['id_customer' => $code]);
+		} else {
+			$header['id_customer'] = $code;
+			$this->db->insert('master_customers', $header);
+		}
+
+		if (isset($post['data1'])) {
+			foreach ($post['data1'] as $d1) {
+				$this->db->insert('child_customer_pic', array_merge($d1, ['id_customer' => $code]));
+			}
+		}
+
+		if (isset($post['data2'])) {
+			foreach ($post['data2'] as $d2) {
+				$this->db->insert('child_category_customer', [
+					'id_customer' => $code,
+					'name_category_customer' => $d2['id_category_customer'],
+				]);
+			}
+		}
+
+		if (isset($post['data3'])) {
+			foreach ($post['data3'] as $d3) {
+				$this->db->insert('child_customer_existing', array_merge($d3, ['id_customer' => $code]));
+			}
+		}
+
+		if (isset($post['data4'])) {
+			$this->db->insert('child_customer_rate', array_merge($post['data4'], ['id_customer' => $code]));
+		}
+
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			echo json_encode(['status' => 0, 'pesan' => 'Gagal menyimpan data.']);
+		} else {
+			$this->db->trans_commit();
+			echo json_encode(['status' => 1, 'pesan' => $isUpdate ? 'Berhasil update.' : 'Berhasil tambah data.']);
+		}
+	}
+	public function view($id)
+	{
+		$this->auth->restrict($this->viewPermission);
+		$aktif = 'active';
+		$mode = 'view';
+		$cus = $this->db->get_where('master_customers', array('id_customer' => $id))->result();
+		$pic = $this->db->get_where('child_customer_pic', array('id_customer' => $id))->result();
+		$cate = $this->db->get_where('child_category_customer', array('id_customer' => $id))->result();
+		$exis = $this->db->get_where('child_customer_existing', array('id_customer' => $id))->result();
+		$rate = $this->db->get_where('child_customer_rate', array('id_customer' => $id))->result();
+		$category = $this->Customer_model->get_data('child_customer_category', 'activation', $aktif);
+		$prov = $this->Customer_model->get_data('prov');
+		$kabkot = $this->Customer_model->get_data('kabkot');
+		$kec = $this->Customer_model->get_data('kec');
+		$karyawan = $this->db->get_where('employee', array('department' => 2, 'deleted' => "N"))->result();
+		$payment_terms = $this->db->get_where('list_help', array('group_by' => 'top invoice', 'sts' => "Y"))->result();
+
+		$data = [
+			'cus'	=> $cus,
+			'category' => $category,
+			'cate' => $cate,
+			'exis' => $exis,
+			'rate' => $rate,
+			'kec' => $kec,
+			'kabkot' => $kabkot,
+			'prov' => $prov,
+			'pic' => $pic,
+			'payment_terms' => $payment_terms,
+			'karyawan' => $karyawan,
+			'mode' => $mode
+		];
+
+		$this->template->set('results', $data);
+		$this->template->title('View Customer');
+		$this->template->page_icon('fa fa-users');
+		$this->template->render('add');
+	}
+
+
 	public function viewCustomer($id)
 	{
 		$this->auth->restrict($this->viewPermission);
@@ -462,10 +684,10 @@ class Master_customers extends Admin_Controller
 		} else {
 			$sj = 'N';
 		};
-		if (isset($post['inovice'])) {
-			$inovice = 'Y';
+		if (isset($post['invoice'])) {
+			$invoice = 'Y';
 		} else {
-			$inovice = 'N';
+			$invoice = 'N';
 		};
 
 		$chanel = [];

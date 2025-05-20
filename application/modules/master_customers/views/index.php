@@ -25,7 +25,8 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 			<div class="box box-primary">
 				<div class="box-header">
 					<?php if ($ENABLE_VIEW) : ?>
-						<a class="btn btn-success btn-sm add_customer" href="javascript:void(0)" title="Add"><i class="fa fa-plus">&nbsp;</i>Tambah Data</a>
+						<a class="btn btn-success btn-sm" href="<?= base_url('master_customers/add') ?>"><i class="fa fa-plus">&nbsp;</i>Tambah Data</a>
+						<!-- <a class="btn btn-success btn-sm add_customer"><i class="fa fa-plus">&nbsp;</i>Tambah Data</a> -->
 					<?php endif; ?>
 					<a class="btn btn-warning btn-sm" href="<?= base_url('master_customers/excel_report_all') ?>" target='_blank' title="Download Excel"> <i class="fa fa-file-excel-o">&nbsp;</i>&nbsp;Download Excel</a>
 					<span class="pull-right"></span>
@@ -80,12 +81,12 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 										</td>
 										<td style="padding-left:20px">
 											<?php if ($ENABLE_VIEW) : ?>
-												<a class="btn btn-primary btn-sm view_local" href="javascript:void(0)" title="View" data-id_customer="<?= $customer->id_customer ?>"><i class="fa fa-eye"></i>
+												<a class="btn btn-primary btn-sm" href="<?= base_url('master_customers/view/' . $customer->id_customer) ?>" title="View" data-id_customer="<?= $customer->id_customer ?>"><i class="fa fa-eye"></i>
 												</a>
 											<?php endif; ?>
 
 											<?php if ($ENABLE_MANAGE) : ?>
-												<a class="btn btn-success btn-sm edit_local" href="javascript:void(0)" title="Edit" data-id_customer="<?= $customer->id_customer ?>"><i class="fa fa-edit"></i>
+												<a class="btn btn-success btn-sm" href="<?= base_url('master_customers/edit/' . $customer->id_customer) ?>" title="Edit"><i class="fa fa-edit"></i>
 												</a>
 											<?php endif; ?>
 
