@@ -34,9 +34,21 @@ class Warehouse extends Admin_Controller
         $this->template->render('index');
     }
 
+    public function kartu_stok()
+    {
+        $this->template->title('Kartu Stok');
+        $this->template->page_icon('fa fa-file');
+        $this->template->render('kartu_stok');
+    }
+
     // SERVER SIDE
     public function data_side_warehouse_stock()
     {
         $this->Warehouse_model->get_json_warehouse_stock();
+    }
+
+    public function data_side_kartu_stok()
+    {
+        $this->Warehouse_model->get_json_kartu_stok();
     }
 }
