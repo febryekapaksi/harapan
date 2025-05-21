@@ -16,6 +16,7 @@ $code = (!empty($listData[0]->code)) ? $listData[0]->code : '';
 $trade_name = (!empty($listData[0]->trade_name)) ? $listData[0]->trade_name : '';
 $max_stok = (!empty($listData[0]->max_stok)) ? $listData[0]->max_stok : '';
 $min_stok = (!empty($listData[0]->min_stok)) ? $listData[0]->min_stok : '';
+$moq = (!empty($listData[0]->moq)) ? $listData[0]->moq : '';
 
 $id_unit_packing = (!empty($listData[0]->id_unit_packing)) ? $listData[0]->id_unit_packing : '';
 $konversi = (!empty($listData[0]->konversi)) ? $listData[0]->konversi : '';
@@ -158,10 +159,10 @@ $status2 = (!empty($listData[0]->status) and $listData[0]->status == '2') ? 'che
 			</div>
 			<div class="form-group row">
 				<div class="col-md-2">
-					<label>MOQ</label>
+					<label>Maximum Stock</label>
 				</div>
 				<div class="col-md-4">
-					<input type="text" class="form-control maskM" id="max_stok" name="max_stok" value='<?= $max_stok; ?>' placeholder="MOQ">
+					<input type="text" class="form-control maskM" id="max_stok" name="max_stok" value='<?= $max_stok; ?>' placeholder="Maksimum Stok">
 				</div>
 				<div class="col-md-2">
 					<label>Minimum Stok</label>
@@ -174,13 +175,19 @@ $status2 = (!empty($listData[0]->status) and $listData[0]->status == '2') ? 'che
 				<div class="col-md-2">
 					<label>Upload MSDS</label>
 				</div>
-				<div class="col-md-10">
+				<div class="col-md-4">
 					<div class="form-group">
 						<input type="file" name='photo' id="photo">
 					</div>
 					<?php if (!empty($file_msds)) { ?>
 						<a href='<?= base_url() . $file_msds; ?>' target='_blank' class="help-block" title='Download'>Download File</a>
 					<?php } ?>
+				</div>
+				<div class="col-md-2">
+					<label>MOQ</label>
+				</div>
+				<div class="col-md-4">
+					<input type="text" class="form-control maskM" id="moq" name="moq" value='<?= $moq; ?>' placeholder="MOQ">
 				</div>
 			</div>
 			<hr>

@@ -223,6 +223,7 @@ class Product_master extends Admin_Controller
 
       $max_stok     = str_replace(',', '', $post['max_stok']);
       $min_stok     = str_replace(',', '', $post['min_stok']);
+      $moq          = str_replace(',', '', $post['moq']);
 
       $length     = str_replace(',', '', $post['length']);
       $wide       = str_replace(',', '', $post['wide']);
@@ -250,6 +251,7 @@ class Product_master extends Admin_Controller
         'length'      => $length,
         'max_stok'    => $max_stok,
         'min_stok'    => $min_stok,
+        'moq'    => $moq,
         'wide'      => $wide,
         'high'      => $high,
         'weight'      => $weight,
