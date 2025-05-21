@@ -2,6 +2,7 @@
 $readonly = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'readonly' : '');
 $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'disabled' : '');
 ?>
+
 <div class="box box-primary">
     <div class="box-body">
         <form id="data-form" autocomplete="off">
@@ -149,138 +150,142 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
             <hr>
             <div class="form-group row">
                 <div class="col-md-12">
-                    <table class='table table-bordered table-striped'>
-                        <thead>
-                            <tr class='bg-blue'>
-                                <td align='center' style="width: 25%;"><b>Nama Produk</b></td>
-                                <td align='center' style="width: 100px"><b>Qty</b></td>
-                                <td align='center' style="width: 100px"><b>Free Stok</b></td>
-                                <td align='center'><b>Price List</b></td>
-                                <td align='center'><b>Harga Penawaran</b></td>
-                                <td align='center'><b>% Discount</b></td>
-                                <td align='center'><b>Total Harga Penawaran</b></td>
-                                <td style="width: 50px;" align='center'>
+                    <div class="table-responsive">
+                        <table class='table table-bordered table-striped'>
+                            <thead>
+                                <tr class="bg-blue">
+                                    <th class="text-center">Nama Produk</th>
+                                    <th class="text-center" style="min-width: 100px;" class="text-nowrap">Qty</th>
+                                    <th class="text-center" style="min-width: 100px;" class="text-nowrap">Free Stok</th>
+                                    <th class="text-center" style="min-width: 150px;" class="text-nowrap">Price List</th>
+                                    <th class="text-center" style="min-width: 150px;" class="text-nowrap">Harga Penawaran</th>
+                                    <th class="text-center" style="min-width: 100px;" class="text-nowrap">% Discount</th>
+                                    <th class="text-center" style="min-width: 160px;">Total Harga Penawaran</th>
+                                    <th class="text-center" style="width: 50px;">
+                                        <?php
+                                        echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-product'));
+                                        ?>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="list_product">
+                                <?php
+                                $loop = 0;
+                                if (!empty($penawaran_detail)) {
+                                    foreach ($penawaran_detail as $dp) {
+                                        $loop++;
+                                ?>
+                                        <tr id="tr_<?= $loop ?>">
+                                            <td>
+                                                <select name="product[<?= $loop ?>][id_product]" class="form-control product-select select2" data-loop="<?= $loop ?>" <?= $disabled ?>>
+                                                    <option value="">-- Pilih Produk --</option>
+                                                    <?php foreach ($products as $item): ?>
+                                                        <option value="<?= $item['id'] ?>"
+                                                            data-price="<?= $item['propose_price'] ?>"
+                                                            data-code="<?= $item['code_lv4'] ?>"
+                                                            data-product="<?= $item['product_name'] ?>"
+                                                            data-dropship-price="<?= $item['dropship_price'] ?>"
+                                                            data-dropship-tempo="<?= $item['dropship_tempo'] ?>"
+                                                            <?= $item['id'] == $dp['id_product'] ? 'selected' : '' ?>>
+                                                            <?= $item['product_name'] ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </td>
+                                            <td hidden>
+                                                <?php if ($mode == 'approval_manager'): ?>
+                                                    <input type="hidden" name="product[<?= $loop ?>][id_product]" value="<?= $dp['id_product'] ?>">
+                                                <?php endif; ?>
+                                                <input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $dp['product_name'] ?>">
+                                            </td>
+                                            <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>" <?= $readonly ?>></td>
+                                            <td><input type="text" class="form-control" name="product[<?= $loop ?>][qty_free]" id="qty_free_<?= $loop ?>" readonly></td>
+                                            <td><input type="text" class="form-control moneyFormat price-list" name="product[<?= $loop ?>][price_list]" id="price_<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly></td>
+                                            <td>
+                                                <input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>"
+                                                    <?= ($mode == 'approval_manager' && isset($penawaran) && $penawaran['status'] == 'WA' && $penawaran['level_approval'] == 'D') ? '' : 'readonly' ?>>
+                                            </td>
+                                            <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly></td>
+                                            <td><input type="text" class="form-control moneyFormat total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
+                                            <td align="center">
+                                                <button type="button" class="btn btn-sm btn-danger" onclick="DelProduct(<?= $loop ?>)"><i class="fa fa-trash-o"></i></button>
+                                            </td>
+                                        </tr>
                                     <?php
-                                    echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-product'));
+                                    }
+                                } else {
+                                    // default 1 baris kosong
+                                    $loop = 1;
                                     ?>
-                                </td>
-                            </tr>
-                        </thead>
-                        <tbody id="list_product">
-                            <?php
-                            $loop = 0;
-                            if (!empty($penawaran_detail)) {
-                                foreach ($penawaran_detail as $dp) {
-                                    $loop++;
-                            ?>
-                                    <tr id="tr_<?= $loop ?>">
+                                    <tr id="tr_1">
                                         <td>
-                                            <select name="product[<?= $loop ?>][id_product]" class="form-control product-select select2" data-loop="<?= $loop ?>" <?= $disabled ?>>
+                                            <select name="product[1][id_product]" class="form-control product-select select2" data-loop="1">
                                                 <option value="">-- Pilih Produk --</option>
                                                 <?php foreach ($products as $item): ?>
-                                                    <option value="<?= $item['id'] ?>"
-                                                        data-price="<?= $item['propose_price'] ?>"
+                                                    <option value="<?= $item['id'] ?>" data-price="<?= $item['propose_price'] ?>"
+                                                        data-code="<?= $item['code_lv4'] ?>"
                                                         data-product="<?= $item['product_name'] ?>"
                                                         data-dropship-price="<?= $item['dropship_price'] ?>"
-                                                        data-dropship-tempo="<?= $item['dropship_tempo'] ?>"
-                                                        <?= $item['id'] == $dp['id_product'] ? 'selected' : '' ?>>
+                                                        data-dropship-tempo="<?= $item['dropship_tempo'] ?>">
                                                         <?= $item['product_name'] ?>
                                                     </option>
                                                 <?php endforeach; ?>
                                             </select>
                                         </td>
-                                        <td hidden>
-                                            <?php if ($mode == 'approval_manager'): ?>
-                                                <input type="hidden" name="product[<?= $loop ?>][id_product]" value="<?= $dp['id_product'] ?>">
-                                            <?php endif; ?>
-                                            <input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $dp['product_name'] ?>">
-                                        </td>
-                                        <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>" <?= $readonly ?>></td>
-                                        <td><input type="text" class="form-control" name="product[<?= $loop ?>][stok]" id="stok_<?= $loop ?>" readonly></td>
-                                        <td><input type=" text" class="form-control moneyFormat price-list" name="product[<?= $loop ?>][price_list]" id="price_<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly></td>
-                                        <td>
-                                            <input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>"
-                                                <?= ($mode == 'approval_manager' && isset($penawaran) && $penawaran['status'] == 'WA' && $penawaran['level_approval'] == 'D') ? '' : 'readonly' ?>>
-                                        </td>
-                                        <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly></td>
-                                        <td><input type="text" class="form-control moneyFormat total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
+                                        <td hidden><input type="hidden" name="product[1][product_name]" id="product_name_1"></td>
+                                        <td><input type="number" class="form-control qty-input" name="product[1][qty]" id="qty_1"></td>
+                                        <td><input type="text" class="form-control" name="product[1][qty_free]" id="qty_free_1" readonly></td>
+                                        <td><input type="text" class="form-control moneyFormat price-list" name="product[1][price_list]" id="price_1" readonly></td>
+                                        <td><input type="text" class="form-control penawaran moneyFormat" name="product[1][harga_penawaran]" id="penawaran_1"></td>
+                                        <td><input type="text" class="form-control diskon" name="product[1][diskon]" id="diskon_1" readonly></td>
+                                        <td><input type="text" class="form-control moneyFormat total-harga" name="product[1][total]" id="total_1" readonly></td>
                                         <td align="center">
-                                            <button type="button" class="btn btn-sm btn-danger" onclick="DelProduct(<?= $loop ?>)"><i class="fa fa-trash-o"></i></button>
+                                            <button type="button" class="btn btn-sm btn-danger" onclick="DelProduct(1)"><i class="fa fa-trash-o"></i></button>
                                         </td>
                                     </tr>
-                                <?php
-                                }
-                            } else {
-                                // default 1 baris kosong
-                                $loop = 1;
-                                ?>
-                                <tr id="tr_1">
-                                    <td>
-                                        <select name="product[1][id_product]" class="form-control product-select select2" data-loop="1">
-                                            <option value="">-- Pilih Produk --</option>
-                                            <?php foreach ($products as $item): ?>
-                                                <option value="<?= $item['id'] ?>" data-price="<?= $item['propose_price'] ?>"
-                                                    data-product="<?= $item['product_name'] ?>"
-                                                    data-dropship-price="<?= $item['dropship_price'] ?>"
-                                                    data-dropship-tempo="<?= $item['dropship_tempo'] ?>">
-                                                    <?= $item['product_name'] ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </td>
-                                    <td hidden><input type="hidden" name="product[1][product_name]" id="product_name_1"></td>
-                                    <td><input type="number" class="form-control qty-input" name="product[1][qty]" id="qty_1"></td>
-                                    <td><input type="text" class="form-control" name="product[1][stok]" id="stok_1" readonly></td>
-                                    <td><input type="text" class="form-control moneyFormat price-list" name="product[1][price_list]" id="price_1" readonly></td>
-                                    <td><input type="text" class="form-control penawaran moneyFormat" name="product[1][harga_penawaran]" id="penawaran_1"></td>
-                                    <td><input type="text" class="form-control diskon" name="product[1][diskon]" id="diskon_1" readonly></td>
-                                    <td><input type="text" class="form-control moneyFormat total-harga" name="product[1][total]" id="total_1" readonly></td>
-                                    <td align="center">
-                                        <button type="button" class="btn btn-sm btn-danger" onclick="DelProduct(1)"><i class="fa fa-trash-o"></i></button>
-                                    </td>
-                                </tr>
-                            <?php } ?>
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <td colspan="6" class="text-right"><strong>Total Harga Penawaran</strong></td>
-                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_penawaran" id="total_penawaran" value="<?= isset($penawaran['total_penawaran']) ? $penawaran['total_penawaran'] : '' ?>" readonly></td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-right"><strong>Total Harga Price List</strong></td>
-                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_price_list" id="total_price_list" value="<?= isset($penawaran['total_price_list']) ? $penawaran['total_price_list'] : '' ?>" readonly></td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-right"><strong>Total % Discount</strong></td>
-                                <td colspan="2"><input type="text" class="form-control" name="total_diskon_persen" id="total_diskon_persen" value="<?= isset($penawaran['total_diskon_persen']) ? $penawaran['total_diskon_persen'] : '' ?>" readonly></td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-right"><strong>Total Harga + Freight</strong></td>
-                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_harga_freight" id="total_harga_freight" value="<?= isset($penawaran['total_harga_freight']) ? $penawaran['total_harga_freight'] : '' ?>" readonly></td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-right"><strong>Total Harga + Freight (Exclude PPN)</strong></td>
-                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_harga_freight_exppn" id="total_harga_freight_exppn" value="<?= isset($penawaran['total_harga_freight_exppn']) ? $penawaran['total_harga_freight_exppn'] : '' ?>" readonly></td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-right"><strong>DPP</strong></td>
-                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="dpp" id="dpp" value="<?= isset($penawaran['dpp']) ? $penawaran['dpp'] : '' ?>" readonly></td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-right"><strong>PPn</strong></td>
-                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="ppn" id="ppn" value="<?= isset($penawaran['ppn']) ? $penawaran['ppn'] : '' ?>" readonly></td>
-                            </tr>
-                            <tr>
-                                <td colspan="6" class="text-right"><strong>Grand Total</strong></td>
-                                <td colspan="2"><input type="text" class="form-control moneyFormat" name="grand_total" id="grand_total" value="<?= isset($penawaran['grand_total']) ? $penawaran['grand_total'] : '' ?>" readonly></td>
-                            </tr>
-                            <?php if ($mode == 'approval_manager' && $penawaran['level_approval'] == 'D' && $penawaran['reject_reason'] != null): ?>
+                                <?php } ?>
+                            </tbody>
+                            <tfoot>
                                 <tr>
-                                    <td colspan="8">Revisi : <span class="text-red"><?= $penawaran['reject_reason'] ?></span></td>
+                                    <td colspan="6" class="text-right"><strong>Total Harga Penawaran</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_penawaran" id="total_penawaran" value="<?= isset($penawaran['total_penawaran']) ? $penawaran['total_penawaran'] : '' ?>" readonly></td>
                                 </tr>
-                            <?php endif; ?>
-                        </tfoot>
-                    </table>
+                                <tr>
+                                    <td colspan="6" class="text-right"><strong>Total Harga Price List</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_price_list" id="total_price_list" value="<?= isset($penawaran['total_price_list']) ? $penawaran['total_price_list'] : '' ?>" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="text-right"><strong>Total % Discount</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control" name="total_diskon_persen" id="total_diskon_persen" value="<?= isset($penawaran['total_diskon_persen']) ? $penawaran['total_diskon_persen'] : '' ?>" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="text-right"><strong>Total Harga + Freight</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_harga_freight" id="total_harga_freight" value="<?= isset($penawaran['total_harga_freight']) ? $penawaran['total_harga_freight'] : '' ?>" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="text-right"><strong>Total Harga + Freight (Exclude PPN)</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_harga_freight_exppn" id="total_harga_freight_exppn" value="<?= isset($penawaran['total_harga_freight_exppn']) ? $penawaran['total_harga_freight_exppn'] : '' ?>" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="text-right"><strong>DPP</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control moneyFormat" name="dpp" id="dpp" value="<?= isset($penawaran['dpp']) ? $penawaran['dpp'] : '' ?>" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="text-right"><strong>PPn</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control moneyFormat" name="ppn" id="ppn" value="<?= isset($penawaran['ppn']) ? $penawaran['ppn'] : '' ?>" readonly></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="6" class="text-right"><strong>Grand Total</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control moneyFormat" name="grand_total" id="grand_total" value="<?= isset($penawaran['grand_total']) ? $penawaran['grand_total'] : '' ?>" readonly></td>
+                                </tr>
+                                <?php if ($mode == 'approval_manager' && $penawaran['level_approval'] == 'D' && $penawaran['reject_reason'] != null): ?>
+                                    <tr>
+                                        <td colspan="8">Revisi : <span class="text-red"><?= $penawaran['reject_reason'] ?></span></td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
             </div>
             <div class="form-group row">
@@ -338,7 +343,6 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
         });
         moneyFormat('.moneyFormat')
 
-
         // TAMBAH LIST PRODUCT
         let products = <?= json_encode($products) ?>; // kirim dari PHP
         let loop = $('#list_product tr').length; // inisialisasi dari jumlah baris awal
@@ -382,12 +386,36 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
             const price = selected.data('price') || 0;
             const stock = selected.data('stock') || 0;
             const product = selected.data('product');
+            const code = selected.data('code');
 
             $(`#price_${loop}`).val(price);
             $(`#stok_${loop}`).val(stock);
             $(`#product_name_${loop}`).val(product);
 
             hitungTotal(loop);
+
+            if (code) {
+                $.ajax({
+                    url: '<?= base_url('penawaran/get_free_stok') ?>',
+                    type: 'POST',
+                    data: {
+                        code_lv4: code
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.error) {
+                            alert(res.message);
+                        } else {
+                            $(`#qty_free_${loop}`).val(res.qty_free); // ✅ Set qty_free
+                        }
+                    },
+                    error: function() {
+                        alert('Gagal mengambil free stock.');
+                    }
+                });
+            } else {
+                $(`#qty_free_${loop}`).val(''); // kosongkan jika tidak ada code
+            }
         });
 
         // Trigger hitung diskon, total, dan seluruh total

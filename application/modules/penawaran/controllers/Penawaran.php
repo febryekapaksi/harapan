@@ -474,6 +474,25 @@ class Penawaran extends Admin_Controller
         }
     }
 
+    public function get_free_stok()
+    {
+        $code_lv4 = $this->input->post('code_lv4');
+
+        $stock = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+
+        if ($stock) {
+            echo json_encode([
+                'error' => false,
+                'qty_free' => number_format($stock['qty_free'])
+            ]);
+        } else {
+            echo json_encode([
+                'error' => true,
+                'message' => 'Free Stok tidak ditemukan'
+            ]);
+        }
+    }
+
     public function data_side_penawaran()
     {
         $this->penawaran_model->get_json_penawaran();
