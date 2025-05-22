@@ -161,6 +161,7 @@ class Penawaran extends Admin_Controller
                     'id_penawaran'      => $id_penawaran,
                     'id_product'        => $pro['id_product'],
                     'product_name'      => $pro['product_name'],
+                    'harga_beli'        => str_replace(',', '', $pro['harga_beli']),
                     'qty'               => $pro['qty'],
                     'price_list'        => str_replace(',', '', $pro['price_list']),
                     'harga_penawaran'   => str_replace(',', '', $pro['harga_penawaran']),

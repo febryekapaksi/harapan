@@ -182,6 +182,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                                     <?php foreach ($products as $item): ?>
                                                         <option value="<?= $item['id'] ?>"
                                                             data-price="<?= $item['propose_price'] ?>"
+                                                            data-harga-beli="<?= $item['harga_beli'] ?>"
                                                             data-code="<?= $item['code_lv4'] ?>"
                                                             data-product="<?= $item['product_name'] ?>"
                                                             data-dropship-price="<?= $item['dropship_price'] ?>"
@@ -224,6 +225,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                                 <option value="">-- Pilih Produk --</option>
                                                 <?php foreach ($products as $item): ?>
                                                     <option value="<?= $item['id'] ?>" data-price="<?= $item['propose_price'] ?>"
+                                                        data-harga-beli="<?= $item['harga_beli'] ?>"
                                                         data-code="<?= $item['code_lv4'] ?>"
                                                         data-product="<?= $item['product_name'] ?>"
                                                         data-dropship-price="<?= $item['dropship_price'] ?>"
@@ -353,7 +355,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
 
             let options = '<option value="">-- Pilih Produk --</option>';
             products.forEach(item => {
-                options += `<option value="${item.id}" data-price="${item.propose_price}" data-product="${item.product_name}" data-dropship-price="${item.dropship_price}" data-code="${item.code_lv4}">${item.product_name}</option>`;
+                options += `<option value="${item.id}" data-harga-beli="${item.harga_beli}" data-price="${item.propose_price}" data-product="${item.product_name}" data-dropship-price="${item.dropship_price}" data-code="${item.code_lv4}">${item.product_name}</option>`;
             });
 
             let row = `

@@ -55,7 +55,7 @@ class Sales_order extends Admin_Controller
     $so = $this->db->get_where('sales_order', ['no_so' => $id_so])->row_array();
     $so_detail = $this->db->get_where('sales_order_detail', ['no_so' => $id_so])->result_array();
     $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $so['id_penawaran']])->row_array();
-    $penawaran_detail = $this->db->get_where('penawaran_detail', ['id_penawaran' => $so['id_penawaran']])->result_array();
+    // $penawaran_detail = $this->db->get_where('penawaran_detail', ['id_penawaran' => $so['id_penawaran']])->result_array();
 
     // Kirim data ke view
     $data = [
@@ -81,27 +81,27 @@ class Sales_order extends Admin_Controller
     $no_so = $is_update ? $id : $this->Sales_order_model->generate_id();
 
     $header = [
-      'no_so'                 => $no_so,
-      'id_penawaran'          => $data['id_penawaran'],
-      'id_customer'           => $data['id_customer'],
-      'nama_sales'            => $data['sales'],
-      'email_customer'        => $data['email'],
-      'payment_term'          => $data['payment_term'],
-      'freight'                   => str_replace(',', '', $data['freight']),
-      'tgl_so'                => date('Y-m-d H:i:s', strtotime($data['tgl_so'])),
-      'nilai_so'              => str_replace(',', '', $data['total_penawaran']),
-      'total_diskon_persen'   => $data['total_diskon_persen'],
-      'total_harga_freight'       => str_replace(',', '', $data['total_harga_freight']),
-      'total_harga_freight_exppn' => str_replace(',', '', $data['total_harga_freight_exppn']),
-      'dpp'                   => str_replace(',', '', $data['dpp']),
-      'ppn'                   => str_replace(',', '', $data['ppn']),
-      'grand_total'           => str_replace(',', '', $data['grand_total']),
-      'status'                => "WA",
-      'due_date_credit'       => date('Y-m-d H:i:s', strtotime($data['due_date_credit'])),
-      'credit_limit'          => $data['credit_limit'],
-      'outstanding'           => $data['outstanding'],
-      'over_limit'            => $data['over_limit'],
-      'status_credit_limit'   => $data['status_credit_limit'],
+      'no_so'                       => $no_so,
+      'id_penawaran'                => $data['id_penawaran'],
+      'id_customer'                 => $data['id_customer'],
+      'nama_sales'                  => $data['sales'],
+      'email_customer'              => $data['email'],
+      'payment_term'                => $data['payment_term'],
+      'freight'                     => str_replace(',', '', $data['freight']),
+      'tgl_so'                      => date('Y-m-d H:i:s', strtotime($data['tgl_so'])),
+      'nilai_so'                    => str_replace(',', '', $data['total_penawaran']),
+      'total_diskon_persen'         => $data['total_diskon_persen'],
+      'total_harga_freight'         => str_replace(',', '', $data['total_harga_freight']),
+      'total_harga_freight_exppn'   => str_replace(',', '', $data['total_harga_freight_exppn']),
+      'dpp'                         => str_replace(',', '', $data['dpp']),
+      'ppn'                         => str_replace(',', '', $data['ppn']),
+      'grand_total'                 => str_replace(',', '', $data['grand_total']),
+      'status'                      => "WA",
+      'due_date_credit'             => date('Y-m-d H:i:s', strtotime($data['due_date_credit'])),
+      'credit_limit'                => $data['credit_limit'],
+      'outstanding'                 => $data['outstanding'],
+      'over_limit'                  => $data['over_limit'],
+      'status_credit_limit'         => $data['status_credit_limit'],
     ];
 
     if ($is_update) {
@@ -130,19 +130,55 @@ class Sales_order extends Admin_Controller
     if (isset($_POST['product']) && is_array($_POST['product'])) {
       $detail = [];
       foreach ($_POST['product'] as $pro) {
-        $detail[] = [
-          'no_so'             => $no_so,
-          'id_penawaran'      => $pro['id_penawaran'],
-          'id_product'        => $pro['id_product'],
-          'product'           => $pro['product_name'],
-          'qty_order'         => $pro['qty'],
-          'product_price'     => str_replace(',', '', $pro['harga_penawaran']),
-          'diskon_persen'     => $pro['diskon'],
-          'pengiriman'        => $pro['pengiriman'],
-          'total_harga'       => str_replace(',', '', $pro['total']),
-          'created_by'        => $this->auth->user_id(),
-          'created_at'        => date('Y-m-d H:i:s'),
-        ];
+        // Buat update warehouse
+        $code_lv4 = $pro['code_lv4'];
+        $stok_awal = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+
+        if ($stok_awal) {
+          $booking_awal     = floatval($stok_awal['qty_booking']);
+          $qty_free_awal    = floatval($stok_awal['qty_free']);
+          $use_free_lama    = floatval($stok_awal['use_qty_free']);
+
+          // Kembalikan qty_free ke posisi sebelum insert
+          $qty_free_reset   = $qty_free_awal + $use_free_lama;
+
+          // Rekalkulasi
+          if ($is_update) {
+            $qty_booking    = $pro['qty'];
+          } else {
+            $qty_booking    = $booking_awal + floatval($pro['qty']);
+          }
+          $use_free_baru    = floatval($pro['use_qty_free']);
+          $qty_free_baru    = $qty_free_reset - $use_free_baru;
+
+          $arr_stok = [
+            'qty_booking'   => $qty_booking,
+            'use_qty_free'  => $use_free_baru,
+            'qty_free'      => $qty_free_baru
+          ];
+
+          $this->db->where('code_lv4', $code_lv4);
+          $this->db->update('warehouse_stock', $arr_stok);
+
+          // insert ke so detail 
+          $detail[] = [
+            'no_so'             => $no_so,
+            'id_penawaran'      => $pro['id_penawaran'],
+            'id_product'        => $pro['id_product'],
+            'product'           => $pro['product_name'],
+            'qty_order'         => $pro['qty'],
+            'qty_free'          => $qty_free_baru,
+            'use_qty_free'      => $use_free_baru,
+            'qty_propose'       => $pro['pr'],
+            'harga_beli'        => str_replace(',', '', $pro['harga_beli']),
+            'product_price'     => str_replace(',', '', $pro['harga_penawaran']),
+            'diskon_persen'     => $pro['diskon'],
+            'pengiriman'        => $pro['pengiriman'],
+            'total_harga'       => str_replace(',', '', $pro['total']),
+            'created_by'        => $this->auth->user_id(),
+            'created_at'        => date('Y-m-d H:i:s'),
+          ];
+        }
       }
 
       if (!empty($detail)) {
@@ -168,6 +204,9 @@ class Sales_order extends Admin_Controller
 
     echo json_encode($status);
   }
+
+  // buat proses DEAL SO
+  public function deal_so() {}
 
   // PRINTOUT
   public function print_so($no_so)
@@ -212,5 +251,24 @@ class Sales_order extends Admin_Controller
   public function data_side_penawaran()
   {
     $this->Sales_order_model->get_json_penawaran();
+  }
+
+  public function get_free_stok()
+  {
+    $code_lv4 = $this->input->post('code_lv4');
+
+    $stock = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+
+    if ($stock) {
+      echo json_encode([
+        'error' => false,
+        'qty_free' => number_format($stock['qty_free'])
+      ]);
+    } else {
+      echo json_encode([
+        'error' => true,
+        'message' => 'Free Stok tidak ditemukan'
+      ]);
+    }
   }
 }
