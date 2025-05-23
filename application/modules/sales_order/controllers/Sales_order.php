@@ -206,7 +206,34 @@ class Sales_order extends Admin_Controller
   }
 
   // buat proses DEAL SO
-  public function deal_so() {}
+  public function deal_so()
+  {
+    $post = $this->input->post();
+
+    $no_so = $post['no_so'];
+
+    if (empty($no_so)) {
+      echo json_encode(['status' => 0, 'pesan' => 'Nomor SO tidak ditemukan']);
+      return;
+    }
+
+    $so = $this->db->get_where('so', ['no_so' => $no_so])->row_array();
+
+    if (!$so) {
+      echo json_encode(['status' => 0, 'pesan' => 'Data Sales Order tidak ditemukan']);
+      return;
+    }
+
+    $this->db->where('no_so', $no_so);
+    $this->db->update('sales_order', [
+      'status' => 'A', //Deal Sales Order
+    ]);
+
+    echo json_encode([
+      'status' => 1,
+      'pesan' => 'Approval direksi berhasil diproses.'
+    ]);
+  }
 
   // PRINTOUT
   public function print_so($no_so)

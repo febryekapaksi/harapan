@@ -198,6 +198,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                                     <input type="hidden" name="product[<?= $loop ?>][id_product]" value="<?= $dp['id_product'] ?>">
                                                 <?php endif; ?>
                                                 <input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $dp['product_name'] ?>">
+                                                <input type="hidden" name="product[<?= $loop ?>][harga_beli]" id="harga_beli_<?= $loop ?>" value="<?= $dp['harga_beli'] ?>">
                                             </td>
                                             <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>" <?= $readonly ?>></td>
                                             <td><input type="text" class="form-control" name="product[<?= $loop ?>][qty_free]" id="qty_free_<?= $loop ?>" readonly></td>
@@ -235,7 +236,10 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                                 <?php endforeach; ?>
                                             </select>
                                         </td>
-                                        <td hidden><input type="hidden" name="product[1][product_name]" id="product_name_1"></td>
+                                        <td hidden>
+                                            <input type="hidden" name="product[1][product_name]" id="product_name_1">
+                                            <input type="hidden" name="product[1][harga_beli" id="harga_beli_1">
+                                        </td>
                                         <td><input type="number" class="form-control qty-input" name="product[1][qty]" id="qty_1"></td>
                                         <td><input type="text" class="form-control" name="product[1][qty_free]" id="qty_free_1" readonly></td>
                                         <td><input type="text" class="form-control moneyFormat price-list" name="product[1][price_list]" id="price_1" readonly></td>
@@ -366,6 +370,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                         </select>
                     </td>
                     <td hidden><input type="hidden" name="product[${loop}][product_name]" id="product_name_${loop}"></td>
+                    <td hidden><input type="hidden" name="product[${loop}][harga_beli]" id="harga_beli_${loop}"></td>
                     <td><input type="number" class="form-control qty-input" name="product[${loop}][qty]" id="qty_${loop}"></td>
                     <td><input type="text" class="form-control" name="product[${loop}][qty_free]" id="qty_free_${loop}" readonly></td>
                     <td><input type="text" class="form-control moneyFormat price-list" name="product[${loop}][price_list]" id="price_${loop}" readonly></td>
@@ -392,10 +397,12 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
             const stock = selected.data('stock') || 0;
             const product = selected.data('product');
             const code = selected.data('code');
+            const harga_beli = selected.data('harga-beli');
 
             $(`#price_${loop}`).val(price);
             $(`#stok_${loop}`).val(stock);
             $(`#product_name_${loop}`).val(product);
+            $(`#harga_beli_${loop}`).val(harga_beli);
 
             hitungTotal(loop);
 
