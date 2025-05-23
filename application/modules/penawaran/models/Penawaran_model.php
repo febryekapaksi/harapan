@@ -93,22 +93,21 @@ class Penawaran_model extends BF_Model
 
                 // Aksi tombol
                 $action = "<a href='" . base_url("penawaran/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary'><i class='fa fa-edit'></i></a> ";
-                $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger delete' data-id='{$row['id_penawaran']}'><i class='fa fa-trash'></i></a>";
+                // $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger delete' data-id='{$row['id_penawaran']}'><i class='fa fa-trash'></i></a>";
             } elseif ($row['status'] == 'R') {
                 $status_label = 'Rejected';
                 $warna = 'red';
 
                 // Aksi tombol
                 $action = "<a href='" . base_url("penawaran/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary'><i class='fa fa-edit'></i></a> ";
-                $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger delete' data-id='{$row['id_penawaran']}'><i class='fa fa-trash'></i></a>";
+                // $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger delete' data-id='{$row['id_penawaran']}'><i class='fa fa-trash'></i></a>";
             } else if ($row['status'] == 'A') {
                 $status_label = 'Approved';
                 $warna = 'green';
 
                 // Aksi tombol
-                $action = "<a target='_blank' href='" . base_url("penawaran/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning'><i class='fa fa-print'></i></a> ";
-                $action .= "<a href='" . base_url("penawaran/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary'><i class='fa fa-edit'></i></a> ";
-                $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger delete' data-id='{$row['id_penawaran']}'><i class='fa fa-trash'></i></a>";
+                $action = "<a target='_blank' href='" . base_url("penawaran/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning'><i class='fa fa-print'></i> Print</a> ";
+                // $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger delete' data-id='{$row['id_penawaran']}'><i class='fa fa-trash'></i></a>";
             }
 
             $nestedData = [];

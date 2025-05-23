@@ -74,8 +74,15 @@ class Sales_order_model extends BF_Model
 
 			// Aksi tombol
 			if (!empty($row['no_so'])) {
-				$action = "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-primary'><i class='fa fa-edit'></i> </a> ";
-				$action .= "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning'><i class='fa fa-print'></i> </a> ";
+				if ($row['status'] === 'A') {
+					$action = "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning'><i class='fa fa-print'></i> Print SO</a> ";
+					$warna = 'green';
+					$status_label = 'Deal';
+				} else {
+					$action = "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-primary'><i class='fa fa-edit'></i> </a> ";
+					$warna = 'grey';
+					$status_label = 'Waiting';
+				}
 			} else {
 				$action = "<a href='" . base_url("sales_order/add/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success'><i class='fa fa-plus'></i> Create SO</a> ";
 			}
@@ -91,7 +98,7 @@ class Sales_order_model extends BF_Model
 			$nestedData[] = "<div align='left'>" . number_format($row['total_penawaran'], 2) . "</div>";
 			$nestedData[] = "<div align='left'>" . number_format($row['nilai_so'], 2) . "</div>";
 			$nestedData[] = "<div align='center'>" . $row['revisi'] . "</div>";
-			// $nestedData[] = "<div align='center'><span class='badge bg-{$warna}'>{$status_label}</span></div>";
+			$nestedData[] = "<div align='center'><span class='badge bg-{$warna}'>{$status_label}</span></div>";
 			$nestedData[] = "<div align='center'>{$action}</div>";
 
 			$data[] = $nestedData;
@@ -110,7 +117,7 @@ class Sales_order_model extends BF_Model
 
 	public function get_query_json_penawaran($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
 	{
-		$this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, p.total_penawaran, p.sales, c.name_customer, so.no_so, so.nilai_so');
+		$this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, p.total_penawaran, p.sales, c.name_customer, so.no_so, so.nilai_so, so.status');
 		$this->db->from('penawaran p');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 		$this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left');
@@ -130,7 +137,7 @@ class Sales_order_model extends BF_Model
 				2 => 'c.name_customer',
 				3 => 'p.id_penawaran',
 				4 => 'p.revisi',
-				5 => 'p.status'
+				5 => 'so.status'
 			];
 
 			if (isset($columns_order_by[$column_order])) {

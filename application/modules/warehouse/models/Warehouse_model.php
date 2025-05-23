@@ -78,9 +78,9 @@ class Warehouse_model extends BF_Model
             $nestedData[] = "<div align='left'>{$row['nm_product']}</div>";
             $nestedData[] = "<div align='center'>{$row['unit']}</div>";
             $nestedData[] = "<div align='center'>{$row['unit_packing']}</div>";
-            $nestedData[] = "<div align='right'>" . number_format($qty_stock, 2) . "</div>";
-            $nestedData[] = "<div align='right'>" . number_format($qty_booking, 2) . "</div>";
-            $nestedData[] = "<div align='right'>" . number_format($available, 2) . "</div>";
+            $nestedData[] = "<div align='right'>" . number_format($qty_stock) . "</div>";
+            $nestedData[] = "<div align='right'>" . number_format($qty_booking) . "</div>";
+            $nestedData[] = "<div align='right'>" . number_format($available) . "</div>";
 
             $data[] = $nestedData;
             $urut1++;
@@ -195,16 +195,16 @@ class Warehouse_model extends BF_Model
             $nestedData[] = $row['tgl_transaksi'];
             $nestedData[] = $row['no_transaksi'];
             $nestedData[] = $row['transaksi'];
-            $nestedData[] = $row['code_product'];
+            $nestedData[] = $row['code_lv4'];
             $nestedData[] = $row['nm_product'];
-            $nestedData[] = number_format($row['qty'], 2);                  // AWAL: stock
-            $nestedData[] = number_format($row['qty_book'], 2);             // AWAL: booking
-            $nestedData[] = number_format($row['qty_free'], 2);             // AWAL: free stock
-            $nestedData[] = number_format($row['qty_transaksi'], 2);        // TRANSAKSI: in/out
-            $nestedData[] = number_format($row['qty_book_akhir'], 2);       // TRANSAKSI: booking
-            $nestedData[] = number_format($row['qty_akhir'], 2);            // AKHIR: stock
-            $nestedData[] = number_format($row['qty_book_akhir'], 2);       // AKHIR: booking
-            $nestedData[] = number_format($row['qty_free_akhir'], 2);       // AKHIR: free stock
+            $nestedData[] = number_format($row['qty']);                  // AWAL: stock
+            $nestedData[] = number_format($row['qty_book']);             // AWAL: booking
+            $nestedData[] = number_format($row['qty_free']);             // AWAL: free stock
+            $nestedData[] = number_format($row['qty_transaksi']);        // TRANSAKSI: in/out
+            $nestedData[] = number_format($row['qty_book_akhir']);       // TRANSAKSI: booking
+            $nestedData[] = number_format($row['qty_akhir']);            // AKHIR: stock
+            $nestedData[] = number_format($row['qty_book_akhir']);       // AKHIR: booking
+            $nestedData[] = number_format($row['qty_free_akhir']);       // AKHIR: free stock
 
             $data[] = $nestedData;
             $urut1++;
@@ -228,7 +228,7 @@ class Warehouse_model extends BF_Model
             1 => 'ks.tgl_transaksi',
             2 => 'ks.no_transaksi',
             3 => 'ks.transaksi',
-            4 => 'ks.code_product',
+            4 => 'ks.code_lv4',
             5 => 'ks.nm_product',
             6 => 'ks.qty',
             7 => 'ks.qty_book',
@@ -242,16 +242,16 @@ class Warehouse_model extends BF_Model
 
         $this->db->select('ks.id');
         $this->db->from('kartu_stok ks');
-        $this->db->where('ks.deleted', 0);
+        $this->db->where('ks.deleted', null);
         $totalData = $this->db->count_all_results();
 
         $this->db->select('ks.id');
         $this->db->from('kartu_stok ks');
-        $this->db->where('ks.deleted', 0);
+        $this->db->where('ks.deleted', null);
 
         if (!empty($like_value)) {
             $this->db->group_start();
-            $this->db->like('ks.code_product', $like_value);
+            $this->db->like('ks.code_lv4', $like_value);
             $this->db->or_like('ks.nm_product', $like_value);
             $this->db->or_like('ks.no_transaksi', $like_value);
             $this->db->or_like('ks.transaksi', $like_value);
@@ -264,11 +264,11 @@ class Warehouse_model extends BF_Model
         ks.*
     ');
         $this->db->from('kartu_stok ks');
-        $this->db->where('ks.deleted', 0);
+        $this->db->where('ks.deleted', null);
 
         if (!empty($like_value)) {
             $this->db->group_start();
-            $this->db->like('ks.code_product', $like_value);
+            $this->db->like('ks.code_lv4', $like_value);
             $this->db->or_like('ks.nm_product', $like_value);
             $this->db->or_like('ks.no_transaksi', $like_value);
             $this->db->or_like('ks.transaksi', $like_value);

@@ -211,14 +211,14 @@ class Sales_order extends Admin_Controller
     $post = $this->input->post();
 
     $no_so = $post['no_so'];
+    $tgl_so = $post['tgl_so'];
 
     if (empty($no_so)) {
       echo json_encode(['status' => 0, 'pesan' => 'Nomor SO tidak ditemukan']);
       return;
     }
 
-    $so = $this->db->get_where('so', ['no_so' => $no_so])->row_array();
-
+    $so = $this->db->get_where('sales_order', ['no_so' => $no_so])->row_array();
     if (!$so) {
       echo json_encode(['status' => 0, 'pesan' => 'Data Sales Order tidak ditemukan']);
       return;
@@ -226,12 +226,63 @@ class Sales_order extends Admin_Controller
 
     $this->db->where('no_so', $no_so);
     $this->db->update('sales_order', [
-      'status' => 'A', //Deal Sales Order
+      'status'        => 'A', //Deal Sales Order
+      'approved_by'   => $this->auth->user_id(),
+      'approved_at'   => date('Y-m-d H:i:s'),
     ]);
+
+    if (isset($_POST['product']) && is_array($_POST['product'])) {
+      $arr = [];
+      foreach ($_POST['product'] as $pro) {
+        // ambil data warehouse buat stok awal
+        $code_lv4 = $pro['code_lv4'];
+        $stok = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+
+        if ($stok) {
+          $qty_stock      = floatval($stok['qty_stock']);
+          $qty_booking    = floatval($stok['qty_booking']);
+          $qty_free       = floatval($stok['qty_free']);
+
+          $qty_post       = floatval($pro['qty']);
+          $booking_post   = floatval($pro['use_qty_free']);
+          $free_post      = floatval($pro['qty_free']);
+
+          // Kalkulasi untuk mengembalikan stok semula
+          $stok_awal      = $qty_stock;
+          $booking_awal   = $qty_booking - $booking_post;
+          $free_awal      = $qty_free + $booking_post;
+
+          $stok_akhir      = $qty_stock;
+          $booking_akhir   = $qty_booking;
+          $free_akhir      = $qty_free;
+        }
+
+        // insert ke kartu stok
+        $arr[] = [
+          'no_transaksi'      => $no_so,
+          'transaksi'         => "Sales Order",
+          'tgl_transaksi'     => $tgl_so,
+          'code_lv4'          => $pro['code_lv4'],
+          'nm_product'        => $pro['product_name'],
+          'qty'               => floatval($stok_awal),
+          'qty_book'          => floatval($booking_awal),
+          'qty_free'          => floatval($free_awal),
+          'qty_transaksi'     => 0,
+          'qty_akhir'         => $stok_akhir,
+          'qty_book_akhir'    => $booking_akhir,
+          'qty_free_akhir'    => $free_akhir,
+          'harga_stok'        => $pro['harga_beli']
+        ];
+      }
+    }
+
+    if (!empty($arr)) {
+      $this->db->insert_batch('kartu_stok', $arr);
+    }
 
     echo json_encode([
       'status' => 1,
-      'pesan' => 'Approval direksi berhasil diproses.'
+      'pesan' => 'Sales Order Deal!!.'
     ]);
   }
 

@@ -30,6 +30,7 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 						<th class="text-center">Nilai Penawaran</th>
 						<th class="text-center">Nilai SO</th>
 						<th class="text-center">Rev</th>
+						<th class="text-center">Status</th>
 						<th class="text-center">Action</th>
 					</tr>
 				</thead>
