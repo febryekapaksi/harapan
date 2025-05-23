@@ -238,7 +238,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                         </td>
                                         <td hidden>
                                             <input type="hidden" name="product[1][product_name]" id="product_name_1">
-                                            <input type="hidden" name="product[1][harga_beli" id="harga_beli_1">
+                                            <input type="hidden" name="product[1][harga_beli]" id="harga_beli_1">
                                         </td>
                                         <td><input type="number" class="form-control qty-input" name="product[1][qty]" id="qty_1"></td>
                                         <td><input type="text" class="form-control" name="product[1][qty_free]" id="qty_free_1" readonly></td>

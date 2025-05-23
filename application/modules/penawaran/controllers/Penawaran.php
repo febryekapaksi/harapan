@@ -76,6 +76,7 @@ class Penawaran extends Admin_Controller
     public function save()
     {
         $data = $this->input->post();
+
         $id = $data['id_penawaran'];
 
         $is_update = !empty($id);
