@@ -154,7 +154,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                         <table class='table table-bordered table-striped'>
                             <thead>
                                 <tr class="bg-blue">
-                                    <th class="text-center">Nama Produk</th>
+                                    <th class="text-center" style="min-width: 200px;">Nama Produk</th>
                                     <th class="text-center" style="min-width: 100px;" class="text-nowrap">Qty</th>
                                     <th class="text-center" style="min-width: 100px;" class="text-nowrap">Free Stok</th>
                                     <th class="text-center" style="min-width: 150px;" class="text-nowrap">Price List</th>

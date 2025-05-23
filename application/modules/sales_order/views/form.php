@@ -120,7 +120,7 @@
                         <table class='table table-bordered table-striped'>
                             <thead>
                                 <tr class='bg-blue'>
-                                    <td align='center'><b>Nama Produk</b></td>
+                                    <td align='center' style="min-width: 200px;"><b>Nama Produk</b></td>
                                     <td align='center' style="min-width: 100px;" class="text-nowrap"><b>Qty</b></td>
                                     <td align='center' style="min-width: 150px;" class="text-nowrap"><b>Harga</b></td>
                                     <td align='center' style="min-width: 100px;" class="text-nowrap"><b>Free Stok</b></td>
