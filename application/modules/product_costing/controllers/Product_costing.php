@@ -43,6 +43,7 @@ class Product_costing extends Admin_Controller
             ->from('new_inventory_4')
             ->join('product_costing', 'product_costing.code_lv4 = new_inventory_4.code_lv4', 'left')
             ->where('new_inventory_4.price_ref IS NOT NULL')
+            ->where('new_inventory_4.deleted_date IS NULL')
             ->where('product_costing.code_lv4 IS NULL') // belum terdaftar
             ->get()
             ->result_array();
