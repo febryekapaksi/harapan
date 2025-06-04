@@ -6,11 +6,11 @@
 <div id='alert_edit' class="alert alert-success alert-dismissable" style="padding: 15px; display: none;"></div>
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 
-<div class="box">
+<div class="box box-primary">
 	<div class="box-header">
-		<!-- <a class="btn btn-primary btn-sm" style='float:right;' href="<?= base_url('plan_mixing/reprint_spk') ?>" title="Re-Print SPK">Re-Print SPK</a> -->
+		<a class="btn btn-primary" style='float:left;' href="<?= base_url('spk_delivery/add') ?>">Create SPK</a>
 		<br>
-		<div class="form-group row">
+		<!-- <div class="form-group row">
 			<div class="col-md-10"></div>
 			<div class="col-md-2">
 				<select name='sales_order' id='sales_order' class='form-control input-sm chosen-select'>
@@ -22,7 +22,7 @@
 					?>
 				</select>
 			</div>
-		</div>
+		</div> -->
 	</div>
 	<!-- /.box-header -->
 	<div class="box-body">
@@ -30,14 +30,13 @@
 			<thead>
 				<tr>
 					<th class='text-center'>#</th>
-					<th class='text-center'>Sales Order</th>
-					<th class='text-center'>No Penawaran</th>
-					<th class='text-center'>Nama Customer</th>
-					<th class='text-center'>Project</th>
-					<th class='text-center'>Created</th>
-					<th class='text-center'>Dated</th>
+					<th class='text-center'>No SPK Delivery</th>
+					<th class='text-center'>No Sales Order</th>
+					<th class='text-center'>Customer</th>
+					<th class='text-center'>Pengiriman</th>
+					<th class='text-center'>Tanggal Kirim</th>
 					<th class='text-center no-sort'>Status</th>
-					<th class='text-center no-sort'>Option</th>
+					<!-- <th class='text-center no-sort'>Option</th> -->
 				</tr>
 			</thead>
 			<tbody></tbody>
@@ -161,7 +160,7 @@
 					[10, 20, 50, 100, 150]
 				],
 				"ajax": {
-					url: siteurl + active_controller + 'data_side_spk_material',
+					url: siteurl + active_controller + 'data_side_spk_deliv',
 					type: "post",
 					data: function(d) {
 						d.sales_order = sales_order

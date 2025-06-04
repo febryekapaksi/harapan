@@ -1,6 +1,7 @@
 <?php
 $readonly = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'readonly' : '');
 $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'disabled' : '');
+
 ?>
 
 <div class="box box-primary">
@@ -172,22 +173,40 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                 <?php
                                 $loop = 0;
                                 if (!empty($penawaran_detail)) {
+                                    // UNTUK AMBIL FREE STOK DARI WAREHOUSE
+                                    // 1. Ambil semua id_product dari penawaran_detail
+                                    $id_products = array_column($penawaran_detail, 'id_product');
+                                    $id_products = array_filter(array_unique($id_products)); // hapus duplikat dan kosong
+
+                                    // 2. Ambil qty_free dari warehouse_stock berdasarkan code_lv4
+                                    $stock_by_product = [];
+
+                                    if (!empty($id_products)) {
+                                        $this->db->where_in('code_lv4', $id_products);
+                                        $stocks = $this->db->select('code_lv4, qty_free')->get('warehouse_stock')->result_array();
+
+                                        foreach ($stocks as $stock) {
+                                            $stock_by_product[$stock['code_lv4']] = $stock['qty_free'];
+                                        }
+                                    }
+
                                     foreach ($penawaran_detail as $dp) {
                                         $loop++;
+                                        $qty_free = isset($stock_by_product[$dp['id_product']]) ? $stock_by_product[$dp['id_product']] : 0;
                                 ?>
                                         <tr id="tr_<?= $loop ?>">
                                             <td>
                                                 <select name="product[<?= $loop ?>][id_product]" class="form-control product-select select2" data-loop="<?= $loop ?>" <?= $disabled ?>>
                                                     <option value="">-- Pilih Produk --</option>
                                                     <?php foreach ($products as $item): ?>
-                                                        <option value="<?= $item['id'] ?>"
+                                                        <option value="<?= $item['code_lv4'] ?>"
                                                             data-price="<?= $item['propose_price'] ?>"
                                                             data-harga-beli="<?= $item['harga_beli'] ?>"
                                                             data-code="<?= $item['code_lv4'] ?>"
                                                             data-product="<?= $item['product_name'] ?>"
                                                             data-dropship-price="<?= $item['dropship_price'] ?>"
                                                             data-dropship-tempo="<?= $item['dropship_tempo'] ?>"
-                                                            <?= $item['id'] == $dp['id_product'] ? 'selected' : '' ?>>
+                                                            <?= $item['code_lv4'] == $dp['id_product'] ? 'selected' : '' ?>>
                                                             <?= $item['product_name'] ?>
                                                         </option>
                                                     <?php endforeach; ?>
@@ -200,8 +219,8 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                                 <input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $dp['product_name'] ?>">
                                                 <input type="hidden" name="product[<?= $loop ?>][harga_beli]" id="harga_beli_<?= $loop ?>" value="<?= $dp['harga_beli'] ?>">
                                             </td>
-                                            <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>" <?= $readonly ?>></td>
-                                            <td><input type="text" class="form-control" name="product[<?= $loop ?>][qty_free]" id="qty_free_<?= $loop ?>" readonly></td>
+                                            <td><input type="number" class="form-control qty-input text-center" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $dp['qty'] ?>" <?= $readonly ?>></td>
+                                            <td><input type="text" class="form-control text-center" name="product[<?= $loop ?>][qty_free]" id="qty_free_<?= $loop ?>" value="<?= $qty_free ?>" readonly></td>
                                             <td><input type="text" class="form-control moneyFormat price-list" name="product[<?= $loop ?>][price_list]" id="price_<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly></td>
                                             <td>
                                                 <input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>"
@@ -225,7 +244,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                             <select name="product[1][id_product]" class="form-control product-select select2" data-loop="1">
                                                 <option value="">-- Pilih Produk --</option>
                                                 <?php foreach ($products as $item): ?>
-                                                    <option value="<?= $item['id'] ?>" data-price="<?= $item['propose_price'] ?>"
+                                                    <option value="<?= $item['code_lv4'] ?>" data-price="<?= $item['propose_price'] ?>"
                                                         data-harga-beli="<?= $item['harga_beli'] ?>"
                                                         data-code="<?= $item['code_lv4'] ?>"
                                                         data-product="<?= $item['product_name'] ?>"
@@ -359,7 +378,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
 
             let options = '<option value="">-- Pilih Produk --</option>';
             products.forEach(item => {
-                options += `<option value="${item.id}" data-harga-beli="${item.harga_beli}" data-price="${item.propose_price}" data-product="${item.product_name}" data-dropship-price="${item.dropship_price}" data-code="${item.code_lv4}">${item.product_name}</option>`;
+                options += `<option value="${item.code_lv4}" data-harga-beli="${item.harga_beli}" data-price="${item.propose_price}" data-product="${item.product_name}" data-dropship-price="${item.dropship_price}" data-code="${item.code_lv4}">${item.product_name}</option>`;
             });
 
             let row = `

@@ -217,7 +217,7 @@ class Product_costing extends Admin_Controller
                 $current_tempo = $current_cash + ($current_cash * $tempo_percent);
 
                 $data = [
-                    'id_product' => $product['id'],
+                    'id_product' => $product['code_lv4'],
                     'product_name' => $product['product_name'],
                     'toko' => $toko['nama'],
                     'cash' => ceil($current_cash / 100) * 100,

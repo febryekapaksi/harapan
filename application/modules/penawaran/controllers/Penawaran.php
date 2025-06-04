@@ -171,6 +171,7 @@ class Penawaran extends Admin_Controller
                     'total_pl'          => str_replace(',', '', $pro['total_pl']),
                 ];
             }
+
             if (!empty($product_data)) {
                 $this->db->insert_batch('penawaran_detail', $product_data);
             }
@@ -281,6 +282,7 @@ class Penawaran extends Admin_Controller
             'approved_at_manager' => date('Y-m-d H:i:s')
         ];
 
+
         // Cek apakah level approval butuh direksi
         if ($penawaran['level_approval'] == 'D') {
             $update['status'] = 'WA'; // Tunggu approval Direksi
@@ -301,11 +303,13 @@ class Penawaran extends Admin_Controller
                     'id_penawaran'      => $id_penawaran,
                     'id_product'        => $pro['id_product'],
                     'product_name'      => $pro['product_name'],
-                    'qty'               => (int) $pro['qty'],
+                    'harga_beli'        => str_replace(',', '', $pro['harga_beli']),
+                    'qty'               => $pro['qty'],
                     'price_list'        => str_replace(',', '', $pro['price_list']),
                     'harga_penawaran'   => str_replace(',', '', $pro['harga_penawaran']),
                     'diskon'            => $pro['diskon'],
                     'total'             => str_replace(',', '', $pro['total']),
+                    'total_pl'          => str_replace(',', '', $pro['total_pl']),
                 ];
             }
 
@@ -321,8 +325,6 @@ class Penawaran extends Admin_Controller
             'pesan' => 'Penawaran berhasil diapprove oleh Manager.'
         ]);
     }
-
-
 
     public function approval_direksi()
     {

@@ -71,6 +71,9 @@ class Sales_order_model extends BF_Model
 
 		foreach ($query->result_array() as $row) {
 			$nomor = $urut + $requestData['start'];
+			$warna = '';
+			$status_label = '';
+			$add_spk = '';
 
 			// Aksi tombol
 			if (!empty($row['no_so'])) {

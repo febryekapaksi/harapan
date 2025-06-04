@@ -27,122 +27,149 @@ class Spk_delivery extends Admin_Controller
   public function index()
   {
     $this->auth->restrict($this->viewPermission);
+    $this->template->page_icon('fa fa-clipboard');
     $session  = $this->session->userdata('app_session');
 
-    $listSO = $this->db->get_where('tr_sales_order', array('approve' => 1))->result_array();
+    $listSO = $this->db->get_where('sales_order', array('status' => 'A'))->result_array();
     $data = [
       'listSO' => $listSO
     ];
     history("View data spk delivery");
-    $this->template->title('Delivery / SPK Delivery');
+    $this->template->title('SPK Delivery');
     $this->template->render('index', $data);
   }
 
-  public function data_side_spk_material()
+  public function data_side_spk_deliv()
   {
-    $this->spk_delivery_model->data_side_spk_material();
+    $this->spk_delivery_model->data_side_spk_deliv();
   }
 
-  public function add($no_so = null)
+  public function add()
   {
-    if ($this->input->post()) {
-      $data         = $this->input->post();
-      $session      = $this->session->userdata('app_session');
+    $data = [
+      'customer' => $this->db
+        ->select('c.id_customer, c.name_customer')
+        ->from('sales_order s')
+        ->join('master_customers c', 'c.id_customer = s.id_customer')
+        ->where('s.status', 'A')
+        ->where('c.deleted', 0)
+        ->group_by('c.id_customer')
+        ->get()
+        ->result_array(),
+    ];
 
-      $no_so            = $data['no_so'];
-      $delivery_date    = (!empty($data['delivery_date'])) ? date('Y-m-d', strtotime($data['delivery_date'])) : NULL;
-      $delivery_address  = $data['delivery_address'];
-      $detail            = $data['detail'];
+    $this->template->page_icon('fa fa-truck');
+    $this->template->title('Add SPK Delivery');
+    $this->template->render('form', $data);
+  }
 
-      $Ym           = date('ym');
-      $SQL          = "SELECT MAX(no_delivery) as maxP FROM spk_delivery WHERE no_delivery LIKE 'DLV" . $Ym . "%' ";
-      $result        = $this->db->query($SQL)->result_array();
-      $angkaUrut2    = $result[0]['maxP'];
-      $urutan2      = (int)substr($angkaUrut2, 7, 4);
-      $urutan2++;
-      $urut2        = sprintf('%04s', $urutan2);
-      $no_delivery  = "DLV" . $Ym . $urut2;
+  public function get_so()
+  {
+    $id_customer = $this->input->get('id_customer', TRUE);
 
-      // $query = $this->db->query("SELECT MAX(no_delivery) as max_id FROM spk_delivery WHERE no_delivery LIKE '%" . int_to_roman(date('m')) . "/" . date('Y') . "%'");
-      // $row = $query->row_array();
-      // $max_id = $row['max_id'];
-      // $max_id1 = (int) substr($max_id, 3, 3);
-      // $counter = $max_id1 + 1;
-      // $counter = sprintf('%03s', $counter);
-      // $no_delivery = "OM/" . $counter . "/" . int_to_roman(date('m')) . "/" . date('Y');
+    $data = $this->db
+      ->where('id_customer', $id_customer)
+      ->where('status', 'A') // Tambahan filter status
+      ->get('sales_order')
+      ->result();
 
-      $ArrHeader = [
-        'no_delivery' => $no_delivery,
-        'no_so' => $no_so,
-        'delivery_date' => $delivery_date,
-        'delivery_address' => $delivery_address,
-        'created_by' => $this->id_user,
-        'created_date' => $this->datetime
-      ];
-
-      $ArrDetail = [];
-      foreach ($detail as $key => $value) {
-        $ArrDetail[$key]['no_delivery']   = $no_delivery;
-        $ArrDetail[$key]['no_so']         = $no_so;
-        $ArrDetail[$key]['id_so_det']     = $value['id_so_det'];
-        $ArrDetail[$key]['code_lv4']      = $value['code_lv4'];
-        $ArrDetail[$key]['qty_so']        = $value['qty_so'];
-        $ArrDetail[$key]['qty_booking']   = $value['qty_booking'];
-        $ArrDetail[$key]['qty_delivery']  = str_replace(',', '', $value['qty_delivery']);
-      }
-
-      $this->db->trans_start();
-      $this->db->insert('spk_delivery', $ArrHeader);
-
-      if (!empty($ArrDetail)) {
-        $this->db->insert_batch('spk_delivery_detail', $ArrDetail);
-      }
-      $this->db->trans_complete();
-
-      if ($this->db->trans_status() === FALSE) {
-        $this->db->trans_rollback();
-        $Arr_Data  = array(
-          'pesan'    => 'Save gagal disimpan ...',
-          'status'  => 0
-        );
-      } else {
-        $this->db->trans_commit();
-        $Arr_Data  = array(
-          'pesan'    => 'Save berhasil disimpan. Thanks ...',
-          'status'  => 1
-        );
-        history("Create spk delivery : " . $no_delivery);
-      }
-      echo json_encode($Arr_Data);
-    } else {
-      $QUERY = "SELECT
-                    a.no_so,
-                    a.no_penawaran,
-                    c.nm_customer,
-                    a.project,
-                    a.delivery_date,
-                    a.invoice_address
-                  FROM
-                    tr_sales_order a
-                    LEFT JOIN tr_penawaran b ON a.no_penawaran = b.no_penawaran
-                    LEFT JOIN customer c ON b.id_customer = c.id_customer
-                  WHERE a.approve = '1' AND a.no_so = '" . $no_so . "' ";
-      $getData = $this->db->query($QUERY)->result_array();
-
-      $getDetail = $this->db
-        ->select('a.*, SUM(b.qty_delivery) AS qty_delivery')
-        ->group_by('a.id_so_detail')
-        ->join('spk_delivery_detail b', 'a.id_so_detail = b.id_so_det', 'left')
-        ->get_where('tr_sales_order_detail a', array('a.no_so' => $no_so))->result_array();
-
-      $data = [
-        'getData' => $getData,
-        'getDetail' => $getDetail
-      ];
-
-      $this->template->title('Add SPK Delivery');
-      $this->template->render('add', $data);
+    echo "<option value=''>-- Pilih --</option>";
+    foreach ($data as $so) {
+      echo "<option value='$so->no_so'>" . $so->no_so . " - " . date('d/m/Y', strtotime($so->tgl_so)) . "</option>";
     }
+  }
+
+  public function get_so_detail()
+  {
+    $no_so = $this->input->get('no_so', TRUE);
+    $data = $this->db->select('*')
+      ->from('sales_order_detail')
+      ->where('no_so', $no_so)
+      ->where('qty_spk', null)
+      ->get()
+      ->result();
+    echo json_encode($data);
+  }
+
+  public function save()
+  {
+    $data         = $this->input->post();
+    $session      = $this->session->userdata('app_session');
+
+    $id_customer        = $data['id_customer'];
+    $no_so              = $data['no_so'];
+    $delivery_date      = (!empty($data['delivery_date'])) ? date('Y-m-d', strtotime($data['delivery_date'])) : NULL;
+    $delivery_address   = $data['delivery_address'];
+    $detail             = $data['detail'];
+
+    $Ym             = date('ym');
+    $SQL            = "SELECT MAX(no_delivery) as maxP FROM spk_delivery WHERE no_delivery LIKE 'SPK" . $Ym . "%' ";
+    $result         = $this->db->query($SQL)->result_array();
+    $angkaUrut2     = $result[0]['maxP'];
+    $urutan2        = (int)substr($angkaUrut2, 7, 4);
+    $urutan2++;
+    $urut2          = sprintf('%04s', $urutan2);
+    $no_delivery    = "SPK" . $Ym . $urut2;
+    $pengiriman     = isset($detail[0]['pengiriman']) ? $detail[0]['pengiriman'] : null;
+
+
+    $ArrHeader = [
+      'no_delivery'       => $no_delivery,
+      'id_customer'       => $id_customer,
+      'no_so'             => $no_so,
+      'delivery_date'     => $delivery_date,
+      'delivery_address'  => $delivery_address,
+      'pengiriman'        => $pengiriman,
+      'created_by'        => $this->id_user,
+      'created_date'      => $this->datetime
+    ];
+
+    $ArrDetail = [];
+    $ArrSodet = [];
+    foreach ($detail as $key => $value) {
+      $qty_spk        = str_replace(',', '', $value['qty_spk']);
+      $qty_order      = str_replace(',', '', $value['qty_order']);
+
+      $ArrDetail[$key]['no_delivery']   = $no_delivery;
+      $ArrDetail[$key]['no_so']         = $no_so;
+      $ArrDetail[$key]['id_so_det']     = $value['id_so_det'];
+      $ArrDetail[$key]['id_product']    = $value['id_product'];
+      $ArrDetail[$key]['qty_so']        = $value['qty_order'];
+      $ArrDetail[$key]['qty_booking']   = $value['qty_booking'];
+      $ArrDetail[$key]['qty_spk']       = $qty_spk;
+      $ArrDetail[$key]['qty_belum_spk'] = $qty_order - $qty_spk;
+
+      $ArrSodet = [
+        'qty_spk'         => $qty_spk,
+        'qty_belum_spk'   => $qty_order - $qty_spk,
+      ];
+
+      $this->db->update('sales_order_detail', $ArrSodet, ['id' => $value['id_so_det']]);
+    }
+
+    $this->db->trans_start();
+    $this->db->insert('spk_delivery', $ArrHeader);
+
+    if (!empty($ArrDetail)) {
+      $this->db->insert_batch('spk_delivery_detail', $ArrDetail);
+    }
+    $this->db->trans_complete();
+
+    if ($this->db->trans_status() === FALSE) {
+      $this->db->trans_rollback();
+      $Arr_Data  = array(
+        'pesan'    => 'Save gagal disimpan ...',
+        'status'  => 0
+      );
+    } else {
+      $this->db->trans_commit();
+      $Arr_Data  = array(
+        'pesan'    => 'Save berhasil disimpan. Thanks ...',
+        'status'  => 1
+      );
+      history("Create spk delivery : " . $no_delivery);
+    }
+    echo json_encode($Arr_Data);
   }
 
   public function print_spk()
@@ -158,7 +185,7 @@ class Spk_delivery extends Admin_Controller
     $Nama_Beda    = $Split_Beda[$Jum_Beda - 2];
 
     $getData        = $this->db->get_where('spk_delivery', array('no_delivery' => $kode))->result_array();
-    $getDataDetail  = $this->db->select('a.*, b.no_bom')->join('tr_sales_order_detail b', 'a.id_so_det=b.id_so_detail')->get_where('spk_delivery_detail a', array('a.no_delivery' => $kode))->result_array();
+    $getDataDetail  = $this->db->select('a.*, b.no_bom')->join('sales_order_detail b', 'a.id_so_det=b.id')->get_where('spk_delivery_detail a', array('a.no_delivery' => $kode))->result_array();
 
     $data = array(
       'Nama_Beda' => $Nama_Beda,
@@ -172,19 +199,6 @@ class Spk_delivery extends Admin_Controller
     history('Print spk delivery ' . $kode);
     $this->load->view('print_spk', $data);
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   public function request_to_subgudang()
   {
@@ -277,4 +291,31 @@ class Spk_delivery extends Admin_Controller
   {
     $this->spk_delivery_model->data_side_spk_reprint();
   }
+
+  //TRASH
+
+  // $QUERY = "SELECT
+  //                 a.no_so,
+  //                 a.id_penawaran,
+  //                 c.name_customer,
+  //                 a.project,
+  //                 a.delivery_date,
+  //                 a.invoice_address
+  //               FROM
+  //                 sales_order a
+  //                 LEFT JOIN penawaran b ON a.id_penawaran = b.id_penawaran
+  //                 LEFT JOIN master_customers c ON b.id_customer = c.id_customer
+  //               WHERE a.status = 'A' AND a.no_so = '" . $no_so . "' ";
+  // $getData = $this->db->query($QUERY)->result_array();
+
+  // $getDetail = $this->db
+  //   ->select('a.*, SUM(b.qty_delivery) AS qty_delivery')
+  //   ->group_by('a.id')
+  //   ->join('spk_delivery_detail b', 'a.id = b.id_so_det', 'left')
+  //   ->get_where('sales_order_detail a', array('a.no_so' => $no_so))->result_array();
+
+  // $data = [
+  //   'getData' => $getData,
+  //   'getDetail' => $getDetail
+  // ];
 }

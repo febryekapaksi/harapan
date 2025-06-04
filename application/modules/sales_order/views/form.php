@@ -150,11 +150,11 @@
                                                 <select name="product[<?= $loop ?>][id_product]" class="form-control product-select select2" data-loop="<?= $loop ?>" disabled>
                                                     <option value="">-- Pilih Produk --</option>
                                                     <?php foreach ($products as $item): ?>
-                                                        <option value="<?= $item['id'] ?>"
+                                                        <option value="<?= $item['code_lv4'] ?>"
                                                             data-price="<?= $item['propose_price'] ?>"
                                                             data-product="<?= $item['product_name'] ?>"
                                                             data-code="<?= $item['code_lv4'] ?>"
-                                                            <?= $item['id'] == $dp['id_product'] ? 'selected' : '' ?>>
+                                                            <?= $item['code_lv4'] == $dp['id_product'] ? 'selected' : '' ?>>
                                                             <?= $item['product_name'] ?>
                                                         </option>
                                                     <?php endforeach; ?>
@@ -187,23 +187,23 @@
                                             <td hidden>
                                                 <input type="hidden" name="product[<?= $loop ?>][id_penawaran]" id="id_penawaran_<?= $loop ?>" value="<?= $sd['id_penawaran'] ?>">
                                                 <input type="hidden" name="product[<?= $loop ?>][product_name]" id="product_name_<?= $loop ?>" value="<?= $sd['product'] ?>">
+                                                <input type="hidden" name="product[<?= $loop ?>][harga_beli]" id="product_name_<?= $loop ?>" value="<?= $sd['harga_beli'] ?>">
                                             </td>
 
                                             <td>
                                                 <select name="product[<?= $loop ?>][id_product]" class="form-control product-select select2" data-loop="<?= $loop ?>" disabled>
                                                     <option value="">-- Pilih Produk --</option>
                                                     <?php foreach ($products as $item): ?>
-                                                        <option value="<?= $item['id'] ?>"
+                                                        <option value="<?= $item['code_lv4'] ?>"
                                                             data-price="<?= $item['propose_price'] ?>"
                                                             data-product="<?= $item['product_name'] ?>"
                                                             data-code="<?= $item['code_lv4'] ?>"
-                                                            <?= $item['id'] == $sd['id_product'] ? 'selected' : '' ?>>
+                                                            <?= $item['code_lv4'] == $sd['id_product'] ? 'selected' : '' ?>>
                                                             <?= $item['product_name'] ?>
                                                         </option>
                                                     <?php endforeach; ?>
                                                 </select>
                                                 <input type="hidden" name="product[<?= $loop ?>][id_product]" value="<?= $sd['id_product'] ?>">
-                                                <input type="hidden" name="product[<?= $loop ?>][harga_beli]" value="<?= $sd['harga_beli'] ?>">
                                             </td>
                                             <td hidden><input type="text" class="form-control" name="product[<?= $loop ?>][code_lv4]" id="code_lv4_<?= $loop ?>"></td>
                                             <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $sd['qty_order'] ?>" readonly></td>

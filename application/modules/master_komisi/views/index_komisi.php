@@ -4,6 +4,8 @@ $ENABLE_MANAGE  = has_permission('Master_Komisi.Manage');
 $ENABLE_VIEW    = has_permission('Master_Komisi.View');
 $ENABLE_DELETE  = has_permission('Master_Komisi.Delete');
 ?>
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
+
 <div class="box box-primary">
     <div class="box-header">
         <div class="row">
