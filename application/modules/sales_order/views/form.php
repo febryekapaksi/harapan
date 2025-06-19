@@ -305,7 +305,7 @@
         $('#total_so').val(grandTotal);
 
         // SAVE SO
-        $('#save').click(function(e) {
+        $('#data-form').submit(function(e) {
             e.preventDefault();
             var tgl_so = $('#tgl_so').val()
 

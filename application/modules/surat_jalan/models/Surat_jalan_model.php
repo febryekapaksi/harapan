@@ -33,6 +33,7 @@ class Surat_jalan_model extends BF_Model
 
         foreach ($query->result_array() as $row) {
             $nestedData = [];
+            $status = '';
 
             // $viewBtn  = "<a href='javascript:void(0);' data-id='" . $row['no_surat_jalan'] . "' class='btn btn-sm btn-info view-sj'><i class='fa fa-eye'></i></a>";
             // $editBtn  = "<a href='" . site_url('surat_jalan/edit/' . $row['id']) . "' class='btn btn-sm btn-warning'><i class='fa fa-edit'></i></a>";
@@ -41,11 +42,20 @@ class Surat_jalan_model extends BF_Model
 
             $action =  ($row['status'] == 'CONFIRM') ? $printBtn : $printBtn . ' ' . $confimDo;
 
+            if ($row['status'] == 'ON DELIVER') {
+                $status = " <span class='badge bg-yellow'>ON DELIVERY</span>";
+            } else if ($row['status'] == 'CONFIRM') {
+                $status = " <span class='badge bg-green'>CONFIRM DELIVERY</span>";
+            } else {
+                $status = " <span class='badge bg-gray'>RETUR</span>";
+            }
+
+
             $nestedData[] = "<div class='text-center'>{$urut}</div>";
             $nestedData[] = "<div class='text-center'>" . strtoupper($row['no_surat_jalan']) . "</div>";
             $nestedData[] = "<div>" . strtoupper($row['name_customer']) . "</div>";
             $nestedData[] = "<div class='text-center'>" . date('d/M/Y', strtotime($row['delivery_date'])) . "</div>";
-            $nestedData[] = "<div class='text-center'><span class='badge badge-primary'>" . strtoupper($row['status']) . "</span></div>";
+            $nestedData[] = "<div class='text-center'>" . $status . "</div>";
             $nestedData[] = "<div class='text-center'>" . $action . "</div>";
 
             $data[] = $nestedData;

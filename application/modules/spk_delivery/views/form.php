@@ -74,7 +74,7 @@
             </div>
             <div class="form-group row">
                 <div class="col-md-12 text-center">
-                    <button type="button" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
+                    <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
                     <a class="btn btn-default" onclick="window.history.back(); return false;">
                         <i class="fa fa-reply"></i> Batal
                     </a>
@@ -207,7 +207,7 @@
                                 <td class='text-center'>${data.use_qty_free ?? 0}</td>
                                 <td class='text-center'>${data.qty_belum_spk ?? 0}</td>
                                 <td class='text-center'>
-                                    <input type='text' name='detail[${i}][qty_spk]' class='form-control input-sm text-center'>
+                                    <input type='text' name='detail[${i}][qty_spk]' class='form-control input-sm text-center' required>
                                 </td>
                                 <td hidden>
                                     <input type='hidden' name='detail[${i}][id_product]' value='${data.id_product}'>
@@ -227,8 +227,21 @@
         });
 
         // button save
-        $('#save').click(function(e) {
+        $('#data-form').submit(function(e) {
             e.preventDefault();
+
+            var tanggal_spk = $('#tanggal_spk').val()
+
+            if (tanggal_spk == '') {
+                swal({
+                    title: "Error Message!",
+                    text: 'Data not complete, completely first ...',
+                    type: "warning"
+                });
+
+                $('#save').prop('disabled', false);
+                return false;
+            }
 
             swal({
                     title: "Are you sure?",

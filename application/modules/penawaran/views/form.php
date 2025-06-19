@@ -610,7 +610,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
         });
 
         // SAVE PENAWARAN
-        $('#save').click(function(e) {
+        $('#data-form').submit(function(e) {
             e.preventDefault();
             const requiredFields = [{
                     id: '#id_customer',

@@ -11,7 +11,7 @@
                                 <label>Pengiriman</label>
                             </div>
                             <div class="col-md-8">
-                                <select name="pengiriman" id="pengiriman" class="form-control select2">
+                                <select name="pengiriman" id="pengiriman" class="form-control select">
                                     <option value="">-- Pilih --</option>
                                     <option value="Gudang" <?= (isset($loading['pengiriman']) && $loading['pengiriman'] == "Gudang") ? 'selected' : '' ?>>Gudang SBF/NBO</option>
                                     <option value="Pabrik" <?= (isset($loading['pengiriman']) && $loading['pengiriman'] == "Pabrik") ? 'selected' : '' ?>>Pabrik</option>
@@ -26,7 +26,7 @@
                                 <label>Kendaraan</label>
                             </div>
                             <div class="col-md-8">
-                                <select name="kendaraan" id="selectKendaraan" class="form-control select2">
+                                <select name="kendaraan" id="selectKendaraan" class="form-control select">
                                     <option value="">-- Pilih --</option>
                                     <?php foreach ($kendaraan as $item): ?>
                                         <option data-kapasitas="<?= $item->kapasitas ?>" value="<?= $item->nopol ?>"
@@ -145,7 +145,7 @@
                 </div>
                 <div class="form-group row">
                     <div class="col-md-12 text-center">
-                        <button type="button" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
+                        <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
                         <a class="btn btn-default" onclick="window.history.back(); return false;">
                             <i class="fa fa-reply"></i> Batal
                         </a>
@@ -193,6 +193,10 @@
     $(document).ready(function() {
         let selectedIds = [];
         hitungTotalBerat();
+
+        $('.select').select2({
+            width: '100%'
+        });
 
         // Tombol Pilih SPK
         $('#selectSpk').on('click', function() {
@@ -425,7 +429,7 @@
         });
 
         // button save
-        $('#save').click(function(e) {
+        $('#data-form').submit(function(e) {
             e.preventDefault();
 
             swal({
