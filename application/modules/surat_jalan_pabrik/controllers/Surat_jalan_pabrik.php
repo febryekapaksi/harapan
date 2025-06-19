@@ -210,4 +210,182 @@ class Surat_jalan_pabrik extends Admin_Controller
 
         echo json_encode($res);
     }
+
+    public function confirm_sj($id)
+    {
+        $sj = $this->db
+            ->select('sj.*, so.nama_sales, ld.nopol, p.id_penawaran, c.name_customer')
+            ->from('surat_jalan sj')
+            ->join('loading_delivery ld', 'sj.no_loading = ld.no_loading', 'left')
+            ->join('sales_order so', 'sj.no_so = so.no_so', 'left')
+            ->join('penawaran p', 'so.id_penawaran = p.id_penawaran')
+            ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
+            ->where('sj.id', $id)
+            ->get()
+            ->row_array();
+
+        if (!$sj) {
+            show_404();
+        }
+
+        $detail = $this->db
+            ->select('
+            d.*,
+            s.code,
+            sdd.qty_so, sdd.qty_spk
+        ')
+            ->from('surat_jalan_detail d')
+            ->join('spk_delivery_detail sdd', 'd.id_so_det = sdd.id_so_det', 'left')
+            ->join('new_inventory_4 inv', 'd.id_product = inv.code_lv4', 'left')
+            ->join('ms_satuan s', 'inv.id_unit = s.id', 'left')
+            ->where('d.id_sj', $id)
+            ->group_by('d.id')
+            ->get()
+            ->result_array();
+
+        $data = [
+            'sj' => $sj,
+            'detail' => $detail,
+        ];
+
+        $this->template->page_icon('fa fa-check');
+        $this->template->title('Confirm Delivery');
+        $this->template->render('confirm', $data);
+    }
+
+    public function confirm()
+    {
+        $post = $this->input->post();
+        $detail = $post['detail'];
+
+        $id_sj = $post['id'];
+        $tgl_diterima = $post['tgl_diterima'];
+        $penerima = $post['penerima'];
+        $no_surat_jalan = $post['no_surat_jalan'];
+        $sanitized_sj = str_replace(['/', '\\'], '_', $no_surat_jalan);
+
+        // Inisialisasi
+        $status = 'CONFIRM';
+
+        $ArrUpdate = [
+            'tgl_diterima' => $tgl_diterima,
+            'penerima'     => $penerima,
+            'updated_by'   => $this->auth->user_id(),
+            'updated_at'   => date('Y-m-d H:i:s'),
+        ];
+
+        //untuk dokumen
+        if (!empty($_FILES['file_dokumen']['name'])) {
+            $config['upload_path']   = './assets/confirm_sj/';
+            $config['allowed_types'] = '*';
+            $config['max_size']      = 2048;
+            $config['file_name']     = 'bukti_confirm_sj_pabrik_' . $sanitized_sj;
+
+            // $this->load->library('upload', $config);
+            $this->upload->initialize($config);
+
+            if (!$this->upload->do_upload('file_dokumen')) {
+                $res = ['status' => 0, 'pesan' => $this->upload->display_errors()];
+                echo json_encode($res);
+                return;
+            } else {
+                $uploadData = $this->upload->data();
+                $filename = $uploadData['file_name'];
+
+                // Tambahkan ke $ArrUpdate
+                $ArrUpdate['file_dokumen'] = $filename;
+            }
+        }
+
+        // Logika penentuan status berdasarkan detail
+        $ArrDetail = [];
+        foreach ($detail as $key => $value) {
+            $qty_delivery = (int) $value['qty_delivery'];
+            $qty_terkirim = (int) $value['qty_terkirim'];
+            $qty_retur    = (int) $value['qty_retur'];
+            $qty_hilang   = (int) $value['qty_hilang'];
+            $id_detail    = $value['id_detail'];
+            $total        = $qty_terkirim + $qty_retur + $qty_hilang;
+
+            $ArrDetail[$key] = [
+                'id_product'    => $value['id_product'],
+                'id_so_det'     => $value['id_so_det'],
+                'qty_terkirim'  => $qty_terkirim,
+                'qty_retur'     => $qty_retur,
+                'qty_hilang'    => $qty_hilang
+            ];
+
+            if ($qty_retur > 0 || $total !== $qty_delivery) {
+                $status = 'RETUR';
+            }
+        }
+
+        $ArrUpdate['status'] = $status;
+
+        // Simpan ke database
+        $this->db->trans_start();
+
+        $this->db->update('surat_jalan', $ArrUpdate, ['id' => $id_sj]);
+
+        foreach ($ArrDetail as $row) {
+            $this->db->update('surat_jalan_detail', [
+                'qty_terkirim' => $row['qty_terkirim'],
+                'qty_retur'    => $row['qty_retur'],
+                'qty_hilang'   => $row['qty_hilang'],
+            ], [
+                'id'      => $id_detail,
+            ]);
+        }
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $res = ['status' => 0, 'pesan' => 'Gagal menyimpan konfirmasi.'];
+        } else {
+            $this->db->trans_commit();
+            $res = ['status' => 1, 'pesan' => 'Konfirmasi berhasil disimpan.'];
+            history("Confirm Surat Jalan : ID #{$id_sj} Status: {$status}");
+        }
+
+        echo json_encode($res);
+    }
+
+    public function print_sj($id)
+    {
+        // Ambil data header surat jalan + join ke sales_order dan master_customers
+        $sj = $this->db
+            ->select('sj.*, so.nama_sales, ld.nopol, c.name_customer')
+            ->from('surat_jalan sj')
+            ->join('loading_delivery ld', 'sj.no_loading = ld.no_loading', 'left')
+            ->join('sales_order so', 'sj.no_so = so.no_so', 'left')
+            ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
+            ->where('sj.id', $id)
+            ->get()
+            ->row_array();
+
+        if (!$sj) {
+            show_404();
+        }
+
+
+        // Ambil data detail + join ke inventory dan satuan
+        $detail = $this->db
+            ->select('
+            d.*,
+            s.code,
+        ')
+            ->from('surat_jalan_detail d')
+            ->join('new_inventory_4 inv', 'd.id_product = inv.code_lv4', 'left')
+            ->join('ms_satuan s', 'inv.id_unit = s.id', 'left')
+            ->where('d.id_sj', $id)
+            ->get()
+            ->result_array();
+
+        $data = [
+            'sj' => $sj,
+            'detail' => $detail,
+        ];
+
+        $this->load->view('print_sj', $data);
+    }
 }

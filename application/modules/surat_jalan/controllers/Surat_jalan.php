@@ -271,7 +271,7 @@ class Surat_jalan extends Admin_Controller
             $config['upload_path']   = './assets/confirm_sj/';
             $config['allowed_types'] = '*';
             $config['max_size']      = 2048;
-            $config['file_name']     = 'bukti_confirm_sj_' . $sanitized_sj;
+            $config['file_name']     = 'bukti_confirm_sj_gudang_' . $sanitized_sj;
 
             // $this->load->library('upload', $config);
             $this->upload->initialize($config);

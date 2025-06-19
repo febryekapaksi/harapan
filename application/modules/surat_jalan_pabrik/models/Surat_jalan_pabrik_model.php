@@ -37,8 +37,8 @@ class Surat_jalan_pabrik_model extends BF_Model
 
             // $viewBtn  = "<a href='javascript:void(0);' data-id='" . $row['no_surat_jalan'] . "' class='btn btn-sm btn-info view-sj'><i class='fa fa-eye'></i></a>";
             // $editBtn  = "<a href='" . site_url('surat_jalan/edit/' . $row['id']) . "' class='btn btn-sm btn-warning'><i class='fa fa-edit'></i></a>";
-            $printBtn = "<a href='" . site_url('surat_jalan/print_sj/' . $row['id']) . "' target='_blank' class='btn btn-sm btn-warning'><i class='fa fa-print'></i></a>";
-            $confimDo = "<a href='" . site_url('surat_jalan/confirm_sj/' . $row['id']) . "' class='btn btn-sm btn-info' title='Confirm Delivery'><i class='fa fa-check'></i></a>";
+            $printBtn = "<a href='" . site_url('surat_jalan_pabrik/print_sj/' . $row['id']) . "' target='_blank' class='btn btn-sm btn-warning'><i class='fa fa-print'></i></a>";
+            $confimDo = "<a href='" . site_url('surat_jalan_pabrik/confirm_sj/' . $row['id']) . "' class='btn btn-sm btn-info' title='Confirm Delivery'><i class='fa fa-check'></i></a>";
 
             $action =  ($row['status'] == 'CONFIRM') ? $printBtn : $printBtn . ' ' . $confimDo;
 
