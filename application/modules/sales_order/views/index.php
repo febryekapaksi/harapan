@@ -23,15 +23,16 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 				<thead class="bg-blue">
 					<tr>
 						<th class="text-center"> #</th>
-						<th class="text-center">Quotation No.</th>
 						<th class="text-center">SO No.</th>
+						<th class="text-center">Quotation No.</th>
 						<th class="text-center" width="30%">Customer</th>
 						<th class="text-center">Marketing</th>
 						<th class="text-center">Nilai Penawaran</th>
 						<th class="text-center">Nilai SO</th>
 						<th class="text-center">Rev</th>
-						<th class="text-center">Status</th>
-						<th class="text-center">Action</th>
+						<th class="text-center">Tipe Quot</th>
+						<th class="text-center" style="min-width: 150px;">Status</th>
+						<th class="text-center" style="min-width: 100px;">Action</th>
 					</tr>
 				</thead>
 				<tbody></tbody>
@@ -62,7 +63,7 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 
 <!-- page script -->
 <script type="text/javascript">
-	$(function() {
+	$(document).ready(function() {
 		$('.select2').select2({
 			width: '100%'
 		});
@@ -74,6 +75,80 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 
 		var status = $('#status').val()
 		DataTables(status);
+
+		$(document).on('click', '.deal-so', function(e) {
+			e.preventDefault();
+
+			var no_so = $(this).data('no');
+			var actionUrl = base_url + active_controller + '/deal_so';
+
+			swal({
+				title: "Are you sure?",
+				text: "You will not be able to process this data again!",
+				type: "warning",
+				showCancelButton: true,
+				confirmButtonClass: "btn-danger",
+				confirmButtonText: "Yes, Process it!",
+				cancelButtonText: "No, cancel process!",
+				closeOnConfirm: true,
+				closeOnCancel: false
+			}, function(isConfirm) {
+				if (isConfirm) {
+					var payload = {
+						no_so: no_so
+					};
+
+
+					$.ajax({
+						url: actionUrl,
+						type: "POST",
+						data: payload,
+						cache: false,
+						dataType: 'json',
+						success: function(data) {
+							if (data.status == 1) {
+								swal({
+									title: "Save Success!",
+									text: data.pesan,
+									type: "success",
+									timer: 3000,
+									showCancelButton: false,
+									showConfirmButton: false,
+									allowOutsideClick: false
+								});
+								setTimeout(() => {
+									window.location.reload();
+								}, 3000);
+							} else {
+								swal({
+									title: "Save Failed!",
+									text: data.pesan,
+									type: "warning",
+									timer: 3000,
+									showCancelButton: false,
+									showConfirmButton: false,
+									allowOutsideClick: false
+								});
+							}
+						},
+						error: function() {
+							swal({
+								title: "Error Message!",
+								text: 'An Error Occurred During Process. Please try again.',
+								type: "warning",
+								timer: 7000,
+								showCancelButton: false,
+								showConfirmButton: false,
+								allowOutsideClick: false
+							});
+						}
+					});
+				} else {
+					swal("Cancelled", "Data can be processed again :)", "error");
+				}
+			});
+		});
+
 	});
 
 	function DataTables(status = null) {
@@ -98,7 +173,7 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 				[10, 20, 50, 100, 150]
 			],
 			"ajax": {
-				url: base_url + active_controller + 'data_side_penawaran',
+				url: base_url + active_controller + 'data_side_sales_order',
 				type: "post",
 				data: function(d) {
 					d.status = status

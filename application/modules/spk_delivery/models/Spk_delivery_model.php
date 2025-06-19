@@ -50,7 +50,7 @@ class Spk_delivery_model extends BF_Model
       $nestedData[]  = "<div align='center'>" . strtoupper($row['no_so']) . "</div>";
       $nestedData[]  = "<div align='left'>" . strtoupper($row['name_customer']) . "</div>";
       $nestedData[]  = "<div align='center'>" . strtoupper($row['pengiriman']) . "</div>";
-      $nestedData[]  = "<div align='center'>" . date('d F Y', strtotime($row['delivery_date'])) . "</div>";
+      $nestedData[]  = "<div align='center'>" . date('d/M/Y', strtotime($row['tanggal_spk'])) . "</div>";
 
       // $close_by = (!empty($GET_USER[$row['created_by']]['nama'])) ? $GET_USER[$row['created_by']]['nama'] : '';
       // $close_date = (!empty($row['created_date'])) ? date('d-M-Y H:i', strtotime($row['created_date'])) : '';
@@ -80,7 +80,10 @@ class Spk_delivery_model extends BF_Model
         }
       }
 
+      $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
+
       $nestedData[]  = "<div align='center'><span class='badge bg-" . $warna . "'>" . $status . "</span></div>";
+      $nestedData[]  = "<div align='center'>" . $action . "</div>";
 
       $release = "";
       $print = "";
@@ -139,11 +142,11 @@ class Spk_delivery_model extends BF_Model
           a.no_so,
           b.id_penawaran,
           c.name_customer,
-          a.delivery_date,
+          a.tanggal_spk,
           a.delivery_address,
           a.status,
           a.upload_spk,
-          e.pengiriman,
+          a.pengiriman,
           e.qty_delivery,
           a.created_by,
           a.created_date

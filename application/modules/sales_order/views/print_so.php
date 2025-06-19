@@ -117,17 +117,16 @@ $ENABLE_DELETE  = has_permission('Sales_Order.Delete');
     <!-- Header dan Judul -->
     <div style="display: flex;">
         <div style="width: 60%;">
-            <strong>PT. NUSA BANGUN OETAMA</strong><br>
-            JALAN DAAN MOGOT KM.11 NO.45<br>
-            KEDAUNG KALI ANGKE CENGKARENG<br>
-            JAKARTA BARAT
+            <strong>PT Surya Bangun Fajar</strong><br>
+            Jl. Kalijaga No.35 Kel. Pegambiran Kec. Lemahwungkuk<br>
+            Kota Cirebon Jawa Barat 45113<br>
+            Indonesia
         </div>
         <div class="text-right" style="width: 40%;">
-            <h2>Sales Order</h2>
+            <h2>SALES ORDER</h2>
         </div>
     </div>
-
-    <br>
+    <hr>
     <!-- Keterangan customer, tanggal, dan nomor penawaran -->
     <div style="display: flex;">
         <div style="width: 50%;">

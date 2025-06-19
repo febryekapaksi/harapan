@@ -9,7 +9,7 @@
 <div class="box box-primary">
     <div class="box-header">
         <span class="pull-left">
-            <a href="<?= site_url('penawaran/add') ?>" class='btn btn-primary'><i class="fa fa-plus"></i>&emsp;Penawaran</a>
+            <a href="<?= site_url('penawaran_dropship/add') ?>" class='btn btn-primary'><i class="fa fa-plus"></i>&emsp;Penawaran</a>
         </span>
     </div>
     <!-- /.box-header -->

@@ -56,7 +56,7 @@
                             </div>
                             <div class="col-md-8">
                                 <input type="date" class="form-control" name="tgl_so" id="tgl_so"
-                                    value="<?= isset($so['tgl_so']) ? date('Y-m-d', strtotime($so['tgl_so'])) : '' ?>" required>
+                                    value="<?= isset($so['tgl_so']) ? date('Y-m-d', strtotime($so['tgl_so'])) : '' ?>" <?= (isset($mode) && $mode == 'deal') ? 'readonly' : '' ?> required>
                             </div>
                         </div>
 
@@ -172,7 +172,7 @@
                                             <td>
                                                 <select name="product[<?= $loop ?>][pengiriman]" id="pengiriman_<?= $loop ?>" class="form-control select2" required>
                                                     <option value="">-- Pilih --</option>
-                                                    <option value="Dropship">Dropship</option>
+                                                    <option value="Pabrik" <?= (isset($penawaran['tipe_penawaran']) && $penawaran['tipe_penawaran'] == 'Dropship') ? 'selected' : '' ?>>Pabrik</option>
                                                     <option value="Gudang">Gudang SBF/NBO</option>
                                                 </select>
                                             </td>
@@ -209,14 +209,14 @@
                                             <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $sd['qty_order'] ?>" readonly></td>
                                             <td><input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $sd['product_price'] ?>" readonly></td>
                                             <td><input type="text" class="form-control" name="product[<?= $loop ?>][qty_free]" id="qty_free_<?= $loop ?>" readonly></td>
-                                            <td><input type="number" class="form-control" name="product[<?= $loop ?>][use_qty_free]" id="use_qty_free_<?= $loop ?>" value="<?= $sd['use_qty_free'] ?>"></td>
+                                            <td><input type="number" class="form-control" name="product[<?= $loop ?>][use_qty_free]" id="use_qty_free_<?= $loop ?>" value="<?= $sd['use_qty_free'] ?>" <?= (isset($mode) && $mode == 'deal') ? 'readonly' : '' ?>></td>
                                             <td><input type="text" class="form-control" name="product[<?= $loop ?>][selisih]" id="selisih_<?= $loop ?>" value="<?= $sd['qty_propose'] ?>" readonly></td>
-                                            <td><input type="number" class="form-control" name="product[<?= $loop ?>][pr]" id="pr_<?= $loop ?>" value="<?= $sd['qty_propose'] ?>"></td>
+                                            <td><input type="number" class="form-control" name="product[<?= $loop ?>][pr]" id="pr_<?= $loop ?>" value="<?= $sd['qty_propose'] ?>" <?= (isset($mode) && $mode == 'deal') ? 'readonly' : '' ?>></td>
                                             <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $sd['diskon_persen'] ?>" readonly></td>
                                             <td>
-                                                <select name="product[<?= $loop ?>][pengiriman]" id="pengiriman_<?= $loop ?>" class="form-control select2" required>
+                                                <select name="product[<?= $loop ?>][pengiriman]" id="pengiriman_<?= $loop ?>" class="form-control select2" <?= (isset($mode) && $mode == 'deal') ? 'disabled' : '' ?> required>
                                                     <option value="">-- Pilih --</option>
-                                                    <option value="Dropship" <?= ($sd['pengiriman'] == 'Dropship') ? 'selected' : '' ?>>Dropship</option>
+                                                    <option value="Pabrik" <?= ($sd['pengiriman'] == 'Pabrik') ? 'selected' : '' ?>>Pabrik</option>
                                                     <option value="Gudang" <?= ($sd['pengiriman'] == 'Gudang') ? 'selected' : '' ?>>Gudang SBF/NBO</option>
                                                 </select>
                                             </td>
@@ -267,83 +267,21 @@
                     </div>
                 </div>
             </div>
-
-            <!-- BUAT STATUS OVERLIMIT -->
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="">Due Date Credit</label>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="date" class="form-control" name="due_date_credit" id="due_date_credit"
-                                    value="<?= isset($so['due_date_credit']) ? date('Y-m-d', strtotime($so['due_date_credit'])) : '' ?>">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="">Credit Limit</label>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" class="form-control moneyFormat" name="credit_limit" id="credit_limit"
-                                    value="<?= isset($so['credit_limit']) ? $so['credit_limit'] : '' ?>">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="">Outstanding</label>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" class="form-control moneyFormat" name="outstanding" id="outstanding"
-                                    value="<?= isset($so['outstanding']) ? $so['outstanding'] : '' ?>">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="">Total SO</label>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" class="form-control moneyFormat" name="total_so" id="total_so"
-                                    <?= isset($so['grand_total']) ? $so['grand_total'] : '' ?>>
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="">Over Limit</label>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" class="form-control moneyFormat" name="over_limit" id="over_limit"
-                                    value="<?= isset($so['over_limit']) ? $so['over_limit'] : '' ?>">
-                            </div>
-                        </div>
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="">Status Credit Limit</label>
-                            </div>
-                            <div class="col-md-8">
-                                <label id="status_credit_limit" class="form-control <?= (isset($so['status_credit_limit']) && $so['status_credit_limit'] == 'Overlimit') ? "text-red" : "text-green" ?>" style="border: none; padding-top: 7px;"><?= isset($so['status_credit_limit']) ? $so['status_credit_limit'] : '' ?></label>
-                                <input type="hidden" name="status_credit_limit">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <hr>
 
             <div class="form-group row">
                 <div class="col-md-12 text-center">
-                    <?php if (isset($mode) && $mode == 'edit') : ?>
+                    <?php if (isset($mode) && $mode == 'deal') : ?>
                         <button type="submit" class="btn btn-success" name="deal" id="deal">
                             <i class="fa fa-check"></i> Deal SO
                         </button>
                     <?php endif; ?>
 
-                    <button type="submit" class="btn btn-primary" name="save" id="save">
-                        <i class="fa fa-save"></i> Save
-                    </button>
+                    <?php if (isset($mode) && $mode == 'edit' || isset($mode) && $mode == 'add') : ?>
+                        <button type="submit" class="btn btn-success" name="save" id="save">
+                            <i class="fa fa-check"></i> Deal SO
+                        </button>
+                    <?php endif; ?>
 
                     <a class="btn btn-default" onclick="window.history.back(); return false;">
                         <i class="fa fa-reply"></i> Batal
@@ -416,7 +354,11 @@
                                         showConfirmButton: false,
                                         allowOutsideClick: false
                                     });
-                                    window.location.href = base_url + active_controller;
+                                    setTimeout(() => {
+                                        // Arahkan ke controller yang generate link WhatsApp
+                                        window.open(`${base_url + active_controller}send_wa_so/${data.no_so}`, '_blank');
+                                        window.location.href = base_url + active_controller;
+                                    }, 1000);
                                 } else {
                                     if (data.status == 2) {
                                         swal({

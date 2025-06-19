@@ -16,7 +16,8 @@
                         <th>Nopol Kendaraan</th>
                         <th>Pengiriman</th>
                         <th>Muatan</th>
-                        <th></th>
+                        <th>Tanggal Muat</th>
+                        <th>Option</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -26,34 +27,48 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="modalLoading" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="modalViewLoading" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title" id="myModalLabel"><span class="fa fa-archive"></span>&nbsp;Detail Muatan Kendaraan | <button class="btn btn-sm btn-primary float-right ml-2" id="printDetailLoading"><i class="fa fa-print"></i> Cetak</button></h4>
-
+            <div class="modal-header bg-primary">
+                <button type="button" class="close text-white" data-dismiss="modal"><i class="fa fa-times"></i></button>
+                <h4 class="modal-title"><b>Detail Loading</b></h4>
             </div>
-            <div id="print-area-loading">
-                <div class="modal-body">
-                    <table class="table table-bordered" id="tabelModal" style="width: 100%;">
-                        <thead>
-                            <tr>
-                                <th>No SPK</th>
-                                <th>No SO</th>
-                                <th>Customer</th>
-                                <th>Produk</th>
-                                <th>Qty</th>
-                                <th>Berat (Kg)</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
+            <div class="modal-body">
+                <table class="table table-bordered mb-3">
+                    <tr>
+                        <th>Pengiriman</th>
+                        <td id="view-pengiriman"></td>
+                        <th>Kendaraan</th>
+                        <td id="view-kendaraan"></td>
+                    </tr>
+                    <tr>
+                        <th>Tanggal Muat</th>
+                        <td id="view-tgl-muat"></td>
+                        <th>Total Berat</th>
+                        <td id="view-total-berat"></td>
+                    </tr>
+                </table>
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr class="bg-light">
+                            <th>No SPK</th>
+                            <th>No SO</th>
+                            <th>Customer</th>
+                            <th>Produk</th>
+                            <th>Qty</th>
+                            <th>Berat (Kg)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="view-detail-body">
+                        <!-- diisi via JS -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
+
 
 <!-- DataTables -->
 <script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
@@ -64,33 +79,67 @@
         DataTables()
 
         $(document).on('click', '.view-loading', function() {
-            const no_loading = $(this).data('id');
+            const id = $(this).data('id');
 
             $.ajax({
-                url: siteurl + 'loading/get_detail_loading',
+                url: siteurl + 'loading/get_view',
                 type: 'GET',
                 data: {
-                    no_loading
+                    no_loading: id
                 },
                 success: function(res) {
                     const data = JSON.parse(res);
-                    let html = '';
 
-                    data.forEach((item) => {
-                        html += `
-                    <tr>
-                        <td>${item.no_delivery}</td>
-                        <td>${item.no_so}</td>
-                        <td>${item.customer}</td>
-                        <td>${item.product}</td>
-                        <td class="text-center">${item.qty_spk}</td>
-                        <td class="text-right">${parseFloat(item.jumlah_berat).toFixed(2)}</td>
-                    </tr>
-                `;
+                    // Header Info
+                    $('#view-pengiriman').text(data.header.pengiriman);
+                    $('#view-kendaraan').text(data.header.nopol);
+                    $('#view-tgl-muat').text(data.header.tanggal_muat);
+                    $('#view-total-berat').text(parseFloat(data.header.total_berat).toFixed(2));
+
+                    // Grouping Detail by No SPK
+                    const grouped = {};
+                    data.detail.forEach(row => {
+                        if (!grouped[row.no_delivery]) {
+                            grouped[row.no_delivery] = {
+                                customer: row.customer,
+                                items: []
+                            };
+                        }
+                        grouped[row.no_delivery].items.push(row);
                     });
 
-                    $('#modalLoading').modal('show');
-                    $('#tabelModal tbody').html(html);
+                    // Generate HTML
+                    let html = '';
+                    Object.keys(grouped).forEach(no_spk => {
+                        const group = grouped[no_spk];
+
+                        // Header SPK
+                        html += `
+                            <tr style='background-color:#f0f0f0; font-weight:bold;'>
+                                <td colspan="6">No SPK : ${no_spk} - ${group.customer}</td>
+                            </tr>
+                            `;
+
+                        // Produk per SPK
+                        group.items.forEach(item => {
+                            html += `
+                                <tr>
+                                <td>${item.no_delivery}</td>
+                                <td>${item.no_so}</td>
+                                <td>${item.customer}</td>
+                                <td>${item.product}</td>
+                                <td>${item.qty_spk}</td>
+                                <td>${parseFloat(item.jumlah_berat).toFixed(2)}</td>
+                                </tr>
+                            `;
+                        });
+                    });
+
+                    $('#view-detail-body').html(html);
+                    $('#modalViewLoading').modal('show');
+                },
+                error: function() {
+                    swal("Error", "Gagal mengambil data detail.", "error");
                 }
             });
         });

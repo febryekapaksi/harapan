@@ -1,22 +1,21 @@
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
-
 <div class="box box-primary">
-    <div class="box-header">
-        <a class="btn btn-primary" style='float:left;' href="<?= base_url('surat_jalan/add') ?>"><i class="fa fa-plus"></i>&emsp;Surat Jalan</a>
-    </div>
     <div class="box-body">
-        <table id="tableSj" class="table table-bordered table-striped" width='100%'>
-            <thead>
+        <table id="tableLoss" class="table table-bordered" width=100%>
+            <thead class="bg-blue">
                 <tr>
-                    <th class='text-center'>#</th>
-                    <th class='text-center'>No Surat Jalan</th>
-                    <th class='text-center'>Customer</th>
-                    <th class='text-center'>Tanggal Kirim</th>
-                    <th class='text-center no-sort'>Status</th>
-                    <th class='text-center no-sort'>Option</th>
+                    <th>#</th>
+                    <th>No. Penawaran</th>
+                    <th>Customer</th>
+                    <th>Sales</th>
+                    <th>Nilai Penawaran</th>
+                    <th>Tanggal Penawaran</th>
+                    <th>Status</th>
+                    <th>Option</th>
                 </tr>
             </thead>
-            <tbody></tbody>
+            <tbody>
+            </tbody>
         </table>
     </div>
 </div>
@@ -31,16 +30,15 @@
     });
 
     function DataTables() {
-        var dataTable = $('#tableSj').DataTable({
+        var dataTable = $('#tableLoss').DataTable({
             "processing": true,
             "serverSide": true,
             "stateSave": true,
             "autoWidth": false,
             "destroy": true,
-            "searching": true,
             "responsive": true,
             "aaSorting": [
-                [1, "desc"]
+                [1, "asc"]
             ],
             "columnDefs": [{
                 "targets": 'no-sort',
@@ -53,11 +51,11 @@
                 [10, 20, 50, 100, 150]
             ],
             "ajax": {
-                url: siteurl + active_controller + 'data_side_surat_jalan',
+                url: base_url + active_controller + 'data_side_loss_penawaran',
                 type: "post",
-                // data: function(d) {
-                //     d.sales_order = sales_order
-                // },
+                data: function(d) {
+                    d.status = status
+                },
                 cache: false,
                 error: function() {
                     $(".my-grid-error").html("");

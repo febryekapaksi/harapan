@@ -1,6 +1,7 @@
 <div class="box box-primary">
     <div class="box-body">
         <form method="post" id="data-form">
+            <input type="hidden" name="id_loading" value="<?= isset($loading['no_loading']) ? $loading['no_loading'] : '' ?>">
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-6">
@@ -12,8 +13,8 @@
                             <div class="col-md-8">
                                 <select name="pengiriman" id="pengiriman" class="form-control select2">
                                     <option value="">-- Pilih --</option>
-                                    <option value="Gudang">Gudang SBF/NBO</option>
-                                    <option value="Dropship">Dropship</option>
+                                    <option value="Gudang" <?= (isset($loading['pengiriman']) && $loading['pengiriman'] == "Gudang") ? 'selected' : '' ?>>Gudang SBF/NBO</option>
+                                    <option value="Pabrik" <?= (isset($loading['pengiriman']) && $loading['pengiriman'] == "Pabrik") ? 'selected' : '' ?>>Pabrik</option>
                                 </select>
                             </div>
                         </div>
@@ -28,9 +29,20 @@
                                 <select name="kendaraan" id="selectKendaraan" class="form-control select2">
                                     <option value="">-- Pilih --</option>
                                     <?php foreach ($kendaraan as $item): ?>
-                                        <option data-kapasitas="<?= $item->kapasitas ?>" value="<?= $item->nopol ?>"><?= $item->jenis . ' - ' . $item->nopol ?></option>
+                                        <option data-kapasitas="<?= $item->kapasitas ?>" value="<?= $item->nopol ?>"
+                                            <?= (isset($loading['nopol']) == $item->nopol) ? 'selected' : '' ?>><?= $item->jenis . ' - ' . $item->nopol ?></option>
                                     <?php endforeach; ?>
                                 </select>
+                            </div>
+                        </div>
+
+                        <!-- Tanggal Muat -->
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label>Tanggal Muat</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="date" name="tanggal_muat" id="tanggal_muat" class="form-control" value="<?= isset($loading['tanggal_muat']) ? date('Y-m-d', strtotime($loading['tanggal_muat'])) : '' ?>" required>
                             </div>
                         </div>
                     </div>
@@ -45,7 +57,6 @@
                             <table class="table table-bordered" id="tableSpk">
                                 <thead class="bg-blue">
                                     <tr>
-                                        <th>No</th>
                                         <th style="min-width: 100px;" class="text-nowrap">No SPK</th>
                                         <th style="min-width: 100px;" class="text-nowrap">No SO</th>
                                         <th style="min-width: 200px;" class="text-nowrap">Customer</th>
@@ -55,15 +66,77 @@
                                         <th style="min-width: 20px;" class="text-nowrap"></th>
                                     </tr>
                                 </thead>
-                                <tbody></tbody>
+                                <tbody>
+                                    <?php
+                                    if (isset($detail)) {
+                                        $grouped = [];
+
+                                        // Grouping manual by no_delivery
+                                        foreach ($detail as $row) {
+                                            $grouped[$row['no_delivery']][] = $row;
+                                        }
+
+                                        $i = 0;
+                                        foreach ($grouped as $no_delivery => $rows):
+                                            $customer_name = $rows[0]['customer'];
+                                    ?>
+                                            <!-- Header SPK -->
+                                            <tr style="background-color:#f0f0f0; font-weight:bold;">
+                                                <td colspan="8">No SPK : <?= $no_delivery ?> - <?= $customer_name ?></td>
+                                            </tr>
+
+                                            <!-- Baris produk -->
+                                            <?php foreach ($rows as $row) :
+                                                $key = $row['no_so'] . '|' . $row['no_delivery'];
+                                                $isUsed = in_array($key, $usedKeys); ?>
+                                                <tr>
+                                                    <td>
+                                                        <input type="text" class="form-control" name="detail[<?= $i ?>][no_delivery]" value="<?= $row['no_delivery'] ?>" readonly>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control" name="detail[<?= $i ?>][no_so]" value="<?= $row['no_so'] ?>" readonly>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control" name="detail[<?= $i ?>][customer]" value="<?= $row['customer'] ?>" readonly>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control" name="detail[<?= $i ?>][product]" value="<?= $row['product'] ?>" readonly>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control" name="detail[<?= $i ?>][qty_spk]" value="<?= $row['qty_spk'] ?>" readonly>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" class="form-control jumlah-berat" name="detail[<?= $i ?>][jumlah_berat]" value="<?= $row['jumlah_berat'] ?>" readonly>
+                                                    </td>
+
+                                                    <td>
+                                                        <button type="button" class="btn btn-danger btn-sm remove-row" <?= $isUsed ? 'disabled' : '' ?>><i class="fa fa-trash"></i></button>
+                                                    </td>
+
+                                                    <!-- hidden fields -->
+                                                    <td hidden>
+                                                        <input type="hidden" name="detail[<?= $i ?>][id]" value="<?= $row['id'] ?>">
+                                                        <input type="hidden" name="detail[<?= $i ?>][id_spk_detail]" value="<?= $row['id_spk_detail'] ?>">
+                                                        <input type="hidden" name="detail[<?= $i ?>][id_product]" value="<?= $row['id_product'] ?>">
+                                                        <input type="hidden" name="detail[<?= $i ?>][no_loading]" value="<?= $row['no_loading'] ?>">
+                                                    </td>
+                                                </tr>
+                                    <?php
+                                                $i++;
+                                            endforeach;
+                                        endforeach;
+                                    }
+                                    ?>
+
+                                </tbody>
                                 <tfoot>
                                     <tr>
                                         <td class="text-right" colspan="5">Total Berat</td>
-                                        <td colspan="2"><input type="text" class="form-control input-sm" name="total_berat" id="totalBerat" readonly></td>
+                                        <td colspan="2"><input type="text" class="form-control input-sm" name="total_berat" id="totalBerat" value="" readonly></td>
                                     </tr>
                                     <tr>
                                         <td class="text-right" colspan="5">Kapasitas</td>
-                                        <td colspan="2"><input type="text" class="form-control input-sm" name="kapasitas" id="kapasitas" readonly></td>
+                                        <td colspan="2"><input type="text" class="form-control input-sm" name="kapasitas" id="kapasitas" value="<?= isset($loading['kapasitas']) ? number_format($loading['kapasitas']) : '' ?>" readonly></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -95,7 +168,7 @@
                 <table class="table table-bordered" id="tableModalSpk" style="width: 100%;">
                     <thead>
                         <tr>
-                            <th>No SPK</th>
+                            <th></th>
                             <th>No SO</th>
                             <th>Customer</th>
                             <th>Produk</th>
@@ -118,10 +191,13 @@
 
 <script>
     $(document).ready(function() {
+        let selectedIds = [];
+        hitungTotalBerat();
+
         // Tombol Pilih SPK
         $('#selectSpk').on('click', function() {
             const pengiriman = $('#pengiriman').val();
-            const kendaraan = $('#kendaraan').val();
+            const kendaraan = $('#selectKendaraan').val();
             if (!pengiriman) {
                 swal({
                     title: "Error Message !",
@@ -147,6 +223,14 @@
                 return;
             }
 
+
+            $('#tableSpk tbody tr').each(function() {
+                const id_spk_detail = $(this).find('input[name*="[id_spk_detail]"]').val();
+                if (id_spk_detail) {
+                    selectedIds.push(id_spk_detail);
+                }
+            });
+
             $.ajax({
                 url: siteurl + 'loading/get_spk',
                 type: 'GET',
@@ -156,80 +240,183 @@
                 success: function(res) {
                     const data = JSON.parse(res);
                     let html = '';
+                    let currentSpk = '';
+
                     data.forEach((item) => {
+                        // Skip jika id_spk_detail sudah pernah dipilih
+                        if (selectedIds.includes(item.id.toString())) return;
+
+                        if (item.no_delivery !== currentSpk) {
+                            html += `
+                                    <tr style="background-color:#f0f0f0; font-weight:bold;">
+                                        <td colspan="8">No SPK : ${item.no_delivery}</td>
+                                    </tr>
+                                `;
+                            currentSpk = item.no_delivery;
+                        }
+
                         html += `
-                    <tr>
-                        <td>${item.no_delivery}</td>
-                        <td>${item.no_so}</td>
-                        <td>${item.name_customer}</td>
-                        <td>${item.nama}</td>
-                        <td>${item.qty_spk}</td>
-                        <td>${item.jumlah_berat}</td>
-                        <td>${item.delivery_date}</td>
-                        <td>
-                        <input type="checkbox" class="select-row" data-item='${JSON.stringify(item)}'>
-                        </td>
-                    </tr>`;
+                                <tr>
+                                    <td></td>
+                                    <td>${item.no_so}</td>
+                                    <td>${item.name_customer}</td>
+                                    <td>${item.nama}</td>
+                                    <td>${item.qty_spk}</td>
+                                    <td>${item.jumlah_berat}</td>
+                                    <td>${item.tanggal_spk}</td>
+                                    <td hidden>${item.id}</td>
+                                    <td>
+                                        <input type="checkbox" class="select-row" data-item='${JSON.stringify(item)}'>
+                                    </td>
+                                </tr>
+                            `;
                     });
+
                     $('#modalSpk').modal('show');
                     $('#tableModalSpk tbody').html(html);
-                    // tampilkan modal setelah data selesai diisi
                 }
+
             });
         });
 
         // add spk ke main tableSpk
         $('#btnPilihSpk').on('click', function() {
-            let i = $('#tableSpk tbody tr').length;
+            const grouped = {};
+            let detailIndex = $('#tableSpk tbody input[name*="[id_spk_detail]"]').length; // hanya hitung baris produk
 
+            // Grouping data berdasarkan no_delivery (SPK)
             $('#tableModalSpk .select-row:checked').each(function() {
                 const data = JSON.parse($(this).attr('data-item'));
-
-                const row = `
-                           <tr>
-                            <td class="text-center">${i + 1}</td>
-                            <td>
-                                <input type="text" class="form-control" name="detail[${i}][no_delivery]" value="${data.no_delivery}" readonly>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" name="detail[${i}][no_so]" value="${data.no_so}" readonly>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" name="detail[${i}][customer]" value="${data.name_customer}" readonly>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" name="detail[${i}][product]" value="${data.nama}" readonly>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control" name="detail[${i}][qty_spk]" value="${data.qty_spk}" readonly>
-                            </td>
-                            <td>
-                                <input type="text" class="form-control jumlah-berat" name="detail[${i}][jumlah_berat]" value="${data.jumlah_berat}" readonly>
-                            </td>
-                            <td>
-                                <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-trash"></i></button>
-                            </td>
-
-                            <!-- optional hidden fields if needed -->
-                            <td hidden>
-                                <input type="hidden" name="detail[${i}][id_product]" value="${data.id_product}">
-                                <input type="hidden" name="detail[${i}][id_spk_detail]" value="${data.id}">
-                            </td>
-                        </tr>`;
-
-                $('#tableSpk tbody').append(row);
-                hitungTotalBerat();
-                i++;
+                if (!grouped[data.no_delivery]) {
+                    grouped[data.no_delivery] = [];
+                }
+                grouped[data.no_delivery].push(data);
             });
 
+            // Render hasil grouping ke dalam tabel
+            Object.keys(grouped).forEach((no_delivery) => {
+                const group = grouped[no_delivery];
+                const customer = group[0].name_customer;
+
+                // Baris header SPK
+                let groupRow = `
+            <tr style="background-color:#f0f0f0; font-weight:bold;">
+                <td colspan="8">No SPK : ${no_delivery} - ${customer}</td>
+            </tr>
+        `;
+                $('#tableSpk tbody').append(groupRow);
+
+                // Baris detail produk
+                group.forEach((data) => {
+                    let row = `
+                <tr>
+                    <td>
+                        <input type="text" class="form-control" name="detail[${detailIndex}][no_delivery]" value="${data.no_delivery}" readonly>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" name="detail[${detailIndex}][no_so]" value="${data.no_so}" readonly>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" name="detail[${detailIndex}][customer]" value="${data.name_customer}" readonly>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" name="detail[${detailIndex}][product]" value="${data.nama}" readonly>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control" name="detail[${detailIndex}][qty_spk]" value="${data.qty_spk}" readonly>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control jumlah-berat" name="detail[${detailIndex}][jumlah_berat]" value="${data.jumlah_berat}" readonly>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-trash"></i></button>
+                    </td>
+                    <td hidden>
+                        <input type="hidden" name="detail[${detailIndex}][id_product]" value="${data.id_product}">
+                        <input type="hidden" name="detail[${detailIndex}][id_spk_detail]" value="${data.id}">
+                    </td>
+                </tr>
+            `;
+                    $('#tableSpk tbody').append(row);
+                    detailIndex++;
+                });
+            });
+
+            hitungTotalBerat();
             $('#modalSpk').modal('hide');
         });
 
         //Hapus bariss
         $(document).on('click', '.remove-row', function() {
-            $(this).closest('tr').remove();
+            const tr = $(this).closest('tr');
+            const no_delivery = tr.find('input[name*="[no_delivery]"]').val();
+            const id = tr.find('input[name*="[id]"]').val();
+
+            // Kirim permintaan untuk hapus dari loading_delivery_detail
+            if (id) {
+                $.ajax({
+                    url: siteurl + 'loading/delete_detail',
+                    type: 'POST',
+                    data: {
+                        id
+                    },
+                    success: function(res) {
+                        try {
+                            const response = JSON.parse(res);
+                            if (response.status === 'success') {
+                                swal({
+                                    title: "Sukses!",
+                                    text: "Data berhasil dihapus.",
+                                    type: "success",
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                });
+
+                                setTimeout(function() {
+                                    location.reload(); // Reload halaman agar get_spk tampilkan data terbaru
+                                }, 2100);
+                            } else {
+                                swal({
+                                    title: "Gagal!",
+                                    text: response.message || "Terjadi kesalahan saat menghapus data.",
+                                    type: "error"
+                                });
+                            }
+                        } catch (e) {
+                            swal({
+                                title: "Error!",
+                                text: "Respon server tidak valid.",
+                                type: "error"
+                            });
+                        }
+                    },
+                    error: function() {
+                        swal({
+                            title: "Error!",
+                            text: "Gagal terhubung ke server.",
+                            type: "error"
+                        });
+                    }
+                });
+            }
+
+            // Hapus baris produk dari DOM
+            tr.remove();
+
+            // Hapus baris header SPK jika tidak ada sisa baris
+            const remainingRows = $('#tableSpk tbody tr').filter(function() {
+                const val = $(this).find('input[name*="[no_delivery]"]').val();
+                return val === no_delivery;
+            });
+            if (remainingRows.length === 0) {
+                $('#tableSpk tbody tr').filter(function() {
+                    return $(this).text().includes(no_delivery) && $(this).find('input').length === 0;
+                }).remove();
+            }
+
             hitungTotalBerat();
         });
+
 
         $('#selectKendaraan').on('change', function() {
             const kapasitas = $(this).find(':selected').data('kapasitas') || 0;
@@ -325,7 +512,7 @@
 
         $('#totalBerat').val(total.toFixed(2));
 
-        const kapasitas = parseFloat($('#kapasitas').val()) || 0;
+        const kapasitas = ($('#kapasitas').val()) || 0;
 
         if (kapasitas > 0 && total > kapasitas) {
             swal({

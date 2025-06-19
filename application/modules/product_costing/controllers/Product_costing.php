@@ -236,6 +236,29 @@ class Product_costing extends Admin_Controller
 
     public function list_price_list()
     {
+        // Ambil semua code_lv2 yang digunakan di product list
+        $usedCodeLv2 = $this->db
+            ->distinct()
+            ->select('code_lv2')
+            ->get('new_inventory_4')
+            ->result_array();
+
+        // Ambil array code_lv2 saja
+        $codeLv2List = array_column($usedCodeLv2, 'code_lv2');
+
+        // Ambil kategori berdasarkan code_lv2 yang digunakan
+        $kategoriList = [];
+        if (!empty($codeLv2List)) {
+            $kategoriList = $this->db
+                ->select('code_lv2, nama')
+                ->where('category', 'product')
+                ->where('deleted_date', null)
+                ->where_in('code_lv2', $codeLv2List)
+                ->order_by('nama', 'asc')
+                ->get('new_inventory_2')
+                ->result_array();
+        }
+
         // Ambil semua toko dengan urutan (untuk header)
         $tokoList = $this->db->order_by('urutan', 'asc')->get('master_persentase')->result_array();
 
@@ -281,7 +304,8 @@ class Product_costing extends Admin_Controller
 
         $this->template->render('kalkulasi_price_list', [
             'tokoList' => $tokoList,
-            'groupedData' => $groupedData
+            'groupedData' => $groupedData,
+            'kategoriList' => $kategoriList
         ]);
     }
 

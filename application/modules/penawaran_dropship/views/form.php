@@ -528,24 +528,25 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
             hitungAllTotal();
         });
 
+        //Trigger input freight untuk kalkulasi 
+        $('#freight').on('input', function() {
+            hitungAllTotal();
+        });
+
         // Trigger untuk mengambil data dari select customer
         $('#id_customer').change(function() {
             const $selected = $(this).find(':selected');
             const idKaryawan = $selected.data('sales');
             const email = $selected.data('email');
-            const kategoriToko = $selected.data('toko');
+            // const kategoriToko = $selected.data('toko');
             const selectedPaymentTerm = $selected.data('terms');
 
             $('#payment_term').val(selectedPaymentTerm).trigger('change');
 
-            // Update harga berdasarkan kategori toko
+            // Harga dropship langsung tanpa cek kategori
             $('.product-select').each(function() {
                 const loopIndex = $(this).data('loop');
-                if (kategoriToko && kategoriToko.toLowerCase().includes('dropship')) {
-                    setDropshipPrice(loopIndex);
-                } else {
-                    hitungHarga(loopIndex);
-                }
+                setDropshipPrice(loopIndex);
             });
 
             // Ambil nama sales via AJAX
@@ -585,28 +586,16 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
 
         // Re-cek harga produk saat customer berubah atau tipe bayar berubah
         $('#id_customer, #tipe_bayar').change(function() {
-            const kategoriToko = $('#id_customer').find(':selected').data('toko');
-
             $('.product-select').each(function() {
                 const loopIndex = $(this).data('loop');
-                if (kategoriToko && kategoriToko.toLowerCase().includes('dropship')) {
-                    setDropshipPrice(loopIndex);
-                } else {
-                    hitungHarga(loopIndex);
-                }
+                setDropshipPrice(loopIndex);
             });
         });
 
         // Jika produk diganti, hitung ulang harganya sesuai kategori toko customer
         $(document).on('change', '.product-select', function() {
             const loopIndex = $(this).data('loop');
-            const kategoriToko = $('#id_customer').find(':selected').data('toko');
-
-            if (kategoriToko && kategoriToko.toLowerCase().includes('dropship')) {
-                setDropshipPrice(loopIndex);
-            } else {
-                hitungHarga(loopIndex);
-            }
+            setDropshipPrice(loopIndex);
         });
 
         // SAVE PENAWARAN

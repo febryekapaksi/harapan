@@ -1,6 +1,6 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-class Penawaran_model extends BF_Model
+class Penawaran_dropship_model extends BF_Model
 {
 
     public function __construct()
@@ -54,7 +54,7 @@ class Penawaran_model extends BF_Model
         $max_id = $row['max_id'];
         $max_id1 = (int) substr($max_id, 4, 5);
         $counter = $max_id1 + 1;
-        $idcust = "QU" . $thn . str_pad($counter, 5, "0", STR_PAD_LEFT);
+        $idcust = "QD" . $thn . str_pad($counter, 5, "0", STR_PAD_LEFT);
         return $idcust;
     }
 
@@ -91,7 +91,7 @@ class Penawaran_model extends BF_Model
                     $status_label = 'Draft';
                     $warna = 'secondary';
 
-                    $action = "<a href='" . base_url("penawaran/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
+                    $action = "<a href='" . base_url("penawaran_dropship/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
                     // $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-info btn-request' title='Request Approval'><i class='fa fa-check'></i></a> ";
                     $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-danger btn-loss' title='Loss Penawaran'><i class='fa fa-times'></i></a> ";
                 } else if ($row['status_draft'] == 1) {
@@ -99,13 +99,13 @@ class Penawaran_model extends BF_Model
                         $status_label = 'Waiting Approval Direksi';
                         $warna = 'secondary';
 
-                        $action = "<a target='_blank' href='" . base_url("penawaran/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+                        $action = "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                         $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-danger btn-loss' title='Loss Penawaran'><i class='fa fa-times'></i></a> ";
                     } else if ($row['level_approval'] == 'M') {
                         $status_label = 'Waiting Approval Manager';
                         $warna = 'secondary';
 
-                        $action = "<a target='_blank' href='" . base_url("penawaran/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+                        $action = "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                         $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-danger btn-loss' title='Loss Penawaran'><i class='fa fa-times'></i></a> ";
                     }
                 }
@@ -113,18 +113,18 @@ class Penawaran_model extends BF_Model
                 $status_label = 'Rejected';
                 $warna = 'red';
 
-                $action = "<a href='" . base_url("penawaran/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
+                $action = "<a href='" . base_url("penawaran_dropship/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
             } else if ($row['status'] == 'A') {
                 if ($row['no_so'] != null) {
                     $status_label = 'SO Dibuat';
                     $warna = 'blue';
 
-                    $action = "<a target='_blank' href='" . base_url("penawaran/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+                    $action = "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                 } else {
                     $status_label = 'Approved';
                     $warna = 'green';
 
-                    $action = "<a target='_blank' href='" . base_url("penawaran/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+                    $action = "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                     $action .= "<a href='" . base_url("sales_order/add/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success' title='Create SO'><i class='fa fa-paper-plane'></i> SO</a> ";
                     $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-danger btn-loss' title='Loss Penawaran'><i class='fa fa-times'></i></a> ";
                 }
@@ -173,6 +173,7 @@ class Penawaran_model extends BF_Model
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
         $this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left'); // tambahkan join ini
         $this->db->where('p.status !=', 'L');
+        $this->db->where('p.tipe_penawaran', 'Dropship');
         $totalData = $this->db->count_all_results();
 
         // ============================
@@ -183,7 +184,7 @@ class Penawaran_model extends BF_Model
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
         $this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left');
         $this->db->where('p.status !=', 'L');
-
+        $this->db->where('p.tipe_penawaran', 'Dropship');
 
         if ($like_value) {
             $this->db->group_start();
@@ -213,6 +214,7 @@ class Penawaran_model extends BF_Model
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
         $this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left');
         $this->db->where('p.status !=', 'L');
+        $this->db->where('p.tipe_penawaran', 'Dropship');
 
         if ($like_value) {
             $this->db->group_start();

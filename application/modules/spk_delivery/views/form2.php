@@ -4,24 +4,30 @@
             <div class="form-group row">
                 <div class="col-md-12">
                     <div class="col-md-6">
-                        <!-- Daftar SO Customer -->
-                        <div class="form-group row">
-                            <div class="col-md-4">
-                                <label for="">Sales Order</label>
-                            </div>
-                            <div class="col-md-8">
-                                <input type="text" id="no_so" name="no_so" class="form-control" value="<?= $so['no_so'] ?>" readonly>
-                            </div>
-                        </div>
-
                         <!-- Customer -->
                         <div class="form-group row">
                             <div class="col-md-4">
                                 <label for="customer">Customer</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="hidden" name="id_customer" class="form-control" value="<?= $so['id_customer'] ?>">
-                                <input type="text" name="customer" class="form-control" value="<?= $so['name_customer'] ?>" readonly>
+                                <select name="id_customer" id="id_customer" class="form-control select2" onchange="get_so()">
+                                    <option value="">-- Pilih Customer --</option>
+                                    <?php foreach ($customer as $cs): ?>
+                                        <option value="<?= $cs['id_customer'] ?>"><?= $cs['name_customer'] ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Daftar SO Customer -->
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="">Sales Order</label>
+                            </div>
+                            <div class="col-md-8">
+                                <select name="no_so" id="no_so" class="form-control select2">
+                                    <option value="">-- Pilih --</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -29,10 +35,10 @@
                         <!-- Tanggal SPK -->
                         <div class="form-group row">
                             <div class="col-md-4">
-                                <label>Tanggal SPK <span class="text-red">*</span></label>
+                                <label>Tanggal SPK </label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" name="tanggal_spk" id="tanggal_spk" class="form-control" value="" required>
+                                <input type="date" name="tanggal_spk" id="tanggal_spk" class="form-control" value="">
                             </div>
                         </div>
 
@@ -42,7 +48,7 @@
                                 <label for="delivery_address">Alamat Pengiriman</label>
                             </div>
                             <div class="col-md-8">
-                                <textarea name="delivery_address" id="delivery_address" class="form-control" rows="3"><?= $so['address_office'] ?></textarea>
+                                <textarea name="delivery_address" id="delivery_address" class="form-control" rows="3"></textarea>
                             </div>
                         </div>
                     </div>

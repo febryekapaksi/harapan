@@ -52,8 +52,8 @@ class Spk_delivery extends Admin_Controller
     }
 
     // Ambil data sales_order berdasarkan no_so
-    $so = $this->db
-      ->select('s.*, c.name_customer, c.id_customer, c.address_office')
+    $sales_order = $this->db
+      ->select('s.*, c.name_customer, c.id_customer')
       ->from('sales_order s')
       ->join('master_customers c', 'c.id_customer = s.id_customer')
       ->where('s.no_so', $no_so)
@@ -62,13 +62,22 @@ class Spk_delivery extends Admin_Controller
       ->row_array();
 
     // Jika tidak ditemukan
-    if (!$so) {
+    if (!$sales_order) {
       show_error("Data Sales Order dengan nomor {$no_so} tidak ditemukan.", 404);
     }
 
+    // Data customer aktif (misal untuk dropdown lain)
+    $customers = $this->db
+      ->select('c.id_customer, c.name_customer')
+      ->from('master_customers c')
+      ->where('c.deleted', 0)
+      ->get()
+      ->result_array();
+
     // Siapkan data ke view
     $data = [
-      'so' => $so,
+      'sales_order' => $sales_order,
+      'customer'    => $customers,
     ];
 
     $this->template->page_icon('fa fa-truck');
@@ -99,7 +108,7 @@ class Spk_delivery extends Admin_Controller
     $data = $this->db->select('*')
       ->from('sales_order_detail')
       ->where('no_so', $no_so)
-      ->where('qty_belum_spk >=', 0)
+      ->where('qty_spk', 0)
       ->get()
       ->result();
     echo json_encode($data);
@@ -130,122 +139,86 @@ class Spk_delivery extends Admin_Controller
 
     echo json_encode($data);
   }
-
   public function save()
   {
-    $data = $this->input->post();
+    $data         = $this->input->post();
+    $session      = $this->session->userdata('app_session');
 
-    $id_customer      = $data['id_customer'];
-    $no_so            = $data['no_so'];
-    $tanggal_spk      = !empty($data['tanggal_spk']) ? date('Y-m-d', strtotime($data['tanggal_spk'])) : NULL;
-    $delivery_address = $data['delivery_address'];
-    $detail           = $data['detail'];
+    $id_customer        = $data['id_customer'];
+    $no_so              = $data['no_so'];
+    $tanggal_spk        = (!empty($data['tanggal_spk'])) ? date('Y-m-d', strtotime($data['tanggal_spk'])) : NULL;
+    $delivery_address   = $data['delivery_address'];
+    $detail             = $data['detail'];
 
-    // Generate nomor SPK baru
-    $Ym = date('ym');
-    $SQL = "SELECT MAX(no_delivery) as maxP FROM spk_delivery WHERE no_delivery LIKE 'SPK" . $Ym . "%'";
-    $result = $this->db->query($SQL)->row_array();
-    $angkaUrut = isset($result['maxP']) ? $result['maxP'] : null;
-    $lastNum = ($angkaUrut) ? (int)substr($angkaUrut, 7, 4) : 0;
-    $no_delivery = 'SPK' . $Ym . str_pad($lastNum + 1, 4, '0', STR_PAD_LEFT);
+    $Ym             = date('ym');
+    $SQL            = "SELECT MAX(no_delivery) as maxP FROM spk_delivery WHERE no_delivery LIKE 'SPK" . $Ym . "%' ";
+    $result         = $this->db->query($SQL)->result_array();
+    $angkaUrut2     = $result[0]['maxP'];
+    $urutan2        = (int)substr($angkaUrut2, 7, 4);
+    $urutan2++;
+    $urut2          = sprintf('%04s', $urutan2);
+    $no_delivery    = "SPK" . $Ym . $urut2;
+    $pengiriman     = isset($detail[0]['pengiriman']) ? $detail[0]['pengiriman'] : null;
 
-    $pengiriman = isset($detail[0]['pengiriman']) ? $detail[0]['pengiriman'] : null;
 
-
-    // Header insert
     $ArrHeader = [
-      'no_delivery'      => $no_delivery,
-      'id_customer'      => $id_customer,
-      'no_so'            => $no_so,
-      'tanggal_spk'      => $tanggal_spk,
-      'delivery_address' => $delivery_address,
-      'pengiriman'       => $pengiriman,
-      'created_by'       => $this->id_user,
-      'created_date'     => $this->datetime
+      'no_delivery'       => $no_delivery,
+      'id_customer'       => $id_customer,
+      'no_so'             => $no_so,
+      'tanggal_spk'       => $tanggal_spk,
+      'delivery_address'  => $delivery_address,
+      'pengiriman'        => $pengiriman,
+      'created_by'        => $this->id_user,
+      'created_date'      => $this->datetime
     ];
 
     $ArrDetail = [];
+    $ArrSodet = [];
+    foreach ($detail as $key => $value) {
+      $qty_spk        = str_replace(',', '', $value['qty_spk']);
+      $qty_order      = str_replace(',', '', $value['qty_order']);
+
+      $ArrDetail[$key]['no_delivery']   = $no_delivery;
+      $ArrDetail[$key]['no_so']         = $no_so;
+      $ArrDetail[$key]['id_so_det']     = $value['id_so_det'];
+      $ArrDetail[$key]['id_product']    = $value['id_product'];
+      $ArrDetail[$key]['qty_so']        = $value['qty_order'];
+      $ArrDetail[$key]['qty_booking']   = $value['qty_booking'];
+      $ArrDetail[$key]['qty_spk']       = $qty_spk;
+      $ArrDetail[$key]['qty_belum_spk'] = $qty_order - $qty_spk;
+
+      $ArrSodet = [
+        'qty_spk'         => $qty_spk,
+        'qty_belum_spk'   => $qty_order - $qty_spk,
+      ];
+
+      $this->db->update('sales_order_detail', $ArrSodet, ['id' => $value['id_so_det']]);
+    }
 
     $this->db->trans_start();
     $this->db->insert('spk_delivery', $ArrHeader);
 
-    foreach ($detail as $key => $value) {
-      $id_so_det   = $value['id_so_det'];
-      $id_product  = $value['id_product'];
-      $qty_spk     = (float)str_replace(',', '', $value['qty_spk']);
-
-      // Ambil qty_order dari detail SO
-      $so_det = $this->db->get_where('sales_order_detail', ['id' => $id_so_det])->row_array();
-      $qty_order = (float)$so_det['qty_order'];
-
-      // Hitung total qty_spk sebelumnya
-      $prev = $this->db->select_sum('qty_spk')
-        ->get_where('spk_delivery_detail', ['id_so_det' => $id_so_det])
-        ->row();
-
-      $prev_spk = isset($prev->qty_spk) ? $prev->qty_spk : 0;
-
-      $total_spk = $prev_spk + $qty_spk;
-      $qty_belum_spk = max(0, $qty_order - $total_spk);
-
-      // Insert detail SPK (tanpa menyalin qty_so karena sudah ada di master SO)
-      $ArrDetail[] = [
-        'no_delivery'     => $no_delivery,
-        'no_so'           => $no_so,
-        'id_so_det'       => $id_so_det,
-        'id_product'      => $id_product,
-        'qty_so'          => $qty_order,
-        'qty_booking'     => $value['qty_booking'],
-        'qty_spk'         => $qty_spk,
-        'qty_belum_spk'   => $qty_belum_spk
-      ];
-
-      // Update qty_spk dan status_planning di sales_order_detail
-      $this->db->update('sales_order_detail', [
-        'qty_spk'         => $total_spk,
-        'qty_belum_spk'   => $qty_belum_spk,
-        'status_planning' => ($qty_belum_spk > 0) ? 0 : 1,
-      ], ['id' => $id_so_det]);
-    }
-
-    // Insert detail SPK
     if (!empty($ArrDetail)) {
       $this->db->insert_batch('spk_delivery_detail', $ArrDetail);
     }
-
-    // Hitung status SPK untuk header
-    $summary = $this->db->select('SUM(qty_order) as total_order, SUM(qty_spk) as total_spk')
-      ->get_where('sales_order_detail', ['no_so' => $no_so])
-      ->row_array();
-
-    $status_spk = 'Belum SPK';
-    if ((float)$summary['total_spk'] >= (float)$summary['total_order']) {
-      $status_spk = 'SPK Lengkap';
-    } elseif ((float)$summary['total_spk'] > 0) {
-      $status_spk = 'SPK Sebagian';
-    }
-
-    // Update status header SO
-    $this->db->update('sales_order', ['status_spk' => $status_spk], ['no_so' => $no_so]);
-
     $this->db->trans_complete();
 
     if ($this->db->trans_status() === FALSE) {
       $this->db->trans_rollback();
-      echo json_encode([
-        'pesan'  => 'Save gagal disimpan ...',
-        'status' => 0
-      ]);
+      $Arr_Data  = array(
+        'pesan'    => 'Save gagal disimpan ...',
+        'status'  => 0
+      );
     } else {
       $this->db->trans_commit();
-      history("Create SPK Delivery: " . $no_delivery);
-      echo json_encode([
-        'pesan'  => 'Save berhasil disimpan. Thanks ...',
-        'status' => 1
-      ]);
+      $Arr_Data  = array(
+        'pesan'    => 'Save berhasil disimpan. Thanks ...',
+        'status'  => 1
+      );
+      history("Create spk delivery : " . $no_delivery);
     }
+    echo json_encode($Arr_Data);
   }
-
 
   public function data_side_spk_reprint()
   {

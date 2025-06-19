@@ -1,3 +1,5 @@
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
+
 <div class="box box-primary">
     <div class="box-header">
         <div class="d-flex justify-content-between align-items-center mb-3">
@@ -17,9 +19,18 @@
             }
             ?>
         </div>
+        <div class="mb-3">
+            <label for="filter_kategori">Filter Kategori:</label>
+            <select id="filter_kategori" class="form-control" style="width: 250px;">
+                <option value="">-- Semua Kategori --</option>
+                <?php foreach ($kategoriList as $kategori): ?>
+                    <option value="<?= $kategori['code_lv2'] ?>"><?= $kategori['nama'] ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
     </div>
     <div class="box-body">
-        <table class="table table-bordered table-striped">
+        <table id="priceListTable" class="table table-bordered table-striped">
             <thead class="bg-blue">
                 <tr>
                     <th rowspan="2" class="text-center" style="vertical-align: middle;">Produk</th>
@@ -39,7 +50,15 @@
             </thead>
             <tbody>
                 <?php foreach ($groupedData as $product => $hargaPerToko): ?>
-                    <tr>
+                    <?php
+                    $productData = $this->db
+                        ->select('code_lv2')
+                        ->where('nama', $product)
+                        ->get('new_inventory_4')
+                        ->row();
+                    $code_lv2 = $productData ? $productData->code_lv2 : '';
+                    ?>
+                    <tr data-code_lv2="<?= $code_lv2 ?>">
                         <td><?= $product ?></td>
                         <td align="right">
                             <?= isset($hargaPerToko['dropship_price']) ? number_format($hargaPerToko['dropship_price'], 0, ',', '.') : '-' ?>
@@ -59,9 +78,31 @@
         </table>
     </div>
 </div>
+<!-- DataTables -->
+<script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
 
 <script>
     $(document).ready(function() {
+        var table = $('#priceListTable').DataTable({
+            scrollX: true,
+            ordering: false
+        });
+
+        $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData, counter) {
+            var selectedCode = $('#filter_kategori').val();
+            var rowCodeLv2 = $(table.row(dataIndex).node()).data('code_lv2');
+
+            if (!selectedCode || rowCodeLv2 == selectedCode) {
+                return true;
+            }
+            return false;
+        });
+
+        $('#filter_kategori').on('change', function() {
+            table.draw(); // trigger ulang filter
+        });
+
         $('#btn-generate').click(function(e) {
             e.preventDefault();
 

@@ -23,4 +23,5 @@ application/config/constants.php
 /uploads/*
 /assets/files/*
 /assets/expense/*
+/assets/confirm_sj/*
 /assets/pr/*

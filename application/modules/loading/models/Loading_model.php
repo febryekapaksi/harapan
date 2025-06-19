@@ -34,13 +34,15 @@ class Loading_model extends BF_Model
         foreach ($query->result_array() as $row) {
             $nestedData = [];
 
-            $action = "<a href='javascript:void(0);' data-id='" . $row['no_loading'] . "' class='btn btn-sm btn-success view-loading'><i class='fa fa-eye'></i> View</a> ";
+            $action = "<a href='javascript:void(0);' data-id='" . $row['no_loading'] . "' class='btn btn-sm btn-warning view-loading' title='View'><i class='fa fa-eye'></i></a> ";
+            $action .= "<a href='"  . base_url("loading/edit/{$row['id']}") .  "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
 
             $nestedData[] = "<div>" . $urut . "</div>";
             $nestedData[] = "<div>" . strtoupper($row['no_loading']) . "</div>";
             $nestedData[] = "<div>" . strtoupper($row['nopol']) . "</div>";
             $nestedData[] = "<div>" . strtoupper($row['pengiriman']) . "</div>";
             $nestedData[] = "<div>" . number_format($row['total_berat'], 2) . " / " . number_format($row['kapasitas'], 2) . " Kg</div>";
+            $nestedData[] = "<div>" . date('d/M/Y', strtotime($row['tanggal_muat'])) . "</div>";
 
             $nestedData[] = "<div align='center'>" . $action . "</div>";
 
@@ -63,11 +65,13 @@ class Loading_model extends BF_Model
     {
         $sql = "SELECT
                 (@row:=@row+1) AS nomor,
+                id,
                 no_loading,
                 pengiriman,
                 nopol,
                 kapasitas,
                 total_berat,
+                tanggal_muat,
                 created_by,
                 created_at
             FROM loading_delivery, (SELECT @row := 0) AS r
@@ -85,6 +89,7 @@ class Loading_model extends BF_Model
             1 => 'nopol',
             2 => 'pengiriman',
             3 => 'total_berat',
+            4 => 'tanggal_muat',
         ];
 
         $sql .= " ORDER BY " . $columns_order_by[$column_order] . " " . $column_dir;

@@ -39,7 +39,7 @@ class Sales_order_model extends BF_Model
 
 	function generate_id($kode = '')
 	{
-		$query = $this->db->query("SELECT MAX(id_penawaran) as max_id FROM penawaran");
+		$query = $this->db->query("SELECT MAX(no_so) as max_id FROM sales_order");
 		$row = $query->row_array();
 		$thn = date('y');
 		$max_id = $row['max_id'];
@@ -50,11 +50,11 @@ class Sales_order_model extends BF_Model
 	}
 
 	// SERVERSIDE 
-	public function get_json_penawaran()
+	public function get_json_sales_order()
 	{
 		$requestData = $_REQUEST;
 
-		$fetch = $this->get_query_json_penawaran(
+		$fetch = $this->get_query_json_sales_order(
 			$requestData['search']['value'],
 			$requestData['order'][0]['column'],
 			$requestData['order'][0]['dir'],
@@ -73,81 +73,117 @@ class Sales_order_model extends BF_Model
 			$nomor = $urut + $requestData['start'];
 			$warna = '';
 			$status_label = '';
-			$add_spk = '';
+			$action = '';
+			$tipe_quot = '';
 
-			// Aksi tombol
-			if (!empty($row['no_so'])) {
-				if ($row['status'] === 'A') {
-					$action = "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning'><i class='fa fa-print'></i> Print SO</a> ";
-					$warna = 'green';
-					$status_label = 'Deal';
-				} else {
-					$action = "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-primary'><i class='fa fa-edit'></i> </a> ";
-					$warna = 'grey';
-					$status_label = 'Waiting';
+			if ($row['tipe_penawaran'] === "Dropship") {
+				$tipe_quot = "<span class='badge bg-blue'>Dropship</span>";
+			} else {
+				$tipe_quot = "<span class='badge bg-aqua'>Standard</span>";
+			}
+
+			if ($row['status'] === 'A') {
+				$action = "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning' title='Print SO'><i class='fa fa-print'></i></a> ";
+				$status_label = "<span class='badge bg-green'>Deal</span>";
+
+				// Tambahkan status SPK
+				if ($row['status_spk'] == 'Belum SPK') {
+					$status_label .= " <span class='badge bg-yellow'>Belum SPK</span>";
+					$action .= "<a href='" . base_url("spk_delivery/add/{$row['no_so']}") . "' class='btn btn-sm btn-success' title='Create SPK'><i class='fa fa-paper-plane'></i> SPK</a> ";
+				} elseif ($row['status_spk'] == 'SPK Sebagian') {
+					$status_label .= " <span class='badge bg-orange'>SPK Sebagian</span>";
+					$action .= "<a href='" . base_url("spk_delivery/add/{$row['no_so']}") . "' class='btn btn-sm btn-success' title='Create SPK'><i class='fa fa-paper-plane'></i> SPK</a> ";
+				} elseif ($row['status_spk'] == 'SPK Lengkap') {
+					$status_label .= " <span class='badge bg-blue'>SPK Lengkap</span>";
 				}
 			} else {
-				$action = "<a href='" . base_url("sales_order/add/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success'><i class='fa fa-plus'></i> Create SO</a> ";
+				$action = "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-primary' title='Edit SO'><i class='fa fa-edit'></i></a> ";
+				$action .= "<a href='" . base_url("sales_order/deal/{$row['no_so']}") . "' class='btn btn-sm btn-success' title='Deal SO'><i class='fa fa-check'></i></a> ";
+				$status_label = "<span class='badge bg-grey'>Draft</span>";
 			}
-			// $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger delete' data-id='{$row['id_penawaran']}'><i class='fa fa-trash'></i></a>";
 
 			$nestedData = [];
 			$nestedData[] = "<div align='left'>{$nomor}</div>";
-			$nestedData[] = "<div align='left'>" . $row['id_penawaran'] . "</div>";
 			$nestedData[] = "<div align='left'>" . $row['no_so'] . "</div>";
+			$nestedData[] = "<div align='left'>" . $row['id_penawaran'] . "</div>";
 			$nestedData[] = "<div align='left'>" . strtoupper($row['name_customer']) . "</div>";
 			$nestedData[] = "<div align='left'>" . ucfirst($row['sales']) . "</div>";
-			// $nestedData[] = "<div align='left'>" . date('d-M-Y', strtotime($row['quotation_date'])) . "</div>";
 			$nestedData[] = "<div align='left'>" . number_format($row['total_penawaran'], 2) . "</div>";
 			$nestedData[] = "<div align='left'>" . number_format($row['nilai_so'], 2) . "</div>";
 			$nestedData[] = "<div align='center'>" . $row['revisi'] . "</div>";
-			$nestedData[] = "<div align='center'><span class='badge bg-{$warna}'>{$status_label}</span></div>";
+			$nestedData[] = "<div align='center'>{$tipe_quot}</div>";
+			$nestedData[] = "<div align='center'>{$status_label}</div>";
 			$nestedData[] = "<div align='center'>{$action}</div>";
 
 			$data[] = $nestedData;
 			$urut++;
 		}
 
-		$json_data = [
+		echo json_encode([
 			"draw"            => intval($requestData['draw']),
 			"recordsTotal"    => intval($totalData),
 			"recordsFiltered" => intval($totalFiltered),
 			"data"            => $data
-		];
-
-		echo json_encode($json_data);
+		]);
 	}
 
-	public function get_query_json_penawaran($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
+
+	public function get_query_json_sales_order($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
 	{
-		$this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, p.total_penawaran, p.sales, c.name_customer, so.no_so, so.nilai_so, so.status');
-		$this->db->from('penawaran p');
+		$columns_order_by = [
+			0 => 'so.no_so',
+			1 => 'so.no_so',
+			2 => 'p.id_penawaran',
+			3 => 'c.name_customer',
+			4 => 'p.sales',
+			5 => 'p.total_penawaran',
+			6 => 'so.nilai_so',
+			7 => 'so.revisi',
+			8 => 'so.status'
+		];
+
+		// Total data
+		$this->db->from('sales_order so');
+		$this->db->join('penawaran p', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-		$this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left');
-		$this->db->where('p.status', 'A');
+		$this->db->where('so.no_so IS NOT NULL');
+		$totalData = $this->db->count_all_results();
+
+		// Total filtered
+		$this->db->from('sales_order so');
+		$this->db->join('penawaran p', 'so.id_penawaran = p.id_penawaran', 'left');
+		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
+		$this->db->where('so.no_so IS NOT NULL');
 
 		if ($like_value) {
 			$this->db->group_start();
-			$this->db->like('p.id_penawaran', $like_value);
+			$this->db->like('so.no_so', $like_value);
+			$this->db->or_like('p.id_penawaran', $like_value);
 			$this->db->or_like('c.name_customer', $like_value);
 			$this->db->group_end();
 		}
 
-		if ($column_order !== null) {
-			$columns_order_by = [
-				0 => 'p.quotation_date',
-				1 => 'p.quotation_date',
-				2 => 'c.name_customer',
-				3 => 'p.id_penawaran',
-				4 => 'p.revisi',
-				5 => 'so.status'
-			];
+		$totalFiltered = $this->db->count_all_results();
 
-			if (isset($columns_order_by[$column_order])) {
-				$this->db->order_by($columns_order_by[$column_order], $column_dir);
-			} else {
-				$this->db->order_by('p.created_at', 'desc');
-			}
+		// Ambil data
+		$this->db->select('so.no_so, so.nilai_so, so.status, so.status_do, so.status_planning, p.id_penawaran, p.total_penawaran, p.tipe_penawaran, so.revisi, so.status_spk, p.sales, c.name_customer');
+		$this->db->from('sales_order so');
+		$this->db->join('penawaran p', 'so.id_penawaran = p.id_penawaran', 'left');
+		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
+		$this->db->where('so.no_so IS NOT NULL');
+
+		if ($like_value) {
+			$this->db->group_start();
+			$this->db->like('so.no_so', $like_value);
+			$this->db->or_like('p.id_penawaran', $like_value);
+			$this->db->or_like('c.name_customer', $like_value);
+			$this->db->group_end();
+		}
+
+		if ($column_order !== null && isset($columns_order_by[$column_order])) {
+			$this->db->order_by($columns_order_by[$column_order], $column_dir);
+		} else {
+			$this->db->order_by('so.created_at', 'desc');
 		}
 
 		if ($limit_length != -1) {
@@ -155,9 +191,6 @@ class Sales_order_model extends BF_Model
 		}
 
 		$query = $this->db->get();
-
-		$totalData = $query->num_rows();
-		$totalFiltered = $totalData;
 
 		return [
 			'totalData' => $totalData,

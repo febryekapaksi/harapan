@@ -1,7 +1,7 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Penawaran extends Admin_Controller
+class Penawaran_dropship extends Admin_Controller
 {
     //Permission
     protected $viewPermission       = 'Penawaran.View';
@@ -14,7 +14,7 @@ class Penawaran extends Admin_Controller
         parent::__construct();
 
         $this->load->model(array(
-            'Penawaran/penawaran_model',
+            'Penawaran_dropship/penawaran_dropship_model',
             'Price_list/price_list_model',
             'Product_costing/product_costing_model'
         ));
@@ -80,7 +80,7 @@ class Penawaran extends Admin_Controller
         $id = $data['id_penawaran'];
 
         $is_update = !empty($id);
-        $id_penawaran = $is_update ? $id : $this->penawaran_model->generate_id();
+        $id_penawaran = $is_update ? $id : $this->penawaran_dropship_model->generate_id();
 
         $header = [
             'id_penawaran'              => $id_penawaran,
@@ -105,7 +105,7 @@ class Penawaran extends Admin_Controller
             'outstanding'               => str_replace(',', '', $data['outstanding']),
             'over_limit'                => str_replace(',', '', $data['over_limit']),
             'status_credit_limit'       => $data['status_credit_limit'],
-            'tipe_penawaran'            => "Standard",
+            'tipe_penawaran'            => "Dropship",
         ];
 
         // Buat nentuin status dan level approval
@@ -590,22 +590,22 @@ class Penawaran extends Admin_Controller
 
     public function data_side_penawaran()
     {
-        $this->penawaran_model->get_json_penawaran();
+        $this->penawaran_dropship_model->get_json_penawaran();
     }
 
     public function data_side_approval_manager()
     {
-        $this->penawaran_model->get_json_approval_manager();
+        $this->penawaran_dropship_model->get_json_approval_manager();
     }
 
     public function data_side_approval_direksi()
     {
-        $this->penawaran_model->get_json_approval_direksi();
+        $this->penawaran_dropship_model->get_json_approval_direksi();
     }
 
     public function data_side_loss_penawaran()
     {
-        $this->penawaran_model->get_json_loss_penawaran();
+        $this->penawaran_dropship_model->get_json_loss_penawaran();
     }
 
     // BUAT TEST TEST

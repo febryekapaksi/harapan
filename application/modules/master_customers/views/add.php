@@ -286,7 +286,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                     <option value="Toko 1" <?= (($cus->kategori_toko == 'Toko 1') ? 'selected' : '')  ?>>Toko 1</option>
                                     <option value="Toko 2" <?= (($cus->kategori_toko == 'Toko 2') ? 'selected' : '')  ?>>Toko 2</option>
                                     <option value="Toko 3" <?= (($cus->kategori_toko == 'Toko 3') ? 'selected' : '')  ?>>Toko 3</option>
-                                    <option value="Dropship" <?= (($cus->kategori_toko == 'Dropship') ? 'selected' : '')  ?>>Dropship</option>
+                                    <option value="Retail" <?= (($cus->kategori_toko == 'Retail') ? 'selected' : '')  ?>>Retail</option>
                                 </select>
                             </div>
                         </div>
