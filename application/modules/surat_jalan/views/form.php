@@ -5,6 +5,7 @@
             <input type="hidden" name="no_surat_jalan" value="<?= isset($sj['no_surat_jalan']) ? $sj['no_surat_jalan'] : '' ?>">
             <input type="hidden" name="no_delivery" id="no_delivery" value="<?= isset($sj['no_delivery']) ? $sj['no_delivery'] : '' ?>">
             <input type="hidden" name="no_so" id="no_so" value="<?= isset($sj['no_so']) ? $sj['no_so'] : '' ?>">
+            <input type="hidden" name="pengiriman" id="pengiriman" value="<?= isset($sj['pengiriman']) ? $sj['pengiriman'] : '' ?>">
             <div class="form-group row">
                 <div class="col-md-12">
                     <div class="col-md-6">
@@ -194,6 +195,7 @@
                                 no_so: row.no_so,
                                 customer: row.customer,
                                 alamat: row.alamat,
+                                pengiriman: row.pengiriman,
                                 weight: row.weight,
                                 items: []
                             };
@@ -229,6 +231,7 @@
                                 <td>${parseFloat(item.jumlah_berat).toFixed(2)}</td>
                                 <td></td>
                                 <td hidden>${item.alamat}</td>
+                                <td hidden>${item.pengiriman}</td>
                                 <td hidden>${item.weight}</td>
                                 <td hidden>${item.id_so_det}</td>
                             </tr>
@@ -256,6 +259,7 @@
 
             // ✅ Set alamat customer ke textarea
             $('#delivery_address').val(groupedSpk[selectedSpk].alamat || '');
+            $('#pengiriman').val(groupedSpk[selectedSpk].pengiriman || '');
             $('#no_delivery').val(groupedSpk[selectedSpk].no_delivery || '');
             $('#no_so').val(groupedSpk[selectedSpk].no_so || '');
 

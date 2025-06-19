@@ -53,6 +53,7 @@ class Surat_jalan extends Admin_Controller
             ->select('
             ld.*,
             so.no_so,
+            sd.pengiriman,
             sod.id AS id_so_det,
             c.name_customer AS customer,
             c.address_office AS alamat,
@@ -61,6 +62,7 @@ class Surat_jalan extends Admin_Controller
             (ld.qty_spk * p.weight) AS total_berat
         ')
             ->from('loading_delivery_detail ld')
+            ->join('spk_delivery sd', 'ld.no_delivery = sd.no_delivery', 'left')
             ->join('sales_order so', 'ld.no_so = so.no_so', 'left')
             ->join('sales_order_detail sod', 'sod.no_so = ld.no_so AND sod.id_product = ld.id_product', 'left')
             ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
@@ -98,6 +100,7 @@ class Surat_jalan extends Admin_Controller
                 'no_loading'       => $post['no_loading'],
                 'no_so'            => $post['no_so'],
                 'no_delivery'      => $post['no_delivery'],
+                'pengiriman'       => $post['pengiriman'],
                 'driver_name'      => $post['driver_name'],
                 'delivery_address' => $post['delivery_address'],
                 'delivery_date'    => date('Y-m-d', strtotime($post['delivery_date'])),
@@ -127,6 +130,7 @@ class Surat_jalan extends Admin_Controller
                 'no_loading'       => $post['no_loading'],
                 'no_so'            => $post['no_so'],
                 'no_delivery'      => $post['no_delivery'],
+                'pengiriman'       => $post['pengiriman'],
                 'driver_name'      => $post['driver_name'],
                 'delivery_address' => $post['delivery_address'],
                 'delivery_date'    => date('Y-m-d', strtotime($post['delivery_date'])),

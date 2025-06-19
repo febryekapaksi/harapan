@@ -1,22 +1,22 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-class Surat_jalan_model extends BF_Model
+class Surat_jalan_pabrik_model extends BF_Model
 {
 
     public function __construct()
     {
         parent::__construct();
-        $this->ENABLE_ADD     = has_permission('Surat_Jalan.Add');
-        $this->ENABLE_MANAGE  = has_permission('Surat_Jalan.Manage');
-        $this->ENABLE_VIEW    = has_permission('Surat_Jalan.View');
-        $this->ENABLE_DELETE  = has_permission('Surat_Jalan.Delete');
+        $this->ENABLE_ADD     = has_permission('Surat_Jalan_Pabrik.Add');
+        $this->ENABLE_MANAGE  = has_permission('Surat_Jalan_Pabrik.Manage');
+        $this->ENABLE_VIEW    = has_permission('Surat_Jalan_Pabrik.View');
+        $this->ENABLE_DELETE  = has_permission('Surat_Jalan_Pabrik.Delete');
     }
 
-    public function data_side_surat_jalan()
+    public function data_side_surat_jalan_pabrik()
     {
         $requestData = $_REQUEST;
 
-        $fetch = $this->get_query_json_surat_jalan(
+        $fetch = $this->get_query_json_surat_jalan_pabrik(
             $requestData['search']['value'],
             $requestData['order'][0]['column'],
             $requestData['order'][0]['dir'],
@@ -74,7 +74,7 @@ class Surat_jalan_model extends BF_Model
     }
 
 
-    public function get_query_json_surat_jalan($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
+    public function get_query_json_surat_jalan_pabrik($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
     {
         $columns_order_by = [
             0 => 'sj.no_surat_jalan',
@@ -90,7 +90,7 @@ class Surat_jalan_model extends BF_Model
         $this->db->from('surat_jalan sj');
         $this->db->join('sales_order so', 'sj.no_so = so.no_so', 'left');
         $this->db->join('master_customers c', 'so.id_customer = c.id_customer', 'left');
-        $this->db->where('sj.pengiriman', 'Gudang');
+        $this->db->where('sj.pengiriman', 'Pabrik');
         $totalData = $this->db->count_all_results();
 
         // =============================
@@ -99,8 +99,7 @@ class Surat_jalan_model extends BF_Model
         $this->db->from('surat_jalan sj');
         $this->db->join('sales_order so', 'sj.no_so = so.no_so', 'left');
         $this->db->join('master_customers c', 'so.id_customer = c.id_customer', 'left');
-        $this->db->where('sj.pengiriman', 'Gudang');
-
+        $this->db->where('sj.pengiriman', 'Pabrik');
 
         if (!empty($like_value)) {
             $this->db->group_start();
@@ -118,7 +117,7 @@ class Surat_jalan_model extends BF_Model
         $this->db->from('surat_jalan sj');
         $this->db->join('sales_order so', 'sj.no_so = so.no_so', 'left');
         $this->db->join('master_customers c', 'so.id_customer = c.id_customer', 'left');
-        $this->db->where('sj.pengiriman', 'Gudang');
+        $this->db->where('sj.pengiriman', 'Pabrik');
 
         if (!empty($like_value)) {
             $this->db->group_start();
