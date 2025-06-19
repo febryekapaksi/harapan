@@ -15,7 +15,6 @@ class Supplier extends Admin_Controller
 	{
 		parent::__construct();
 
-		$this->load->library(array('Mpdf'));
 		$this->load->model(array(
 			'Supplier/supplier_model'
 		));

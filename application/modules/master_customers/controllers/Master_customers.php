@@ -23,7 +23,7 @@ class Master_customers extends Admin_Controller
 	{
 		parent::__construct();
 
-		$this->load->library(array('Mpdf', 'upload', 'Image_lib'));
+		$this->load->library(array('upload', 'Image_lib'));
 		$this->load->model(array(
 			'Master_customers/Customer_model',
 			'Aktifitas/aktifitas_model',
