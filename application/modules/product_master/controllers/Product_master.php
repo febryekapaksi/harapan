@@ -286,12 +286,39 @@ class Product_master extends Admin_Controller
       // print_r($dataProcess);
       // exit;
 
+      // sekalian insert ke warehouse
+      $stockData = [
+        'code_lv1'       => $code_lv1,
+        'code_lv2'       => $code_lv2,
+        'code_lv3'       => $code_lv3,
+        'code_lv4'       => $code_lv4,
+        'code_product'   => $code,
+        'nm_product'     => $nama,
+        'id_unit'        => $id_unit,
+        'id_unit_packing' => $id_unit_packing,
+        'update_by'      => $this->id_user,
+        'update_date'    => $this->datetime
+      ];
+
       $this->db->trans_start();
       if (empty($id)) {
         $this->db->insert('new_inventory_4', $dataProcess);
+
+        //insert kek warehouse
+        $this->db->insert('warehouse_stock', $stockData);
       } else {
         $this->db->where('id', $id);
         $this->db->update('new_inventory_4', $dataProcess);
+
+        // update warehouse
+        $this->db->where('code_lv4', $code_lv4);
+        $this->db->update('warehouse_stock', $stockData);
+
+        //update nama product jika ada perubahan di product costing
+        $this->db->where('code_lv4', $code_lv4);
+        $this->db->update('product_costing', [
+          'product_name' => $nama
+        ]);
       }
       $this->db->trans_complete();
 
