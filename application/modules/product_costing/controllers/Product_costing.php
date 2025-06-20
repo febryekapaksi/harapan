@@ -141,6 +141,17 @@ class Product_costing extends Admin_Controller
             $this->db->insert('product_costing', $header);
             $id_product_costing = $header['id']; // pakai ID yang baru dibuat
         }
+
+        // ✅ Update harga_beli di warehouse_stock
+        if (!empty($header['code_lv4']) && isset($header['harga_beli'])) {
+            $this->db->where('code_lv4', $header['code_lv4']);
+            $this->db->update('warehouse_stock', [
+                'harga_beli' => $header['harga_beli'],
+                'update_by' => $this->id_user,
+                'update_date' => $this->datetime
+            ]);
+        }
+
         // Hapus dan simpan ulang kompetitor
         if ($is_update) {
             $this->db->delete('product_costing_kompetitor', ['id_product_costing' => $id_product_costing]);
