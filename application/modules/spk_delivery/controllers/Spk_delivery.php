@@ -96,12 +96,18 @@ class Spk_delivery extends Admin_Controller
   public function get_so_detail()
   {
     $no_so = $this->input->get('no_so', TRUE);
-    $data = $this->db->select('*')
-      ->from('sales_order_detail')
-      ->where('no_so', $no_so)
-      ->where('qty_belum_spk >=', 0)
+
+    $data = $this->db
+      ->select('
+            sod.*,
+            (sod.qty_order - sod.qty_spk) AS qty_belum_spk
+        ')
+      ->from('sales_order_detail sod')
+      ->where('sod.no_so', $no_so)
+      ->where('(sod.qty_order - sod.qty_spk) >', 0) // hanya yang masih bisa di-SPK
       ->get()
       ->result();
+
     echo json_encode($data);
   }
 

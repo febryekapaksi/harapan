@@ -62,8 +62,9 @@
                                         <th>PRODUCT</th>
                                         <th width='15%' class='text-center'>QTY ORDER</th>
                                         <th width='15%' class='text-center'>QTY BOOKING</th>
-                                        <th width='15%' class='text-center'>QTY BELUM KIRIM</th>
+                                        <th width='15%' class='text-center'>QTY BELUM SPK</th>
                                         <th width='15%' class='text-center'>QTY SPK</th>
+                                        <th></th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -188,43 +189,67 @@
                             $('#table-detail-so .select-row').prop('disabled', false);
                         }
                     });
+
+                    $('#table-spk-detail tbody tr').each(function() {
+                        const id_so_det = $(this).find("input[name*='[id_so_det]']").val();
+                        const id_product = $(this).find("input[name*='[id_product]']").val();
+                        const rowKey = `${id_so_det}_${id_product}`;
+
+                        $('#table-detail-so .select-row').each(function() {
+                            const item = JSON.parse($(this).attr('data-item'));
+                            const thisKey = `${item.id}_${item.id_product}`;
+                            if (thisKey === rowKey) {
+                                $(this).prop('checked', true).prop('disabled', true);
+                            }
+                        });
+                    });
                 }
             });
         });
 
         // add detail SO ke main tabel
         $('#btnPilihDetailSO').on('click', function() {
-            let i = $('#table-spk-detail tbody tr').length; // hitung baris awal
+            let i = $('#table-spk-detail tbody tr').length;
 
             $('#table-detail-so .select-row:checked').each(function() {
                 const data = JSON.parse($(this).attr('data-item'));
+                const rowKey = `${data.id}_${data.id_product}`; // kombinasi unik
+
+                // Cegah duplikasi baris
+                if ($(`#row-${rowKey}`).length) return;
 
                 const row = `
-                            <tr>
-                                <td class='text-center'>${i + 1}</td>
-                                <td>${data.product}</td>
-                                <td class='text-center'>${data.qty_order}</td>
-                                <td class='text-center'>${data.use_qty_free ?? 0}</td>
-                                <td class='text-center'>${data.qty_belum_spk ?? 0}</td>
-                                <td class='text-center'>
-                                    <input type='text' name='detail[${i}][qty_spk]' class='form-control input-sm text-center' required>
-                                </td>
-                                <td hidden>
-                                    <input type='hidden' name='detail[${i}][id_product]' value='${data.id_product}'>
-                                    <input type='hidden' name='detail[${i}][id_so_det]' value='${data.id}'>
-                                    <input type='hidden' name='detail[${i}][pengiriman]' value='${data.pengiriman}'>
-                                    <input type='hidden' name='detail[${i}][qty_order]' value='${data.qty_order}'>
-                                    <input type='hidden' name='detail[${i}][qty_booking]' value='${data.use_qty_free ?? 0}'>
-                                    <input type='hidden' name='detail[${i}][qty_belum_spk]' value='${data.qty_belum_spk ?? 0}'>
-                                </td>
-                            </tr>
-                            `;
+            <tr id="row-${rowKey}">
+                <td class='text-center'>${i + 1}</td>
+                <td>${data.product}</td>
+                <td class='text-center'>${data.qty_order}</td>
+                <td class='text-center'>${data.use_qty_free ?? 0}</td>
+                <td class='text-center'>${data.qty_belum_spk ?? 0}</td>
+                <td class='text-center'>
+                    <input type='text' name='detail[${i}][qty_spk]' class='form-control input-sm text-center' required>
+                </td>
+                <td class='text-center'>
+                    <button type="button" class="btn btn-danger btn-sm btn-remove-row" data-key="${rowKey}"><i class="fa fa-trash"></i></button>
+                </td>
+                <td hidden>
+                    <input type='hidden' name='detail[${i}][id_product]' value='${data.id_product}'>
+                    <input type='hidden' name='detail[${i}][id_so_det]' value='${data.id}'>
+                    <input type='hidden' name='detail[${i}][pengiriman]' value='${data.pengiriman}'>
+                    <input type='hidden' name='detail[${i}][qty_order]' value='${data.qty_order}'>
+                    <input type='hidden' name='detail[${i}][qty_booking]' value='${data.use_qty_free ?? 0}'>
+                    <input type='hidden' name='detail[${i}][qty_belum_spk]' value='${data.qty_belum_spk ?? 0}'>
+                </td>
+            </tr>
+        `;
                 $('#table-spk-detail tbody').append(row);
-                i++;
+
+                // Disable checkbox di modal agar tidak dipilih ulang
+                $(this).prop('disabled', true);
             });
 
             $('#modalDetailSO').modal('hide');
         });
+
 
         // button save
         $('#data-form').submit(function(e) {
@@ -299,6 +324,27 @@
                         return false;
                     }
                 });
+        });
+
+        $(document).on('click', '.btn-remove-row', function() {
+            const key = $(this).data('key');
+
+            // Hapus baris dari table-spk-detail
+            $(`#row-${key}`).remove();
+
+            // Aktifkan kembali checkbox di modal
+            $('#table-detail-so .select-row').each(function() {
+                const data = JSON.parse($(this).attr('data-item'));
+                const rowKey = `${data.id}_${data.id_product}`;
+                if (rowKey === key) {
+                    $(this).prop('checked', false).prop('disabled', false);
+                }
+            });
+
+            // Re-numbering (opsional)
+            $('#table-spk-detail tbody tr').each(function(index) {
+                $(this).find('td:first').text(index + 1);
+            });
         });
     });
 

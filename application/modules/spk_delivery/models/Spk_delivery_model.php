@@ -61,7 +61,7 @@ class Spk_delivery_model extends BF_Model
       $qty_order = (!empty($getQTYSO[0]['qty_order'])) ? $getQTYSO[0]['qty_order'] : 0;
 
       if ($row['status'] == 'NOT YET DELIVER') {
-        $status = 'Waiting Delivery';
+        $status = 'Waiting Loading';
         $warna = 'blue';
       } else if ($row['status'] == 'LOADING') {
         $status = 'On Loading';
