@@ -385,7 +385,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label>Armada Pickup</label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" name="data4[armada_pickup]" value="<?= isset($rate->armada_pickup) ? $rate->armada_pickup : '' ?>" <?= $readonly ?>>
+                                <input type="number" min="0" class="form-control" name="data4[armada_pickup]" value="<?= isset($rate->armada_pickup) ? $rate->armada_pickup : '' ?>" <?= $readonly ?>>
                             </div>
                         </div>
 
@@ -395,7 +395,7 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label>Armada Truck</label>
                             </div>
                             <div class="col-md-6">
-                                <input type="text" class="form-control" name="data4[armada_truck]" value="<?= isset($rate->armada_truck) ? $rate->armada_truck : '' ?>" <?= $readonly ?>>
+                                <input type="number" min="0" class="form-control" name="data4[armada_truck]" value="<?= isset($rate->armada_truck) ? $rate->armada_truck : '' ?>" <?= $readonly ?>>
                             </div>
                         </div>
                     </div>
@@ -420,7 +420,10 @@ $disabled = isset($results['mode']) && $results['mode'] === 'view' ? 'disabled' 
                                 <label>Luas Tanah</label>
                             </div>
                             <div class="col-md-6">
-                                <textarea class="form-control" name="data4[luas_tanah]" id="luas_tanah" <?= $readonly ?>><?= isset($rate->luas_tanah) ? $rate->luas_tanah : '' ?></textarea>
+                                <div class="input-group">
+                                    <input type="number" min="0" class="form-control" name="data4[luas_tanah]" value="<?= isset($rate->luas_tanah) ? $rate->luas_tanah : '' ?>" id="luas_tanah" <?= $readonly ?>>
+                                    <span class="input-group-addon"><b>M²</b></span>
+                                </div>
                             </div>
                         </div>
 
