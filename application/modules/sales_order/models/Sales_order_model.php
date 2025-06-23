@@ -89,16 +89,15 @@ class Sales_order_model extends BF_Model
 				// Tambahkan status SPK
 				if ($row['status_spk'] == 'Belum SPK') {
 					$status_label .= " <span class='badge bg-yellow'>Belum SPK</span>";
-					$action .= "<a href='" . base_url("spk_delivery/add/{$row['no_so']}") . "' class='btn btn-sm btn-success' title='Create SPK'><i class='fa fa-paper-plane'></i> SPK</a> ";
+					$action .= "<a href='" . base_url("spk_delivery/add/{$row['no_so']}") . "' class='btn btn-sm btn-info' title='Create SPK'><i class='fa fa-truck'></i> SPK</a> ";
 				} elseif ($row['status_spk'] == 'SPK Sebagian') {
 					$status_label .= " <span class='badge bg-orange'>SPK Sebagian</span>";
-					$action .= "<a href='" . base_url("spk_delivery/add/{$row['no_so']}") . "' class='btn btn-sm btn-success' title='Create SPK'><i class='fa fa-paper-plane'></i> SPK</a> ";
+					$action .= "<a href='" . base_url("spk_delivery/add/{$row['no_so']}") . "' class='btn btn-sm btn-info' title='Create SPK'><i class='fa fa-truck'></i> SPK</a> ";
 				} elseif ($row['status_spk'] == 'SPK Lengkap') {
 					$status_label .= " <span class='badge bg-blue'>SPK Lengkap</span>";
 				}
 			} else {
-				$action = "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-primary' title='Edit SO'><i class='fa fa-edit'></i></a> ";
-				$action .= "<a href='" . base_url("sales_order/deal/{$row['no_so']}") . "' class='btn btn-sm btn-success' title='Deal SO'><i class='fa fa-check'></i></a> ";
+				$action = "<a href='" . base_url("sales_order/add/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success' title='Create SO'><i class='fa fa-paper-plane'></i> SO</a> ";
 				$status_label = "<span class='badge bg-grey'>Draft</span>";
 			}
 
@@ -143,17 +142,17 @@ class Sales_order_model extends BF_Model
 		];
 
 		// Total data
-		$this->db->from('sales_order so');
-		$this->db->join('penawaran p', 'so.id_penawaran = p.id_penawaran', 'left');
+		$this->db->from('penawaran p');
+		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-		$this->db->where('so.no_so IS NOT NULL');
+		$this->db->where('p.status !=', 'L');
 		$totalData = $this->db->count_all_results();
 
 		// Total filtered
-		$this->db->from('sales_order so');
-		$this->db->join('penawaran p', 'so.id_penawaran = p.id_penawaran', 'left');
+		$this->db->from('penawaran p');
+		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-		$this->db->where('so.no_so IS NOT NULL');
+		$this->db->where('p.status !=', 'L');
 
 		if ($like_value) {
 			$this->db->group_start();
@@ -166,11 +165,13 @@ class Sales_order_model extends BF_Model
 		$totalFiltered = $this->db->count_all_results();
 
 		// Ambil data
-		$this->db->select('so.no_so, so.nilai_so, so.status, so.status_do, so.status_planning, p.id_penawaran, p.total_penawaran, p.tipe_penawaran, so.revisi, so.status_spk, p.sales, c.name_customer');
-		$this->db->from('sales_order so');
-		$this->db->join('penawaran p', 'so.id_penawaran = p.id_penawaran', 'left');
+		$this->db->select('so.no_so, so.nilai_so, so.status, so.status_do, so.status_planning, so.revisi, so.status_spk, 
+					   p.id_penawaran, p.total_penawaran, p.tipe_penawaran, p.sales, 
+					   c.name_customer');
+		$this->db->from('penawaran p');
+		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-		$this->db->where('so.no_so IS NOT NULL');
+		$this->db->where('p.status !=', 'L');
 
 		if ($like_value) {
 			$this->db->group_start();
@@ -183,7 +184,7 @@ class Sales_order_model extends BF_Model
 		if ($column_order !== null && isset($columns_order_by[$column_order])) {
 			$this->db->order_by($columns_order_by[$column_order], $column_dir);
 		} else {
-			$this->db->order_by('so.created_at', 'desc');
+			$this->db->order_by('p.created_at', 'desc');
 		}
 
 		if ($limit_length != -1) {

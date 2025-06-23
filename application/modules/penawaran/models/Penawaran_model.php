@@ -125,7 +125,6 @@ class Penawaran_model extends BF_Model
                     $warna = 'green';
 
                     $action = "<a target='_blank' href='" . base_url("penawaran/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
-                    $action .= "<a href='" . base_url("sales_order/add/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success' title='Create SO'><i class='fa fa-paper-plane'></i> SO</a> ";
                     $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-danger btn-loss' title='Loss Penawaran'><i class='fa fa-times'></i></a> ";
                 }
             }
