@@ -256,9 +256,7 @@ class Surat_jalan extends Admin_Controller
         $no_surat_jalan = $post['no_surat_jalan'];
         $sanitized_sj = str_replace(['/', '\\'], '_', $no_surat_jalan);
 
-        // Inisialisasi
         $status = 'CONFIRM';
-
         $ArrUpdate = [
             'tgl_diterima' => $tgl_diterima,
             'penerima'     => $penerima,
@@ -266,14 +264,13 @@ class Surat_jalan extends Admin_Controller
             'updated_at'   => date('Y-m-d H:i:s'),
         ];
 
-        //untuk dokumen
+        // ✅ Upload file dokumen jika ada
         if (!empty($_FILES['file_dokumen']['name'])) {
             $config['upload_path']   = './assets/confirm_sj/';
             $config['allowed_types'] = '*';
             $config['max_size']      = 2048;
             $config['file_name']     = 'bukti_confirm_sj_gudang_' . $sanitized_sj;
 
-            // $this->load->library('upload', $config);
             $this->upload->initialize($config);
 
             if (!$this->upload->do_upload('file_dokumen')) {
@@ -282,15 +279,13 @@ class Surat_jalan extends Admin_Controller
                 return;
             } else {
                 $uploadData = $this->upload->data();
-                $filename = $uploadData['file_name'];
-
-                // Tambahkan ke $ArrUpdate
-                $ArrUpdate['file_dokumen'] = $filename;
+                $ArrUpdate['file_dokumen'] = $uploadData['file_name'];
             }
         }
 
-        // Logika penentuan status berdasarkan detail
         $ArrDetail = [];
+        $arr_kartu_stok = [];
+
         foreach ($detail as $key => $value) {
             $qty_delivery = (int) $value['qty_delivery'];
             $qty_terkirim = (int) $value['qty_terkirim'];
@@ -300,21 +295,45 @@ class Surat_jalan extends Admin_Controller
             $total        = $qty_terkirim + $qty_retur + $qty_hilang;
 
             $ArrDetail[$key] = [
-                'id_product'    => $value['id_product'],
-                'id_so_det'     => $value['id_so_det'],
-                'qty_terkirim'  => $qty_terkirim,
-                'qty_retur'     => $qty_retur,
-                'qty_hilang'    => $qty_hilang
+                'id'           => $id_detail,
+                'id_product'   => $value['id_product'],
+                'id_so_det'    => $value['id_so_det'],
+                'qty_terkirim' => $qty_terkirim,
+                'qty_retur'    => $qty_retur,
+                'qty_hilang'   => $qty_hilang
             ];
 
             if ($qty_retur > 0 || $total !== $qty_delivery) {
                 $status = 'RETUR';
             }
+
+            // ✅ Tambahan kartu stok
+            $stok = $this->db->get_where('warehouse_stock', [
+                'code_lv4' => $value['id_product']
+            ])->row_array();
+
+            if ($stok && $qty_terkirim > 0) {
+                $arr_kartu_stok[] = [
+                    'no_transaksi'      => $no_surat_jalan,
+                    'transaksi'         => "Delivery",
+                    'tgl_transaksi'     => $tgl_diterima,
+                    'code_lv4'          => $value['id_product'],
+                    'nm_product'        => $stok['nm_product'],
+                    'qty'               => floatval($stok['qty_stock']),
+                    'qty_book'          => floatval($stok['qty_booking']),
+                    'qty_free'          => floatval($stok['qty_free']),
+                    'qty_transaksi'     => $qty_terkirim * -1,
+                    'qty_akhir'         => floatval($stok['qty_stock']) - $qty_terkirim,
+                    'qty_book_akhir'    => floatval($stok['qty_booking']),
+                    'qty_free_akhir'    => floatval($stok['qty_free']),
+                    'harga_stok'        => floatval($stok['harga_beli'])
+                ];
+            }
         }
 
         $ArrUpdate['status'] = $status;
 
-        // Simpan ke database
+        // ✅ Simpan ke database
         $this->db->trans_start();
 
         $this->db->update('surat_jalan', $ArrUpdate, ['id' => $id_sj]);
@@ -324,10 +343,13 @@ class Surat_jalan extends Admin_Controller
                 'qty_terkirim' => $row['qty_terkirim'],
                 'qty_retur'    => $row['qty_retur'],
                 'qty_hilang'   => $row['qty_hilang'],
-            ], [
-                'id'      => $id_detail,
-            ]);
+            ], ['id' => $row['id']]);
         }
+
+        if (!empty($arr_kartu_stok)) {
+            $this->db->insert_batch('kartu_stok', $arr_kartu_stok);
+        }
+
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
@@ -341,6 +363,7 @@ class Surat_jalan extends Admin_Controller
 
         echo json_encode($res);
     }
+
 
     public function print_sj($id)
     {
