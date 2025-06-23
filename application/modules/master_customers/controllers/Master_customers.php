@@ -222,7 +222,14 @@ class Master_customers extends Admin_Controller
 		}
 
 		if (isset($post['data4'])) {
-			$this->db->insert('child_customer_rate', array_merge($post['data4'], ['id_customer' => $code]));
+			$data = $post['data4'];
+			$data['id_customer'] = $code;
+
+			$hasil_nilai = $this->hitung_nilai_customer($data);
+			$data['score'] = $hasil_nilai['score'];
+			$data['kelas'] = $hasil_nilai['kelas'];
+
+			$this->db->insert('child_customer_rate', $data);
 		}
 
 		if ($this->db->trans_status() === FALSE) {
@@ -233,6 +240,7 @@ class Master_customers extends Admin_Controller
 			echo json_encode(['status' => 1, 'pesan' => $isUpdate ? 'Berhasil update.' : 'Berhasil tambah data.']);
 		}
 	}
+
 	public function view($id)
 	{
 		$this->auth->restrict($this->viewPermission);
@@ -271,6 +279,98 @@ class Master_customers extends Admin_Controller
 		$this->template->render('add');
 	}
 
+	private function hitung_nilai_customer($data)
+	{
+		$skor = 0;
+
+		// Ontime
+		$ontime = strtolower($data['ontime'] ?? '');
+		if ($ontime === 'yes') $skor += 20;
+		elseif ($ontime === 'new') $skor += 10;
+
+		// Toko Sendiri
+		$toko = strtolower($data['toko_sendiri'] ?? '');
+		if ($toko === 'yes') $skor += 15;
+
+		// Armada Pickup
+		$pickup = (int)($data['armada_pickup'] ?? 0);
+		if ($pickup >= 5) $skor += 15;
+		elseif ($pickup >= 3) $skor += 10;
+		elseif ($pickup >= 1) $skor += 5;
+
+		// Armada Truck
+		if ((int)($data['armada_truck'] ?? 0) >= 1) $skor += 10;
+
+		// Attitude
+		$attitude = strtolower($data['attitude'] ?? '');
+		if ($attitude === 'yes') $skor += 10;
+
+		// Luas Tanah
+		$luas = (int)($data['luas_tanah'] ?? 0);
+		if ($luas > 1000) $skor += 10;
+		elseif ($luas >= 500) $skor += 5;
+
+		// PBB
+		$pbb = strtolower($data['pbb'] ?? '');
+		if ($pbb === 'yes') $skor += 10;
+
+		// Klasifikasi
+		if ($skor >= 70) $kelas = 'TITANIUM';
+		elseif ($skor >= 60) $kelas = 'PLATINUM';
+		elseif ($skor >= 45) $kelas = 'GOLD';
+		elseif ($skor >= 30) $kelas = 'SILVER';
+		else $kelas = 'BRONZE';
+
+		return ['kelas' => $kelas, 'score' => $skor];
+	}
+
+	public function update_score_dan_kelas_customer()
+	{
+		$customers = $this->db->get('child_customer_rate')->result_array();
+
+		foreach ($customers as $cust) {
+			$score = 0;
+
+			// Hitung skor
+			if (strtolower($cust['ontime']) === 'yes') $score += 20;
+			elseif (strtolower($cust['ontime']) === 'new') $score += 10;
+
+			if (strtolower($cust['toko_sendiri']) === 'yes') $score += 15;
+
+			$pickup = (int)$cust['armada_pickup'];
+			if ($pickup >= 5) $score += 15;
+			elseif ($pickup >= 3) $score += 10;
+			elseif ($pickup >= 1) $score += 5;
+
+			if ((int)$cust['armada_truck'] >= 1) $score += 10;
+
+			if (strtolower($cust['attitude']) === 'yes') $score += 10;
+
+			$luas = (int)$cust['luas_tanah'];
+			if ($luas > 1000) $score += 10;
+			elseif ($luas >= 500) $score += 5;
+
+			if (strtolower($cust['pbb']) === 'yes') $score += 10;
+
+			// Tentukan kelas
+			if ($score >= 70) $kelas = 'TITANIUM';
+			elseif ($score >= 60) $kelas = 'PLATINUM';
+			elseif ($score >= 45) $kelas = 'GOLD';
+			elseif ($score >= 30) $kelas = 'SILVER';
+			else $kelas = 'BRONZE';
+
+			// Update ke tabel
+			$this->db->where('id', $cust['id'])->update('child_customer_rate', [
+				'score' => $score,
+				'kelas' => $kelas
+			]);
+		}
+
+		echo "Selesai update score dan kelas semua customer.";
+	}
+
+
+	//TRASH
 
 	public function viewCustomer($id)
 	{
