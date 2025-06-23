@@ -14,12 +14,13 @@
 
         <div class="table-responsive">
             <table id="example1" class="table table-bordered table-striped">
-                <thead>
+                <thead class="bg-blue">
                     <tr>
                         <th class="text-center"> #</th>
                         <th class="text-center">Date</th>
-                        <th class="text-center">Cust</th>
+                        <th class="text-center">Customer</th>
                         <th class="text-center">Quotation No.</th>
+                        <th class="text-center">Tipe Quot</th>
                         <th class="text-center">Status</th>
                         <th width='7%'>Action</th>
                     </tr>

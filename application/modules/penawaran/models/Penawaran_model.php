@@ -274,6 +274,12 @@ class Penawaran_model extends BF_Model
                 $warna = 'danger';
             }
 
+            if ($row['tipe_penawaran'] === "Dropship") {
+                $tipe_quot = "<span class='badge bg-blue'>Dropship</span>";
+            } else {
+                $tipe_quot = "<span class='badge bg-aqua'>Standard</span>";
+            }
+
             // Aksi tombol
             $action = "<a href='" . base_url("penawaran/approve_manager/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success'><i class='fa fa-check-square-o'></i></a> ";
             // $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger btn-reject' data-id='{$row['id_penawaran']}'><i class='fa fa-times'></i> Reject</a>";
@@ -283,7 +289,7 @@ class Penawaran_model extends BF_Model
             $nestedData[] = "<div align='left'>" . date('d/m/Y', strtotime($row['quotation_date'])) . "</div>";
             $nestedData[] = "<div align='left'>" . strtoupper($row['name_customer']) . "</div>";
             $nestedData[] = "<div align='left'>" . $row['id_penawaran'] . "</div>";
-            // $nestedData[] = "<div align='center'>" . $row['revisi'] . "</div>";
+            $nestedData[] = "<div align='center'>{$tipe_quot}</div>";
             $nestedData[] = "<div align='center'><span class='badge bg-{$warna}'>{$status_label}</span></div>";
             $nestedData[] = "<div align='center'>{$action}</div>";
 
@@ -303,7 +309,7 @@ class Penawaran_model extends BF_Model
 
     public function get_query_json_approval_manager($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
     {
-        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, c.name_customer');
+        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, p.tipe_penawaran, c.name_customer');
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
         $this->db->where('p.status', 'WA');
@@ -387,6 +393,12 @@ class Penawaran_model extends BF_Model
                 $warna = 'success';
             }
 
+            if ($row['tipe_penawaran'] === "Dropship") {
+                $tipe_quot = "<span class='badge bg-blue'>Dropship</span>";
+            } else {
+                $tipe_quot = "<span class='badge bg-aqua'>Standard</span>";
+            }
+
             $action = "<a href='" . base_url("penawaran/approve_direksi/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success'><i class='fa fa-check-square-o'></i></a> ";
             // $action .= "<a href='javascript:void(0)' class='btn btn-sm btn-danger btn-reject' data-id='{$row['id_penawaran']}'><i class='fa fa-times'></i> Reject</a>";
 
@@ -395,7 +407,7 @@ class Penawaran_model extends BF_Model
             $nestedData[] = "<div align='left'>" . date('d/m/Y', strtotime($row['quotation_date'])) . "</div>";
             $nestedData[] = "<div align='left'>" . strtoupper($row['name_customer']) . "</div>";
             $nestedData[] = "<div align='left'>" . $row['id_penawaran'] . "</div>";
-            // $nestedData[] = "<div align='center'>" . $row['revisi'] . "</div>";
+            $nestedData[] = "<div align='center'>{$tipe_quot}</div>";
             $nestedData[] = "<div align='center'><span class='badge bg-{$warna}'>{$status_label}</span></div>";
             $nestedData[] = "<div align='center'>{$action}</div>";
 
@@ -415,7 +427,7 @@ class Penawaran_model extends BF_Model
 
     public function get_query_json_approval_direksi($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
     {
-        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, c.name_customer');
+        $this->db->select('p.id_penawaran, p.quotation_date, p.revisi, p.status, p.level_approval, p.tipe_penawaran, c.name_customer');
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
         $this->db->where('p.status', 'WA');
