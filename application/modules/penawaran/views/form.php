@@ -226,7 +226,10 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                                 <input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $dp['harga_penawaran'] ?>"
                                                     <?= ($mode == 'edit') ? '' : 'readonly' ?>>
                                             </td>
-                                            <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly></td>
+                                            <td>
+                                                <input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly>
+                                                <input type="hidden" class="form-control diskon_nilai" name="product[<?= $loop ?>][diskon_nilai]" id="diskon_nilai_<?= $loop ?>" value="<?= $dp['diskon_nilai'] ?>" readonly>
+                                            </td>
                                             <td><input type="text" class="form-control moneyFormat total-harga" name="product[<?= $loop ?>][total]" id="total_<?= $loop ?>" value="<?= $dp['total'] ?>" readonly></td>
                                             <td hidden><input type="text" class="form-control moneyFormat total-price-list" name="product[<?= $loop ?>][total_pl]" id="total_pl_<?= $loop ?>" value="<?= $dp['total_pl'] ?>" readonly></td>
                                             <td align="center">
@@ -263,7 +266,10 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                         <td><input type="text" class="form-control" name="product[1][qty_free]" id="qty_free_1" readonly></td>
                                         <td><input type="text" class="form-control moneyFormat price-list" name="product[1][price_list]" id="price_1" readonly></td>
                                         <td><input type="text" class="form-control penawaran moneyFormat" name="product[1][harga_penawaran]" id="penawaran_1"></td>
-                                        <td><input type="text" class="form-control diskon" name="product[1][diskon]" id="diskon_1" readonly></td>
+                                        <td>
+                                            <input type="text" class="form-control diskon" name="product[1][diskon]" id="diskon_1" readonly>
+                                            <input type="hidden" class="form-control diskon_nilai" name="product[1][diskon_nilai]" id="diskon_nilai_1" readonly>
+                                        </td>
                                         <td><input type="text" class="form-control moneyFormat total-harga" name="product[1][total]" id="total_1" readonly></td>
                                         <td hidden><input type="text" class="form-control moneyFormat total-price-list" name="product[1][total_pl]" id="total_pl_1" readonly></td>
                                         <td align="center">
@@ -466,7 +472,10 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                     <td><input type="text" class="form-control" name="product[${loop}][qty_free]" id="qty_free_${loop}" readonly></td>
                     <td><input type="text" class="form-control moneyFormat price-list" name="product[${loop}][price_list]" id="price_${loop}" readonly></td>
                     <td><input type="text" class="form-control penawaran moneyFormat" name="product[${loop}][harga_penawaran]" id="penawaran_${loop}"></td>
-                    <td><input type="text" class="form-control diskon" name="product[${loop}][diskon]" id="diskon_${loop}" readonly></td>
+                    <td>
+                        <input type="text" class="form-control diskon" name="product[${loop}][diskon]" id="diskon_${loop}" readonly>
+                        <input type="hidden" class="form-control diskon_nilai" name="product[${loop}][diskon_nilai]" id="diskon_nilai_${loop}" readonly>
+                    </td>
                     <td><input type="text" class="form-control moneyFormat total-harga" name="product[${loop}][total]" id="total_${loop}" readonly></td>
                     <td hidden><input type="text" class="form-control moneyFormat total-price-list" name="product[${loop}][total_pl]" id="total_pl_${loop}" readonly></td>
                     <td>
@@ -963,10 +972,12 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
         const diskon = offer ? ((offer - price) / price) * 100 : 0;
         const total = qty * offer;
         const total_pl = qty * price;
+        const diskon_nilai = total_pl - total;
 
         $(`#diskon_${loop}`).val(diskon.toFixed(2));
         $(`#total_${loop}`).val(total);
         $(`#total_pl_${loop}`).val(total_pl);
+        $(`#diskon_nilai_${loop}`).val(diskon_nilai);
     }
 
     //fungsi hitung harga berantai berdasarkan toko

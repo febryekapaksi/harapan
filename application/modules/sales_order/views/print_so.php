@@ -195,10 +195,10 @@ $ENABLE_DELETE  = has_permission('Sales_Order.Delete');
                     <td><?= $d->product ?></td>
                     <td class="text-center"><?= $d->qty_order ?></td>
                     <td class="text-center"><?= strtoupper($d->unit) ?></td>
-                    <td class="text-right"><?= number_format($d->product_price) ?></td>
+                    <td class="text-right"><?= number_format($d->harga_penawaran) ?></td>
                     <td class="text-center"><?= $d->diskon_persen ?>%</td>
                     <td class="text-right">
-                        <?php $amount = $d->qty_order * $d->product_price;
+                        <?php $amount = $d->qty_order * $d->harga_penawaran;
                         echo number_format($amount);
                         $total += $amount; ?>
                     </td>

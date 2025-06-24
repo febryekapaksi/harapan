@@ -189,6 +189,7 @@ class Penawaran extends Admin_Controller
                     'price_list'        => str_replace(',', '', $pro['price_list']),
                     'harga_penawaran'   => str_replace(',', '', $pro['harga_penawaran']),
                     'diskon'            => $pro['diskon'],
+                    'diskon_nilai'      => $pro['diskon_nilai'],
                     'total'             => str_replace(',', '', $pro['total']),
                     'total_pl'          => str_replace(',', '', $pro['total_pl']),
                 ];

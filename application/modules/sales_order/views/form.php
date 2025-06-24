@@ -168,7 +168,12 @@
                                             <td><input type="number" class="form-control" name="product[<?= $loop ?>][use_qty_free]" id="use_qty_free_<?= $loop ?>"></td>
                                             <td><input type="text" class="form-control" name="product[<?= $loop ?>][selisih]" id="selisih_<?= $loop ?>" readonly></td>
                                             <td><input type="number" class="form-control" name="product[<?= $loop ?>][pr]" id="pr_<?= $loop ?>"></td>
-                                            <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly></td>
+                                            <td>
+                                                <input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $dp['diskon'] ?>" readonly>
+                                                <input type="hidden" class="form-control diskon_nilai" name="product[<?= $loop ?>][diskon_nilai]" id="diskon_nilai<?= $loop ?>" value="<?= $dp['diskon_nilai'] ?>" readonly>
+                                                <input type="hidden" class="form-control price_list" name="product[<?= $loop ?>][price_list]" id="price_list<?= $loop ?>" value="<?= $dp['price_list'] ?>" readonly>
+                                                <input type="hidden" class="form-control total_pl" name="product[<?= $loop ?>][total_pl]" id="total_pl<?= $loop ?>" value="<?= $dp['total_pl'] ?>" readonly>
+                                            </td>
                                             <td>
                                                 <select name="product[<?= $loop ?>][pengiriman]" id="pengiriman_<?= $loop ?>" class="form-control select2" required>
                                                     <option value="">-- Pilih --</option>
@@ -207,12 +212,17 @@
                                             </td>
                                             <td hidden><input type="text" class="form-control" name="product[<?= $loop ?>][code_lv4]" id="code_lv4_<?= $loop ?>"></td>
                                             <td><input type="number" class="form-control qty-input" name="product[<?= $loop ?>][qty]" id="qty_<?= $loop ?>" value="<?= $sd['qty_order'] ?>" readonly></td>
-                                            <td><input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $sd['product_price'] ?>" readonly></td>
+                                            <td><input type="text" class="form-control penawaran moneyFormat" name="product[<?= $loop ?>][harga_penawaran]" id="penawaran_<?= $loop ?>" value="<?= $sd['harga_penawaran'] ?>" readonly></td>
                                             <td><input type="text" class="form-control" name="product[<?= $loop ?>][qty_free]" id="qty_free_<?= $loop ?>" readonly></td>
                                             <td><input type="number" class="form-control" name="product[<?= $loop ?>][use_qty_free]" id="use_qty_free_<?= $loop ?>" value="<?= $sd['use_qty_free'] ?>" <?= (isset($mode) && $mode == 'deal') ? 'readonly' : '' ?>></td>
                                             <td><input type="text" class="form-control" name="product[<?= $loop ?>][selisih]" id="selisih_<?= $loop ?>" value="<?= $sd['qty_propose'] ?>" readonly></td>
                                             <td><input type="number" class="form-control" name="product[<?= $loop ?>][pr]" id="pr_<?= $loop ?>" value="<?= $sd['qty_propose'] ?>" <?= (isset($mode) && $mode == 'deal') ? 'readonly' : '' ?>></td>
-                                            <td><input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $sd['diskon_persen'] ?>" readonly></td>
+                                            <td>
+                                                <input type="text" class="form-control diskon" name="product[<?= $loop ?>][diskon]" id="diskon_<?= $loop ?>" value="<?= $sd['diskon_persen'] ?>" readonly>
+                                                <input type="hidden" class="form-control diskon_nilai" name="product[<?= $loop ?>][diskon_nilai]" id="diskon_nilai<?= $loop ?>" value="<?= $sd['diskon_nilai'] ?>" readonly>
+                                                <input type="hidden" class="form-control price_list" name="product[<?= $loop ?>][price_list]" id="price_list<?= $loop ?>" value="<?= $sd['price_list'] ?>" readonly>
+                                                <input type="hidden" class="form-control total_pl" name="product[<?= $loop ?>][total_pl]" id="total_pl<?= $loop ?>" value="<?= $sd['total_pl'] ?>" readonly>
+                                            </td>
                                             <td>
                                                 <select name="product[<?= $loop ?>][pengiriman]" id="pengiriman_<?= $loop ?>" class="form-control select2" <?= (isset($mode) && $mode == 'deal') ? 'disabled' : '' ?> required>
                                                     <option value="">-- Pilih --</option>
