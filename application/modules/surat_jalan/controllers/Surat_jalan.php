@@ -254,6 +254,7 @@ class Surat_jalan extends Admin_Controller
         $tgl_diterima = $post['tgl_diterima'];
         $penerima = $post['penerima'];
         $no_surat_jalan = $post['no_surat_jalan'];
+        $no_delivery = $post['no_delivery'];
         $sanitized_sj = str_replace(['/', '\\'], '_', $no_surat_jalan);
 
         $status = 'CONFIRM';
@@ -306,6 +307,13 @@ class Surat_jalan extends Admin_Controller
             if ($qty_retur > 0 || $total !== $qty_delivery) {
                 $status = 'RETUR';
             }
+
+            $this->db->where([
+                'no_delivery' => $no_delivery,
+                'id_so_det'   => $value['id_so_det']
+            ])->update('spk_delivery_detail', [
+                'qty_delivery' => $qty_terkirim
+            ]);
 
             // ✅ Tambahan kartu stok
             $stok = $this->db->get_where('warehouse_stock', [

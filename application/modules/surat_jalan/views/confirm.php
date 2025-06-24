@@ -3,6 +3,7 @@
         <form id="data-form" enctype="multipart/form-data" autocomplete="off">
             <input type="hidden" name="id" value="<?= $sj['id'] ?>">
             <input type="hidden" name="no_surat_jalan" value="<?= $sj['no_surat_jalan'] ?>">
+            <input type="hidden" name="no_delivery" value="<?= $sj['no_delivery'] ?>">
             <div class="row">
                 <div class="col-md-12">
                     <div class="col-md-6">
