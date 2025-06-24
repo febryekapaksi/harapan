@@ -159,7 +159,7 @@ class Surat_jalan extends Admin_Controller
             ];
 
             // Update ke SPK dan SO Detail
-            $this->db->update('spk_delivery', ['status' => 'ON DELIVER'], ['no_delivery' => $post['no_delivery']]);
+            $this->db->update('spk_delivery', ['status' => 'ON DELIVER', 'no_surat_jalan' => $no_surat_jalan], ['no_delivery' => $post['no_delivery']]);
             $this->db->update('sales_order_detail', [
                 'qty_delivery' => $qty,
                 'status_kirim' => '1',
