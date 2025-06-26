@@ -287,7 +287,7 @@
                         </button>
                     <?php endif; ?>
 
-                    <?php if (isset($mode) && $mode == 'edit' || isset($mode) && $mode == 'add') : ?>
+                    <?php if (isset($mode) && $mode == 'add') : ?>
                         <button type="submit" class="btn btn-success" name="save" id="save">
                             <i class="fa fa-check"></i> Deal SO
                         </button>

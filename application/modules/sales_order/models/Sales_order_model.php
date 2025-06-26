@@ -84,6 +84,7 @@ class Sales_order_model extends BF_Model
 
 			if ($row['status'] === 'A') {
 				$action = "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning' title='Print SO'><i class='fa fa-print'></i></a> ";
+				$action .= "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-light' title='View'><i class='fa fa-eye'></i></a> ";
 				$status_label = "<span class='badge bg-green'>Deal</span>";
 
 				// Tambahkan status SPK

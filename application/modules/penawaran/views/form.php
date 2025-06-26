@@ -951,7 +951,6 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
         const ppn = (12 * dpp) / 100;
         const grand_total = excludePPn + ppn;
 
-
         $('#total_penawaran').val(totalPenawaran);
         $('#total_price_list').val(totalPriceList);
         $('#total_diskon_persen').val(totalDiskon.toFixed(2));
@@ -970,14 +969,14 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
         const offer = parseFloat($(`#penawaran_${loop}`).val().replace(/,/g, '')) || 0;
 
         const diskon = offer ? ((offer - price) / price) * 100 : 0;
+        const diskon_nilai = (price * diskon) / 100;
         const total = qty * offer;
         const total_pl = qty * price;
-        const diskon_nilai = total_pl - total;
 
         $(`#diskon_${loop}`).val(diskon.toFixed(2));
         $(`#total_${loop}`).val(total);
         $(`#total_pl_${loop}`).val(total_pl);
-        $(`#diskon_nilai_${loop}`).val(diskon_nilai);
+        $(`#diskon_nilai_${loop}`).val(diskon_nilai.toFixed(2));
     }
 
     //fungsi hitung harga berantai berdasarkan toko
