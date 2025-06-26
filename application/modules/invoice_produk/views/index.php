@@ -10,7 +10,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 		fonts-size: 11px;
 	}
 </style>
-<div class="box">
+<div class="box box-primary">
 	<div class="box-header">
 		<span class="pull-right">
 		</span>
@@ -21,13 +21,13 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 		<ul class="nav nav-tabs" role="tablist">
 			<li role="presentation" class="dp_tab tab_pin active"><a onclick="change_tab('dp')">Invoice DP</a></li>
 			<li role="presentation" class="delivery_tab tab_pin"><a onclick="change_tab('delivery')">Invoice Delivery</a></li>
-			<li role="presentation" class="retensi_tab tab_pin"><a onclick="change_tab('retensi')">Invoice Retensi</a></li>
-			<li role="presentation" class="jaminan_tab tab_pin"><a onclick="change_tab('jaminan')">Invoice Jaminan</a></li>
+			<!-- <li role="presentation" class="retensi_tab tab_pin"><a onclick="change_tab('retensi')">Invoice Retensi</a></li> -->
+			<!-- <li role="presentation" class="jaminan_tab tab_pin"><a onclick="change_tab('jaminan')">Invoice Jaminan</a></li> -->
 		</ul>
 
 		<div class="tab_invoice" style="margin-top: 1rem;">
 			<table class="table table-bordered datatable">
-				<thead>
+				<thead class="bg-blue">
 					<tr>
 						<th class="text-center">No. SO</th>
 						<th class="text-center">No. Invoice</th>
@@ -69,9 +69,9 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 						}
 
 						$get_penawaran = $this->db->get_where('tr_penawaran', array('no_penawaran' => $get_so->no_penawaran))->row();
-						
+
 						$nilai_ppn = 0;
-						if(!empty($get_penawaran)) {
+						if (!empty($get_penawaran)) {
 							$nilai_ppn = $get_penawaran->nilai_ppn;
 						}
 

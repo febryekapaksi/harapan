@@ -14,7 +14,7 @@ class Billing_plan_produk extends Admin_Controller
 	public function __construct()
 	{
 		parent::__construct();
-		$this->load->library(array('Mpdf', 'upload', 'Image_lib'));
+		$this->load->library(array('upload', 'Image_lib'));
 		$this->load->model('Billing_plan_produk/Billing_plan_produk_model');
 		$this->template->title('Billing Plan Produk');
 		$this->template->page_icon('fa fa-building-o');
@@ -24,12 +24,12 @@ class Billing_plan_produk extends Admin_Controller
 
 	public function index()
 	{
-		$get_result = $this->db->select('a.*, b.nm_customer, d.currency')
-			->from('tr_sales_order a')
-			->join('customer b', 'b.id_customer = a.id_customer', 'left')
-			->join('tr_sales_order_detail c', 'c.no_so = a.no_so', 'left')
-			->join('tr_penawaran d', 'd.no_penawaran = a.no_penawaran', 'left')
-			->where('a.tipe_so', 1)
+		$get_result = $this->db->select('a.*, b.name_customer')
+			->from('sales_order a')
+			->join('master_customers b', 'b.id_customer = a.id_customer', 'left')
+			->join('sales_order_detail c', 'c.no_so = a.no_so', 'left')
+			->join('penawaran d', 'd.id_penawaran = a.id_penawaran', 'left')
+			// ->where('a.tipe_so', 1)
 			->group_by('a.no_so')
 			->order_by('a.no_so', 'desc')
 			->get()
@@ -83,7 +83,7 @@ class Billing_plan_produk extends Admin_Controller
 
 		$no_do = array();
 		$tanggal_do = array();
-		foreach($get_spk_delivery as $item_delivery) {
+		foreach ($get_spk_delivery as $item_delivery) {
 			$no_do[] = $item_delivery->no_delivery;
 			$tanggal_do[] = date('d-m-Y', strtotime($item_delivery->delivery_date));
 		}
@@ -115,8 +115,8 @@ class Billing_plan_produk extends Admin_Controller
 		$arrInvoice = [];
 
 		$no = $post['no'];
-		for($x = 1; $x <= $no; $x++) {
-			if(isset($post['new_invoice_type_' . $x])) {
+		for ($x = 1; $x <= $no; $x++) {
+			if (isset($post['new_invoice_type_' . $x])) {
 				$arrInvoice[] = [
 					'id' => $this->Billing_plan_produk_model->generate_id($x),
 					'no_so' => $post['no_so'],
@@ -134,9 +134,9 @@ class Billing_plan_produk extends Admin_Controller
 			}
 		}
 
-		if(!empty($arrInvoice)) {
+		if (!empty($arrInvoice)) {
 			$insert_billing_plan = $this->db->insert_batch('tr_billing_plan', $arrInvoice);
-			if(!$insert_billing_plan) {
+			if (!$insert_billing_plan) {
 				print_r($this->db->error($insert_billing_plan));
 				$this->db->trans_rollback();
 				exit;

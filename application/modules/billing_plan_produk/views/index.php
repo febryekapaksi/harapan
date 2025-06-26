@@ -5,21 +5,20 @@ $ENABLE_VIEW    = has_permission('Billing_Plan_Produk.View');
 $ENABLE_DELETE  = has_permission('Billing_Plan_Produk.Delete');
 ?>
 <link rel="stylesheet" href="https://cdn.datatables.net/2.1.2/css/dataTables.dataTables.min.css">
-<div class="box">
-	<div class="box-header">
+<div class="box box-primary">
+	<!-- /.box-header -->
+	<!-- <div class="box-header">
 		<span class="pull-right">
 		</span>
-	</div>
-	<!-- /.box-header -->
+	</div> -->
 	<!-- /.box-header -->
 	<div class="box-body">
 		<table id="example1" class="table table-bordered table-striped">
-			<thead>
+			<thead class="bg-blue">
 				<tr>
 					<th class="text-center">No. SO</th>
 					<th class="text-center">Customer Name</th>
-					<th class="text-center">Currency</th>
-					<th class="text-center">SO</th>
+					<th class="text-center">Nilai SO</th>
 					<th class="text-center">Invoiced</th>
 					<th class="text-center">Outstanding Invoice</th>
 					<?php
@@ -34,30 +33,30 @@ $ENABLE_DELETE  = has_permission('Billing_Plan_Produk.Delete');
 				foreach ($results as $item) {
 
 					$nilai_so = 0;
-					$get_nilai_so = $this->db->get_where('tr_sales_order_detail', ['no_so' => $item->no_so])->result();
+					$get_nilai_so = $this->db->get_where('sales_order_detail', ['no_so' => $item->no_so])->result();
 					foreach ($get_nilai_so as $item_nilai_so) {
-						$harga_satuan = $item_nilai_so->harga_satuan;
-						$qty = $item_nilai_so->qty;
+						$harga_beli = $item_nilai_so->harga_beli;
+						$qty_order = $item_nilai_so->qty_order;
 						$diskon_nilai = $item_nilai_so->diskon_nilai;
 
-						$nilai_so += (($harga_satuan - $diskon_nilai) * $qty);
+						$nilai_so += (($harga_beli - $diskon_nilai) * $qty_order);
 					}
 
-					$get_other_cost = $this->db->select('SUM(total_nilai) AS ttl_other_cost')->get_where('tr_penawaran_other_cost', ['id_penawaran' => $item->no_penawaran])->row();
-					if (!empty($get_other_cost)) {
-						$nilai_so += $get_other_cost->ttl_other_cost;
-					}
-					$get_other_item = $this->db->select('SUM(total) as ttl_other_item')->get_where('tr_penawaran_other_item', ['id_penawaran' => $item->no_penawaran])->row();
-					if (!empty($get_other_item)) {
-						$nilai_so += $get_other_item->ttl_other_item;
-					}
+					// $get_other_cost = $this->db->select('SUM(total_nilai) AS ttl_other_cost')->get_where('tr_penawaran_other_cost', ['id_penawaran' => $item->no_penawaran])->row();
+					// if (!empty($get_other_cost)) {
+					// 	$nilai_so += $get_other_cost->ttl_other_cost;
+					// }
+					// $get_other_item = $this->db->select('SUM(total) as ttl_other_item')->get_where('tr_penawaran_other_item', ['id_penawaran' => $item->no_penawaran])->row();
+					// if (!empty($get_other_item)) {
+					// 	$nilai_so += $get_other_item->ttl_other_item;
+					// }
 
 					$ppn = 0;
 					$nilai_ppn = 0;
-					$get_penawaran = $this->db->get_where('tr_penawaran', ['no_penawaran' => $item->no_penawaran])->row();
+					$get_penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $item->id_penawaran])->row();
 					if (!empty($get_penawaran)) {
 						$ppn = $get_penawaran->ppn;
-						$nilai_ppn = $get_penawaran->nilai_ppn;
+						// $nilai_ppn = $get_penawaran->nilai_ppn;
 					}
 
 					$nilai_so = ($nilai_so + $nilai_ppn);
@@ -84,13 +83,12 @@ $ENABLE_DELETE  = has_permission('Billing_Plan_Produk.Delete');
 
 					echo '<tr>';
 					echo '<td class="text-center">' . $item->no_so . '</td>';
-					echo '<td class="text-center">' . $item->nm_customer . '</td>';
-					echo '<td class="text-center">' . $item->currency . '</td>';
+					echo '<td class="text-left">' . $item->name_customer . '</td>';
 					echo '<td class="text-right">' . number_format($nilai_so, 2) . '</td>';
 					echo '<td class="text-right">' . number_format($nilai_invoice, 2) . '</td>';
 					echo '<td class="text-right">' . number_format($outstanding, 2) . '</td>';
 					if ($ENABLE_MANAGE) {
-						$billing_btn = '<button type="button" class="btn btn-sm btn-success billing_plan" data-no_so="' . $item->no_so . '" data-currency="' . $item->currency . '" title="Billing Plan"><i class="fa fa-check"></i></button>';
+						$billing_btn = '<button type="button" class="btn btn-sm btn-success billing_plan" data-no_so="' . $item->no_so . '"  title="Billing Plan"><i class="fa fa-check"></i></button>';
 
 						if ($outstanding <= 0) {
 							$billing_btn = '';
