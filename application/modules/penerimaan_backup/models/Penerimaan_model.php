@@ -20,8 +20,8 @@ class Penerimaan_model extends BF_Model
 
 		$this->db->select();
 		$this->db->from('tr_invoice_sales a');
-		$this->db->join('tr_sales_order b', 'b.no_so = a.id_so', 'left');
-		$this->db->join('customer c', 'c.id_customer = b.id_customer', 'left');
+		$this->db->join('sales_order b', 'b.no_so = a.id_so', 'left');
+		$this->db->join('master_customers c', 'c.id_customer = b.id_customer', 'left');
 		$this->db->group_by('c.id_customer');
 		$this->db->where('c.deleted_by', null);
 		$this->db->where('a.sts', 1);
@@ -530,7 +530,7 @@ class Penerimaan_model extends BF_Model
             GROUP BY kd_pembayaran
         ) c on a.kd_pembayaran=c.kd_pembayaran       
         ORDER BY a.id DESC");
-		if(!$query){
+		if (!$query) {
 			print_r($this->db->error($query));
 			exit;
 		}
