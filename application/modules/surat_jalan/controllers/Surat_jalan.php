@@ -154,7 +154,7 @@ class Surat_jalan extends Admin_Controller
                 'product'         => $value['product'],
                 'qty'             => $qty,
                 'weight'          => $value['weight'],
-                'total_berat'     => $value['weight'],
+                'total_berat'     => $value['total_berat'],
                 'id_so_det'       => $id_so_det,
             ];
 
@@ -227,7 +227,8 @@ class Surat_jalan extends Admin_Controller
             sdd.qty_so, sdd.qty_spk
         ')
             ->from('surat_jalan_detail d')
-            ->join('spk_delivery_detail sdd', 'd.id_so_det = sdd.id_so_det', 'left')
+            ->join('surat_jalan sj', 'sj.id = d.id_sj')
+            ->join('spk_delivery_detail sdd', 'd.id_so_det = sdd.id_so_det AND sj.no_delivery = sdd.no_delivery', 'left')
             ->join('new_inventory_4 inv', 'd.id_product = inv.code_lv4', 'left')
             ->join('ms_satuan s', 'inv.id_unit = s.id', 'left')
             ->where('d.id_sj', $id)
@@ -308,12 +309,25 @@ class Surat_jalan extends Admin_Controller
                 $status = 'RETUR';
             }
 
+            // Update ke SPK Delivery Detail
             $this->db->where([
                 'no_delivery' => $no_delivery,
                 'id_so_det'   => $value['id_so_det']
             ])->update('spk_delivery_detail', [
                 'qty_delivery' => $qty_terkirim
             ]);
+
+            // Update ke Sales Order Detail
+            $current = $this->db->select('qty_delivery, qty_order')
+                ->get_where('sales_order_detail', ['id' => $value['id_so_det']])
+                ->row();
+
+            $new_qty_delivery = $current->qty_delivery + $qty_terkirim;
+            if ($new_qty_delivery <= $current->qty_order) {
+                $this->db->set('qty_delivery', 'qty_delivery + ' . (int) $qty_terkirim, FALSE);
+                $this->db->where('id', $value['id_so_det']);
+                $this->db->update('sales_order_detail');
+            }
 
             // ✅ Tambahan kartu stok
             $stok = $this->db->get_where('warehouse_stock', [
