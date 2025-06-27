@@ -7,8 +7,6 @@ class Penerimaan_model extends BF_Model
 		parent::__construct();
 	}
 
-
-
 	public function modal_detail_invoice_cash($id)
 	{
 		$getInv = $this->db->query("SELECT * FROM tr_invoice_header WHERE no_invoice= '$id'")->row();
@@ -233,145 +231,128 @@ class Penerimaan_model extends BF_Model
 	}
 
 	//SERVER SIDE 
-	public function get_data_json_payment()
+	public function get_data_json_payment_cash()
 	{
+		$requestData = $_REQUEST;
 
-		$requestData	= $_REQUEST;
-		$fetch			= $this->query_data_payment(
+		$fetch = $this->get_query_json_payment_cash(
 			$requestData['search']['value'],
 			$requestData['order'][0]['column'],
 			$requestData['order'][0]['dir'],
 			$requestData['start'],
 			$requestData['length']
 		);
-		$totalData		= $fetch['totalData'];
-		$totalFiltered	= $fetch['totalFiltered'];
-		$query			= $fetch['query'];
 
-		$data	= array();
-		$urut1  = 1;
-		$urut2  = 0;
+		$totalData     = $fetch['totalData'];
+		$totalFiltered = $fetch['totalFiltered'];
+		$query         = $fetch['query'];
+
+		$data = [];
+		$urut = 1;
+
 		foreach ($query->result_array() as $row) {
-			$total_data     = $totalData;
-			$start_dari     = $requestData['start'];
-			$asc_desc       = $requestData['order'][0]['dir'];
-			if ($asc_desc == 'asc') {
-				$nomor = $urut1 + $start_dari;
-			}
-			if ($asc_desc == 'desc') {
-				$nomor = ($total_data - $start_dari) - $urut2;
-			}
-			$mixedStr = $row['kd_pembayaran'];
-			$searchStr = 'NP';
-			$searchStr2 = 'OT';
+			$nomor = $urut + $requestData['start'];
 
-			if (strpos($mixedStr, $searchStr)) {
-				$class = 'print1';
-			} else if (strpos($mixedStr, $searchStr2)) {
-				$class = 'print2';
-			} else {
-				$class = 'print';
-			}
-			$edit = 'edit';
-			$nestedData 	= array();
-			$nestedData[]	= "<div align='center'>" . $nomor . "</div>";
-			$nestedData[]	= "<div align='left'>" . $row['tgl_pembayaran'] . "</div>";
-			$nestedData[]	= "<div align='left'>" . $row['kd_pembayaran'] . "</div>";
-			$nestedData[]	= "<div align='left'>" . $row['nm_customer'] . "</div>";
-			$nestedData[]	= "<div align='left'>" . $row['keterangan'] . "</div>";
-			$nestedData[]	= "<div align='left'>" . $row['invoiced'] . "</div>";
-			$nestedData[]	= "<div align='left'>" . number_format($row['totalinvoiced']) . "</div>";
-			$nestedData[]	= "<div align='left'>" . number_format($row['biaya_pph_idr']) . "</div>";
-			$nestedData[]	= "<div align='left'>" . number_format($row['biaya_admin_idr']) . "</div>";
-			$nestedData[]	= "<div align='right'>" . number_format($row['jumlah_pembayaran_idr'], 2) . "</div>";
-			$priX	= "";
-			$updX	= "";
-			$ApprvX	= "";
-			$Edit	= "";
-			$Print	= "";
-			$Hist	= "";
-			$Buktip = "";
-			$ApprvX2Edit = "";
-
-			$viewX	= "<button class='btn btn-sm btn-warning detail' title='View' data-id_bq='" . $row['kd_pembayaran'] . "'><i class='fa fa-eye'></i></button>";
-
-			// print_r($row['status_jurnal']);
-			// exit;
-
-			$Jurnal	= "";
-
+			// Generate action button
+			$action = '';
 			if ($row['status_jurnal'] == 0) {
-				$Jurnal	= "<button class='btn btn-sm btn-primary jurnal'  title='Approval Jurnal Penerimaan' data-inv='" . $row['kd_pembayaran'] . "'><i class='fa fa-check'></i></button>";
+				$action .= "<button class='btn btn-sm btn-primary jurnal' title='Approval Jurnal' data-inv='{$row['kd_pembayaran']}'><i class='fa fa-check'></i></button> ";
 			}
-
 
 			if ($row['biaya_pph_idr'] > 0 && $row['bukti_potong'] == '') {
-				$Buktip = " <button class='btn btn-sm btn-success buktip'  title='Penerimaan Bukti Potong' data-kd_pembayaran='" . $row['kd_pembayaran'] . "'><i class='fa fa-cloud-upload'></i></button>";
+				$action .= "<button class='btn btn-sm btn-success buktip' title='Upload Bukti Potong' data-kd_pembayaran='{$row['kd_pembayaran']}'><i class='fa fa-cloud-upload'></i></button> ";
 			}
 
+			$action .= "<button class='btn btn-sm btn-warning detail' title='Lihat Detail' data-id_bq='{$row['kd_pembayaran']}'><i class='fa fa-eye'></i></button>";
 
-			//$Print	= "&nbsp;<a href='".base_url('print_invoice/'.$row['no_invoice'])."' target='_blank' class='btn btn-sm btn-info print' onClick='print()' title='Print Invoice' ><i class='fa fa-print'></i></a>";
-			// <button class='btn btn-sm btn-primary' id='detailBQ'  title='Detail BQ' data-id_bq='".$row['id_bq']."'><i class='fa fa-eye'></i></button>
-			$nestedData[]	= "<div align='center'>
-									" . $priX . "
-									" . $updX . "
-									" . $viewX . "
-									" . $ApprvX . "
-									" . $Hist . "
-									" . $ApprvX2Edit . "
-									" . $Edit . "
-									" . $Print . "
-									" . $Jurnal . "
-									" . $Jurnal1 . "
-									" . $Terima . "
-									" . $Buktip . "
-									</div>";
+			$nestedData = [];
+			$nestedData[] = "<div align='center'>{$nomor}</div>";
+			$nestedData[] = "<div align='left'>{$row['tgl_pembayaran']}</div>";
+			$nestedData[] = "<div align='left'>{$row['kd_pembayaran']}</div>";
+			$nestedData[] = "<div align='left'>{$row['nm_customer']}</div>";
+			$nestedData[] = "<div align='left'>{$row['keterangan']}</div>";
+			$nestedData[] = "<div align='left'>{$row['invoiced']}</div>";
+			// $nestedData[] = "<div align='left'>" . number_format($row['totalinvoiced']) . "</div>";
+			$nestedData[] = "<div align='right'>" . number_format($row['jumlah_pembayaran_idr'], 2) . "</div>";
+			$nestedData[] = "<div align='left'>" . number_format($row['biaya_pph_idr']) . "</div>";
+			$nestedData[] = "<div align='left'>" . number_format($row['biaya_admin_idr']) . "</div>";
+			$nestedData[] = "<div align='right'>" . number_format($row['jumlah_pembayaran_idr'], 2) . "</div>";
+			$nestedData[] = "<div align='center'>{$action}</div>";
+
 			$data[] = $nestedData;
-			$urut1++;
-			$urut2++;
+			$urut++;
 		}
 
-		$json_data = array(
-			"draw"            	=> intval($requestData['draw']),
-			"recordsTotal"    	=> intval($totalData),
-			"recordsFiltered" 	=> intval($totalFiltered),
-			"data"            	=> $data
-		);
-
-		echo json_encode($json_data);
+		echo json_encode([
+			"draw"            => intval($requestData['draw']),
+			"recordsTotal"    => intval($totalData),
+			"recordsFiltered" => intval($totalFiltered),
+			"data"            => $data
+		]);
 	}
 
-	public function query_data_payment($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
+	public function get_query_json_payment_cash($like = null, $column_order = null, $column_dir = null, $limit_start = 0, $limit_length = 10)
 	{
-		$sql = "
-			SELECT a.*, c.invoiced, c.totalinvoiced FROM tr_invoice_payment a			
-			
-			left outer join (
-				SELECT kd_pembayaran,
-				GROUP_CONCAT(no_invoice SEPARATOR ',') as invoiced,
-				sum(total_bayar_idr) as totalinvoiced
-				FROM tr_invoice_payment_detail
-				GROUP BY kd_pembayaran
-			) c on a.kd_pembayaran=c.kd_pembayaran
-		    WHERE 1=1
-               	AND (
-				c.invoiced LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-				OR a.kd_pembayaran LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-				OR a.nm_customer LIKE '%" . $this->db->escape_like_str($like_value) . "%' 
-	        )
-		";
-		$data['totalData'] = $this->db->query($sql)->num_rows();
-		$data['totalFiltered'] = $this->db->query($sql)->num_rows();
-		$columns_order_by = array(
-			0 => 'tgl_pembayaran',
-			1 => 'kd_pembayaran',
-			2 => 'nm_customer'
-		);
-		$sql .= " ORDER BY a.created_on DESC, " . $columns_order_by[$column_order] . " " . $column_dir . " ";
-		$sql .= " LIMIT " . $limit_start . " ," . $limit_length . " ";
-		$data['query'] = $this->db->query($sql);
-		return $data;
+		$columns_order_by = [
+			0 => 'a.tgl_pembayaran',
+			1 => 'a.kd_pembayaran',
+			2 => 'a.nm_customer',
+		];
+
+		// === 1. Total Data
+		$this->db->select('a.kd_pembayaran');
+		$this->db->from('tr_invoice_payment a');
+		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		$totalData = $this->db->count_all_results();
+
+		// === 2. Total Filtered
+		$this->db->select('a.kd_pembayaran');
+		$this->db->from('tr_invoice_payment a');
+		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		if ($like) {
+			$this->db->group_start();
+			$this->db->like('a.kd_pembayaran', $like);
+			$this->db->or_like('a.nm_customer', $like);
+			$this->db->or_like('c.invoiced', $like);
+			$this->db->group_end();
+		}
+		$totalFiltered = $this->db->count_all_results();
+
+		// === 3. Ambil Data Paginasi
+		$this->db->select('
+        a.*, 
+        c.invoiced, 
+        c.totalinvoiced
+    ');
+		$this->db->from('tr_invoice_payment a');
+		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		if ($like) {
+			$this->db->group_start();
+			$this->db->like('a.kd_pembayaran', $like);
+			$this->db->or_like('a.nm_customer', $like);
+			$this->db->or_like('c.invoiced', $like);
+			$this->db->group_end();
+		}
+
+		if ($column_order !== null && isset($columns_order_by[$column_order])) {
+			$this->db->order_by($columns_order_by[$column_order], $column_dir);
+		} else {
+			$this->db->order_by('a.created_on', 'desc');
+		}
+
+		if ($limit_length != -1) {
+			$this->db->limit($limit_length, $limit_start);
+		}
+
+		$query = $this->db->get();
+
+		return [
+			'totalData'     => $totalData,
+			'totalFiltered' => $totalFiltered,
+			'query'         => $query
+		];
 	}
+
 
 	function generate_nopn($tgl)
 	{

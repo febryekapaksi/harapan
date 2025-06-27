@@ -47,7 +47,7 @@ class Penerimaan extends Admin_Controller
 
 	public function data_side_penerimaan_cash()
 	{
-		$this->penerimaan_model->data_side_penerimaan_cash();
+		$this->penerimaan_model->get_data_json_payment_cash();
 	}
 
 	public function add_cash()
@@ -211,7 +211,7 @@ class Penerimaan extends Admin_Controller
 					'so_number' => $row->id_so,
 					'total_product' => $d->qty,
 					'total_product_idr' => $d->harga,
-					'total_bayar' => str_replace(',', '', $row->total_bayar),
+					'total_bayar_idr' => $d->subtotal,
 					'created_by' => $this->session->userdata('id_user'),
 					'created_on' => date('Y-m-d H:i:s'),
 					'tipe_bayar' => "CASH"
