@@ -568,6 +568,7 @@ class Invoice_produk extends Admin_Controller
 				'id_so' => $post['no_so'],
 				'tipe_so' => $post['tipe_so'],
 				'id_penawaran' => $post['id_penawaran'],
+				'id_customer' => $post['id_customer'],
 				'id_billing' => $post['id_billing'],
 				'tipe_billing' => $post['tipe_billing'],
 				'nilai_dpp' => $post['nilai_dpp'],

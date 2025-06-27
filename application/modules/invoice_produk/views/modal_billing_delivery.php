@@ -160,6 +160,7 @@ $tipe_billing = $results['tipe_billing'];
 <input type="hidden" class="id_billing" name="id_billing" value="<?= $id_billing ?>">
 <input type="hidden" class="tipe_so" name="tipe_so" value="<?= $results['data_so']->tipe_so ?>">
 <input type="hidden" class="id_penawaran" name="id_penawaran" value="<?= $results['data_penawaran']->id_penawaran ?>">
+<input type="hidden" class="id_customer" name="id_customer" value="<?= $results['data_so']->id_customer ?>">
 <input type="hidden" class="nilai_asli" name="nilai_asli" value="<?= $total_tagihan ?>">
 <input type="hidden" class="nilai_dpp" name="nilai_dpp" value="<?= $dpp ?>">
 <input type="hidden" class="nilai_invoice" name="nilai_invoice" value="<?= $nilai_invoice ?>">

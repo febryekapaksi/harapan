@@ -307,110 +307,55 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 	$(document).on('submit', '#frm-data', function(e) {
 		e.preventDefault();
 
-		var tipe_billing = $('.tipe_billing').val();
-		var no_so = $('.no_so').val();
-		var id_billing = $('.id_billing').val();
-		var tipe_so = $('.tipe_so').val();
-		var id_penawaran = $('.id_penawaran').val();
-		var nilai_asli = $('.nilai_asli').val();
-		var nilai_dpp = $('.nilai_dpp').val();
-		var nilai_invoice = $('.nilai_invoice').val();
-		var persen_invoice = $('.persen_invoice').val();
-		var ppn = $('.ppn').val();
-		var nilai_ppn = $('.nilai_ppn').val();
-		var grand_total = $('.grand_total').val();
-		var tax_invoice_no = $('.tax_invoice_no').val();
+		const form = document.getElementById('frm-data');
+		const formData = new FormData(form);
 
-		var id_other_cost = [];
-		if ($('.check_other_cost').length > 0) {
-			$('.check_other_cost').each(function() {
-				if ($(this).is(':checked')) {
-					var id = $(this).data('id');
-					id_other_cost.push(id);
-				}
-			});
-		}
+		// Ambil ID yang dicentang (jika ada)
+		const idOtherCost = [];
+		document.querySelectorAll('.check_other_cost:checked').forEach(el => {
+			idOtherCost.push(el.dataset.id);
+		});
+		formData.append('id_other_cost[]', idOtherCost);
 
-		var persen_retensi = 0;
-		if (!$.isEmptyObject($('.persen_retensi').val())) {
-			var persen_retensi = $('.persen_retensi').val();
-		}
-		var nilai_retensi = 0;
-		if (!$.isEmptyObject($('.nilai_retensi').val())) {
-			var nilai_retensi = $('.nilai_retensi').val();
-		}
-		var persen_jaminan = 0;
-		if (!$.isEmptyObject($('.persen_jaminan').val())) {
-			var persen_jaminan = $('.persen_jaminan').val();
-		}
-		var nilai_jaminan = 0;
-		if (!$.isEmptyObject($('.nilai_jaminan').val())) {
-			var nilai_jaminan = $('.nilai_jaminan').val();
-		}
-
+		// Tampilkan konfirmasi swal
 		swal({
-			title: "Warning !",
-			text: "Are you sure to create this invoice ?",
+			title: "Warning!",
+			text: "Are you sure to create this invoice?",
+			type: "warning",
 			showCancelButton: true,
 			confirmButtonText: "Yes, Create Invoice",
-			type: 'warning',
 			confirmButtonColor: "#00a65a",
-			cancelButtonColor: "##c9302c"
+			cancelButtonColor: "#c9302c"
 		}, function(confirm) {
 			if (confirm) {
 				$.ajax({
-					type: 'post',
+					type: 'POST',
 					url: siteurl + active_controller + 'create_invoice',
-					data: {
-						'tipe_billing': tipe_billing,
-						'no_so': no_so,
-						'id_billing': id_billing,
-						'tipe_so': tipe_so,
-						'id_penawaran': id_penawaran,
-						'nilai_asli': nilai_asli,
-						'nilai_dpp': nilai_dpp,
-						'nilai_invoice': nilai_invoice,
-						'persen_invoice': persen_invoice,
-						'ppn': ppn,
-						'nilai_ppn': nilai_ppn,
-						'grand_total': grand_total,
-						'id_other_cost': id_other_cost,
-						'persen_retensi': persen_retensi,
-						'nilai_retensi': nilai_retensi,
-						'persen_jaminan': persen_jaminan,
-						'nilai_jaminan': nilai_jaminan,
-						'tax_invoice_no': tax_invoice_no
-					},
-					cache: false,
+					data: formData,
+					contentType: false,
+					processData: false,
 					dataType: 'json',
 					success: function(result) {
-						if (result.status == '1') {
+						if (result.status === '1') {
 							swal({
-								title: 'Success !',
-								text: 'Success! Invoice has been created !',
+								title: 'Success!',
+								text: 'Invoice has been created!',
 								type: 'success'
-							}, function(hasil) {
+							}, function() {
 								location.reload(true);
 							});
 						} else {
-							swal({
-								title: 'Failed !',
-								text: 'Failed! Invoice has not been created !',
-								type: 'warning'
-							});
+							swal('Failed!', 'Invoice has not been created!', 'warning');
 						}
 					},
-					error: function(result) {
-						swal({
-							title: 'Warning !',
-							text: 'Please try again later !',
-							type: 'error'
-						});
+					error: function() {
+						swal('Error!', 'Please try again later!', 'error');
 					}
 				});
 			}
 		});
 	});
+
 
 	$(document).on('click', '.view_invoice_modal', function() {
 		var no_so = $(this).data('no_so');
