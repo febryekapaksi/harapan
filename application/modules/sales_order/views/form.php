@@ -366,7 +366,7 @@
                                     });
                                     setTimeout(() => {
                                         // Arahkan ke controller yang generate link WhatsApp
-                                        window.open(`${base_url + active_controller}send_wa_so/${data.no_so}`, '_blank');
+                                        // window.open(`${base_url + active_controller}send_wa_so/${data.no_so}`, '_blank');
                                         window.location.href = base_url + active_controller;
                                     }, 1000);
                                 } else {

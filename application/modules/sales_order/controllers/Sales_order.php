@@ -233,6 +233,7 @@ class Sales_order extends Admin_Controller
       ];
     } else {
       $this->db->trans_commit();
+      $this->send_wa_so($no_so);
       $status = [
         'status' => 1,
         'pesan' => 'Sales Order berhasil disimpan dan langsung DEAL.',
@@ -244,9 +245,8 @@ class Sales_order extends Admin_Controller
   }
 
   //Send Wa
-  public function send_wa_so($no_so)
+  private function send_wa_so($no_so)
   {
-    // Ambil header & detail
     $so = $this->db
       ->select('so.*, c.name_customer, c.telephone, c.telephone_2, c.address_office')
       ->from('sales_order so')
@@ -260,34 +260,44 @@ class Sales_order extends Admin_Controller
       ->where('no_so', $no_so)
       ->get()->result_array();
 
-    // Format nomor WA
-    $raw_phone = preg_replace('/[^0-9]/', '', $so['telephone']); // Misal: 628xxxx
-    // Konversi ke format internasional WA (Indonesia = 62)
+    $raw_phone = preg_replace('/[^0-9]/', '', $so['telephone']);
     if (substr($raw_phone, 0, 1) === '0') {
       $wa_number = '62' . substr($raw_phone, 1);
     } elseif (substr($raw_phone, 0, 2) === '62') {
       $wa_number = $raw_phone;
     } else {
-      // fallback jika user input aneh, misal sudah +628xxxx
       $wa_number = ltrim($raw_phone, '+');
     }
 
-    // Format isi pesan
-    $pesan = "Terimakasih kepada CV/TB {$so['name_customer']} yang telah melakukan pemesanan dengan Nomor Sales Order *{$so['no_so']}* melalui sales kami bapak/ibu *{$so['nama_sales']}*, dengan isi pesanan :\n\n";
-
+    $pesan = "Terimakasih kepada CV/TB {$so['name_customer']} yang telah melakukan pemesanan dengan Nomor Sales Order *{$so['no_so']}* melalui sales kami bapak/ibu *{$so['nama_sales']}*, dengan isi pesanan:\n\n";
     $no = 1;
     foreach ($produk as $p) {
       $pesan .= "{$no}. {$p['product']}\n";
       $no++;
     }
+    $pesan .= "\nTotal nilai pesanan sebesar *Rp " . number_format($so['nilai_so'], 0, ',', '.') . "*\n";
+    $pesan .= "Hubungi no pelayanan pelanggan kami di *+6282130728009* jika ada kesalahan.\n\nHormat kami,\n\n*PT Surya Bangun Fajar*";
 
-    $pesan .= "\nTotal nilai pesanan sebesar *Rp " . number_format($so['nilai_so'], 0, ',', '.') . ",-*\n";
-    $pesan .= "Hubungi no pelayanan pelanggan kami di *+6282130728009* apabila anda tidak melakukan pemesanan atau jika terdapat kesalahan dalam pesanan yang terdaftar.\n\n";
-    $pesan .= "Hormat kami,\n\n*PT Surya Bangun Fajar*";
+    // Panggil API WA (silent)
+    $this->send($wa_number, $pesan);
+  }
 
-    // Redirect ke WhatsApp Web
-    $wa_url = "https://wa.me/{$wa_number}?text=" . urlencode($pesan);
-    redirect($wa_url);
+  private function send($number, $message)
+  {
+    $url = 'https://app.whacenter.com/api/send';
+    $data = [
+      'device_id' => '56e2f7c983ea935683296b276ff30ae6',
+      'number' => $number,
+      'message' => $message
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    return $result;
   }
 
 
