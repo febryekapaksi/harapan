@@ -196,7 +196,7 @@ class Invoice_produk extends Admin_Controller
 				// 'persen_retensi' => $persen_retensi,
 				// 'persen_jaminan' => $persen_jaminan,
 				// 'currency' => $get_penawaran->currency,
-				'persen_ppn' => $get_penawaran->ppn,
+				// 'persen_ppn' => $get_penawaran->ppn,
 				'data_so' => $get_so,
 				'data_penawaran' => $get_penawaran,
 				'is_spk_pertama' => $is_spk_pertama,
@@ -500,67 +500,6 @@ class Invoice_produk extends Admin_Controller
 
 		$this->db->trans_begin();
 
-		// if ($post['tipe_billing'] == 'dp') {
-		// 	$data_insert = [
-		// 		'id_invoice' => $id_invoice,
-		// 		'id_so' => $post['no_so'],
-		// 		'tipe_so' => $post['tipe_so'],
-		// 		'id_penawaran' => $post['id_penawaran'],
-		// 		'id_billing' => $post['id_billing'],
-		// 		'tipe_billing' => $post['tipe_billing'],
-		// 		'nilai_dpp' => $post['nilai_dpp'],
-		// 		'nilai_asli' => $post['nilai_asli'],
-		// 		'nilai_invoice' => $post['nilai_invoice'],
-		// 		'persen_invoice' => $post['persen_invoice'],
-		// 		'ppn' => $post['ppn'],
-		// 		'nilai_ppn' => $post['nilai_ppn'],
-		// 		'grand_total' => $post['grand_total'],
-		// 		'tax_invoice_no' => $post['tax_invoice_no'],
-		// 		'created_by' => $this->auth->user_id(),
-		// 		'created_on' => date('Y-m-d H:i:s')
-		// 	];
-
-		// 	$insert_invoice = $this->db->insert('tr_invoice_sales', $data_insert);
-
-		// 	$data_insert_detail = [];
-		// 	$get_so_detail = $this->db->query("
-		// 		SELECT
-		// 			a.id_category3 as id_produk,
-		// 			a.nama_produk as nama_produk,
-		// 			a.harga_satuan as harga_satuan,
-		// 			a.qty as qty,
-		// 			a.diskon_nilai as diskon_nilai,
-		// 			a.total_harga as total_harga,
-		// 			b.tipe_so as tipe_so,
-		// 			d.code as uom
-		// 		FROM
-		// 			tr_sales_order_detail a
-		// 			LEFT JOIN tr_sales_order b ON b.no_so = a.no_so
-		// 			LEFT JOIN new_inventory_4 c ON c.code_lv4 = a.id_category3
-		// 			LEFT JOIN ms_satuan d ON d.id = c.id_unit
-		// 		WHERE
-		// 			a.no_so = '" . $post['no_so'] . "'
-		// 	")->result();
-		// 	foreach ($get_so_detail as $item_detail) {
-		// 		$data_insert_detail[] = [
-		// 			'id_invoice' => $id_invoice,
-		// 			'id_so' => $post['no_so'],
-		// 			'tipe_so' => $post['tipe_so'],
-		// 			'id_penawaran' => $post['id_penawaran'],
-		// 			'id_produk' => $item_detail->id_produk,
-		// 			'nm_produk' => $item_detail->nama_produk,
-		// 			'qty' => $item_detail->qty,
-		// 			'uom' => $item_detail->uom,
-		// 			'harga' => $item_detail->harga_satuan,
-		// 			'disc' => $item_detail->diskon_nilai,
-		// 			'subtotal' => $item_detail->total_harga,
-		// 			'created_by' => $this->auth->user_id(),
-		// 			'created_on' => date('Y-m-d H:i:s')
-		// 		];
-		// 	}
-
-		// 	$insert_invoice_details = $this->db->insert_batch('tr_invoice_sales_detail', $data_insert_detail);
-		// }
 
 		if ($post['tipe_billing'] == 'delivery') {
 			$data_insert = [
@@ -574,9 +513,10 @@ class Invoice_produk extends Admin_Controller
 				'nilai_dpp' => $post['nilai_dpp'],
 				'nilai_asli' => $post['nilai_asli'],
 				'nilai_invoice' => $post['nilai_invoice'],
-				'ppn' => $post['ppn'],
+				// 'ppn' => $post['ppn'],
 				'nilai_ppn' => $post['nilai_ppn'],
 				'grand_total' => $post['grand_total'],
+				'sts' => 1,
 				// 'tax_invoice_no' => $post['tax_invoice_no'],
 				'created_by' => $this->auth->user_id(),
 				'created_on' => date('Y-m-d H:i:s')
@@ -620,239 +560,7 @@ class Invoice_produk extends Admin_Controller
 			}
 
 			$insert_invoice_details = $this->db->insert_batch('tr_invoice_sales_detail', $data_insert_detail);
-
-			// $data_insert_use_other_cost = [];
-			// $get_other_cost = $this->db
-			// 	->select('*')
-			// 	->from('tr_penawaran_other_cost')
-			// 	->where_in('id', $post['id_other_cost'])
-			// 	->get()
-			// 	->result();
-
-			// foreach ($get_other_cost as $item_other_cost) {
-			// 	$data_insert_use_other_cost[] = [
-			// 		'id_other_cost' => $item_other_cost->id,
-			// 		'id_so' => $post['no_so'],
-			// 		'id_penawaran' => $post['id_penawaran'],
-			// 		'id_invoice' => $id_invoice,
-			// 		'curr' => $item_other_cost->curr,
-			// 		'keterangan' => $item_other_cost->keterangan,
-			// 		'nilai' => $item_other_cost->nilai,
-			// 		'nilai_pph' => $item_other_cost->nilai_pph,
-			// 		'total_nilai' => $item_other_cost->total_nilai,
-			// 		'created_by' => $this->auth->user_id(),
-			// 		'created_on' => date('Y-m-d H:i:s')
-			// 	];
-			// }
-
-			// $insert_used_other_cost = $this->db->insert_batch('tr_used_invoice_sales_other_cost', $data_insert_use_other_cost);
-
-			// if ($post['persen_retensi'] > 0) {
-			// 	$id_invoice_retensi = $this->Invoice_produk_model->generate_id_invoice();
-
-			// 	$id_billing_retensi = '';
-			// 	$get_id_billing_retensi = $this->db->get_where('tr_billing_plan', ['no_so' => $post['no_so'], 'tipe_billing_plan' => 2])->row();
-			// 	if (!empty($get_id_billing_retensi)) {
-			// 		$id_billing_retensi = $get_id_billing_retensi->id;
-			// 	}
-
-			// 	$get_spk_delivery = $this->db->get_where('spk_delivery', ['no_so' => $post['no_so']])->result();
-
-			// 	$get_billing_plan = $this->db->get_where('tr_billing_plan', ['id' => $id_billing_retensi])->row();
-
-			// 	$get_so = $this->db->get_where('tr_sales_order', ['no_so' => $post['no_so']])->row();
-
-			// 	$get_penawaran = $this->db
-			// 		->select('b.*')
-			// 		->from('tr_sales_order a')
-			// 		->join('tr_penawaran b', 'b.no_penawaran = a.no_penawaran', 'left')
-			// 		->where('a.no_so', $post['no_so'])
-			// 		->get()
-			// 		->row();
-
-			// 	$nilai_dpp = 0;
-			// 	$get_so_detail = $this->db->get_where('tr_sales_order_detail', ['no_so' => $post['no_so']])->result();
-			// 	foreach ($get_so_detail as $item_so_detail) {
-			// 		$nilai_dpp += $item_so_detail->total_harga;
-			// 	}
-
-			// 	$nilai_retensi = $post['nilai_retensi'];
-
-
-			// 	$data_insert = [
-			// 		'id_invoice' => $id_invoice_retensi,
-			// 		'id_so' => $post['no_so'],
-			// 		'tipe_so' => $post['tipe_so'],
-			// 		'id_penawaran' => $post['id_penawaran'],
-			// 		'id_billing' => $id_billing_retensi,
-			// 		'tipe_billing' => 'retensi',
-			// 		'nilai_dpp' => $nilai_dpp,
-			// 		'nilai_asli' => $nilai_dpp,
-			// 		'nilai_invoice' => $nilai_retensi,
-			// 		'grand_total' => ($nilai_dpp - $nilai_retensi),
-			// 		'created_by' => $this->auth->user_id(),
-			// 		'created_on' => date('Y-m-d H:i:s')
-			// 	];
-			// 	$insert_invoice = $this->db->insert('tr_invoice_sales', $data_insert);
-
-			// 	$data_insert_detail_invoice = [];
-			// 	$get_spk_delivery_details = $this->db
-			// 		->select('a.code_lv4, a.qty_delivery, b.nama_produk, b.harga_satuan, b.diskon_persen, d.code as uom')
-			// 		->from('spk_delivery_detail a')
-			// 		->join('tr_sales_order_detail b', 'b.no_so = a.no_so AND b.id_category3 = a.code_lv4', 'left')
-			// 		->join('new_inventory_4 c', 'c.code_lv4 = a.code_lv4', 'left')
-			// 		->join('ms_satuan d', 'd.id = c.id_unit', 'left')
-			// 		->where('a.no_so', $post['no_so'])
-			// 		->group_by('a.id')
-			// 		->get()
-			// 		->result();
-
-			// 	// print_r($this->db->last_query());
-			// 	// exit;
-
-			// 	foreach ($get_spk_delivery_details as $item_details) {
-			// 		$nilai_disc = (float) $item_details->diskon_nilai;
-			// 		$subtotal = (float) (($item_details->harga_satuan - $nilai_disc) * $item_details->qty_delivery);
-
-			// 		$data_insert_detail_invoice[] = [
-			// 			'id_invoice' => $id_invoice_retensi,
-			// 			'id_so' => $post['no_so'],
-			// 			'tipe_so' => $post['tipe_so'],
-			// 			'id_penawaran' => $post['id_penawaran'],
-			// 			'id_produk' => $item_details->code_lv4,
-			// 			'nm_produk' => $item_details->nama_produk,
-			// 			'qty' => $item_details->qty_delivery,
-			// 			'uom' => $item_details->uom,
-			// 			'harga' => $item_details->harga_satuan,
-			// 			'disc' => $nilai_disc,
-			// 			'subtotal' => $subtotal,
-			// 			'created_by' => $this->auth->user_id(),
-			// 			'created_on' => date('Y-m-d H:i:s')
-			// 		];
-			// 	}
-
-			// 	$insert_invoice_details = $this->db->insert_batch('tr_invoice_sales_detail', $data_insert_detail_invoice);
-			// }
 		}
-
-		// if ($post['tipe_billing'] == 'retensi') {
-		// 	$data_insert = [
-		// 		'id_invoice' => $id_invoice,
-		// 		'id_so' => $post['no_so'],
-		// 		'tipe_so' => $post['tipe_so'],
-		// 		'id_penawaran' => $post['id_penawaran'],
-		// 		'id_billing' => $post['id_billing'],
-		// 		'tipe_billing' => $post['tipe_billing'],
-		// 		'nilai_dpp' => $post['nilai_dpp'],
-		// 		'nilai_asli' => $post['nilai_asli'],
-		// 		'nilai_invoice' => $post['nilai_invoice'],
-		// 		'persen_invoice' => $post['persen_invoice'],
-		// 		'ppn' => $post['ppn'],
-		// 		'nilai_ppn' => $post['nilai_ppn'],
-		// 		'grand_total' => $post['grand_total'],
-		// 		'tax_invoice_no' => $post['tax_invoice_no'],
-		// 		'created_by' => $this->auth->user_id(),
-		// 		'created_on' => date('Y-m-d H:i:s')
-		// 	];
-		// 	$insert_invoice = $this->db->insert('tr_invoice_sales', $data_insert);
-
-		// 	$data_insert_detail_invoice = [];
-		// 	$get_spk_delivery_details = $this->db
-		// 		->select('a.code_lv4, a.qty_delivery, b.nama_produk, b.harga_satuan, b.diskon_persen, d.code as uom')
-		// 		->from('spk_delivery_detail a')
-		// 		->join('tr_sales_order_detail b', 'b.no_so = a.no_so AND b.id_category3 = a.code_lv4', 'left')
-		// 		->join('new_inventory_4 c', 'c.code_lv4 = a.code_lv4', 'left')
-		// 		->join('ms_satuan d', 'd.id = c.id_unit', 'left')
-		// 		->where('a.no_so', $post['no_so'])
-		// 		->group_by('a.id')
-		// 		->get()
-		// 		->result();
-
-		// 	// print_r($this->db->last_query());
-		// 	// exit;
-
-		// 	foreach ($get_spk_delivery_details as $item_details) {
-		// 		$nilai_disc = (float) ($item_details->harga_satuan * $item_details->diskon_persen / 100);
-		// 		$subtotal = (float) (($item_details->harga_satuan - $nilai_disc) * $item_details->qty_delivery);
-
-		// 		$data_insert_detail_invoice[] = [
-		// 			'id_invoice' => $id_invoice,
-		// 			'id_so' => $post['no_so'],
-		// 			'tipe_so' => $post['tipe_so'],
-		// 			'id_penawaran' => $post['id_penawaran'],
-		// 			'id_produk' => $item_details->code_lv4,
-		// 			'nm_produk' => $item_details->nama_produk,
-		// 			'qty' => $item_details->qty_delivery,
-		// 			'uom' => $item_details->uom,
-		// 			'harga' => $item_details->harga_satuan,
-		// 			'disc' => $nilai_disc,
-		// 			'subtotal' => $subtotal,
-		// 			'created_by' => $this->auth->user_id(),
-		// 			'created_on' => date('Y-m-d H:i:s')
-		// 		];
-		// 	}
-
-		// 	$insert_invoice_details = $this->db->insert_batch('tr_invoice_sales_detail', $data_insert_detail_invoice);
-		// }
-
-		// if ($post['tipe_billing'] == 'jaminan') {
-		// 	$data_insert = [
-		// 		'id_invoice' => $id_invoice,
-		// 		'id_so' => $post['no_so'],
-		// 		'tipe_so' => $post['tipe_so'],
-		// 		'id_penawaran' => $post['id_penawaran'],
-		// 		'id_billing' => $post['id_billing'],
-		// 		'tipe_billing' => $post['tipe_billing'],
-		// 		'nilai_dpp' => $post['nilai_dpp'],
-		// 		'nilai_asli' => $post['nilai_asli'],
-		// 		'nilai_invoice' => $post['nilai_invoice'],
-		// 		'ppn' => $post['ppn'],
-		// 		'nilai_ppn' => $post['nilai_ppn'],
-		// 		'grand_total' => $post['grand_total'],
-		// 		'tax_invoice_no' => $post['tax_invoice_no'],
-		// 		'created_by' => $this->auth->user_id(),
-		// 		'created_on' => date('Y-m-d H:i:s')
-		// 	];
-		// 	$insert_invoice = $this->db->insert('tr_invoice_sales', $data_insert);
-
-		// 	$data_insert_detail_invoice = [];
-		// 	$get_spk_delivery_details = $this->db
-		// 		->select('a.code_lv4, a.qty_delivery, b.nama_produk, b.harga_satuan, b.diskon_persen, d.code as uom')
-		// 		->from('spk_delivery_detail a')
-		// 		->join('tr_sales_order_detail b', 'b.no_so = a.no_so AND b.id_category3 = a.code_lv4', 'left')
-		// 		->join('new_inventory_4 c', 'c.code_lv4 = a.code_lv4', 'left')
-		// 		->join('ms_satuan d', 'd.id = c.id_unit', 'left')
-		// 		->where('a.no_so', $post['no_so'])
-		// 		->group_by('a.id')
-		// 		->get()
-		// 		->result();
-
-		// 	// print_r($this->db->last_query());
-		// 	// exit;
-
-		// 	foreach ($get_spk_delivery_details as $item_details) {
-		// 		$nilai_disc = (float) ($item_details->harga_satuan * $item_details->diskon_persen / 100);
-		// 		$subtotal = (float) (($item_details->harga_satuan - $nilai_disc) * $item_details->qty_delivery);
-
-		// 		$data_insert_detail_invoice[] = [
-		// 			'id_invoice' => $id_invoice,
-		// 			'id_so' => $post['no_so'],
-		// 			'tipe_so' => $post['tipe_so'],
-		// 			'id_penawaran' => $post['id_penawaran'],
-		// 			'id_produk' => $item_details->code_lv4,
-		// 			'nm_produk' => $item_details->nama_produk,
-		// 			'qty' => $item_details->qty_delivery,
-		// 			'uom' => $item_details->uom,
-		// 			'harga' => $item_details->harga_satuan,
-		// 			'disc' => $nilai_disc,
-		// 			'subtotal' => $subtotal,
-		// 			'created_by' => $this->auth->user_id(),
-		// 			'created_on' => date('Y-m-d H:i:s')
-		// 		];
-		// 	}
-
-		// 	$insert_invoice_details = $this->db->insert_batch('tr_invoice_sales_detail', $data_insert_detail_invoice);
-		// }
 
 		if ($this->db->trans_status() === false) {
 			$this->db->trans_rollback();

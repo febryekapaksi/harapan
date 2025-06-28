@@ -336,7 +336,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 					processData: false,
 					dataType: 'json',
 					success: function(result) {
-						if (result.status === '1') {
+						if (result.status == 1) {
 							swal({
 								title: 'Success!',
 								text: 'Invoice has been created!',

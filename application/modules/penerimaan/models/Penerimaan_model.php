@@ -255,23 +255,37 @@ class Penerimaan_model extends BF_Model
 
 			// Generate action button
 			$action = '';
-			if ($row['status_jurnal'] == 0) {
-				$action .= "<button class='btn btn-sm btn-primary jurnal' title='Approval Jurnal' data-inv='{$row['kd_pembayaran']}'><i class='fa fa-check'></i></button> ";
+			// if ($row['status_jurnal'] == 0) {
+			// 	$action .= "<button class='btn btn-sm btn-primary jurnal' title='Approval Jurnal' data-inv='{$row['kd_pembayaran']}'><i class='fa fa-check'></i></button> ";
+			// }
+
+			// if ($row['biaya_pph_idr'] > 0 && $row['bukti_potong'] == '') {
+			// 	$action .= "<button class='btn btn-sm btn-success buktip' title='Upload Bukti Potong' data-kd_pembayaran='{$row['kd_pembayaran']}'><i class='fa fa-cloud-upload'></i></button> ";
+			// }
+
+			$invoices = '';
+			if (!empty($row['invoiced'])) {
+				$invoiceList = explode(',', $row['invoiced']);
+				$invoices .= "<ul style='padding-left: 16px; margin: 0;'>";
+				foreach ($invoiceList as $inv) {
+					$invoices .= "<li>" . htmlspecialchars($inv) . "</li>";
+				}
+				$invoices .= "</ul>";
+			} else {
+				$invoices = '-';
 			}
 
-			if ($row['biaya_pph_idr'] > 0 && $row['bukti_potong'] == '') {
-				$action .= "<button class='btn btn-sm btn-success buktip' title='Upload Bukti Potong' data-kd_pembayaran='{$row['kd_pembayaran']}'><i class='fa fa-cloud-upload'></i></button> ";
-			}
+			$tgl_bayar_formated = date('d/M/Y', strtotime($row['tgl_pembayaran']));
 
-			$action .= "<button class='btn btn-sm btn-warning detail' title='Lihat Detail' data-id_bq='{$row['kd_pembayaran']}'><i class='fa fa-eye'></i></button>";
+			$action = "<a href='" . site_url('penerimaan/print_struk/' . $row['kd_pembayaran']) . "' target='_blank' class='btn btn-sm btn-warning' title='Cetak Struk'><i class='fa fa-print'></i></a>";
 
 			$nestedData = [];
 			$nestedData[] = "<div align='center'>{$nomor}</div>";
-			$nestedData[] = "<div align='left'>{$row['tgl_pembayaran']}</div>";
+			$nestedData[] = "<div align='left'>{$tgl_bayar_formated}</div>";
 			$nestedData[] = "<div align='left'>{$row['kd_pembayaran']}</div>";
 			$nestedData[] = "<div align='left'>{$row['nm_customer']}</div>";
 			$nestedData[] = "<div align='left'>{$row['keterangan']}</div>";
-			$nestedData[] = "<div align='left'>{$row['invoiced']}</div>";
+			$nestedData[] = "<div align='left'>{$invoices}</div>";
 			// $nestedData[] = "<div align='left'>" . number_format($row['totalinvoiced']) . "</div>";
 			$nestedData[] = "<div align='right'>" . number_format($row['jumlah_pembayaran_idr'], 2) . "</div>";
 			$nestedData[] = "<div align='left'>" . number_format($row['biaya_pph_idr']) . "</div>";

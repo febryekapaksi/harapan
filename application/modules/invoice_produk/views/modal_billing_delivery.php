@@ -165,7 +165,7 @@ $tipe_billing = $results['tipe_billing'];
 <input type="hidden" class="nilai_dpp" name="nilai_dpp" value="<?= $dpp ?>">
 <input type="hidden" class="nilai_invoice" name="nilai_invoice" value="<?= $nilai_invoice ?>">
 <!-- <input type="hidden" class="persen_invoice" name="persen_invoice" value="<?= $persen_invoice ?>"> -->
-<input type="hidden" class="ppn" name="ppn" value="<?= $results['persen_ppn'] ?>">
+<!-- <input type="hidden" class="ppn" name="ppn" value="<?= $results['persen_ppn'] ?>"> -->
 <input type="hidden" class="nilai_ppn" name="nilai_ppn" value="<?= $nilai_ppn ?>">
 <input type="hidden" class="grand_total" name="grand_total" value="<?= ($total_tagihan) ?>">
 

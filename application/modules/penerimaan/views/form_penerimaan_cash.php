@@ -39,7 +39,7 @@
                                     <option value="">-- Pilih ---</option>
                                     <?php foreach ($customers as $cs): ?>
                                         <option value="<?= $cs->id_customer ?>">
-                                            <?= $cs->name_customer ?>
+                                            <?= $cs->name_customer ?> - (SO: <?= $cs->id_so ?>)
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -145,6 +145,7 @@
         <form id="otp-form">
             <div class="modal-content">
                 <div class="modal-header">
+                    <button type="button" class="close d-none" id="btn-close-otp" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
                     <h4 class="modal-title">Verifikasi OTP</h4>
                 </div>
                 <div class="modal-body text-center">
@@ -188,7 +189,6 @@
 
         moneyFormat('.moneyFormat');
 
-        startOtpTimer();
 
         $(document).on('input', 'input[name="total_bayar[]"]', function() {
             updateInvoiceTotals();
@@ -384,6 +384,7 @@
                         success: function(result) {
                             if (result.status == '1') {
                                 // Setelah OTP dikirim, tampilkan modal input
+                                startOtpTimer();
                                 $('#modal-otp').modal('show');
                                 $('#otp-kd-pembayaran').val(result.kd_pembayaran);
                             } else {
@@ -464,18 +465,33 @@
 
 
     let otpCountdown;
-    let otpSeconds = 90;
+    let otpSeconds = 60;
 
     function startOtpTimer() {
         $('#otp-timer').text(otpSeconds);
         $('#resend-otp-btn').hide();
         $('#countdown-text').show();
 
+        // Pastikan modal tidak bisa ditutup manual selama countdown
+        $('#modal-otp').modal({
+            backdrop: 'static',
+            keyboard: false
+        });
+
         otpCountdown = setInterval(() => {
             otpSeconds--;
             $('#otp-timer').text(otpSeconds);
+
             if (otpSeconds <= 0) {
                 clearInterval(otpCountdown);
+
+                // 1. Enable ESC key and backdrop to close
+                $('#modal-otp').data('bs.modal').options.backdrop = true;
+                $('#modal-otp').data('bs.modal').options.keyboard = true;
+
+                // 2. Tampilkan tombol close (jika disembunyikan)
+                $('#btn-close-otp').removeClass('d-none');
+
                 $('#countdown-text').hide();
                 $('#resend-otp-btn').show();
             }
