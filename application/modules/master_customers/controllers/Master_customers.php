@@ -141,7 +141,7 @@ class Master_customers extends Admin_Controller
 			'longitude' => $post['longitude'],
 			'latitude' => $post['latitude'],
 			'activation' => $post['activation'],
-			'facility' => $post['facility'],
+			// 'facility' => $post['facility'],
 			'kategori_cust' => $post['kategori_cust'],
 			'kategori_toko' => $post['kategori_toko'],
 			'chanel_pemasaran' => implode(', ', $chanel),
