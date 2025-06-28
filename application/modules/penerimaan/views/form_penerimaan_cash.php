@@ -411,7 +411,10 @@
                     if (result.status == 1) {
                         swal('Sukses', result.message, 'success');
                         $('#modal-otp').modal('hide');
-                        window.location.href = base_url + active_controller + 'index_cash';
+                        window.open(result.redirect_url, '_blank');
+                        setTimeout(() => {
+                            window.location.href = siteurl + active_controller + 'index_cash';
+                        }, 1000);
                     } else {
                         swal('Gagal', result.message, 'error');
                     }

@@ -246,7 +246,11 @@ class Penerimaan extends Admin_Controller
 		// Hapus OTP setelah sukses
 		$this->db->delete('tr_invoice_payment_otp', ['kd_pembayaran' => $kd_pembayaran]);
 
-		echo json_encode(['status' => 1, 'message' => 'Verifikasi berhasil. Pembayaran disimpan.']);
+		echo json_encode([
+			'status' => 1,
+			'message' => 'Verifikasi berhasil. Pembayaran disimpan.',
+			'redirect_url' => base_url("penerimaan/print_struk/$kd_pembayaran")
+		]);
 	}
 
 	public function resend_otp()
