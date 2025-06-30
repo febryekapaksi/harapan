@@ -152,7 +152,7 @@
                         html += `
                     <tr>
                         <td>${item.product}</td>
-                        <td class="text-right">${item.product_price}</td>
+                        <td class="text-right">${item.price_list}</td>
                         <td class="text-right">${item.qty_order}</td>
                         <td class="text-right">${item.total_harga}</td>
                         <td class="text-right">${item.pengiriman}</td>
