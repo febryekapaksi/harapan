@@ -6,10 +6,10 @@
     <title>Struk Pembayaran</title>
     <style>
         body {
+
             font-family: monospace;
-            font-size: 8px;
-            margin: 0;
-            padding: 0 4px;
+            font-size: 12px;
+            box-sizing: border-box;
         }
 
         .text-center {
@@ -18,13 +18,12 @@
 
         .text-right {
             text-align: right;
-            white-space: nowrap;
         }
 
         hr {
             border: none;
             border-top: 1px dashed #000;
-            margin: 5px 0;
+            margin: 6px 0;
         }
 
         table {
@@ -40,14 +39,6 @@
 
         .footer-space {
             height: 20px;
-        }
-
-        .total-table td {
-            padding: 2px 0;
-        }
-
-        b {
-            font-weight: bold;
         }
     </style>
 </head>
@@ -79,6 +70,7 @@
             <td><?= $header->keterangan ?></td>
         </tr>
     </table>
+
     <hr>
 
     <?php foreach ($details as $d): ?>
@@ -96,7 +88,7 @@
                 </div>
                 <div class="text-right">
                     <?php
-                    $total_item = round(($i->harga * $i->qty) * (1 + ($i->disc / 100)), -2);
+                    $total_item = round(($i->harga * $i->qty) * (1 + ($i->disc / 100)), -2); // sesuai logika customermu
                     ?>
                     <?= number_format($total_item, 0) ?>
                 </div>
@@ -105,7 +97,7 @@
         <hr>
     <?php endforeach; ?>
 
-    <table class="total-table">
+    <table>
         <?php if ($freight > 0): ?>
             <tr>
                 <td>Freight</td>
