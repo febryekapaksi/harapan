@@ -294,7 +294,7 @@ class Penerimaan extends Admin_Controller
 		echo json_encode(['status' => 1, 'message' => 'OTP dikirim ulang']);
 	}
 
-	public function print_struk($kd_pembayaran)
+	public function print_struk2($kd_pembayaran)
 	{
 		$header = $this->db
 			->where('kd_pembayaran', $kd_pembayaran)
@@ -380,7 +380,7 @@ class Penerimaan extends Admin_Controller
 	}
 
 
-	public function print_struk2($kd_pembayaran)
+	public function print_struk($kd_pembayaran)
 	{
 		$header = $this->db
 			->where('kd_pembayaran', $kd_pembayaran)
@@ -470,6 +470,6 @@ class Penerimaan extends Admin_Controller
 		$dompdf->loadHtml($html);
 		$dompdf->setPaper([0, 0, 165, 500], 'portrait'); // thermal 58mm
 		$dompdf->render();
-		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => true]);
+		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => false]);
 	}
 }

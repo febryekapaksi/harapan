@@ -8,7 +8,7 @@
         body {
 
             font-family: monospace;
-            font-size: 12px;
+            font-size: 7px;
             box-sizing: border-box;
         }
 
