@@ -341,6 +341,92 @@ class Penerimaan extends Admin_Controller
 
 				$is_spk_pertama = ($get_spk_pertama && $get_spk_pertama->no_surat_jalan == $delivery->no_surat_jalan);
 
+				if ($is_spk_pertama) {
+					$freight_data = $this->db
+						->select('b.freight')
+						->from('sales_order a')
+						->join('penawaran b', 'b.id_penawaran = a.id_penawaran')
+						->where('a.no_so', $delivery->no_so)
+						->get()
+						->row();
+
+					$freight += $freight_data ? $freight_data->freight : 0;
+				}
+
+				foreach ($items as $row) {
+					$disc = (float)$row->diskon;
+					$total_item = round(($row->price_list * $row->qty) * (1 + ($disc / 100)), -2);
+					$subtotal += $total_item;
+				}
+			}
+		}
+
+		$exclude_ppn = ($subtotal + $freight) / 1.11;
+		$dpp = ($exclude_ppn * 11) / 12;
+		$ppn = ($dpp * 12) / 100;
+		$grand_total = $exclude_ppn + $ppn;
+
+		// Tampilkan ke halaman biasa (tanpa PDF)
+		$this->load->view('struk_penerimaan_cash', [
+			'header' => $header,
+			'details' => $details,
+			'subtotal' => $subtotal,
+			'exclude_ppn' => $exclude_ppn,
+			'freight' => $freight,
+			'dpp' => $dpp,
+			'ppn' => $ppn,
+			'grand_total' => $grand_total
+		]);
+	}
+
+
+	public function print_struk2($kd_pembayaran)
+	{
+		$header = $this->db
+			->where('kd_pembayaran', $kd_pembayaran)
+			->get('tr_invoice_payment')->row();
+
+		$details = $this->db
+			->where('kd_pembayaran', $kd_pembayaran)
+			->get('tr_invoice_payment_detail')->result();
+
+		$subtotal = 0;
+		$freight = 0;
+
+		foreach ($details as $item) {
+			$invoice = $this->db
+				->select('a.*')
+				->from('tr_invoice_sales a')
+				->where('a.id_invoice', $item->no_invoice)
+				->get()
+				->result();
+
+			foreach ($invoice as $inv) {
+				$delivery = $this->db
+					->select('a.no_surat_jalan, a.no_delivery, a.no_so')
+					->from('spk_delivery a')
+					->where('a.no_surat_jalan', $inv->id_billing)
+					->get()
+					->row();
+
+				if (!$delivery) continue;
+
+				$items = $this->db
+					->select('c.price_list, c.harga_penawaran, c.diskon, c.diskon_nilai, a.qty_delivery as qty, c.total_pl, d.ppn')
+					->from('spk_delivery_detail a')
+					->join('sales_order_detail b', 'b.id = a.id_so_det')
+					->join('penawaran_detail c', 'c.id_penawaran = b.id_penawaran AND c.id_product = b.id_product')
+					->join('penawaran d', 'd.id_penawaran = c.id_penawaran')
+					->where('a.no_delivery', $delivery->no_delivery)
+					->get()->result();
+
+				$get_spk_pertama = $this->db
+					->order_by('no_delivery', 'ASC')
+					->get_where('spk_delivery', ['no_so' => $delivery->no_so])
+					->row();
+
+				$is_spk_pertama = ($get_spk_pertama && $get_spk_pertama->no_surat_jalan == $delivery->no_surat_jalan);
+
 				// Jika SPK pertama, ambil freight
 				if ($is_spk_pertama) {
 					$freight_data = $this->db
@@ -384,6 +470,6 @@ class Penerimaan extends Admin_Controller
 		$dompdf->loadHtml($html);
 		$dompdf->setPaper([0, 0, 165, 500], 'portrait'); // thermal 58mm
 		$dompdf->render();
-		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => false]);
+		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => true]);
 	}
 }
