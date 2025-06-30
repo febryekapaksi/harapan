@@ -470,6 +470,6 @@ class Penerimaan extends Admin_Controller
 		$dompdf->loadHtml($html);
 		$dompdf->setPaper([0, 0, 165, 500], 'portrait'); // thermal 58mm
 		$dompdf->render();
-		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => false]);
+		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => true]);
 	}
 }
