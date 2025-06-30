@@ -128,6 +128,7 @@ class Penerimaan extends Admin_Controller
 		// Generate OTP
 		$otp_code = rand(100000, 999999);
 		$otp_expiry = date('Y-m-d H:i:s', strtotime('+1 minutes'));
+		$total_rupiah = number_format($total_terima, 0, ',', '.');
 
 		// Simpan ke tabel sementara (tr_invoice_payment_otp)
 		$otp_data = [
@@ -153,7 +154,7 @@ class Penerimaan extends Admin_Controller
 
 		// Kirim OTP via WhatsApp API Gateway
 		$wa_number = preg_replace('/^0/', '62', $customer->telephone); // convert 08xxx → 628xxx
-		$otp_message = "Kode OTP untuk verifikasi pembayaran Anda adalah: *$otp_code*\n\nKode ini berlaku hingga " . date('H:i', strtotime($otp_expiry)) . " WIB.\n\nJangan bagikan kode ini ke siapa pun.";
+		$otp_message = "Terimakasih telah melakukan pembayaran sejumlah Rp. *$total_rupiah* \n\nKode OTP untuk verifikasi pembayaran Anda adalah: *$otp_code*\n\nKode ini berlaku hingga " . date('H:i', strtotime($otp_expiry)) . " WIB.\n\nJangan bagikan kode ini ke siapa pun.";
 
 		$response = $this->send_wa($wa_number, $otp_message);
 
