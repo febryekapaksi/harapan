@@ -1,3 +1,4 @@
+<?php $isConfirm = (isset($mode) && $mode == 'confirm'); ?>
 <div class="box box-primary">
     <div class="box-body">
         <form method="post" id="data-form">
@@ -11,11 +12,15 @@
                                 <label>Pengiriman</label>
                             </div>
                             <div class="col-md-8">
-                                <select name="pengiriman" id="pengiriman" class="form-control select">
+                                <select name="pengiriman" id="pengiriman" class="form-control select" <?= $isConfirm ? 'disabled' : '' ?>>
                                     <option value="">-- Pilih --</option>
                                     <option value="Gudang" <?= (isset($loading['pengiriman']) && $loading['pengiriman'] == "Gudang") ? 'selected' : '' ?>>Gudang SBF/NBO</option>
                                     <option value="Pabrik" <?= (isset($loading['pengiriman']) && $loading['pengiriman'] == "Pabrik") ? 'selected' : '' ?>>Pabrik</option>
                                 </select>
+                                <?php if ($isConfirm): ?>
+                                    <!-- Hidden input untuk tetap mengirimkan value saat disabled -->
+                                    <input type="hidden" name="pengiriman" value="<?= isset($loading['pengiriman']) ? $loading['pengiriman'] : '' ?>">
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -26,13 +31,17 @@
                                 <label>Kendaraan</label>
                             </div>
                             <div class="col-md-8">
-                                <select name="kendaraan" id="selectKendaraan" class="form-control select">
+                                <select name="kendaraan" id="selectKendaraan" class="form-control select" <?= $isConfirm ? 'disabled' : '' ?>>
                                     <option value="">-- Pilih --</option>
                                     <?php foreach ($kendaraan as $item): ?>
                                         <option data-kapasitas="<?= $item->kapasitas ?>" value="<?= $item->nopol ?>"
                                             <?= (isset($loading['nopol']) == $item->nopol) ? 'selected' : '' ?>><?= $item->jenis . ' - ' . $item->nopol ?></option>
                                     <?php endforeach; ?>
                                 </select>
+                                <?php if ($isConfirm): ?>
+                                    <!-- Hidden input untuk tetap mengirimkan value saat disabled -->
+                                    <input type="hidden" name="kendaraan" value="<?= isset($loading['nopol']) ? $loading['nopol'] : '' ?>">
+                                <?php endif; ?>
                             </div>
                         </div>
 
@@ -42,7 +51,7 @@
                                 <label>Tanggal Muat</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" name="tanggal_muat" id="tanggal_muat" class="form-control" value="<?= isset($loading['tanggal_muat']) ? date('Y-m-d', strtotime($loading['tanggal_muat'])) : '' ?>" required>
+                                <input type="date" name="tanggal_muat" id="tanggal_muat" class="form-control" value="<?= isset($loading['tanggal_muat']) ? date('Y-m-d', strtotime($loading['tanggal_muat'])) : '' ?>" required <?= $isConfirm ? 'readonly' : '' ?>>
                             </div>
                         </div>
                     </div>
@@ -51,7 +60,7 @@
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-12">
-                        <a href="javascript:void(0);" class="btn btn-sm btn-success" id="selectSpk"><i class="fa fa-plus"></i> Pilih SPK</a>
+                        <a href="javascript:void(0);" class="btn btn-sm btn-success <?= $isConfirm ? 'disabled' : '' ?>" id="selectSpk"><i class="fa fa-plus"></i> Pilih SPK</a>
                         <hr>
                         <div class="table-responsive">
                             <table class="table table-bordered" id="tableSpk">
@@ -59,11 +68,16 @@
                                     <tr>
                                         <th style="min-width: 100px;" class="text-nowrap">No SPK</th>
                                         <th style="min-width: 100px;" class="text-nowrap">No SO</th>
-                                        <th style="min-width: 200px;" class="text-nowrap">Customer</th>
+                                        <th style="min-width: 200px;" class="text-nowrap" hidden>Customer</th>
                                         <th style="min-width: 300px;">Produk</th>
-                                        <th style="min-width: 20px;" class="text-nowrap">Qty</th>
-                                        <th style="min-width: 20px;" class="text-nowrap">Berat (Kg)</th>
-                                        <th style="min-width: 20px;" class="text-nowrap"></th>
+                                        <th style="min-width: 20px;" class="text-center">Qty Muat</th>
+                                        <th style="min-width: 20px;" class="text-center">Berat (Kg)</th>
+                                        <?php if (isset($mode) && $mode == 'confirm') { ?>
+                                            <th style="min-width: 20px;" class="text-center">Qty Aktual</th>
+                                            <th style="min-width: 20px;" class="text-center">Keterangan</th>
+                                        <?php  } else { ?>
+                                            <th style="min-width: 20px;" class="text-center"></th>
+                                        <?php } ?>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -88,7 +102,9 @@
                                             <!-- Baris produk -->
                                             <?php foreach ($rows as $row) :
                                                 $key = $row['no_so'] . '|' . $row['no_delivery'];
-                                                $isUsed = in_array($key, $usedKeys); ?>
+                                                $isUsed = in_array($key, $usedKeys);
+                                                $weight = $row['jumlah_berat'] / $row['qty_spk'];
+                                            ?>
                                                 <tr>
                                                     <td>
                                                         <input type="text" class="form-control" name="detail[<?= $i ?>][no_delivery]" value="<?= $row['no_delivery'] ?>" readonly>
@@ -96,22 +112,31 @@
                                                     <td>
                                                         <input type="text" class="form-control" name="detail[<?= $i ?>][no_so]" value="<?= $row['no_so'] ?>" readonly>
                                                     </td>
-                                                    <td>
+                                                    <td hidden>
                                                         <input type="text" class="form-control" name="detail[<?= $i ?>][customer]" value="<?= $row['customer'] ?>" readonly>
                                                     </td>
                                                     <td>
                                                         <input type="text" class="form-control" name="detail[<?= $i ?>][product]" value="<?= $row['product'] ?>" readonly>
                                                     </td>
                                                     <td>
-                                                        <input type="text" class="form-control" name="detail[<?= $i ?>][qty_spk]" value="<?= $row['qty_spk'] ?>" readonly>
+                                                        <input type="number" class="form-control text-center qty-spk" name="detail[<?= $i ?>][qty_spk]" value="<?= $row['qty_spk'] ?>" readonly>
                                                     </td>
                                                     <td>
-                                                        <input type="text" class="form-control jumlah-berat" name="detail[<?= $i ?>][jumlah_berat]" value="<?= $row['jumlah_berat'] ?>" readonly>
+                                                        <input type="number" class="form-control jumlah-berat text-center" name="detail[<?= $i ?>][jumlah_berat]" value="<?= $row['jumlah_berat'] ?>" readonly>
                                                     </td>
 
-                                                    <td>
-                                                        <button type="button" class="btn btn-danger btn-sm remove-row" <?= $isUsed ? 'disabled' : '' ?>><i class="fa fa-trash"></i></button>
-                                                    </td>
+                                                    <?php if (isset($mode) && $mode == 'confirm') { ?>
+                                                        <td>
+                                                            <input type="number" class="form-control text-center qty-aktual" name="detail[<?= $i ?>][qty_aktual]" value="">
+                                                        </td>
+                                                        <td>
+                                                            <textarea class="form-control" name="detail[<?= $i ?>][keterangan]"></textarea>
+                                                        </td>
+                                                    <?php  } else { ?>
+                                                        <td>
+                                                            <button type=" button" class="btn btn-danger btn-sm remove-row" <?= $isUsed ? 'disabled' : '' ?>><i class="fa fa-trash"></i></button>
+                                                        </td>
+                                                    <?php } ?>
 
                                                     <!-- hidden fields -->
                                                     <td hidden>
@@ -119,6 +144,7 @@
                                                         <input type="hidden" name="detail[<?= $i ?>][id_spk_detail]" value="<?= $row['id_spk_detail'] ?>">
                                                         <input type="hidden" name="detail[<?= $i ?>][id_product]" value="<?= $row['id_product'] ?>">
                                                         <input type="hidden" name="detail[<?= $i ?>][no_loading]" value="<?= $row['no_loading'] ?>">
+                                                        <input type="hidden" name="detail[<?= $i ?>][weight]" value="<?= $weight ?>">
                                                     </td>
                                                 </tr>
                                     <?php
@@ -145,7 +171,11 @@
                 </div>
                 <div class="form-group row">
                     <div class="col-md-12 text-center">
-                        <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
+                        <?php if (isset($mode) && $mode == 'confirm') { ?>
+                            <button type="button" class="btn btn-success" name="confirm" id="confirm"><i class="fa fa-save"></i> Confirm</button>
+                        <?php } else { ?>
+                            <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
+                        <?php } ?>
                         <a class="btn btn-default" onclick="window.history.back(); return false;">
                             <i class="fa fa-reply"></i> Batal
                         </a>
@@ -269,6 +299,7 @@
                                     <td>${item.jumlah_berat}</td>
                                     <td>${item.tanggal_spk}</td>
                                     <td hidden>${item.id}</td>
+                                    <td hidden>${item.weight}</td>
                                     <td>
                                         <input type="checkbox" class="select-row" data-item='${JSON.stringify(item)}'>
                                     </td>
@@ -314,7 +345,7 @@
                 group.forEach((data) => {
                     let row = `
                 <tr>
-                    <td>
+                    <td hidden>
                         <input type="text" class="form-control" name="detail[${detailIndex}][no_delivery]" value="${data.no_delivery}" readonly>
                     </td>
                     <td>
@@ -327,10 +358,10 @@
                         <input type="text" class="form-control" name="detail[${detailIndex}][product]" value="${data.nama}" readonly>
                     </td>
                     <td>
-                        <input type="text" class="form-control" name="detail[${detailIndex}][qty_spk]" value="${data.qty_spk}" readonly>
+                        <input type="number" class="form-control qty-spk" name="detail[${detailIndex}][qty_spk]" value="${data.qty_spk}" readonly>
                     </td>
                     <td>
-                        <input type="text" class="form-control jumlah-berat" name="detail[${detailIndex}][jumlah_berat]" value="${data.jumlah_berat}" readonly>
+                        <input type="number" class="form-control jumlah-berat" name="detail[${detailIndex}][jumlah_berat]" value="${data.jumlah_berat}" readonly>
                     </td>
                     <td>
                         <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-trash"></i></button>
@@ -338,6 +369,7 @@
                     <td hidden>
                         <input type="hidden" name="detail[${detailIndex}][id_product]" value="${data.id_product}">
                         <input type="hidden" name="detail[${detailIndex}][id_spk_detail]" value="${data.id}">
+                        <input type="hidden" name="detail[${detailIndex}][weight]" value="${data.weight}">
                     </td>
                 </tr>
             `;
@@ -421,7 +453,6 @@
             hitungTotalBerat();
         });
 
-
         $('#selectKendaraan').on('change', function() {
             const kapasitas = $(this).find(':selected').data('kapasitas') || 0;
             $('#kapasitas').val(kapasitas);
@@ -463,6 +494,10 @@
                                         type: "success",
                                         timer: 7000
                                     });
+                                    let id_loading = data.id_loading;
+                                    if (id_loading) {
+                                        window.open(`${base_url}${active_controller}print/${id_loading}`, '_blank');
+                                    }
                                     window.location.href = base_url + active_controller
                                 } else {
                                     swal({
@@ -489,6 +524,169 @@
                     }
                 });
         });
+
+        //button confirm 
+        $('#confirm').on('click', function(e) {
+            e.preventDefault();
+
+            var qty_aktual = $('.qty-aktual').val()
+
+            if (qty_aktual == '') {
+                swal({
+                    title: "Error Message!",
+                    text: 'Qty Aktual kosong, isi terlebih dulu ...',
+                    type: "warning"
+                });
+
+                $('#confirm').prop('disabled', false);
+                return false;
+            }
+
+            // Jika valid, lanjut swal konfirmasi
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to process again this data!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Yes, Process it!",
+                cancelButtonText: "No, cancel process!",
+                closeOnConfirm: true,
+                closeOnCancel: false
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    var formData = new FormData($('#data-form')[0]);
+                    var baseurl = siteurl + 'loading/save_confirm';
+
+                    $.ajax({
+                        url: baseurl,
+                        type: "POST",
+                        data: formData,
+                        cache: false,
+                        dataType: 'json',
+                        processData: false,
+                        contentType: false,
+                        success: function(data) {
+                            if (data.status == 1) {
+                                swal({
+                                    title: "Save Success!",
+                                    text: data.pesan,
+                                    type: "success",
+                                    timer: 7000
+                                });
+                                window.location.href = base_url + active_controller;
+                            } else {
+                                swal({
+                                    title: "Save Failed!",
+                                    text: data.pesan,
+                                    type: "warning",
+                                    timer: 7000
+                                });
+                            }
+                        },
+                        error: function() {
+                            swal({
+                                title: "Error Message!",
+                                text: 'An Error Occurred During Process. Please try again..',
+                                type: "warning",
+                                timer: 7000
+                            });
+                        }
+                    });
+                } else {
+                    swal("Cancelled", "Data can be processed again :)", "error");
+                    return false;
+                }
+            });
+        });
+
+        $(document).on('click', '.btn-req-print', function(e) {
+            e.preventDefault();
+
+            var id_loading = $(this).data('id');
+            console.log(id_loading)
+
+            swal({
+                title: "Are you sure?",
+                text: "Print Draft Muatan!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-succes",
+                confirmButtonText: "Yes, Lanjutkan!",
+                cancelButtonText: "Cancel",
+                closeOnConfirm: false
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        url: base_url + 'loading/request_print',
+                        type: 'POST',
+                        data: {
+                            id_loading: id_loading,
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 1) {
+                                swal("Success!", response.pesan, "success");
+                                window.open(`${base_url + active_controller}print/${id_loading}`, '_blank');
+                                window.location.href = base_url + active_controller;
+
+                            } else {
+                                swal("Failed", response.pesan, "warning");
+                            }
+                        },
+                        error: function() {
+                            swal("Error", "Something went wrong.", "error");
+                        }
+                    });
+                }
+            });
+        });
+
+        $(document).on('input', '.qty-aktual', function(e) {
+            const row = $(this).closest('tr');
+
+            const qtyAktual = parseFloat($(this).val()) || 0;
+            const qtySpk = parseInt(row.find('.qty-spk').val()) || 0;
+
+            if (qtyAktual > qtySpk) {
+                swal({
+                    title: "Error Message !",
+                    text: 'Qty Aktual tidak boleh melebihi Qty SPK',
+                    type: "warning",
+                    timer: 7000,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    allowOutsideClick: true
+                }, () => {
+                    $(e.target).val(qtySpk);
+                });
+                return; // Hentikan perhitungan lanjut
+            }
+
+            if (qtyAktual < 1) {
+                swal({
+                    title: "Error Message !",
+                    text: 'Qty Aktual tidak boleh 0',
+                    type: "warning",
+                    timer: 7000,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    allowOutsideClick: true
+                }, () => {
+                    $(e.target).val(qtySpk);
+                });
+                return; // Hentikan perhitungan lanjut
+            }
+
+            const beratPerUnit = parseFloat(row.find('input[name*="[weight]"]').val()) || 0;
+            const beratTotal = qtyAktual * beratPerUnit;
+
+            // Update jumlah berat di baris tersebut
+            row.find('input[name*="[jumlah_berat]"]').val(beratTotal.toFixed(2));
+
+            // Hitung ulang total seluruh berat aktual
+            hitungTotalBeratAktual();
+        })
     });
 
     function getSpk() {
@@ -507,6 +705,27 @@
     }
 
     function hitungTotalBerat() {
+        let total = 0;
+
+        $('.jumlah-berat').each(function() {
+            const berat = parseFloat($(this).val()) || 0;
+            total += berat;
+        });
+
+        $('#totalBerat').val(total.toFixed(2));
+
+        const kapasitas = ($('#kapasitas').val()) || 0;
+
+        if (kapasitas > 0 && total > kapasitas) {
+            swal({
+                title: "Peringatan!",
+                text: `Total berat (${total.toFixed(2)} Kg) melebihi kapasitas kendaraan (${kapasitas} Kg).`,
+                type: "warning"
+            });
+        }
+    }
+
+    function hitungTotalBeratAktual() {
         let total = 0;
 
         $('.jumlah-berat').each(function() {

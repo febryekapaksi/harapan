@@ -17,6 +17,7 @@
                         <th>Pengiriman</th>
                         <th>Muatan</th>
                         <th>Tanggal Muat</th>
+                        <th>Status</th>
                         <th>Option</th>
                     </tr>
                 </thead>

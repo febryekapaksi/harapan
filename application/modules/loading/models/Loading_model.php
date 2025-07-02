@@ -34,8 +34,22 @@ class Loading_model extends BF_Model
         foreach ($query->result_array() as $row) {
             $nestedData = [];
 
-            $action = "<a href='javascript:void(0);' data-id='" . $row['no_loading'] . "' class='btn btn-sm btn-warning view-loading' title='View'><i class='fa fa-eye'></i></a> ";
-            $action .= "<a href='"  . base_url("loading/edit/{$row['id']}") .  "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
+            // $action = "<a href='javascript:void(0);' data-id='" . $row['no_loading'] . "' class='btn btn-sm btn-info view-loading' title='View'><i class='fa fa-eye'></i></a> ";
+            if ($row['status'] == 0) {
+                $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+                $action .= "<a href='"  . base_url("loading/confirm/{$row['id']}") .  "' class='btn btn-sm btn-success' title='Confirm'><i class='fa fa-check'></i></a> ";
+            } else if ($row['status'] == 1) {
+                $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+            } else {
+            }
+
+            // Buat status muatan 
+            if ($row['status'] == 0) {
+                $status = "<span class='badge bg-yellow'>Printed</span>";
+            } else if ($row['status'] == 1) {
+                $status = "<span class='badge bg-green'>Approved</span>";
+            } else {
+            }
 
             $nestedData[] = "<div>" . $urut . "</div>";
             $nestedData[] = "<div>" . strtoupper($row['no_loading']) . "</div>";
@@ -44,6 +58,7 @@ class Loading_model extends BF_Model
             $nestedData[] = "<div>" . number_format($row['total_berat'], 2) . " / " . number_format($row['kapasitas'], 2) . " Kg</div>";
             $nestedData[] = "<div>" . date('d/M/Y', strtotime($row['tanggal_muat'])) . "</div>";
 
+            $nestedData[] = "<div align='center'>" . $status . "</div>";
             $nestedData[] = "<div align='center'>" . $action . "</div>";
 
             $data[] = $nestedData;
@@ -72,6 +87,7 @@ class Loading_model extends BF_Model
                 kapasitas,
                 total_berat,
                 tanggal_muat,
+                status,
                 created_by,
                 created_at
             FROM loading_delivery, (SELECT @row := 0) AS r

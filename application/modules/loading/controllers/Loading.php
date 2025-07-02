@@ -96,6 +96,83 @@ class Loading extends Admin_Controller
         $this->template->render('form', $data);
     }
 
+    public function confirm($id)
+    {
+        // Cek apakah data ada
+        $loading = $this->db->get_where('loading_delivery', ['id' => $id])->row_array();
+
+        if (!$loading) {
+            show_404(); // Jika tidak ada, tampilkan error 404
+        }
+
+        $detail = $this->db->get_where('loading_delivery_detail', ['no_loading' => $loading['no_loading']])->result_array();
+
+        //data nya sudah dibuat ke surat jalan belom?
+        $usedPairs = $this->db
+            ->select('no_so, no_delivery')
+            ->from('surat_jalan')
+            ->where('no_loading', $loading['no_loading'])
+            ->get()
+            ->result_array();
+
+        $usedKeys = array_map(function ($row) {
+            return $row['no_so'] . '|' . $row['no_delivery'];
+        }, $usedPairs);
+
+        // Kirim data ke view
+        $data = [
+            'kendaraan' => $this->db->get('master_kendaraan')->result(),
+            'loading'   => $loading,
+            'detail'    => $detail,
+            'usedKeys'  => $usedKeys,
+            'mode'      => 'confirm'
+        ];
+
+        // View form edit
+        $this->template->render('form', $data);
+    }
+
+    public function print($id)
+    {
+        // Cek apakah data ada
+        $loading = $this->db->get_where('loading_delivery', ['id' => $id])->row_array();
+
+        if (!$loading) {
+            show_404(); // Jika tidak ada, tampilkan error 404
+        }
+
+        $detail = $this->db->get_where('loading_delivery_detail', ['no_loading' => $loading['no_loading']])->result_array();
+
+        //data nya sudah dibuat ke surat jalan belom?
+        $usedPairs = $this->db
+            ->select('no_so, no_delivery')
+            ->from('surat_jalan')
+            ->where('no_loading', $loading['no_loading'])
+            ->get()
+            ->result_array();
+
+        $usedKeys = array_map(function ($row) {
+            return $row['no_so'] . '|' . $row['no_delivery'];
+        }, $usedPairs);
+
+        $nopol = $loading['nopol'];
+
+        $kendaraan = $this->db
+            ->get_where('master_kendaraan', ['nopol' => $nopol])
+            ->row_array();
+
+        // Kirim data ke view
+        $data = [
+            'kendaraan' => $kendaraan,
+            'loading'   => $loading,
+            'detail'    => $detail,
+            'usedKeys'  => $usedKeys,
+        ];
+
+        // View form edit
+        $this->load->view('print', ['results' => $data]);
+    }
+
     public function get_spk()
     {
         $pengiriman = $this->input->get('pengiriman', TRUE);
@@ -112,6 +189,7 @@ class Loading extends Admin_Controller
             p.nama,
             p.weight,
             d.qty_spk,
+            p.weight,
             (p.weight * d.qty_spk) AS jumlah_berat
         ')
             ->from('spk_delivery_detail d')
@@ -171,7 +249,7 @@ class Loading extends Admin_Controller
             $ArrDetail[$key]['jumlah_berat']    = $value['jumlah_berat'];
 
             // Update status SPK
-            $this->db->update('spk_delivery', ['status' => 'LOADING'], ['no_delivery' => $no_delivery]);
+            // $this->db->update('spk_delivery', ['status' => 'LOADING'], ['no_delivery' => $no_delivery]);
         }
 
         $this->db->trans_start();
@@ -186,6 +264,7 @@ class Loading extends Admin_Controller
             }
         } else {
             $this->db->insert('loading_delivery', $ArrHeader);
+            $insert_id = $this->db->insert_id();
             if (!empty($ArrDetail)) {
                 $this->db->insert_batch('loading_delivery_detail', $ArrDetail);
             }
@@ -198,8 +277,99 @@ class Loading extends Admin_Controller
             $Arr_Data  = ['pesan' => 'Save gagal disimpan ...', 'status' => 0];
         } else {
             $this->db->trans_commit();
-            $Arr_Data  = ['pesan' => 'Save berhasil disimpan. Thanks ...', 'status' => 1];
+            $Arr_Data  = ['pesan' => 'Save berhasil disimpan. Thanks ...', 'status' => 1,  'id_loading' => $is_edit ? $post['id_loading'] : $insert_id];
             history(($is_edit ? "Update" : "Create") . " Muat Kendaraan : " . $no_loading);
+        }
+
+        echo json_encode($Arr_Data);
+    }
+
+    public function save_confirm()
+    {
+        $post = $this->input->post();
+        $detail = $post['detail'];
+
+        $no_loading =  $post['id_loading'];
+
+        $ArrHeader = [
+            'no_loading'    => $no_loading,
+            'pengiriman'    => $post['pengiriman'],
+            'nopol'         => $post['kendaraan'],
+            'kapasitas'     => str_replace(',', '', $post['kapasitas']),
+            'total_berat'   => str_replace(',', '', $post['total_berat']),
+            'tanggal_muat'  => date('Y-m-d H:i:s', strtotime($post['tanggal_muat'])),
+            'updated_by'    => $this->auth->user_id(),
+            'updated_at'    => date('Y-m-d H:i:s'),
+            'status'        => 1,
+        ];
+
+        $ArrDetail = [];
+
+        foreach ($detail as $key => $value) {
+            $no_delivery = $value['no_delivery'];
+            $id_spk_detail = $value['id_spk_detail'];
+            $qty_spk = $value['qty_spk'];
+            $qty_aktual = $value['qty_aktual'];
+
+            $ArrDetail[$key]['no_loading']      = $no_loading;
+            $ArrDetail[$key]['no_delivery']     = $no_delivery;
+            $ArrDetail[$key]['id_spk_detail']   = $value['id_spk_detail'];
+            $ArrDetail[$key]['no_so']           = $value['no_so'];
+            $ArrDetail[$key]['customer']        = $value['customer'];
+            $ArrDetail[$key]['id_product']      = $value['id_product'];
+            $ArrDetail[$key]['product']         = $value['product'];
+            $ArrDetail[$key]['qty_spk']         = $qty_aktual;
+            $ArrDetail[$key]['jumlah_berat']    = $value['jumlah_berat'];
+            $ArrDetail[$key]['keterangan']      = $value['keterangan'];
+
+            if ($qty_aktual < $qty_spk) {
+                //ambil data spk untuk ngembaliin qty_spk berdasarkan selisih qty_spk - qty_aktual
+                $spk = $this->db->get_where('spk_delivery_detail', ['id' => $id_spk_detail])->row_array();
+                if (!$spk) {
+                    show_404();
+                }
+                $qty_spk_old = $spk['qty_spk'];
+
+                $outstanding = $qty_spk_old - $qty_aktual;
+
+                //tambahkan ke qty_spk dari $spk
+                $qty_spk_new    = $qty_aktual;
+
+                $qty_belum_spk_old = $spk['qty_belum_spk'];
+
+                $qty_belum_spk_new = $qty_belum_spk_old + $outstanding;
+
+                $this->db->update('spk_delivery_detail', ['qty_spk' => $qty_spk_new, 'qty_belum_spk' => $qty_belum_spk_new], ['id' => $id_spk_detail]);
+            }
+
+            $no_so = $value['no_so'];
+            $this->updateStatusSPKByNoSO($no_so);
+
+            // Update status SPK
+            $this->db->update('spk_delivery', ['status' => 'LOADING'], ['no_delivery' => $no_delivery]);
+        }
+
+        $this->db->trans_start();
+
+
+        $this->db->update('loading_delivery', $ArrHeader, ['no_loading' => $no_loading]);
+
+        // Hapus detail lama, insert ulang
+        $this->db->delete('loading_delivery_detail', ['no_loading' => $no_loading]);
+        if (!empty($ArrDetail)) {
+            $this->db->insert_batch('loading_delivery_detail', $ArrDetail);
+        }
+
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $Arr_Data  = ['pesan' => 'Save gagal disimpan ...', 'status' => 0];
+        } else {
+            $this->db->trans_commit();
+            $Arr_Data  = ['pesan' => 'Save berhasil disimpan. Thanks ...', 'status' => 1];
+            history("Update Muat Kendaraan : " . $no_loading);
         }
 
         echo json_encode($Arr_Data);
@@ -243,5 +413,19 @@ class Loading extends Admin_Controller
         $urutan = (int)substr($angkaUrut, 6, 4);
         $urutan++;
         return "MK" . $Ym . sprintf('%04s', $urutan);
+    }
+
+    private function updateStatusSPKByNoSO($no_so)
+    {
+        $summary = $this->db
+            ->select('SUM(qty_belum_spk) as total_belum_spk')
+            ->from('spk_delivery_detail')
+            ->where('no_so', $no_so)
+            ->get()
+            ->row_array();
+
+        $status_spk = ($summary['total_belum_spk'] > 0) ? 'SPK Sebagian' : 'SPK Lengkap';
+
+        $this->db->update('sales_order', ['status_spk' => $status_spk], ['no_so' => $no_so]);
     }
 }
