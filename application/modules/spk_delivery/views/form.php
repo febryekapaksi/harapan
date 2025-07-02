@@ -224,9 +224,9 @@
                 <td>${data.product}</td>
                 <td class='text-center'>${data.qty_order}</td>
                 <td class='text-center'>${data.use_qty_free ?? 0}</td>
-                <td class='text-center'>${data.qty_belum_spk ?? 0}</td>
+                <td class='text-center qty-belum-spk'>${data.qty_belum_spk ?? 0}</td>
                 <td class='text-center'>
-                    <input type='text' name='detail[${i}][qty_spk]' class='form-control input-sm text-center' required>
+                    <input type='number' name='detail[${i}][qty_spk]' class='form-control input-sm text-center qty_spk' required>
                 </td>
                 <td class='text-center'>
                     <button type="button" class="btn btn-danger btn-sm btn-remove-row" data-key="${rowKey}"><i class="fa fa-trash"></i></button>
@@ -245,6 +245,7 @@
 
                 // Disable checkbox di modal agar tidak dipilih ulang
                 $(this).prop('disabled', true);
+                i++;
             });
 
             $('#modalDetailSO').modal('hide');
@@ -345,6 +346,25 @@
             $('#table-spk-detail tbody tr').each(function(index) {
                 $(this).find('td:first').text(index + 1);
             });
+        });
+
+        $(document).on('input', '.qty_spk', function() {
+            const row = $(this).closest('tr');
+            const qtyBelumSpk = parseInt(row.find('.qty-belum-spk').text()) || 0;
+            const inputValue = parseInt($(this).val()) || 0;
+
+            if (inputValue > qtyBelumSpk) {
+                swal({
+                    title: "Error Message !",
+                    text: 'Qty SPK tidak boleh melebihi Qty Belum SPK',
+                    type: "warning",
+                    timer: 7000,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    allowOutsideClick: true
+                });
+                $(this).val(qtyBelumSpk);
+            }
         });
     });
 
