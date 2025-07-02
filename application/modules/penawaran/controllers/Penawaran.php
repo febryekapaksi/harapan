@@ -134,7 +134,7 @@ class Penawaran extends Admin_Controller
 
             // Kalau semua diskon > 0% (surplus semua), langsung approve
             if ($surplus_only) {
-                $status = 'A'; // auto approve
+                $status = 'WA'; // tetep waiting
             }
         }
         $header['level_approval'] = $level_approval;

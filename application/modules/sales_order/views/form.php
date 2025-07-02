@@ -281,20 +281,15 @@
 
             <div class="form-group row">
                 <div class="col-md-12 text-center">
-                    <?php if (isset($mode) && $mode == 'deal') : ?>
-                        <button type="submit" class="btn btn-success" name="deal" id="deal">
-                            <i class="fa fa-check"></i> Deal SO
-                        </button>
-                    <?php endif; ?>
-
                     <?php if (isset($mode) && $mode == 'add') : ?>
+                        <a href="javascript:void(0)" class="btn btn-danger btn-cancel" data-id="<?= isset($penawaran['id_penawaran']) ? $penawaran['id_penawaran'] : '' ?>"><i class="fa fa-times"></i> Batal SO</a>
                         <button type="submit" class="btn btn-success" name="save" id="save">
                             <i class="fa fa-check"></i> Deal SO
                         </button>
                     <?php endif; ?>
 
                     <a class="btn btn-default" onclick="window.history.back(); return false;">
-                        <i class="fa fa-reply"></i> Batal
+                        <i class="fa fa-reply"></i> Kembali
                     </a>
                 </div>
             </div>
@@ -546,6 +541,46 @@
             // Isi nilai selisih dan pr
             $(`#selisih_${loop}`).val(selisih);
             $(`#pr_${loop}`).val(selisih); // atau bisa pakai rumus lain
+        });
+
+        $(document).on('click', '.btn-cancel', function(e) {
+            e.preventDefault();
+
+            var id_penawaran = $(this).data('id');
+            console.log(id_penawaran)
+
+            swal({
+                title: "Are you sure?",
+                text: "Batalkan SO ini!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Yes, Batalkan!",
+                cancelButtonText: "Cancel",
+                closeOnConfirm: false
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        url: base_url + 'sales_order/cancel',
+                        type: 'POST',
+                        data: {
+                            id_penawaran: id_penawaran,
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status === 1) {
+                                swal("Success!", response.pesan, "success");
+                                window.location.href = base_url + active_controller;
+                            } else {
+                                swal("Failed", response.pesan, "warning");
+                            }
+                        },
+                        error: function() {
+                            swal("Error", "Something went wrong.", "error");
+                        }
+                    });
+                }
+            });
         });
     })
 

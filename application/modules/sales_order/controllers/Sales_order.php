@@ -51,6 +51,40 @@ class Sales_order extends Admin_Controller
     $this->template->render('form', $data);
   }
 
+  public function cancel()
+  {
+    $post = $this->input->post();
+    $id_penawaran = $post['id_penawaran'];
+
+    // Cek apakah data penawaran tersedia
+    $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
+
+    if (!$penawaran) {
+      echo json_encode([
+        'status' => 0,
+        'pesan'  => 'Data penawaran tidak ditemukan.'
+      ]);
+      return;
+    }
+
+    // Siapkan data untuk update loss
+    $update = [
+      'approved_at_manager'   => null,
+      'approved_by_manager'   => null,
+      'status'                => 'WA',
+      'status_draft'          => 0
+    ];
+
+    // Lakukan update ke tabel penawaran
+    $this->db->where('id_penawaran', $id_penawaran);
+    $this->db->update('penawaran', $update);
+
+    echo json_encode([
+      'status' => 1,
+      'pesan'  => 'Sales Order dibatalakan.'
+    ]);
+  }
+
   public function edit($id_so)
   {
     $so = $this->db->get_where('sales_order', ['no_so' => $id_so])->row_array();

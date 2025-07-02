@@ -146,14 +146,14 @@ class Sales_order_model extends BF_Model
 		$this->db->from('penawaran p');
 		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-		$this->db->where('p.status !=', 'L');
+		$this->db->where('p.status', 'A');
 		$totalData = $this->db->count_all_results();
 
 		// Total filtered
 		$this->db->from('penawaran p');
 		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-		$this->db->where('p.status !=', 'L');
+		$this->db->where('p.status', 'A');
 
 		if ($like_value) {
 			$this->db->group_start();
@@ -172,7 +172,7 @@ class Sales_order_model extends BF_Model
 		$this->db->from('penawaran p');
 		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-		$this->db->where('p.status !=', 'L');
+		$this->db->where('p.status', 'A');
 
 		if ($like_value) {
 			$this->db->group_start();
