@@ -169,7 +169,7 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
                 <th width="50px">No</th>
                 <th>Nama Produk</th>
                 <th>Qty</th>
-                <th>Harga Penawaran</th>
+                <th>Price List</th>
                 <th>Discount</th>
                 <th>Jumlah</th>
             </tr>
