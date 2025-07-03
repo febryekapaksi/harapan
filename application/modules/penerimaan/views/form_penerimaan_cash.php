@@ -27,9 +27,11 @@
                                 <label>Tanggal Pembayaran <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="tgl_pembayaran" id="tgl_pembayaran" value="">
+                                <input type="date" class="form-control" name="tgl_pembayaran" id="tgl_pembayaran" value="<?= date('Y-m-d') ?>" readonly>
                             </div>
                         </div>
+
+                        <!-- Customer -->
                         <div class="form-group row">
                             <div class="col-md-4">
                                 <label>Customer <span class="text-red">*</span></label>
@@ -39,7 +41,7 @@
                                     <option value="">-- Pilih ---</option>
                                     <?php foreach ($customers as $cs): ?>
                                         <option value="<?= $cs->id_customer ?>">
-                                            <?= $cs->name_customer ?> - (SO: <?= $cs->id_so ?>)
+                                            <?= $cs->name_customer ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
@@ -70,9 +72,6 @@
                                         <th style="min-width: 100px;" class="text-nowrap">Total Invoice</th>
                                         <th style="min-width: 100px;" class="text-nowrap">Sisa Invoice</th>
                                         <th style="min-width: 100px;" class="text-nowrap">Total Bayar</th>
-                                        <th style="min-width: 20px;" class="text-nowrap">Tipe Bayar</th>
-                                        <th style="min-width: 20px;" class="text-nowrap">Jenis PPh</th>
-                                        <th style="min-width: 20px;" class="text-nowrap">PPh</th>
                                         <th style="min-width: 20px;" class="text-nowrap"></th>
                                     </tr>
                                 </thead>
@@ -80,14 +79,14 @@
                                 <tfoot>
                                     <tr class="bg-info">
                                         <th colspan="2" class="text-right">TOTAL</th>
-                                        <th class="text-right">
-                                            <input type="text" name="total_invoice" class="form-control moneyFormat" id="totalInvoice" readonly>
+                                        <th>
+                                            <input type="text" name="total_invoice" class="form-control moneyFormat text-right" id="totalInvoice" readonly>
                                         </th>
                                         <th></th>
-                                        <th class="text-right">
-                                            <input type="text" name="total_terima" class="form-control moneyFormat" id="totalTerima">
+                                        <th>
+                                            <input type="text" name="total_terima" class="form-control moneyFormat text-right" id="totalTerima">
                                         </th>
-                                        <th colspan="4"></th>
+                                        <th></th>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -120,7 +119,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Tanggal Inovice</th>
+                            <th>Tanggal Invoice</th>
                             <th>No Invoice</th>
                             <th>Tanggal SO</th>
                             <th>No SO</th>
@@ -222,8 +221,8 @@
                     type: "warning",
                     timer: 7000,
                     showCancelButton: false,
-                    showConfirmButton: false,
-                    allowOutsideClick: false
+                    showConfirmButton: true,
+                    allowOutsideClick: trigger_error
                 });
                 return;
             }
@@ -235,8 +234,8 @@
                     type: "warning",
                     timer: 7000,
                     showCancelButton: false,
-                    showConfirmButton: false,
-                    allowOutsideClick: false
+                    showConfirmButton: true,
+                    allowOutsideClick: true
                 });
                 return;
             }
@@ -274,7 +273,7 @@
                                 <td>${item.id_invoice}</td>
                                 <td>${item.tgl_so ?? '-'}</td>
                                 <td>${item.id_so ?? '-'}</td>
-                                <td class="text-right">${parseFloat(item.grand_total).toLocaleString()}</td>
+                                <td class="text-right">${parseFloat(item.sisa_tagihan).toLocaleString()}</td>
                                 <td class="text-center">
                                   <input type="checkbox" class="select-inv" data-inv='${JSON.stringify(item)}' 
                                     ${selectedInvoiceIds.includes(item.id_invoice) ? 'checked' : ''}>
@@ -285,6 +284,29 @@
                     }
 
                     $('#tableModalInv tbody').html(html);
+                    // Cekbox chaining logic
+                    const checkboxes = $('#tableModalInv .select-inv');
+
+                    checkboxes.prop('disabled', true); // awalnya semua disabled
+                    if (checkboxes.length > 0) checkboxes.eq(0).prop('disabled', false); // kecuali yang pertama
+
+                    checkboxes.on('change', function() {
+                        const idx = checkboxes.index(this);
+                        const checked = $(this).prop('checked');
+
+                        if (checked) {
+                            // Aktifkan checkbox berikutnya
+                            if (idx + 1 < checkboxes.length) {
+                                checkboxes.eq(idx + 1).prop('disabled', false);
+                            }
+                        } else {
+                            // Uncheck & disable semua checkbox setelahnya
+                            for (let i = idx + 1; i < checkboxes.length; i++) {
+                                checkboxes.eq(i).prop('checked', false).prop('disabled', true);
+                            }
+                        }
+                    });
+
                     $('#ModalInv').modal('show');
                 },
                 error: function() {
@@ -314,46 +336,35 @@
 
                 selectedInvoiceIds.push(inv.id_invoice);
                 rowIndex++; // <- ini penting, jangan hilang!
-                const nominal = parseFloat(inv.grand_total || 0);
+                const nominal = parseFloat(inv.sisa_tagihan || inv.grand_total || 0);
 
                 $('#tableInv tbody').append(`
                     <tr>
                         <td class="text-center">${rowIndex}</td>
                         <td>${inv.id_invoice}</td>
-                        <td class="text-right">${nominal.toLocaleString()}</td>
-                        <td class="text-right">${nominal.toLocaleString()}</td>
+
                         <td>
-                            <input type="number" name="detail[${rowIndex}][total_bayar]" class="form-control text-right total_bayar" value="${nominal}" readonly/>
+                            <input type="text" name="detail[${rowIndex}][tagihan]" class="form-control text-right tagihan moneyFormat" value="${nominal}" readonly />
                         </td>
                         <td>
-                            <select name="detail[${rowIndex}][tipe_bayar]" class="form-control">
-                                <option value="tunai">Tunai</option>
-                                <option value="transfer">Transfer</option>
-                            </select>
+                            <input type="text" name="detail[${rowIndex}][sisa_invoice]" class="form-control text-right sisa_invoice moneyFormat" value="${nominal}" readonly/>
                         </td>
                         <td>
-                            <select name="detail[${rowIndex}][jenis_pph]" class="form-control">
-                                <option value="">-</option>
-                                <option value="pph21">PPH 21</option>
-                                <option value="pph23">PPH 23</option>
-                            </select>
+                            <input type="text" name="detail[${rowIndex}][total_bayar]" class="form-control text-right total_bayar moneyFormat" value="${nominal}" readonly/>
                         </td>
-                        <td>
-                            <input type="number" name="detail[${rowIndex}][pph]" class="form-control text-right" value="0" />
-                        </td>
-                        <td>
+                        <td class="text-center">
                             <button class="btn btn-danger btn-sm btn-remove"><i class="fa fa-trash"></i></button>
                         </td>
 
-                        <td hidden>
                         <input type="hidden" name="detail[${rowIndex}][id_invoice]" value="${inv.id_invoice}">
                         <input type="hidden" name="detail[${rowIndex}][id_so]" value="${inv.id_so}">
-                        </td>
+                       
                     </tr>
                 `);
             });
 
             $('#ModalInv').modal('hide');
+            moneyFormat('.moneyFormat');
             updateInvoiceTotals();
         });
 
@@ -464,6 +475,11 @@
                 }
             });
         });
+
+        // update total invoice ketika input total terima
+        $('#totalTerima').on('input', function() {
+            updateInvoiceTotals();
+        });
     })
 
 
@@ -503,19 +519,40 @@
 
     function updateInvoiceTotals() {
         let totalInvoice = 0;
-        let totalBayar = 0;
+        let sisaBayar = parseFloat($('#totalTerima').val().replace(/,/g, '')) || 0;
 
         $('#tableInv tbody tr').each(function() {
-            const nominal = parseFloat($(this).find('td:eq(2)').text().replace(/,/g, '')) || 0;
-            const bayar = parseFloat($(this).find('.total_bayar').val()) || 0;
+            const tagihan = parseFloat($(this).find('.tagihan').val().replace(/,/g, '')) || 0;
+            totalInvoice += tagihan;
 
-            totalInvoice += nominal;
-            totalBayar += bayar;
+            let bayar = 0;
+            if (sisaBayar >= tagihan) {
+                bayar = tagihan;
+                sisaBayar -= tagihan;
+            } else if (sisaBayar > 0) {
+                bayar = sisaBayar;
+                sisaBayar = 0;
+            }
+
+            const sisa = tagihan - bayar;
+
+            // Update input Total Bayar
+            $(this).find('.total_bayar').val(bayar.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
+
+            // Update kolom Sisa Invoice
+            $(this).find('.sisa_invoice').val(sisa.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }));
         });
 
-        $('#totalInvoice').val(totalInvoice);
-        $('#totalTerima').val(totalBayar);
+        $('#totalInvoice').val(totalInvoice.toLocaleString());
     }
+
+
 
     function moneyFormat(e) {
         $(e).inputmask({

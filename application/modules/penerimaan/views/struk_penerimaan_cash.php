@@ -54,7 +54,7 @@
     <div class="text-center">
         <b>BUKTI PENERIMAAN</b><br>
         <?= $header->kd_pembayaran ?><br>
-        Tanggal: <?= date('d/m/Y', strtotime($header->tgl_pembayaran)) ?>
+        Tanggal: <?= $header->created_on ?>
     </div>
     <hr>
 
@@ -81,52 +81,42 @@
             ->get('tr_invoice_sales_detail')->result();
         ?>
         <?php foreach ($items as $i): ?>
-            <div class="item-row">
-                <div>
-                    <?= $i->nm_produk ?><br>
-                    (<?= number_format($i->qty, 2) ?> x <?= number_format($i->harga, 0) ?>) x <?= $i->disc ?>%
-                </div>
-                <div class="text-right">
-                    <?php
-                    $total_item = round(($i->harga * $i->qty) * (1 + ($i->disc / 100)), -2); // sesuai logika customermu
-                    ?>
-                    <?= number_format($total_item, 0) ?>
-                </div>
-            </div>
+            <?php
+            $total_item = round(($i->harga * $i->qty) * (1 + ($i->disc / 100)), -2); // sesuai logika customermu
+            ?>
+            <table>
+                <tr>
+                    <td>• <?= $i->nm_produk ?></td>
+                    <td><?= number_format($total_item, 0) ?></td>
+                </tr>
+            </table>
         <?php endforeach; ?>
         <hr>
     <?php endforeach; ?>
 
     <table>
-        <?php if ($freight > 0): ?>
-            <tr>
-                <td>Freight</td>
-                <td class="text-right"><?= number_format($freight, 0) ?></td>
-            </tr>
-        <?php endif; ?>
+
         <tr>
-            <td>Subtotal</td>
-            <td class="text-right"><?= number_format($subtotal, 0) ?></td>
-        </tr>
-        <tr>
-            <td>DPP</td>
-            <td class="text-right"><?= number_format(round($dpp), 0) ?></td>
-        </tr>
-        <tr>
-            <td>PPn</td>
-            <td class="text-right"><?= number_format(round($ppn), 0) ?></td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <hr>
-            </td>
-        </tr>
-        <tr>
-            <td><b>Grand Total</b></td>
+            <td><b>Total Invoice</b></td>
             <td class="text-right"><b><?= number_format($grand_total, 0) ?></b></td>
         </tr>
+        <tr>
+            <td><b>Pembayaran Diterima</b></td>
+            <td class="text-right"><b><?= number_format($header->jumlah_pembayaran_idr, 0) ?></b></td>
+        </tr>
     </table>
+    <hr>
 
+    <table>
+        <tr>
+            <td><b>Total Pembayaran Sebelumnya</b></td>
+            <td class="text-right"><b><?= number_format($total_pembayaran, 0) ?></b></td>
+        </tr>
+        <tr>
+            <td><b>Kekurangan Pembayaran</b></td>
+            <td class="text-right"><b><?= number_format($total_kurang_pembayaran, 0) ?></b></td>
+        </tr>
+    </table>
     <hr>
     <div class="text-center">
         Terima kasih
