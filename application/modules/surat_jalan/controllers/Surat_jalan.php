@@ -35,9 +35,23 @@ class Surat_jalan extends Admin_Controller
 
     public function add()
     {
+        $loading = $this->db
+            ->select('DISTINCT ld.no_loading, l.nopol, l.tanggal_muat', false)
+            ->from('loading_delivery_detail ld')
+            ->join('loading_delivery l', 'ld.no_loading = l.no_loading')
+            ->where('l.status', 1)
+            ->where("CONCAT(ld.no_so, '|', ld.no_delivery) NOT IN (
+                        SELECT CONCAT(no_so, '|', no_delivery)
+                        FROM surat_jalan
+                        WHERE no_loading = ld.no_loading
+                    )")
+            ->group_by('ld.no_loading, l.nopol, l.tanggal_muat')
+            ->get()
+            ->result_array();
+
         $data = [
-            'loading' => $this->db->get('loading_delivery')->result_array(),
-        ];
+            'loading' => $loading
+        ];;
 
         $this->template->title('Add Surat Jalan');
         $this->template->page_icon('fa fa-envelope');
