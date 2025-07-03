@@ -169,8 +169,7 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
                 <th width="50px">No</th>
                 <th>Nama Produk</th>
                 <th>Qty</th>
-                <th>Price List</th>
-                <th>Discount</th>
+                <th>Harga Penawaran</th>
                 <th>Jumlah</th>
             </tr>
         </thead>
@@ -182,8 +181,7 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
                     <td class="text-center"><?= $no++ ?></td>
                     <td><?= $d->product_name ?></td>
                     <td class="text-center"><?= $d->qty ?></td>
-                    <td class="text-right"><?= number_format($d->price_list) ?></td>
-                    <td class="text-center"><?= $d->diskon ?>%</td>
+                    <td class="text-right"><?= number_format($d->harga_penawaran) ?></td>
                     <td class="text-right">
                         <?php $amount = $d->qty * $d->harga_penawaran;
                         echo number_format($amount);
@@ -203,15 +201,16 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
             <td width="15%" class="text-right"><?= number_format($total) ?></td>
         </tr>
         <tr>
-            <td colspan="2" rowspan="5" style="vertical-align: top;">
+            <td colspan="2" rowspan="4" style="vertical-align: top;">
                 <strong>Description</strong><br>
                 CL <?= number_format($p->total_penawaran) ?><br>
                 <?= strtoupper($p->tipe_bayar) ?>
             </td>
         </tr>
-        <tr>
+        <!-- <tr>
             <td>Total Diskon %</td>
             <td class="text-right"><?= $p->total_diskon_persen ?>%</td>
+        </tr> -->
         <tr>
             <td>Freight</td>
             <td class="text-right"><?= number_format($p->freight) ?></td>
