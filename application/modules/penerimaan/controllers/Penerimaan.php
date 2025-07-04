@@ -311,6 +311,22 @@ class Penerimaan extends Admin_Controller
 		$total_pembayaran = 0;
 		$total_kurang_pembayaran = 0;
 
+		$total_pembayaran_sebelumnya = 0;
+
+		foreach ($details as $d) {
+			$pembayaran_sebelumnya = $this->db
+				->select_sum('b.total_bayar_idr')
+				->from('tr_invoice_payment a')
+				->join('tr_invoice_payment_detail b', 'a.kd_pembayaran = b.kd_pembayaran')
+				->where('b.no_invoice', $d->no_invoice)
+				->where('a.created_on <', $header->created_on)
+				->get()
+				->row()
+				->total_bayar_idr ?? 0;
+
+			$total_pembayaran_sebelumnya += $pembayaran_sebelumnya;
+		}
+
 		foreach ($details as $item) {
 			$invoice = $this->db
 				->select('a.*')
@@ -381,10 +397,11 @@ class Penerimaan extends Admin_Controller
 			'details' => $details,
 			'subtotal' => $subtotal,
 			'exclude_ppn' => $exclude_ppn,
-			'freight' => $freight,
-			'dpp' => $dpp,
-			'ppn' => $ppn,
+			// 'freight' => $freight,
+			// 'dpp' => $dpp,
+			// 'ppn' => $ppn,
 			'total_pembayaran' => $total_pembayaran,
+			'total_pembayaran_sebelumnya' => $total_pembayaran_sebelumnya,
 			'total_kurang_pembayaran' => $total_kurang_pembayaran,
 			'grand_total' => $grand_total,
 		], true);
@@ -413,6 +430,21 @@ class Penerimaan extends Admin_Controller
 
 // 		$subtotal = 0;
 // 		$freight = 0;
+// 		$total_pembayaran = 0;
+// 		$total_kurang_pembayaran = 0;
+
+// 		$no_invoices = array_map(function ($d) {
+// 			return $d->no_invoice;
+// 		}, $details);
+
+// 		$total_pembayaran_sebelumnya = $this->db
+// 			->select_sum('total_bayar_idr')
+// 			->from('tr_invoice_payment_detail')
+// 			->where_in('no_invoice', $no_invoices)
+// 			->where('kd_pembayaran !=', $kd_pembayaran)
+// 			->get()
+// 			->row()
+// 			->total_bayar_idr ?? 0;
 
 // 		foreach ($details as $item) {
 // 			$invoice = $this->db
@@ -421,6 +453,9 @@ class Penerimaan extends Admin_Controller
 // 				->where('a.id_invoice', $item->no_invoice)
 // 				->get()
 // 				->result();
+
+// 			$total_pembayaran += $item->total_bayar_idr;
+// 			$total_kurang_pembayaran += $item->sisa_invoice_idr;
 
 // 			foreach ($invoice as $inv) {
 // 				$delivery = $this->db
@@ -448,6 +483,7 @@ class Penerimaan extends Admin_Controller
 
 // 				$is_spk_pertama = ($get_spk_pertama && $get_spk_pertama->no_surat_jalan == $delivery->no_surat_jalan);
 
+// 				// Jika SPK pertama, ambil freight
 // 				if ($is_spk_pertama) {
 // 					$freight_data = $this->db
 // 						->select('b.freight')
@@ -462,19 +498,20 @@ class Penerimaan extends Admin_Controller
 
 // 				foreach ($items as $row) {
 // 					$disc = (float)$row->diskon;
-// 					$total_item = round(($row->price_list * $row->qty) * (1 + ($disc / 100)), -2);
+// 					$total_item = round(($row->price_list * $row->qty) * (1 + ($disc / 100)), -2); // diskon dikurang
 // 					$subtotal += $total_item;
 // 				}
 // 			}
 // 		}
 
+// 		// Hitung DPP & PPN (jika PPN sudah termasuk)
 // 		$exclude_ppn = ($subtotal + $freight) / 1.11;
 // 		$dpp = ($exclude_ppn * 11) / 12;
 // 		$ppn = ($dpp * 12) / 100;
 // 		$grand_total = $exclude_ppn + $ppn;
 
-// 		// Tampilkan ke halaman biasa (tanpa PDF)
-// 		$this->load->view('struk_penerimaan_cash', [
+// 		// Kirim ke view
+// 		$html = $this->load->view('struk_penerimaan_cash', [
 // 			'header' => $header,
 // 			'details' => $details,
 // 			'subtotal' => $subtotal,
@@ -482,6 +519,16 @@ class Penerimaan extends Admin_Controller
 // 			'freight' => $freight,
 // 			'dpp' => $dpp,
 // 			'ppn' => $ppn,
-// 			'grand_total' => $grand_total
-// 		]);
+// 			'total_pembayaran' => $total_pembayaran,
+// 			'total_pembayaran_sebelumnya' => $total_pembayaran_sebelumnya,
+// 			'total_kurang_pembayaran' => $total_kurang_pembayaran,
+// 			'grand_total' => $grand_total,
+// 		], true);
+
+// 		$dompdf = new Dompdf();
+// 		$dompdf->loadHtml($html);
+// 		$dompdf->setPaper([0, 0, 165, 500], 'portrait'); // thermal 58mm
+// 		$dompdf->render();
+// 		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => false]);
 // 	}
+// }

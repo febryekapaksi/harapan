@@ -95,7 +95,6 @@
     <?php endforeach; ?>
 
     <table>
-
         <tr>
             <td><b>Total Invoice</b></td>
             <td class="text-right"><b><?= number_format($grand_total, 0) ?></b></td>
@@ -110,7 +109,7 @@
     <table>
         <tr>
             <td><b>Total Pembayaran Sebelumnya</b></td>
-            <td class="text-right"><b><?= number_format($total_pembayaran, 0) ?></b></td>
+            <td class="text-right"><b><?= number_format($total_pembayaran_sebelumnya, 0) ?></b></td>
         </tr>
         <tr>
             <td><b>Kekurangan Pembayaran</b></td>

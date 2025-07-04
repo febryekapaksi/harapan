@@ -17,8 +17,8 @@
                     <th width='18%'>Keterangan</th>
                     <th style="min-width: 100%;">No Invoice</th>
                     <th class="text-right" width='7%'>Total Invoice</th>
-                    <th class="text-right">PPH</th>
-                    <th class="text-right">Biaya Admin</th>
+                    <!-- <th class="text-right">PPH</th>
+                    <th class="text-right">Biaya Admin</th> -->
                     <th class="text-right" width='7%'>Total Penerimaan <br> (IDR)</th>
                     <th class="text-center" width='7%'>Option</th>
                 </tr>

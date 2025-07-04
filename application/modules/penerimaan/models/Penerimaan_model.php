@@ -288,8 +288,8 @@ class Penerimaan_model extends BF_Model
 			$nestedData[] = "<div align='left'>{$invoices}</div>";
 			// $nestedData[] = "<div align='left'>" . number_format($row['totalinvoiced']) . "</div>";
 			$nestedData[] = "<div align='right'>" . number_format($row['jumlah_pembayaran_idr'], 2) . "</div>";
-			$nestedData[] = "<div align='left'>" . number_format($row['biaya_pph_idr']) . "</div>";
-			$nestedData[] = "<div align='left'>" . number_format($row['biaya_admin_idr']) . "</div>";
+			// $nestedData[] = "<div align='left'>" . number_format($row['biaya_pph_idr']) . "</div>";
+			// $nestedData[] = "<div align='left'>" . number_format($row['biaya_admin_idr']) . "</div>";
 			$nestedData[] = "<div align='right'>" . number_format($row['jumlah_pembayaran_idr'], 2) . "</div>";
 			$nestedData[] = "<div align='center'>{$action}</div>";
 
