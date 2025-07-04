@@ -195,21 +195,23 @@
                 <h4 class="modal-title" id="myModalLabel"><span class="fa fa-archive"></span>&nbsp;Detail Sales Order</h4>
             </div>
             <div class="modal-body">
-                <table class="table table-bordered" id="tableModalSpk" style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>No SO</th>
-                            <th>Customer</th>
-                            <th>Produk</th>
-                            <th>Qty</th>
-                            <th>Berat (Kg)</th>
-                            <th>Tanggal Kirim</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="tableModalSpk" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>No SO</th>
+                                <th>Customer</th>
+                                <th>Produk</th>
+                                <th>Qty</th>
+                                <th>Berat (Kg)</th>
+                                <th>Tanggal Kirim</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-success" id="btnPilihSpk">Pilih</button>

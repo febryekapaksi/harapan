@@ -116,35 +116,37 @@
                 <h4 class="modal-title"><b>Detail Loading</b></h4>
             </div>
             <div class="modal-body">
-                <table class="table table-bordered mb-3">
-                    <tr>
-                        <th>Pengiriman</th>
-                        <td id="view-pengiriman"></td>
-                        <th>Kendaraan</th>
-                        <td id="view-kendaraan"></td>
-                    </tr>
-                    <tr>
-                        <th>Tanggal Muat</th>
-                        <td id="view-tgl-muat"></td>
-                        <th>Total Berat</th>
-                        <td id="view-total-berat"></td>
-                    </tr>
-                </table>
-                <table class="table table-striped table-bordered">
-                    <thead>
-                        <tr class="bg-light">
-                            <th>No SPK</th>
-                            <th>No SO</th>
-                            <th>Customer</th>
-                            <th>Produk</th>
-                            <th>Qty</th>
-                            <th>Berat (Kg)</th>
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-3">
+                        <tr>
+                            <th>Pengiriman</th>
+                            <td id="view-pengiriman"></td>
+                            <th>Kendaraan</th>
+                            <td id="view-kendaraan"></td>
                         </tr>
-                    </thead>
-                    <tbody id="view-detail-body">
-                        <!-- diisi via JS -->
-                    </tbody>
-                </table>
+                        <tr>
+                            <th>Tanggal Muat</th>
+                            <td id="view-tgl-muat"></td>
+                            <th>Total Berat</th>
+                            <td id="view-total-berat"></td>
+                        </tr>
+                    </table>
+                    <table class="table table-striped table-bordered">
+                        <thead>
+                            <tr class="bg-light">
+                                <th>No SPK</th>
+                                <th>No SO</th>
+                                <th>Customer</th>
+                                <th>Produk</th>
+                                <th>Qty</th>
+                                <th>Berat (Kg)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="view-detail-body">
+                            <!-- diisi via JS -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-primary" id="pilihSpk">Pilih SPK</button>

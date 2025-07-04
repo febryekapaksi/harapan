@@ -94,19 +94,21 @@
                 <h4 class="modal-title" id="myModalLabel"><span class="fa fa-archive"></span>&nbsp;Detail Sales Order</h4>
             </div>
             <div class="modal-body">
-                <table class="table table-bordered" id="table-detail-so" style="width: 100%;">
-                    <thead>
-                        <tr>
-                            <th>ID Product</th>
-                            <th>Product Price</th>
-                            <th>Qty Order</th>
-                            <th>Total Harga</th>
-                            <th>Pengiriman</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="table-detail-so" style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>ID Product</th>
+                                <th>Product Price</th>
+                                <th>Qty Order</th>
+                                <th>Total Harga</th>
+                                <th>Pengiriman</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-success" id="btnPilihDetailSO">Pilih</button>
