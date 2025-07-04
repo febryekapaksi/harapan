@@ -287,7 +287,7 @@ class Penerimaan_model extends BF_Model
 			$nestedData[] = "<div align='left'>{$row['keterangan']}</div>";
 			$nestedData[] = "<div align='left'>{$invoices}</div>";
 			// $nestedData[] = "<div align='left'>" . number_format($row['totalinvoiced']) . "</div>";
-			$nestedData[] = "<div align='right'>" . number_format($row['jumlah_pembayaran_idr'], 2) . "</div>";
+			$nestedData[] = "<div align='right'>" . number_format($row['total_invoice'], 2) . "</div>";
 			// $nestedData[] = "<div align='left'>" . number_format($row['biaya_pph_idr']) . "</div>";
 			// $nestedData[] = "<div align='left'>" . number_format($row['biaya_admin_idr']) . "</div>";
 			$nestedData[] = "<div align='right'>" . number_format($row['jumlah_pembayaran_idr'], 2) . "</div>";
@@ -316,13 +316,13 @@ class Penerimaan_model extends BF_Model
 		// === 1. Total Data
 		$this->db->select('a.kd_pembayaran');
 		$this->db->from('tr_invoice_payment a');
-		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
 		$totalData = $this->db->count_all_results();
 
 		// === 2. Total Filtered
 		$this->db->select('a.kd_pembayaran');
 		$this->db->from('tr_invoice_payment a');
-		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
 		if ($like) {
 			$this->db->group_start();
 			$this->db->like('a.kd_pembayaran', $like);
@@ -336,10 +336,11 @@ class Penerimaan_model extends BF_Model
 		$this->db->select('
         a.*, 
         c.invoiced, 
-        c.totalinvoiced
+        c.totalinvoiced,
+        c.total_invoice
     ');
 		$this->db->from('tr_invoice_payment a');
-		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
 		if ($like) {
 			$this->db->group_start();
 			$this->db->like('a.kd_pembayaran', $like);
