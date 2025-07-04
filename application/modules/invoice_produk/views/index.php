@@ -25,7 +25,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 			<!-- <li role="presentation" class="jaminan_tab tab_pin"><a onclick="change_tab('jaminan')">Invoice Jaminan</a></li> -->
 		</ul>
 
-		<div class="tab_invoice" style="margin-top: 1rem;">
+		<div class="tab_invoice table-responsive" style="margin-top: 1rem;">
 			<table class="table table-bordered datatable">
 				<thead class="bg-blue">
 					<tr>

@@ -5,19 +5,21 @@
         <a class="btn btn-primary" style='float:left;' href="<?= base_url('surat_jalan/add') ?>"><i class="fa fa-plus"></i>&emsp;Surat Jalan</a>
     </div>
     <div class="box-body">
-        <table id="tableSj" class="table table-bordered table-striped" width='100%'>
-            <thead>
-                <tr>
-                    <th class='text-center'>#</th>
-                    <th class='text-center'>No Surat Jalan</th>
-                    <th class='text-center'>Customer</th>
-                    <th class='text-center'>Tanggal Kirim</th>
-                    <th class='text-center no-sort'>Status</th>
-                    <th class='text-center no-sort'>Option</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="tableSj" class="table table-bordered table-striped" width='100%'>
+                <thead>
+                    <tr>
+                        <th class='text-center'>#</th>
+                        <th class='text-center'>No Surat Jalan</th>
+                        <th class='text-center'>Customer</th>
+                        <th class='text-center'>Tanggal Kirim</th>
+                        <th class='text-center no-sort'>Status</th>
+                        <th class='text-center no-sort'>Option</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 </div>
 

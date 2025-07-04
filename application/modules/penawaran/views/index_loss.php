@@ -1,22 +1,24 @@
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 <div class="box box-primary">
     <div class="box-body">
-        <table id="tableLoss" class="table table-bordered" width=100%>
-            <thead class="bg-blue">
-                <tr>
-                    <th>#</th>
-                    <th>No. Penawaran</th>
-                    <th>Customer</th>
-                    <th>Sales</th>
-                    <th>Nilai Penawaran</th>
-                    <th>Tanggal Penawaran</th>
-                    <th>Status</th>
-                    <th>Option</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table id="tableLoss" class="table table-bordered" width=100%>
+                <thead class="bg-blue">
+                    <tr>
+                        <th>#</th>
+                        <th>No. Penawaran</th>
+                        <th>Customer</th>
+                        <th>Sales</th>
+                        <th>Nilai Penawaran</th>
+                        <th>Tanggal Penawaran</th>
+                        <th>Status</th>
+                        <th>Option</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 

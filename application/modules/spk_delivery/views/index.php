@@ -26,21 +26,23 @@
 	<!-- </div> -->
 	<!-- /.box-header -->
 	<div class="box-body">
-		<table id="example1" class="table table-bordered table-striped" width='100%'>
-			<thead>
-				<tr>
-					<th class='text-center'>#</th>
-					<th class='text-center'>No SPK Delivery</th>
-					<th class='text-center'>No Sales Order</th>
-					<th class='text-center'>Customer</th>
-					<th class='text-center'>Pengiriman</th>
-					<th class='text-center'>Tanggal SPK</th>
-					<th class='text-center no-sort'>Status</th>
-					<th class='text-center no-sort'>Option</th>
-				</tr>
-			</thead>
-			<tbody></tbody>
-		</table>
+		<div class="table-responsive">
+			<table id="example1" class="table table-bordered table-striped" width='100%'>
+				<thead>
+					<tr>
+						<th class='text-center'>#</th>
+						<th class='text-center'>No SPK Delivery</th>
+						<th class='text-center'>No Sales Order</th>
+						<th class='text-center'>Customer</th>
+						<th class='text-center'>Pengiriman</th>
+						<th class='text-center'>Tanggal SPK</th>
+						<th class='text-center no-sort'>Status</th>
+						<th class='text-center no-sort'>Option</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
 	</div>
 	<!-- /.box-body -->
 </div>
