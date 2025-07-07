@@ -124,7 +124,7 @@
                                             <input type="number" class="form-control text-center qty-delivery" name="detail[<?= $i ?>][qty_delivery]" value="<?= $row['qty']; ?>" readonly>
                                         </td>
                                         <td align="center">
-                                            <input type="number" class="form-control text-center qty-terkirim" name="detail[<?= $i ?>][qty_terkirim]" min="0" value="0" oninput="validateQty(this)">
+                                            <input type="number" class="form-control text-center qty-terkirim" name="detail[<?= $i ?>][qty_terkirim]" min="0" value="<?= $row['qty']; ?>" readonly>
                                         </td>
                                         <td align="center">
                                             <input type="number" class="form-control text-center qty-retur" name="detail[<?= $i ?>][qty_retur]" min="0" value="0" oninput="validateQty(this)">
@@ -252,29 +252,35 @@
 
     function validateQty(input) {
         const row = input.closest('tr');
+
         const qtyDelivery = parseInt(row.querySelector('.qty-delivery').value) || 0;
-        const qtyTerkirim = parseInt(row.querySelector('.qty-terkirim').value) || 0;
         const qtyRetur = parseInt(row.querySelector('.qty-retur').value) || 0;
         const qtyHilang = parseInt(row.querySelector('.qty-hilang').value) || 0;
 
-        const total = qtyTerkirim + qtyRetur + qtyHilang;
-
-        if (total > qtyDelivery) {
-            swal("Peringatan", `Jumlah (Terkirim + Retur + Hilang = ${total}) melebihi Qty Delivery (${qtyDelivery}). Harap periksa kembali.`, "warning");
+        // Cegah nilai negatif
+        if (qtyRetur < 0 || qtyHilang < 0) {
+            swal("Peringatan", "Qty Retur atau Hilang tidak boleh negatif.", "warning");
             input.value = 0;
-            validateQty(input); // ulangi validasi agar warna baris tetap sesuai
             return;
         }
 
-        // Highlight kuning jika belum lengkap
-        if (total < qtyDelivery) {
-            row.querySelector('.qty-terkirim').style.backgroundColor = "#fff3cd";
-            row.querySelector('.qty-retur').style.backgroundColor = "#fff3cd";
-            row.querySelector('.qty-hilang').style.backgroundColor = "#fff3cd";
-        } else {
-            row.querySelector('.qty-terkirim').style.backgroundColor = "";
-            row.querySelector('.qty-retur').style.backgroundColor = "";
-            row.querySelector('.qty-hilang').style.backgroundColor = "";
+        const totalReturHilang = qtyRetur + qtyHilang;
+
+        if (totalReturHilang > qtyDelivery) {
+            swal("Peringatan", `Jumlah Retur + Hilang (${totalReturHilang}) melebihi Qty Delivery (${qtyDelivery})`, "warning");
+            input.value = 0;
+            return;
         }
+
+        // Hitung dan update Qty Terkirim otomatis
+        const qtyTerkirimBaru = qtyDelivery - totalReturHilang;
+        const qtyTerkirimInput = row.querySelector('.qty-terkirim');
+        qtyTerkirimInput.value = qtyTerkirimBaru;
+
+        // Highlight jika belum lengkap
+        const highlight = (totalReturHilang < qtyDelivery);
+        [qtyTerkirimInput, row.querySelector('.qty-retur'), row.querySelector('.qty-hilang')].forEach(el => {
+            el.style.backgroundColor = highlight ? '#fff3cd' : '';
+        });
     }
 </script>
