@@ -1,4 +1,6 @@
 <?php $isConfirm = (isset($mode) && $mode == 'confirm'); ?>
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
+
 <div class="box box-primary">
     <div class="box-body">
         <form method="post" id="data-form">
@@ -195,17 +197,27 @@
                 <h4 class="modal-title" id="myModalLabel"><span class="fa fa-archive"></span>&nbsp;Detail Sales Order</h4>
             </div>
             <div class="modal-body">
+                <div class="form-group text-right">
+                    <div class="input-group" style="width: 250px; float: right;">
+                        <span class="input-group-addon">
+                            <i class="fa fa-search"></i>
+                        </span>
+                        <input type="text" id="searchSpk" class="form-control" placeholder="Cari No SO / Customer / Produk...">
+                    </div>
+                </div>
+                <br>
                 <div class="table-responsive">
                     <table class="table table-bordered" id="tableModalSpk" style="width: 100%;">
-                        <thead>
+                        <thead class="bg-blue">
                             <tr>
-                                <th></th>
                                 <th>No SO</th>
                                 <th>Customer</th>
                                 <th>Produk</th>
                                 <th>Qty</th>
                                 <th>Berat (Kg)</th>
-                                <th>Tanggal Kirim</th>
+                                <th>Tanggal SPK</th>
+                                <th hidden></th>
+                                <th hidden></th>
                                 <th></th>
                             </tr>
                         </thead>
@@ -220,6 +232,8 @@
     </div>
 </div>
 
+<script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
 
 <script>
     $(document).ready(function() {
@@ -228,6 +242,22 @@
 
         $('.select').select2({
             width: '100%'
+        });
+
+        // Filter manual untuk tabel modal
+        $('#searchSpk').on('keyup', function() {
+            const keyword = $(this).val().toLowerCase();
+
+            $('#tableModalSpk tbody tr').each(function() {
+                const text = $(this).text().toLowerCase();
+
+                // Tetap tampilkan baris header grouping (No SPK)
+                if ($(this).css('font-weight') === '700' || $(this).css('font-weight') === 'bold') {
+                    $(this).show();
+                } else {
+                    $(this).toggle(text.includes(keyword));
+                }
+            });
         });
 
         // Tombol Pilih SPK
@@ -293,7 +323,6 @@
 
                         html += `
                                 <tr>
-                                    <td></td>
                                     <td>${item.no_so}</td>
                                     <td>${item.name_customer}</td>
                                     <td>${item.nama}</td>
