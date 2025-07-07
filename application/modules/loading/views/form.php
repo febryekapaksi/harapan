@@ -202,7 +202,7 @@
                         <span class="input-group-addon">
                             <i class="fa fa-search"></i>
                         </span>
-                        <input type="text" id="searchSpk" class="form-control" placeholder="Cari No SO / Customer / Produk...">
+                        <input type="text" id="searchSpk" class="form-control" placeholder="Cari No SO / Customer ...">
                     </div>
                 </div>
                 <br>
