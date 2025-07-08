@@ -28,9 +28,33 @@ class Surat_jalan extends Admin_Controller
         $this->template->render('index');
     }
 
+    public function index_retur()
+    {
+        $this->template->title('List Produk Retur');
+        $this->template->page_icon('fa fa-rotate-left');
+        $this->template->render('index_retur');
+    }
+
+    public function index_hilang()
+    {
+        $this->template->title('List Produk Hilang');
+        $this->template->page_icon('fa fa-eye-slash');
+        $this->template->render('index_hilang');
+    }
+
     public function data_side_surat_jalan()
     {
         $this->surat_jalan_model->data_side_surat_jalan();
+    }
+
+    public function data_side_retur()
+    {
+        $this->surat_jalan_model->data_side_retur();
+    }
+
+    public function data_side_hilang()
+    {
+        $this->surat_jalan_model->data_side_hilang();
     }
 
     public function add()
@@ -260,6 +284,146 @@ class Surat_jalan extends Admin_Controller
         $this->template->render('confirm', $data);
     }
 
+    // public function confirm()
+    // {
+    //     $post = $this->input->post();
+    //     $detail = $post['detail'];
+
+    //     $id_sj = $post['id'];
+    //     $tgl_diterima = $post['tgl_diterima'];
+    //     $penerima = $post['penerima'];
+    //     $no_surat_jalan = $post['no_surat_jalan'];
+    //     $no_delivery = $post['no_delivery'];
+    //     $sanitized_sj = str_replace(['/', '\\'], '_', $no_surat_jalan);
+
+    //     $status = 'CONFIRM';
+    //     $ArrUpdate = [
+    //         'tgl_diterima' => $tgl_diterima,
+    //         'penerima'     => $penerima,
+    //         'updated_by'   => $this->auth->user_id(),
+    //         'updated_at'   => date('Y-m-d H:i:s'),
+    //     ];
+
+    //     // ✅ Upload file dokumen jika ada
+    //     if (!empty($_FILES['file_dokumen']['name'])) {
+    //         $config['upload_path']   = './assets/confirm_sj/';
+    //         $config['allowed_types'] = '*';
+    //         $config['max_size']      = 2048;
+    //         $config['file_name']     = 'bukti_confirm_sj_gudang_' . $sanitized_sj;
+
+    //         $this->upload->initialize($config);
+
+    //         if (!$this->upload->do_upload('file_dokumen')) {
+    //             $res = ['status' => 0, 'pesan' => $this->upload->display_errors()];
+    //             echo json_encode($res);
+    //             return;
+    //         } else {
+    //             $uploadData = $this->upload->data();
+    //             $ArrUpdate['file_dokumen'] = $uploadData['file_name'];
+    //         }
+    //     }
+
+    //     $ArrDetail = [];
+    //     $arr_kartu_stok = [];
+
+    //     foreach ($detail as $key => $value) {
+    //         $qty_delivery = (int) $value['qty_delivery'];
+    //         $qty_terkirim = (int) $value['qty_terkirim'];
+    //         $qty_retur    = (int) $value['qty_retur'];
+    //         $qty_hilang   = (int) $value['qty_hilang'];
+    //         $id_detail    = $value['id_detail'];
+    //         $total        = $qty_terkirim + $qty_retur + $qty_hilang;
+
+    //         $ArrDetail[$key] = [
+    //             'id'           => $id_detail,
+    //             'id_product'   => $value['id_product'],
+    //             'id_so_det'    => $value['id_so_det'],
+    //             'qty_terkirim' => $qty_terkirim,
+    //             'qty_retur'    => $qty_retur,
+    //             'qty_hilang'   => $qty_hilang
+    //         ];
+
+    //         if ($qty_retur > 0 || $total !== $qty_delivery) {
+    //             $status = 'RETUR';
+    //         }
+
+    //         // Update ke SPK Delivery Detail
+    //         $this->db->where([
+    //             'no_delivery' => $no_delivery,
+    //             'id_so_det'   => $value['id_so_det']
+    //         ])->update('spk_delivery_detail', [
+    //             'qty_delivery' => $qty_terkirim
+    //         ]);
+
+    //         // Update ke Sales Order Detail
+    //         $current = $this->db->select('qty_delivery, qty_order')
+    //             ->get_where('sales_order_detail', ['id' => $value['id_so_det']])
+    //             ->row();
+
+    //         $new_qty_delivery = $current->qty_delivery + $qty_terkirim;
+    //         if ($new_qty_delivery <= $current->qty_order) {
+    //             $this->db->set('qty_delivery', 'qty_delivery + ' . (int) $qty_terkirim, FALSE);
+    //             $this->db->where('id', $value['id_so_det']);
+    //             $this->db->update('sales_order_detail');
+    //         }
+
+    //         // ✅ Tambahan kartu stok
+    //         $stok = $this->db->get_where('warehouse_stock', [
+    //             'code_lv4' => $value['id_product']
+    //         ])->row_array();
+
+    //         if ($stok && $qty_terkirim > 0) {
+    //             $arr_kartu_stok[] = [
+    //                 'no_transaksi'      => $no_surat_jalan,
+    //                 'transaksi'         => "Delivery",
+    //                 'tgl_transaksi'     => $tgl_diterima,
+    //                 'code_lv4'          => $value['id_product'],
+    //                 'nm_product'        => $stok['nm_product'],
+    //                 'qty'               => floatval($stok['qty_stock']),
+    //                 'qty_book'          => floatval($stok['qty_booking']),
+    //                 'qty_free'          => floatval($stok['qty_free']),
+    //                 'qty_transaksi'     => $qty_terkirim * -1,
+    //                 'qty_akhir'         => floatval($stok['qty_stock']) - $qty_terkirim,
+    //                 'qty_book_akhir'    => floatval($stok['qty_booking']),
+    //                 'qty_free_akhir'    => floatval($stok['qty_free']),
+    //                 'harga_stok'        => floatval($stok['harga_beli'])
+    //             ];
+    //         }
+    //     }
+
+    //     $ArrUpdate['status'] = $status;
+
+    //     // ✅ Simpan ke database
+    //     $this->db->trans_start();
+
+    //     $this->db->update('surat_jalan', $ArrUpdate, ['id' => $id_sj]);
+
+    //     foreach ($ArrDetail as $row) {
+    //         $this->db->update('surat_jalan_detail', [
+    //             'qty_terkirim' => $row['qty_terkirim'],
+    //             'qty_retur'    => $row['qty_retur'],
+    //             'qty_hilang'   => $row['qty_hilang'],
+    //         ], ['id' => $row['id']]);
+    //     }
+
+    //     if (!empty($arr_kartu_stok)) {
+    //         $this->db->insert_batch('kartu_stok', $arr_kartu_stok);
+    //     }
+
+    //     $this->db->trans_complete();
+
+    //     if ($this->db->trans_status() === FALSE) {
+    //         $this->db->trans_rollback();
+    //         $res = ['status' => 0, 'pesan' => 'Gagal menyimpan konfirmasi.'];
+    //     } else {
+    //         $this->db->trans_commit();
+    //         $res = ['status' => 1, 'pesan' => 'Konfirmasi berhasil disimpan.'];
+    //         history("Confirm Surat Jalan : ID #{$id_sj} Status: {$status}");
+    //     }
+
+    //     echo json_encode($res);
+    // }
+
     public function confirm()
     {
         $post = $this->input->post();
@@ -310,7 +474,7 @@ class Surat_jalan extends Admin_Controller
             $id_detail    = $value['id_detail'];
             $total        = $qty_terkirim + $qty_retur + $qty_hilang;
 
-            $ArrDetail[$key] = [
+            $data_detail = [
                 'id'           => $id_detail,
                 'id_product'   => $value['id_product'],
                 'id_so_det'    => $value['id_so_det'],
@@ -323,7 +487,43 @@ class Surat_jalan extends Admin_Controller
                 $status = 'RETUR';
             }
 
-            // Update ke SPK Delivery Detail
+            if ($qty_hilang > 0 || $total !== $qty_delivery) {
+                $status = 'HILANG';
+            }
+
+            if ($qty_retur > 0 || $qty_hilang > 0) {
+                $data_detail['reason'] = $value['reason'];
+
+                // Handle upload per barang retur
+                if (!empty($_FILES['detail']['name'][$key]['file_bukti'])) {
+                    $_FILES['file_temp']['name']     = $_FILES['detail']['name'][$key]['file_bukti'];
+                    $_FILES['file_temp']['type']     = $_FILES['detail']['type'][$key]['file_bukti'];
+                    $_FILES['file_temp']['tmp_name'] = $_FILES['detail']['tmp_name'][$key]['file_bukti'];
+                    $_FILES['file_temp']['error']    = $_FILES['detail']['error'][$key]['file_bukti'];
+                    $_FILES['file_temp']['size']     = $_FILES['detail']['size'][$key]['file_bukti'];
+
+                    $config_retur['upload_path']   = './assets/confirm_sj/';
+                    $config_retur['allowed_types'] = '*';
+                    $config_retur['max_size']      = 2048;
+                    $config_retur['file_name']     = 'retur_' . $sanitized_sj . '_' . $key;
+
+                    $this->upload->initialize($config_retur);
+
+                    if ($this->upload->do_upload('file_temp')) {
+                        $upload_data = $this->upload->data();
+                        $data_detail['file_bukti'] = $upload_data['file_name'];
+                    } else {
+                        echo json_encode([
+                            'status' => 0,
+                            'pesan'  => 'Upload file retur gagal: ' . $this->upload->display_errors()
+                        ]);
+                        return;
+                    }
+                }
+            }
+
+            $ArrDetail[] = $data_detail;
+
             $this->db->where([
                 'no_delivery' => $no_delivery,
                 'id_so_det'   => $value['id_so_det']
@@ -331,7 +531,6 @@ class Surat_jalan extends Admin_Controller
                 'qty_delivery' => $qty_terkirim
             ]);
 
-            // Update ke Sales Order Detail
             $current = $this->db->select('qty_delivery, qty_order')
                 ->get_where('sales_order_detail', ['id' => $value['id_so_det']])
                 ->row();
@@ -343,7 +542,6 @@ class Surat_jalan extends Admin_Controller
                 $this->db->update('sales_order_detail');
             }
 
-            // ✅ Tambahan kartu stok
             $stok = $this->db->get_where('warehouse_stock', [
                 'code_lv4' => $value['id_product']
             ])->row_array();
@@ -369,7 +567,6 @@ class Surat_jalan extends Admin_Controller
 
         $ArrUpdate['status'] = $status;
 
-        // ✅ Simpan ke database
         $this->db->trans_start();
 
         $this->db->update('surat_jalan', $ArrUpdate, ['id' => $id_sj]);
@@ -379,6 +576,8 @@ class Surat_jalan extends Admin_Controller
                 'qty_terkirim' => $row['qty_terkirim'],
                 'qty_retur'    => $row['qty_retur'],
                 'qty_hilang'   => $row['qty_hilang'],
+                'reason'       => isset($row['reason']) ? $row['reason'] : null,
+                'file_bukti'   => isset($row['file_bukti']) ? $row['file_bukti'] : null,
             ], ['id' => $row['id']]);
         }
 
@@ -399,6 +598,7 @@ class Surat_jalan extends Admin_Controller
 
         echo json_encode($res);
     }
+
 
 
     public function print_sj($id)

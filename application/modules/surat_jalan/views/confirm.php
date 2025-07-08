@@ -96,49 +96,59 @@
                     <div class="col-sm-12">
                         <hr>
                         <h4>List Product</h4>
-                        <table class="table table-bordered">
-                            <thead class="bg-blue">
-                                <tr>
-                                    <th>#</th>
-                                    <th>Product</th>
-                                    <th class="text-center">Qty Order</th>
-                                    <th class="text-center">Qty SPK</th>
-                                    <th class="text-center">Qty Delivery</th>
-                                    <th class="text-center">Qty Terkirim</th>
-                                    <th class="text-center">Qty Retur</th>
-                                    <th class="text-center">Qty Hilang</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($detail as $i => $row): ?>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead class="bg-blue">
                                     <tr>
-                                        <td align="center"><?= $i + 1; ?></td>
-                                        <td style="min-width: 500px;"><?= $row['product']; ?></td>
-                                        <td align="center">
-                                            <input type="number" class="form-control text-center" value="<?= $row['qty_so']; ?>" readonly>
-                                        </td>
-                                        <td align="center">
-                                            <input type="number" class="form-control text-center" value="<?= $row['qty_spk']; ?>" readonly>
-                                        </td>
-                                        <td align="center">
-                                            <input type="number" class="form-control text-center qty-delivery" name="detail[<?= $i ?>][qty_delivery]" value="<?= $row['qty']; ?>" readonly>
-                                        </td>
-                                        <td align="center">
-                                            <input type="number" class="form-control text-center qty-terkirim" name="detail[<?= $i ?>][qty_terkirim]" min="0" value="<?= $row['qty']; ?>" readonly>
-                                        </td>
-                                        <td align="center">
-                                            <input type="number" class="form-control text-center qty-retur" name="detail[<?= $i ?>][qty_retur]" min="0" value="0" oninput="validateQty(this)">
-                                        </td>
-                                        <td align="center">
-                                            <input type="number" class="form-control text-center qty-hilang" name="detail[<?= $i ?>][qty_hilang]" min="0" value="0" oninput="validateQty(this)">
-                                        </td>
-                                        <input type="hidden" name="detail[<?= $i ?>][id_detail]" value="<?= $row['id'] ?>">
-                                        <input type="hidden" name="detail[<?= $i ?>][id_so_det]" value="<?= $row['id_so_det'] ?>">
-                                        <input type="hidden" name="detail[<?= $i ?>][id_product]" value="<?= $row['id_product'] ?>">
+                                        <th>#</th>
+                                        <th>Product</th>
+                                        <th class="text-center">Qty Order</th>
+                                        <th class="text-center">Qty SPK</th>
+                                        <th class="text-center">Qty Delivery</th>
+                                        <th class="text-center">Qty Terkirim</th>
+                                        <th class="text-center">Qty Retur</th>
+                                        <th class="text-center">Qty Hilang</th>
+                                        <th class="text-center">Alasan Retur</th>
+                                        <th class="text-center">Upload Bukti Retur</th>
                                     </tr>
-                                <?php endforeach; ?>
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($detail as $i => $row): ?>
+                                        <tr>
+                                            <td align="center"><?= $i + 1; ?></td>
+                                            <td style="min-width: 500px;"><?= $row['product']; ?></td>
+                                            <td align="center">
+                                                <input type="number" class="form-control text-center" value="<?= $row['qty_so']; ?>" readonly>
+                                            </td>
+                                            <td align="center">
+                                                <input type="number" class="form-control text-center" value="<?= $row['qty_spk']; ?>" readonly>
+                                            </td>
+                                            <td align="center">
+                                                <input type="number" class="form-control text-center qty-delivery" name="detail[<?= $i ?>][qty_delivery]" value="<?= $row['qty']; ?>" readonly>
+                                            </td>
+                                            <td align="center">
+                                                <input type="number" class="form-control text-center qty-terkirim" name="detail[<?= $i ?>][qty_terkirim]" min="0" value="<?= $row['qty']; ?>" readonly>
+                                            </td>
+                                            <td align="center">
+                                                <input type="number" class="form-control text-center qty-retur" name="detail[<?= $i ?>][qty_retur]" min="0" value="0" oninput="validateQty(this)">
+                                            </td>
+                                            <td align="center">
+                                                <input type="number" class="form-control text-center qty-hilang" name="detail[<?= $i ?>][qty_hilang]" min="0" value="0" oninput="validateQty(this)">
+                                            </td>
+                                            <td align="center">
+                                                <textarea class="form-control reason-retur" name="detail[<?= $i ?>][reason]" disabled></textarea>
+                                            </td>
+                                            <td align="center">
+                                                <input type="file" class="form-control file-retur" name="detail[<?= $i ?>][file_bukti]" disabled>
+                                            </td>
+                                            <input type="hidden" name="detail[<?= $i ?>][id_detail]" value="<?= $row['id'] ?>">
+                                            <input type="hidden" name="detail[<?= $i ?>][id_so_det]" value="<?= $row['id_so_det'] ?>">
+                                            <input type="hidden" name="detail[<?= $i ?>][id_product]" value="<?= $row['id_product'] ?>">
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
 
@@ -182,6 +192,16 @@
                     row.find('.qty-terkirim, .qty-retur, .qty-hilang').css('background-color', '#fff3cd');
                 } else {
                     row.find('.qty-terkirim, .qty-retur, .qty-hilang').css('background-color', '');
+                }
+
+                if (qtyRetur > 0) {
+                    const reason = row.find('.reason-retur').val().trim();
+                    if (!reason) {
+                        isValid = false;
+                        firstInvalidRow = row.find('td:nth-child(2)').text().trim();
+                        swal("Peringatan", "Produk \"" + firstInvalidRow + "\" memiliki retur tapi alasan belum diisi.", "warning");
+                        return;
+                    }
                 }
             });
 
@@ -256,30 +276,47 @@
         const qtyDelivery = parseInt(row.querySelector('.qty-delivery').value) || 0;
         const qtyRetur = parseInt(row.querySelector('.qty-retur').value) || 0;
         const qtyHilang = parseInt(row.querySelector('.qty-hilang').value) || 0;
+        const totalReturHilang = qtyRetur + qtyHilang;
 
-        // Cegah nilai negatif
+        const reasonInput = row.querySelector('.reason-retur');
+        const fileInput = row.querySelector('.file-retur');
+
+        // Validasi nilai negatif
         if (qtyRetur < 0 || qtyHilang < 0) {
             swal("Peringatan", "Qty Retur atau Hilang tidak boleh negatif.", "warning");
             input.value = 0;
             return;
         }
 
-        const totalReturHilang = qtyRetur + qtyHilang;
-
+        // Validasi melebihi delivery
         if (totalReturHilang > qtyDelivery) {
             swal("Peringatan", `Jumlah Retur + Hilang (${totalReturHilang}) melebihi Qty Delivery (${qtyDelivery})`, "warning");
             input.value = 0;
             return;
         }
 
-        // Hitung dan update Qty Terkirim otomatis
+        // Hitung Qty Terkirim
         const qtyTerkirimBaru = qtyDelivery - totalReturHilang;
-        const qtyTerkirimInput = row.querySelector('.qty-terkirim');
-        qtyTerkirimInput.value = qtyTerkirimBaru;
+        row.querySelector('.qty-terkirim').value = qtyTerkirimBaru;
 
-        // Highlight jika belum lengkap
+        // Aktifkan input reason dan file jika ada retur
+        if (qtyRetur > 0) {
+            reasonInput.disabled = false;
+            fileInput.disabled = false;
+            reasonInput.required = true;
+            fileInput.required = true;
+        } else {
+            reasonInput.disabled = true;
+            fileInput.disabled = true;
+            reasonInput.required = false;
+            fileInput.required = false;
+            reasonInput.value = "";
+            fileInput.value = "";
+        }
+
+        // Highlight warning
         const highlight = (totalReturHilang < qtyDelivery);
-        [qtyTerkirimInput, row.querySelector('.qty-retur'), row.querySelector('.qty-hilang')].forEach(el => {
+        [row.querySelector('.qty-terkirim'), row.querySelector('.qty-retur'), row.querySelector('.qty-hilang')].forEach(el => {
             el.style.backgroundColor = highlight ? '#fff3cd' : '';
         });
     }
