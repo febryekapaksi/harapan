@@ -39,7 +39,7 @@ class Surat_jalan extends Admin_Controller
             ->select('DISTINCT ld.no_loading, l.nopol, l.tanggal_muat', false)
             ->from('loading_delivery_detail ld')
             ->join('loading_delivery l', 'ld.no_loading = l.no_loading')
-            ->where('l.status', 1)
+            ->where('l.status', 3)
             ->where("CONCAT(ld.no_so, '|', ld.no_delivery) NOT IN (
                         SELECT CONCAT(no_so, '|', no_delivery)
                         FROM surat_jalan

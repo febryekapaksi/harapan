@@ -28,9 +28,22 @@ class Loading extends Admin_Controller
         $this->template->render('index');
     }
 
+    public function index_approval()
+    {
+        $this->auth->restrict('Approval_Loading.View');
+        $this->template->title('Approval Muat Kendaraan');
+        $this->template->page_icon('fa fa-check');
+        $this->template->render('index_approval');
+    }
+
     public function data_side_loading()
     {
         $this->loading_model->data_side_loading();
+    }
+
+    public function data_side_approval_loading()
+    {
+        $this->loading_model->data_side_approval_loading();
     }
 
     public function get_detail_loading()
@@ -96,7 +109,7 @@ class Loading extends Admin_Controller
         $this->template->render('form', $data);
     }
 
-    public function confirm($id)
+    public function confirm_qty($id)
     {
         // Cek apakah data ada
         $loading = $this->db->get_where('loading_delivery', ['id' => $id])->row_array();
@@ -125,11 +138,118 @@ class Loading extends Admin_Controller
             'loading'   => $loading,
             'detail'    => $detail,
             'usedKeys'  => $usedKeys,
-            'mode'      => 'confirm'
+            'mode'      => 'confirm_qty'
         ];
 
         // View form edit
         $this->template->render('form', $data);
+    }
+
+    public function confirm_berat($id)
+    {
+        // Cek apakah data ada
+        $loading = $this->db->get_where('loading_delivery', ['id' => $id])->row_array();
+
+        if (!$loading) {
+            show_404(); // Jika tidak ada, tampilkan error 404
+        }
+
+        $detail = $this->db->get_where('loading_delivery_detail', ['no_loading' => $loading['no_loading']])->result_array();
+
+        //data nya sudah dibuat ke surat jalan belom?
+        $usedPairs = $this->db
+            ->select('no_so, no_delivery')
+            ->from('surat_jalan')
+            ->where('no_loading', $loading['no_loading'])
+            ->get()
+            ->result_array();
+
+        $usedKeys = array_map(function ($row) {
+            return $row['no_so'] . '|' . $row['no_delivery'];
+        }, $usedPairs);
+
+        // Kirim data ke view
+        $data = [
+            'kendaraan' => $this->db->get('master_kendaraan')->result(),
+            'loading'   => $loading,
+            'detail'    => $detail,
+            'usedKeys'  => $usedKeys,
+            'mode'      => 'confirm_berat'
+        ];
+
+        // View form edit
+        $this->template->render('form', $data);
+    }
+
+    public function approval($id)
+    {
+        // Cek apakah data ada
+        $loading = $this->db->get_where('loading_delivery', ['id' => $id])->row_array();
+
+        if (!$loading) {
+            show_404(); // Jika tidak ada, tampilkan error 404
+        }
+
+        $detail = $this->db->get_where('loading_delivery_detail', ['no_loading' => $loading['no_loading']])->result_array();
+
+        //data nya sudah dibuat ke surat jalan belom?
+        $usedPairs = $this->db
+            ->select('no_so, no_delivery')
+            ->from('surat_jalan')
+            ->where('no_loading', $loading['no_loading'])
+            ->get()
+            ->result_array();
+
+        $usedKeys = array_map(function ($row) {
+            return $row['no_so'] . '|' . $row['no_delivery'];
+        }, $usedPairs);
+
+        // Kirim data ke view
+        $data = [
+            'kendaraan' => $this->db->get('master_kendaraan')->result(),
+            'loading'   => $loading,
+            'detail'    => $detail,
+            'usedKeys'  => $usedKeys,
+            'mode'      => 'approval'
+        ];
+
+        // View form edit
+        $this->template->render('form', $data);
+    }
+
+    // reject 
+    public function reject($id = null)
+    {
+        if (!$id) {
+            echo json_encode(['save' => 0, 'message' => 'ID tidak ditemukan']);
+            return;
+        }
+
+        $loading = $this->db->get_where('loading_delivery', ['id' => $id])->row();
+        if (!$loading) {
+            echo json_encode(['save' => 0, 'message' => 'Data tidak ditemukan']);
+            return;
+        }
+
+        $reason = $this->input->post('reason');
+        if (!$reason) {
+            echo json_encode(['save' => 0, 'message' => 'Alasan harus diisi']);
+            return;
+        }
+
+        $data = [
+            'status' => 0,
+            'reject_reason' => $reason,
+        ];
+
+        $this->db->where('id', $id);
+        $update = $this->db->update('loading_delivery', $data);
+
+        if ($update) {
+            echo json_encode(['save' => 1]);
+        } else {
+            echo json_encode(['save' => 0, 'message' => 'Gagal menyimpan alasan penolakan']);
+        }
     }
 
     public function print($id)
@@ -284,7 +404,7 @@ class Loading extends Admin_Controller
         echo json_encode($Arr_Data);
     }
 
-    public function save_confirm()
+    public function save_confirm_qty()
     {
         $post = $this->input->post();
         $detail = $post['detail'];
@@ -370,6 +490,128 @@ class Loading extends Admin_Controller
             $this->db->trans_commit();
             $Arr_Data  = ['pesan' => 'Save berhasil disimpan. Thanks ...', 'status' => 1];
             history("Update Muat Kendaraan : " . $no_loading);
+        }
+
+        echo json_encode($Arr_Data);
+    }
+
+    public function save_confirm_berat()
+    {
+        $post = $this->input->post();
+        $detail = $post['detail'];
+
+        $no_loading =  $post['id_loading'];
+
+        $ArrHeader = [
+            'no_loading'    => $no_loading,
+            'pengiriman'    => $post['pengiriman'],
+            'nopol'         => $post['kendaraan'],
+            'kapasitas'     => str_replace(',', '', $post['kapasitas']),
+            'total_berat'   => str_replace(',', '', $post['total_berat']),
+            'tanggal_muat'  => date('Y-m-d H:i:s', strtotime($post['tanggal_muat'])),
+            'updated_by'    => $this->auth->user_id(),
+            'updated_at'    => date('Y-m-d H:i:s'),
+            'status'        => 2,
+        ];
+
+        $ArrDetail = [];
+
+        foreach ($detail as $key => $value) {
+            $no_delivery = $value['no_delivery'];
+
+            $ArrDetail[$key]['no_loading']      = $no_loading;
+            $ArrDetail[$key]['no_delivery']     = $no_delivery;
+            $ArrDetail[$key]['id_spk_detail']   = $value['id_spk_detail'];
+            $ArrDetail[$key]['no_so']           = $value['no_so'];
+            $ArrDetail[$key]['customer']        = $value['customer'];
+            $ArrDetail[$key]['id_product']      = $value['id_product'];
+            $ArrDetail[$key]['product']         = $value['product'];
+            $ArrDetail[$key]['qty_spk']         = $value['qty_spk'];
+            $ArrDetail[$key]['jumlah_berat']    = $value['jumlah_berat'];
+            $ArrDetail[$key]['keterangan']      = $value['keterangan'];
+        }
+
+        $this->db->trans_start();
+
+
+        $this->db->update('loading_delivery', $ArrHeader, ['no_loading' => $no_loading]);
+
+        // Hapus detail lama, insert ulang
+        $this->db->delete('loading_delivery_detail', ['no_loading' => $no_loading]);
+        if (!empty($ArrDetail)) {
+            $this->db->insert_batch('loading_delivery_detail', $ArrDetail);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $Arr_Data  = ['pesan' => 'Save gagal disimpan ...', 'status' => 0];
+        } else {
+            $this->db->trans_commit();
+            $Arr_Data  = ['pesan' => 'Save berhasil disimpan. Thanks ...', 'status' => 1];
+            history("Update Muat Kendaraan : " . $no_loading);
+        }
+
+        echo json_encode($Arr_Data);
+    }
+
+    public function approve()
+    {
+        $post = $this->input->post();
+        $detail = $post['detail'];
+
+        $no_loading =  $post['id_loading'];
+
+        $ArrHeader = [
+            'no_loading'    => $no_loading,
+            // 'pengiriman'    => $post['pengiriman'],
+            // 'nopol'         => $post['kendaraan'],
+            'kapasitas'     => str_replace(',', '', $post['kapasitas']),
+            'total_berat'   => str_replace(',', '', $post['total_berat']),
+            'tanggal_muat'  => date('Y-m-d H:i:s', strtotime($post['tanggal_muat'])),
+            'updated_by'    => $this->auth->user_id(),
+            'updated_at'    => date('Y-m-d H:i:s'),
+            'status'        => 3,
+        ];
+
+        $ArrDetail = [];
+
+        foreach ($detail as $key => $value) {
+            $no_delivery = $value['no_delivery'];
+
+            $ArrDetail[$key]['no_loading']      = $no_loading;
+            $ArrDetail[$key]['no_delivery']     = $no_delivery;
+            $ArrDetail[$key]['id_spk_detail']   = $value['id_spk_detail'];
+            $ArrDetail[$key]['no_so']           = $value['no_so'];
+            $ArrDetail[$key]['customer']        = $value['customer'];
+            $ArrDetail[$key]['id_product']      = $value['id_product'];
+            $ArrDetail[$key]['product']         = $value['product'];
+            $ArrDetail[$key]['qty_spk']         = $value['qty_spk'];
+            $ArrDetail[$key]['jumlah_berat']    = $value['jumlah_berat'];
+            // $ArrDetail[$key]['keterangan']      = $value['keterangan'];
+        }
+
+        $this->db->trans_start();
+
+
+        $this->db->update('loading_delivery', $ArrHeader, ['no_loading' => $no_loading]);
+
+        // Hapus detail lama, insert ulang
+        $this->db->delete('loading_delivery_detail', ['no_loading' => $no_loading]);
+        if (!empty($ArrDetail)) {
+            $this->db->insert_batch('loading_delivery_detail', $ArrDetail);
+        }
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $Arr_Data  = ['pesan' => 'Save gagal disimpan ...', 'status' => 0];
+        } else {
+            $this->db->trans_commit();
+            $Arr_Data  = ['pesan' => 'Save berhasil disimpan. Thanks ...', 'status' => 1];
+            history("Approve Muat Kendaraan : " . $no_loading);
         }
 
         echo json_encode($Arr_Data);

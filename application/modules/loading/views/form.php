@@ -1,9 +1,14 @@
-<?php $isConfirm = (isset($mode) && $mode == 'confirm'); ?>
+<?php
+$isConfirm = (isset($mode) && $mode == 'confirm_qty');
+$isConfirmBerat = (isset($mode) && $mode == 'confirm_berat');
+$isApproval = (isset($mode) && $mode == 'approval');
+?>
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 
 <div class="box box-primary">
     <div class="box-body">
         <form method="post" id="data-form">
+            <input type="hidden" name="id" id="id" value="<?= isset($loading['id']) ? $loading['id'] : '' ?>">
             <input type="hidden" name="id_loading" value="<?= isset($loading['no_loading']) ? $loading['no_loading'] : '' ?>">
             <div class="col-md-12">
                 <div class="row">
@@ -14,12 +19,12 @@
                                 <label>Pengiriman</label>
                             </div>
                             <div class="col-md-8">
-                                <select name="pengiriman" id="pengiriman" class="form-control select" <?= $isConfirm ? 'disabled' : '' ?>>
+                                <select name="pengiriman" id="pengiriman" class="form-control select" <?= $isConfirm || $isConfirmBerat || $isApproval ? 'disabled' : '' ?>>
                                     <option value="">-- Pilih --</option>
                                     <option value="Gudang" <?= (isset($loading['pengiriman']) && $loading['pengiriman'] == "Gudang") ? 'selected' : '' ?>>Gudang SBF/NBO</option>
                                     <option value="Pabrik" <?= (isset($loading['pengiriman']) && $loading['pengiriman'] == "Pabrik") ? 'selected' : '' ?>>Pabrik</option>
                                 </select>
-                                <?php if ($isConfirm): ?>
+                                <?php if ($isConfirm || $isConfirmBerat): ?>
                                     <!-- Hidden input untuk tetap mengirimkan value saat disabled -->
                                     <input type="hidden" name="pengiriman" value="<?= isset($loading['pengiriman']) ? $loading['pengiriman'] : '' ?>">
                                 <?php endif; ?>
@@ -33,14 +38,14 @@
                                 <label>Kendaraan</label>
                             </div>
                             <div class="col-md-8">
-                                <select name="kendaraan" id="selectKendaraan" class="form-control select" <?= $isConfirm ? 'disabled' : '' ?>>
+                                <select name="kendaraan" id="selectKendaraan" class="form-control select" <?= $isConfirm || $isConfirmBerat || $isApproval ? 'disabled' : '' ?>>
                                     <option value="">-- Pilih --</option>
                                     <?php foreach ($kendaraan as $item): ?>
                                         <option data-kapasitas="<?= $item->kapasitas ?>" value="<?= $item->nopol ?>"
                                             <?= (isset($loading['nopol']) == $item->nopol) ? 'selected' : '' ?>><?= $item->jenis . ' - ' . $item->nopol ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <?php if ($isConfirm): ?>
+                                <?php if ($isConfirm || $isConfirmBerat): ?>
                                     <!-- Hidden input untuk tetap mengirimkan value saat disabled -->
                                     <input type="hidden" name="kendaraan" value="<?= isset($loading['nopol']) ? $loading['nopol'] : '' ?>">
                                 <?php endif; ?>
@@ -53,7 +58,7 @@
                                 <label>Tanggal Muat</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" name="tanggal_muat" id="tanggal_muat" class="form-control" value="<?= isset($loading['tanggal_muat']) ? date('Y-m-d', strtotime($loading['tanggal_muat'])) : '' ?>" required <?= $isConfirm ? 'readonly' : '' ?>>
+                                <input type="date" name="tanggal_muat" id="tanggal_muat" class="form-control" value="<?= isset($loading['tanggal_muat']) ? date('Y-m-d', strtotime($loading['tanggal_muat'])) : '' ?>" required <?= $isConfirm || $isConfirmBerat || $isApproval ? 'readonly' : '' ?>>
                             </div>
                         </div>
                     </div>
@@ -62,7 +67,7 @@
             <div class="col-md-12">
                 <div class="row">
                     <div class="col-md-12">
-                        <a href="javascript:void(0);" class="btn btn-sm btn-success <?= $isConfirm ? 'disabled' : '' ?>" id="selectSpk"><i class="fa fa-plus"></i> Pilih SPK</a>
+                        <a href="javascript:void(0);" class="btn btn-sm btn-success <?= $isConfirm || $isConfirmBerat || $isApproval ? 'disabled' : '' ?>" id="selectSpk"><i class="fa fa-plus"></i> Pilih SPK</a>
                         <hr>
                         <div class="table-responsive">
                             <table class="table table-bordered" id="tableSpk">
@@ -74,10 +79,13 @@
                                         <th style="min-width: 300px;">Produk</th>
                                         <th style="min-width: 20px;" class="text-center">Qty Muat</th>
                                         <th style="min-width: 20px;" class="text-center">Berat (Kg)</th>
-                                        <?php if (isset($mode) && $mode == 'confirm') { ?>
+                                        <?php if (isset($mode) && $mode == 'confirm_qty') { ?>
                                             <th style="min-width: 20px;" class="text-center">Qty Aktual</th>
                                             <th style="min-width: 20px;" class="text-center">Keterangan</th>
-                                        <?php  } else { ?>
+                                        <?php  } else if (isset($mode) && $mode == 'confirm_berat') { ?>
+                                            <th style="min-width: 20px;" class="text-center">Berat Aktual</th>
+                                            <th style="min-width: 20px;" class="text-center">Keterangan</th>
+                                        <?php } else { ?>
                                             <th style="min-width: 20px;" class="text-center"></th>
                                         <?php } ?>
                                     </tr>
@@ -127,15 +135,22 @@
                                                         <input type="number" class="form-control jumlah-berat text-center" name="detail[<?= $i ?>][jumlah_berat]" value="<?= $row['jumlah_berat'] ?>" readonly>
                                                     </td>
 
-                                                    <?php if (isset($mode) && $mode == 'confirm') { ?>
+                                                    <?php if (isset($mode) && $mode == 'confirm_qty') { ?>
                                                         <td>
                                                             <input type="number" class="form-control text-center qty-aktual" name="detail[<?= $i ?>][qty_aktual]" value="">
                                                         </td>
                                                         <td>
                                                             <textarea class="form-control" name="detail[<?= $i ?>][keterangan]"></textarea>
                                                         </td>
-                                                    <?php  } else { ?>
+                                                    <?php } else if (isset($mode) && $mode == 'confirm_berat') { ?>
                                                         <td>
+                                                            <input type="number" class="form-control text-center berat-aktual" name="detail[<?= $i ?>][berat_aktual]" value="">
+                                                        </td>
+                                                        <td>
+                                                            <textarea class="form-control" name="detail[<?= $i ?>][keterangan]"><?= $row['keterangan'] ?></textarea>
+                                                        </td>
+                                                    <?php } else { ?>
+                                                        <td class="text-center">
                                                             <button type=" button" class="btn btn-danger btn-sm remove-row" <?= $isUsed ? 'disabled' : '' ?>><i class="fa fa-trash"></i></button>
                                                         </td>
                                                     <?php } ?>
@@ -159,12 +174,12 @@
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td class="text-right" colspan="5">Total Berat</td>
-                                        <td colspan="2"><input type="text" class="form-control input-sm" name="total_berat" id="totalBerat" value="" readonly></td>
+                                        <td class="text-right" colspan="4">Total Berat</td>
+                                        <td colspan="3"><input type="text" class="form-control input-sm" name="total_berat" id="totalBerat" value="" readonly></td>
                                     </tr>
                                     <tr>
-                                        <td class="text-right" colspan="5">Kapasitas</td>
-                                        <td colspan="2"><input type="text" class="form-control input-sm" name="kapasitas" id="kapasitas" value="<?= isset($loading['kapasitas']) ? number_format($loading['kapasitas']) : '' ?>" readonly></td>
+                                        <td class="text-right" colspan="4">Kapasitas</td>
+                                        <td colspan="3"><input type="text" class="form-control input-sm" name="kapasitas" id="kapasitas" value="<?= isset($loading['kapasitas']) ? number_format($loading['kapasitas']) : '' ?>" readonly></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -173,8 +188,13 @@
                 </div>
                 <div class="form-group row">
                     <div class="col-md-12 text-center">
-                        <?php if (isset($mode) && $mode == 'confirm') { ?>
+                        <?php if (isset($mode) && $mode == 'confirm_qty') { ?>
                             <button type="button" class="btn btn-success" name="confirm" id="confirm"><i class="fa fa-save"></i> Confirm</button>
+                        <?php } elseif (isset($mode) && $mode == 'confirm_berat') { ?>
+                            <button type="button" class="btn btn-success" name="confirm_berat" id="confirm_berat"><i class="fa fa-save"></i> Confirm</button>
+                        <?php } elseif (isset($mode) && $mode == 'approval') { ?>
+                            <button type="button" class="btn btn-success" name="approve" id="approve"><i class="fa fa-check-square-o"></i> Approve</button>
+                            <a class="btn btn-danger reject" name="reject" id="reject" onclick="Reject()"><i class="fa fa-ban"></i> Reject</a>
                         <?php } else { ?>
                             <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
                         <?php } ?>
@@ -228,6 +248,30 @@
             <div class="modal-footer">
                 <button class="btn btn-success" id="btnPilihSpk">Pilih</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="reject-modal" tabindex="-1" role="dialog" aria-labelledby="rejectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="form-reject">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                    <h4 class="modal-title" id="rejectModalLabel">Alasan Penolakan</h4>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="reject_id">
+                    <div class="form-group">
+                        <label for="reason">Alasan:</label>
+                        <textarea id="reason" name="reason" class="form-control" rows="4" required placeholder="Masukkan alasan penolakan..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-danger">Tolak</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -331,7 +375,7 @@
                                     <td>${item.tanggal_spk}</td>
                                     <td hidden>${item.id}</td>
                                     <td hidden>${item.weight}</td>
-                                    <td>
+                                    <td class="text-center">
                                         <input type="checkbox" class="select-row" data-item='${JSON.stringify(item)}'>
                                     </td>
                                 </tr>
@@ -394,7 +438,7 @@
                     <td>
                         <input type="number" class="form-control jumlah-berat" name="detail[${detailIndex}][jumlah_berat]" value="${data.jumlah_berat}" readonly>
                     </td>
-                    <td>
+                    <td class="text-center">
                         <button type="button" class="btn btn-danger btn-sm remove-row"><i class="fa fa-trash"></i></button>
                     </td>
                     <td hidden>
@@ -587,7 +631,7 @@
             }, function(isConfirm) {
                 if (isConfirm) {
                     var formData = new FormData($('#data-form')[0]);
-                    var baseurl = siteurl + 'loading/save_confirm';
+                    var baseurl = siteurl + 'loading/save_confirm_qty';
 
                     $.ajax({
                         url: baseurl,
@@ -628,6 +672,197 @@
                     swal("Cancelled", "Data can be processed again :)", "error");
                     return false;
                 }
+            });
+        });
+
+        $('#confirm_berat').on('click', function(e) {
+            e.preventDefault();
+
+            var berat_aktual = $('.berat-aktual').val()
+
+            if (berat_aktual == '') {
+                swal({
+                    title: "Error Message!",
+                    text: 'Berat Aktual kosong, isi terlebih dulu ...',
+                    type: "warning"
+                });
+
+                $('#confirm_berat').prop('disabled', false);
+                return false;
+            }
+
+            // Jika valid, lanjut swal konfirmasi
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to process again this data!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Yes, Process it!",
+                cancelButtonText: "No, cancel process!",
+                closeOnConfirm: true,
+                closeOnCancel: false
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    var formData = new FormData($('#data-form')[0]);
+                    var baseurl = siteurl + 'loading/save_confirm_berat';
+
+                    $.ajax({
+                        url: baseurl,
+                        type: "POST",
+                        data: formData,
+                        cache: false,
+                        dataType: 'json',
+                        processData: false,
+                        contentType: false,
+                        success: function(data) {
+                            if (data.status == 1) {
+                                swal({
+                                    title: "Save Success!",
+                                    text: data.pesan,
+                                    type: "success",
+                                    timer: 7000
+                                });
+                                window.location.href = base_url + active_controller;
+                            } else {
+                                swal({
+                                    title: "Save Failed!",
+                                    text: data.pesan,
+                                    type: "warning",
+                                    timer: 7000
+                                });
+                            }
+                        },
+                        error: function() {
+                            swal({
+                                title: "Error Message!",
+                                text: 'An Error Occurred During Process. Please try again..',
+                                type: "warning",
+                                timer: 7000
+                            });
+                        }
+                    });
+                } else {
+                    swal("Cancelled", "Data can be processed again :)", "error");
+                    return false;
+                }
+            });
+        })
+
+        //button approval
+        $('#approve').on('click', function(e) {
+            // Jika valid, lanjut swal konfirmasi
+            swal({
+                title: "Are you sure?",
+                text: "You will not be able to process again this data!",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-danger",
+                confirmButtonText: "Yes, Process it!",
+                cancelButtonText: "No, cancel process!",
+                closeOnConfirm: true,
+                closeOnCancel: false
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    var formData = new FormData($('#data-form')[0]);
+                    var baseurl = siteurl + 'loading/approve';
+
+                    $.ajax({
+                        url: baseurl,
+                        type: "POST",
+                        data: formData,
+                        cache: false,
+                        dataType: 'json',
+                        processData: false,
+                        contentType: false,
+                        success: function(data) {
+                            if (data.status == 1) {
+                                swal({
+                                    title: "Save Success!",
+                                    text: data.pesan,
+                                    type: "success",
+                                    timer: 7000
+                                });
+                                window.location.href = base_url + active_controller;
+                            } else {
+                                swal({
+                                    title: "Save Failed!",
+                                    text: data.pesan,
+                                    type: "warning",
+                                    timer: 7000
+                                });
+                            }
+                        },
+                        error: function() {
+                            swal({
+                                title: "Error Message!",
+                                text: 'An Error Occurred During Process. Please try again..',
+                                type: "warning",
+                                timer: 7000
+                            });
+                        }
+                    });
+                } else {
+                    swal("Cancelled", "Data can be processed again :)", "error");
+                    return false;
+                }
+            });
+        })
+
+        $('#form-reject').submit(function(e) {
+            e.preventDefault();
+
+            const id = $('#reject_id').val();
+            const reason = $('#reason').val().trim();
+
+            if (reason === '') {
+                alert('Alasan penolakan harus diisi.');
+                return;
+            }
+
+            // Konfirmasi kedua pakai SweetAlert
+            swal({
+                title: "Konfirmasi Penolakan",
+                text: "Yakin ingin menolak data dengan alasan berikut?\n\n" + reason,
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Tolak",
+                cancelButtonText: "Batal",
+                closeOnConfirm: false
+            }, function(isConfirm) {
+                if (!isConfirm) return;
+
+                // Sembunyikan modal input
+                $('#reject-modal').modal('hide');
+
+                // Kirim AJAX ke backend
+                $.ajax({
+                    url: base_url + active_controller + 'reject/' + id,
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                        reason
+                    },
+                    success: function(res) {
+                        if (res.save == 1) {
+                            swal({
+                                title: "Ditolak!",
+                                text: "Data berhasil ditolak.",
+                                type: "success",
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
+                            setTimeout(() => {
+                                window.location.href = base_url + active_controller;
+                            }, 1500);
+                        } else {
+                            swal("Gagal", res.message || "Penolakan gagal disimpan.", "error");
+                        }
+                    },
+                    error: function() {
+                        swal("Error", "Terjadi kesalahan saat memproses data.", "error");
+                    }
+                });
             });
         });
 
@@ -718,7 +953,42 @@
             // Hitung ulang total seluruh berat aktual
             hitungTotalBeratAktual();
         })
+
+        $(document).on('input', '.berat-aktual', function(e) {
+            const row = $(this).closest('tr');
+
+            const beratAktual = parseFloat($(this).val()) || 0;
+            const beratSpk = parseInt(row.find('.jumlah-berat').val()) || 0;
+
+            if (beratAktual < 1) {
+                swal({
+                    title: "Error Message !",
+                    text: 'Berat Aktual tidak boleh 0',
+                    type: "warning",
+                    timer: 7000,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    allowOutsideClick: true
+                }, () => {
+                    $(e.target).val(beratSpk);
+                });
+                return; // Hentikan perhitungan lanjut
+            }
+
+            // Update jumlah berat di baris tersebut
+            row.find('input[name*="[jumlah_berat]"]').val(beratAktual.toFixed(2));
+
+            // Hitung ulang total seluruh berat aktual
+            hitungTotalBeratAktual();
+        })
     });
+    //fungsi reject
+    function Reject() {
+        const id = $('#id').val(); // ambil id dari input hidden
+        $('#reject_id').val(id); // simpan ke form modal
+        $('#reason').val(''); // reset alasan
+        $('#reject-modal').modal('show'); // tampilkan modal
+    }
 
     function getSpk() {
         const pengiriman = $("#pengiriman").val();
