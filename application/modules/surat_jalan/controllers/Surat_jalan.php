@@ -92,6 +92,7 @@ class Surat_jalan extends Admin_Controller
             ld.*,
             so.no_so,
             sd.pengiriman,
+            sd.tanggal_kirim,
             sod.id AS id_so_det,
             c.name_customer AS customer,
             c.address_office AS alamat,
@@ -473,14 +474,17 @@ class Surat_jalan extends Admin_Controller
             $qty_hilang   = (int) $value['qty_hilang'];
             $id_detail    = $value['id_detail'];
             $total        = $qty_terkirim + $qty_retur + $qty_hilang;
+            $id_product   = $value['id_product'];
+            $qty_lebih    = isset($value['qty_lebih']) ? $value['qty_lebih'] : 0;
 
             $data_detail = [
                 'id'           => $id_detail,
-                'id_product'   => $value['id_product'],
+                'id_product'   => $id_product,
                 'id_so_det'    => $value['id_so_det'],
                 'qty_terkirim' => $qty_terkirim,
                 'qty_retur'    => $qty_retur,
-                'qty_hilang'   => $qty_hilang
+                'qty_hilang'   => $qty_hilang,
+                'qty_lebih'    => $qty_lebih,
             ];
 
             if ($qty_retur > 0 || $total !== $qty_delivery) {
@@ -543,7 +547,7 @@ class Surat_jalan extends Admin_Controller
             }
 
             $stok = $this->db->get_where('warehouse_stock', [
-                'code_lv4' => $value['id_product']
+                'code_lv4' => $id_product
             ])->row_array();
 
             if ($stok && $qty_terkirim > 0) {
@@ -551,7 +555,7 @@ class Surat_jalan extends Admin_Controller
                     'no_transaksi'      => $no_surat_jalan,
                     'transaksi'         => "Delivery",
                     'tgl_transaksi'     => $tgl_diterima,
-                    'code_lv4'          => $value['id_product'],
+                    'code_lv4'          => $id_product,
                     'nm_product'        => $stok['nm_product'],
                     'qty'               => floatval($stok['qty_stock']),
                     'qty_book'          => floatval($stok['qty_booking']),
@@ -561,6 +565,29 @@ class Surat_jalan extends Admin_Controller
                     'qty_book_akhir'    => floatval($stok['qty_booking']),
                     'qty_free_akhir'    => floatval($stok['qty_free']),
                     'harga_stok'        => floatval($stok['harga_beli'])
+                ];
+            }
+
+            if ($qty_lebih > 0) {
+                $this->db->set('qty_stock', 'qty_stock + ' . $qty_lebih, FALSE);
+                $this->db->where('code_lv4', $id_product);
+                $this->db->update('warehouse_stock');
+
+                // Simpan ke kartu_stok
+                $arr_kartu_stok[] = [
+                    'no_transaksi'      => $no_surat_jalan,
+                    'transaksi'         => "Retur Lebih",
+                    'tgl_transaksi'     => $tgl_diterima,
+                    'code_lv4'          => $id_product,
+                    'nm_product'        => $stok ? $stok['nm_product'] : '-',
+                    'qty'               => $stok ? floatval($stok['qty_stock']) : 0,
+                    'qty_book'          => $stok ? floatval($stok['qty_booking']) : 0,
+                    'qty_free'          => $stok ? floatval($stok['qty_free']) : 0,
+                    'qty_transaksi'     => $qty_lebih,
+                    'qty_akhir'         => $stok ? floatval($stok['qty_stock']) + $qty_lebih : $qty_lebih,
+                    'qty_book_akhir'    => $stok ? floatval($stok['qty_booking']) : 0,
+                    'qty_free_akhir'    => $stok ? floatval($stok['qty_free']) : 0,
+                    'harga_stok'        => $stok ? floatval($stok['harga_beli']) : 0
                 ];
             }
         }
@@ -576,6 +603,7 @@ class Surat_jalan extends Admin_Controller
                 'qty_terkirim' => $row['qty_terkirim'],
                 'qty_retur'    => $row['qty_retur'],
                 'qty_hilang'   => $row['qty_hilang'],
+                'qty_lebih'    => $row['qty_lebih'],
                 'reason'       => isset($row['reason']) ? $row['reason'] : null,
                 'file_bukti'   => isset($row['file_bukti']) ? $row['file_bukti'] : null,
             ], ['id' => $row['id']]);

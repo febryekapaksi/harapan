@@ -108,8 +108,9 @@
                                         <th class="text-center" style="min-width: 100px;">Qty Terkirim</th>
                                         <th class="text-center" style="min-width: 100px;">Qty Retur</th>
                                         <th class="text-center" style="min-width: 100px;">Qty Hilang</th>
-                                        <th class="text-center" style="min-width: 200px;">Alasan Retur</th>
-                                        <th class="text-center" style="min-width: 200px;">Upload Bukti Retur</th>
+                                        <th class="text-center" style="min-width: 200px;">Keterangan Retur/Hilang</th>
+                                        <th class="text-center" style="min-width: 200px;">Upload Bukti Retur/Hilang</th>
+                                        <th class="text-center" style="min-width: 100px;">Qty Lebih</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -140,6 +141,9 @@
                                             </td>
                                             <td align="center">
                                                 <input type="file" class="form-control file-retur" name="detail[<?= $i ?>][file_bukti]" disabled>
+                                            </td>
+                                            <td align="center">
+                                                <input type="number" class="form-control text-center qty-lebih" name="detail[<?= $i ?>][qty_lebih]" min="0" value="0">
                                             </td>
                                             <input type="hidden" name="detail[<?= $i ?>][id_detail]" value="<?= $row['id'] ?>">
                                             <input type="hidden" name="detail[<?= $i ?>][id_so_det]" value="<?= $row['id_so_det'] ?>">
@@ -300,7 +304,7 @@
         row.querySelector('.qty-terkirim').value = qtyTerkirimBaru;
 
         // Aktifkan input reason dan file jika ada retur
-        if (qtyRetur > 0) {
+        if (qtyRetur > 0 || qtyHilang > 0) {
             reasonInput.disabled = false;
             fileInput.disabled = false;
             reasonInput.required = true;

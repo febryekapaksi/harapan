@@ -144,6 +144,7 @@ class Spk_delivery extends Admin_Controller
     $id_customer      = $data['id_customer'];
     $no_so            = $data['no_so'];
     $tanggal_spk      = !empty($data['tanggal_spk']) ? date('Y-m-d', strtotime($data['tanggal_spk'])) : NULL;
+    $tanggal_kirim    = !empty($data['tanggal_kirim']) ? date('Y-m-d', strtotime($data['tanggal_kirim'])) : NULL;
     $delivery_address = $data['delivery_address'];
     $detail           = $data['detail'];
 
@@ -164,6 +165,7 @@ class Spk_delivery extends Admin_Controller
       'id_customer'      => $id_customer,
       'no_so'            => $no_so,
       'tanggal_spk'      => $tanggal_spk,
+      'tanggal_kirim'    => $tanggal_kirim,
       'delivery_address' => $delivery_address,
       'pengiriman'       => $pengiriman,
       'created_by'       => $this->id_user,

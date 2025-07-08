@@ -63,24 +63,28 @@ class Spk_delivery_model extends BF_Model
       if ($row['status'] == 'NOT YET DELIVER') {
         $status = 'Waiting Loading';
         $warna = 'blue';
+        $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
       } else if ($row['status'] == 'LOADING') {
         $status = 'On Loading';
         $warna = 'yellow';
+        $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
       } elseif ($row['status'] == 'ON DELIVER') {
         $status = 'Delivery';
         $warna = 'green';
+        $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
       } else if ($row['status'] == 'DELIVERY CONFIRMED') {
         if ($qty_order == $row['qty_delivery']) {
           $status = 'Closed';
           $warna = 'green';
+          $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
         }
         if ($qty_order > $row['qty_delivery'] and $row['qty_delivery'] > 0) {
           $status = 'Partial SPK';
           $warna = 'yellow';
+          $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
         }
       }
 
-      $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
 
       $nestedData[]  = "<div align='center'><span class='badge bg-" . $warna . "'>" . $status . "</span></div>";
       $nestedData[]  = "<div align='center'>" . $action . "</div>";

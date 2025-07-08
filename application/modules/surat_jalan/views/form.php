@@ -165,10 +165,10 @@
         // Tombol Get SPK
         $(document).on('click', '#getSpk', function() {
             const id = $('#no_loading').val();
-            const tgl = $('#delivery_date').val();
+            // const tgl = $('#delivery_date').val();
 
-            if (!id || !tgl) {
-                swal("Peringatan", "Silakan pilih No Muat Kendaraan & Tanggal terlebih dahulu.", "warning");
+            if (!id) {
+                swal("Peringatan", "Silakan pilih No Muat Kendaraan terlebih dahulu.", "warning");
                 return;
             }
 
@@ -236,6 +236,7 @@
                                 <td hidden>${item.pengiriman}</td>
                                 <td hidden>${item.weight}</td>
                                 <td hidden>${item.id_so_det}</td>
+                                <td hidden>${item.tanggal_kirim}</td>
                             </tr>
                         `;
                         });
@@ -264,6 +265,8 @@
             $('#pengiriman').val(groupedSpk[selectedSpk].pengiriman || '');
             $('#no_delivery').val(groupedSpk[selectedSpk].no_delivery || '');
             $('#no_so').val(groupedSpk[selectedSpk].no_so || '');
+            $('#delivery_date').val(groupedSpk[selectedSpk].items[0].tanggal_kirim || '');
+
 
             let html = '';
             html += `

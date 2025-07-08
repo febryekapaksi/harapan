@@ -32,7 +32,17 @@
                                 <label>Tanggal SPK <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" name="tanggal_spk" id="tanggal_spk" class="form-control" value="" required>
+                                <input type="date" name="tanggal_spk" id="tanggal_spk" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                            </div>
+                        </div>
+
+                        <!-- Tanggal Kirim -->
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label>Tanggal Pengiriman <span class="text-red">*</span></label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="date" name="tanggal_kirim" id="tanggal_kirim" class="form-control" required>
                             </div>
                         </div>
 
