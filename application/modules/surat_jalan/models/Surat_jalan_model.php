@@ -40,7 +40,7 @@ class Surat_jalan_model extends BF_Model
             $printBtn = "<a href='" . site_url('surat_jalan/print_sj/' . $row['id']) . "' target='_blank' class='btn btn-sm btn-warning'><i class='fa fa-print'></i></a>";
             $confimDo = "<a href='" . site_url('surat_jalan/confirm_sj/' . $row['id']) . "' class='btn btn-sm btn-info' title='Confirm Delivery'><i class='fa fa-check'></i></a>";
 
-            $action =  ($row['status'] == 'CONFIRM') ? $printBtn : $printBtn . ' ' . $confimDo;
+            $action =  ($row['status'] == 'CONFIRM') || ($row['status'] == 'RETUR') || ($row['status'] == 'HILANG') ? $printBtn : $printBtn . ' ' . $confimDo;
 
             if ($row['status'] == 'ON DELIVER') {
                 $status = " <span class='badge bg-yellow'>ON DELIVERY</span>";

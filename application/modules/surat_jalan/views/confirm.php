@@ -102,14 +102,14 @@
                                     <tr>
                                         <th>#</th>
                                         <th>Product</th>
-                                        <th class="text-center">Qty Order</th>
-                                        <th class="text-center">Qty SPK</th>
-                                        <th class="text-center">Qty Delivery</th>
-                                        <th class="text-center">Qty Terkirim</th>
-                                        <th class="text-center">Qty Retur</th>
-                                        <th class="text-center">Qty Hilang</th>
-                                        <th class="text-center">Alasan Retur</th>
-                                        <th class="text-center">Upload Bukti Retur</th>
+                                        <th class="text-center" style="min-width: 100px;">Qty Order</th>
+                                        <th class="text-center" style="min-width: 100px;">Qty SPK</th>
+                                        <th class="text-center" style="min-width: 100px;">Qty Delivery</th>
+                                        <th class="text-center" style="min-width: 100px;">Qty Terkirim</th>
+                                        <th class="text-center" style="min-width: 100px;">Qty Retur</th>
+                                        <th class="text-center" style="min-width: 100px;">Qty Hilang</th>
+                                        <th class="text-center" style="min-width: 200px;">Alasan Retur</th>
+                                        <th class="text-center" style="min-width: 200px;">Upload Bukti Retur</th>
                                     </tr>
                                 </thead>
                                 <tbody>
