@@ -677,7 +677,8 @@ class Invoice_produk extends Admin_Controller
 				->join('sales_order b', 'b.no_so = a.no_so', 'left')
 				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
 				->where('a.no_surat_jalan <>', null)
-				->where('sj.status', "CONFIRM")
+				->where('sj.status !=', 'ON DELIVER')
+				->where('sj.status IS NOT NULL')
 				->get()
 				->result();
 
