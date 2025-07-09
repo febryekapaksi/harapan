@@ -242,7 +242,7 @@
 
             // Ambil data invoice dari server
             $.ajax({
-                url: siteurl + 'penerimaan/get_inv',
+                url: siteurl + 'penerimaan_cash/get_inv',
                 type: 'GET',
                 data: {
                     id_customer
@@ -387,7 +387,7 @@
                 if (confirm) {
                     $.ajax({
                         type: 'POST',
-                        url: siteurl + active_controller + 'save_cash',
+                        url: siteurl + active_controller + 'save',
                         data: formData,
                         contentType: false,
                         processData: false,
@@ -424,7 +424,7 @@
                         $('#modal-otp').modal('hide');
                         window.open(result.redirect_url, '_blank');
                         setTimeout(() => {
-                            window.location.href = siteurl + active_controller + 'index_cash';
+                            window.location.href = siteurl + active_controller + 'index';
                         }, 1000);
                     } else {
                         swal('Gagal', result.message, 'error');

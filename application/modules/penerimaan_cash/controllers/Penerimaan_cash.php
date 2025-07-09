@@ -3,7 +3,7 @@ defined('BASEPATH') or exit('No direct script access allowed');
 
 use Dompdf\Dompdf;
 
-class Penerimaan extends Admin_Controller
+class Penerimaan_cash extends Admin_Controller
 {
 
 	protected $viewPermission   = 'Penerimaan_Uang.View';
@@ -15,29 +15,17 @@ class Penerimaan extends Admin_Controller
 	{
 		parent::__construct();
 		$this->load->model(array(
-			'Penerimaan/master_model',
-			'Penerimaan/penerimaan_model',
-			'Penerimaan/All_model',
-			'Penerimaan/Jurnal_model',
-			'Penerimaan/Acc_model'
+			'Penerimaan_cash/master_model',
+			'Penerimaan_cash/penerimaan_cash_model',
+			'Penerimaan_cash/All_model',
+			'Penerimaan_cash/Jurnal_model',
+			'Penerimaan_cash/Acc_model'
 		));
 
 		date_default_timezone_set('Asia/Bangkok');
 	}
 
 	public function index()
-	{
-		$so = $this->penerimaan_model->get_data_pn();
-		$data = array(
-			'title'			=> 'Penerimaan',
-			'action'		=> 'index',
-			'results'		=> $so,
-		);
-		$this->template->set($data);
-		$this->template->render('list_payment');
-	}
-
-	public function index_cash()
 	{
 		$this->template->page_icon('fa fa-money');
 		$this->template->title('Penerimaan Uang Cash');
@@ -46,10 +34,10 @@ class Penerimaan extends Admin_Controller
 
 	public function data_side_penerimaan_cash()
 	{
-		$this->penerimaan_model->get_data_json_payment_cash();
+		$this->penerimaan_cash_model->get_data_json_payment_cash();
 	}
 
-	public function add_cash()
+	public function add()
 	{
 		// Ambil daftar customer dari invoice yang masih aktif
 		$this->db->select('c.id_customer, c.name_customer, c.npwp, c.telephone, c.fax, c.address_office, a.id_so');
@@ -110,7 +98,7 @@ class Penerimaan extends Admin_Controller
 		echo json_encode($data);
 	}
 
-	public function save_cash()
+	public function save()
 	{
 		$post = $this->input->post();
 
@@ -122,7 +110,7 @@ class Penerimaan extends Admin_Controller
 		$id_invoices = array_column($detail, 'id_invoice');
 		$invoice_string = implode(', ', $id_invoices);
 
-		$kd_pembayaran = $this->penerimaan_model->generate_nopn($tgl_pembayaran);
+		$kd_pembayaran = $this->penerimaan_cash_model->generate_nopn($tgl_pembayaran);
 		$customer = $this->db->get_where('master_customers', ['id_customer' => $id_customer])->row();
 
 		// Generate OTP
@@ -251,7 +239,7 @@ class Penerimaan extends Admin_Controller
 		echo json_encode([
 			'status' => 1,
 			'message' => 'Verifikasi berhasil. Pembayaran disimpan.',
-			'redirect_url' => base_url("penerimaan/print_struk/$kd_pembayaran")
+			'redirect_url' => base_url("penerimaan_cash/print_struk/$kd_pembayaran")
 		]);
 	}
 

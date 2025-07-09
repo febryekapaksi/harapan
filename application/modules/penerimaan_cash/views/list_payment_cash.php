@@ -3,7 +3,7 @@
 <div class="box box-primary">
     <div class="box-header">
         <span class="pull-right">
-            <a href="<?= site_url('penerimaan/add_cash') ?>" class='btn btn-success'><i class="fa fa-plus"></i>&emsp; Buat Penerimaan</a>
+            <a href="<?= site_url('penerimaan_cash/add') ?>" class='btn btn-success'><i class="fa fa-plus"></i>&emsp; Buat Penerimaan</a>
         </span>
     </div>
     <div class="box-body table-responsive">
