@@ -1,5 +1,5 @@
 <?php
-class Penerimaan_cash_model extends BF_Model
+class Penerimaan_model extends BF_Model
 {
 
 	public function __construct()
@@ -7,7 +7,7 @@ class Penerimaan_cash_model extends BF_Model
 		parent::__construct();
 	}
 
-	public function modal_detail_invoice_cash($id)
+	public function modal_detail_invoice($id)
 	{
 		$getInv = $this->db->query("SELECT * FROM tr_invoice_header WHERE no_invoice= '$id'")->row();
 
@@ -44,7 +44,7 @@ class Penerimaan_cash_model extends BF_Model
 		$this->template->set($data);
 		$this->template->page_icon('fa fa-money');
 		$this->template->title('Add Penerimaan Uang Cash');
-		$this->template->render('create_penerimaan_new_cash');
+		$this->template->render('create_penerimaan_new');
 	}
 
 	public function modal_detail_invoice_draf($id)
@@ -231,11 +231,11 @@ class Penerimaan_cash_model extends BF_Model
 	}
 
 	//SERVER SIDE 
-	public function get_data_json_payment_cash()
+	public function get_data_json_payment()
 	{
 		$requestData = $_REQUEST;
 
-		$fetch = $this->get_query_json_payment_cash(
+		$fetch = $this->get_query_json_payment(
 			$requestData['search']['value'],
 			$requestData['order'][0]['column'],
 			$requestData['order'][0]['dir'],
@@ -277,7 +277,7 @@ class Penerimaan_cash_model extends BF_Model
 
 			$tgl_bayar_formated = date('d/M/Y', strtotime($row['tgl_pembayaran']));
 
-			$action = "<a href='" . site_url('penerimaan_cash/print_struk/' . $row['kd_pembayaran']) . "' target='_blank' class='btn btn-sm btn-warning' title='Cetak Struk'><i class='fa fa-print'></i></a>";
+			$action = "<a href='" . site_url('penerimaan/print_struk/' . $row['kd_pembayaran']) . "' target='_blank' class='btn btn-sm btn-warning' title='Cetak Struk'><i class='fa fa-print'></i></a>";
 
 			$nestedData = [];
 			$nestedData[] = "<div align='center'>{$nomor}</div>";
@@ -305,7 +305,7 @@ class Penerimaan_cash_model extends BF_Model
 		]);
 	}
 
-	public function get_query_json_payment_cash($like = null, $column_order = null, $column_dir = null, $limit_start = 0, $limit_length = 10)
+	public function get_query_json_payment($like = null, $column_order = null, $column_dir = null, $limit_start = 0, $limit_length = 10)
 	{
 		$columns_order_by = [
 			0 => 'a.tgl_pembayaran',
@@ -316,14 +316,14 @@ class Penerimaan_cash_model extends BF_Model
 		// === 1. Total Data
 		$this->db->select('a.kd_pembayaran');
 		$this->db->from('tr_invoice_payment a');
-		$this->db->where('a.tipe_bayar', 'CASH');
+		$this->db->where('a.tipe_bayar', 'BANK');
 		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
 		$totalData = $this->db->count_all_results();
 
 		// === 2. Total Filtered
 		$this->db->select('a.kd_pembayaran');
 		$this->db->from('tr_invoice_payment a');
-		$this->db->where('a.tipe_bayar', 'CASH');
+		$this->db->where('a.tipe_bayar', 'BANK');
 		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
 		if ($like) {
 			$this->db->group_start();
@@ -340,9 +340,9 @@ class Penerimaan_cash_model extends BF_Model
         c.invoiced, 
         c.totalinvoiced,
         c.total_invoice
-    	');
+    ');
 		$this->db->from('tr_invoice_payment a');
-		$this->db->where('a.tipe_bayar', 'CASH');
+		$this->db->where('a.tipe_bayar', 'BANK');
 		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
 		if ($like) {
 			$this->db->group_start();
@@ -371,6 +371,7 @@ class Penerimaan_cash_model extends BF_Model
 		];
 	}
 
+
 	function generate_nopn($tgl)
 	{
 		$arr_tgl = array(
@@ -387,13 +388,16 @@ class Penerimaan_cash_model extends BF_Model
 			11 => 'K',
 			12 => 'L'
 		);
-
-		$bln_now = (int) date('m', strtotime($tgl));
-		$kode_bln = $arr_tgl[$bln_now];
-		$prefix = 'PNC-'; // khusus penerimaan cash
-
-		$cek = $prefix . date('y') . $kode_bln;
-
+		$bln_now = date('m', strtotime($tgl));
+		$kode_bln = '';
+		foreach ($arr_tgl as $k => $v) {
+			if ($k == $bln_now) {
+				$kode_bln = $v;
+			}
+		}
+		$cek = 'PN-' . date('y') . $kode_bln;
+		/*$query_cek = $this->db->query("SELECT MAX(no_so) as max_id FROM trans_so_header
+      WHERE no_so LIKE '%$cek%'")->num_rows();*/
 		$this->db->select("MAX(kd_pembayaran) as max_id");
 		$this->db->like('kd_pembayaran', $cek);
 		$this->db->from('tr_invoice_payment');
@@ -401,20 +405,28 @@ class Penerimaan_cash_model extends BF_Model
 
 		if ($query_cek == 0) {
 			$kode = 1;
+			$next_kode = str_pad($kode, 5, "0", STR_PAD_LEFT);
+			$fin = 'PN-' . date('y') . $kode_bln . $next_kode;
 		} else {
-			$row = $this->db->query("
-            SELECT MAX(kd_pembayaran) as max_id
-            FROM tr_invoice_payment
-            WHERE kd_pembayaran LIKE '%$cek%'
-        ")->row_array();
+			$query = "SELECT MAX(kd_pembayaran) as max_id
+        FROM
+        tr_invoice_payment WHERE kd_pembayaran LIKE '%$cek%'";
+			$q = $this->db->query($query);
+			$r = $q->row();
 
+
+			$query = $this->db->query("SELECT MAX(kd_pembayaran) as max_id
+        FROM
+        tr_invoice_payment WHERE kd_pembayaran LIKE '%$cek%'");
+			$row = $query->row_array();
+			$thn = date('T');
 			$max_id = $row['max_id'];
-			$kode = (int) substr($max_id, -5) + 1;
+			$max_id1 = (int) substr($max_id, -5);
+			$kode = $max_id1 + 1;
+
+			$next_kode = str_pad($kode, 5, "0", STR_PAD_LEFT);
+			$fin = 'PN-' . date('y') . $kode_bln . $next_kode;
 		}
-
-		$next_kode = str_pad($kode, 5, "0", STR_PAD_LEFT);
-		$fin = $prefix . date('y') . $kode_bln . $next_kode;
-
 		return $fin;
 	}
 

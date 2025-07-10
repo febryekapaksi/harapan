@@ -128,11 +128,12 @@ class Penerimaan_cash extends Admin_Controller
 				'header' => [
 					'tgl_pembayaran' 		=> $tgl_pembayaran,
 					'no_invoice' 			=> $invoice_string,
+					'id_customer' 			=> $id_customer,
 					'nm_customer' 			=> $customer->name_customer,
 					'jumlah_piutang_idr' 	=> $total_invoice,
 					'jumlah_pembayaran_idr' => $total_terima,
 					'keterangan' 			=> $post['ket_bayar'],
-					'created_by' 			=> $this->session->userdata('id_user'),
+					'created_by' 			=> $this->auth->user_id(),
 					'created_on' 			=> date('Y-m-d H:i:s'),
 					'tipe_bayar' 			=> "CASH"
 				],
@@ -216,6 +217,8 @@ class Penerimaan_cash extends Admin_Controller
 					'total_invoice_idr' => $tagihan,
 					'total_bayar_idr' => $total_bayar,
 					'sisa_invoice_idr' => $sisa_invoice,
+					'id_customer' => $header['id_customer'],
+					'nm_customer' => $header['nm_customer'],
 					'created_by' => $this->session->userdata('id_user'),
 					'created_on' => date('Y-m-d H:i:s'),
 					'tipe_bayar' => "CASH"
