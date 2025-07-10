@@ -499,7 +499,6 @@ class Loading extends Admin_Controller
     {
         $post = $this->input->post();
         $detail = $post['detail'];
-
         $no_loading =  $post['id_loading'];
 
         $ArrHeader = [
@@ -517,10 +516,8 @@ class Loading extends Admin_Controller
         $ArrDetail = [];
 
         foreach ($detail as $key => $value) {
-            $no_delivery = $value['no_delivery'];
-
             $ArrDetail[$key]['no_loading']      = $no_loading;
-            $ArrDetail[$key]['no_delivery']     = $no_delivery;
+            $ArrDetail[$key]['no_delivery']     = $value['no_delivery'];
             $ArrDetail[$key]['id_spk_detail']   = $value['id_spk_detail'];
             $ArrDetail[$key]['no_so']           = $value['no_so'];
             $ArrDetail[$key]['customer']        = $value['customer'];
@@ -533,11 +530,9 @@ class Loading extends Admin_Controller
 
         $this->db->trans_start();
 
-
         $this->db->update('loading_delivery', $ArrHeader, ['no_loading' => $no_loading]);
-
-        // Hapus detail lama, insert ulang
         $this->db->delete('loading_delivery_detail', ['no_loading' => $no_loading]);
+
         if (!empty($ArrDetail)) {
             $this->db->insert_batch('loading_delivery_detail', $ArrDetail);
         }
@@ -549,12 +544,24 @@ class Loading extends Admin_Controller
             $Arr_Data  = ['pesan' => 'Save gagal disimpan ...', 'status' => 0];
         } else {
             $this->db->trans_commit();
-            $Arr_Data  = ['pesan' => 'Save berhasil disimpan. Thanks ...', 'status' => 1];
             history("Update Muat Kendaraan : " . $no_loading);
+
+            $manager_number = '6285158115205'; // sudah diformat internasional +62
+            $approval_link = base_url("loading/index_approval/");
+            $wa_message = "Info, Muatan No. *$no_loading* butuh approval, silahkan akses link berikut:\n$approval_link";
+
+            $wa_response = $this->send_wa($manager_number, $wa_message);
+
+            $Arr_Data  = [
+                'pesan' => 'Save berhasil disimpan. Thanks ...',
+                'status' => 1,
+                'wa_response' => $wa_response
+            ];
         }
 
         echo json_encode($Arr_Data);
     }
+
 
     public function approve()
     {
@@ -669,5 +676,24 @@ class Loading extends Admin_Controller
         $status_spk = ($summary['total_belum_spk'] > 0) ? 'SPK Sebagian' : 'SPK Lengkap';
 
         $this->db->update('sales_order', ['status_spk' => $status_spk], ['no_so' => $no_so]);
+    }
+
+    private function send_wa($number, $message)
+    {
+        $url = 'https://app.whacenter.com/api/send';
+
+        $data = [
+            'device_id' => '56e2f7c983ea935683296b276ff30ae6',
+            'number'    => $number,
+            'message'   => $message
+        ];
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+
+        return $result;
     }
 }
