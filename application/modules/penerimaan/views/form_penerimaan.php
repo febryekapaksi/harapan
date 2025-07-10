@@ -37,9 +37,14 @@
                                 <label>Pilih Bank <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-8">
-                                <?php
-                                echo form_dropdown('bank', $bank, '', array('id' => 'bank', 'required' => 'required', 'class' => 'form-control select2'));
-                                ?>
+                                <select name="bank" id="bank" class="form-control select2" <?= $disabled ?>>
+                                    <option value="">-- Pilih ---</option>
+                                    <?php foreach ($bank as $b): ?>
+                                        <option value="<?= $b->no_perkiraan; ?>">
+                                            <?= $b->nama . " (" . $b->no_rekening . ")" ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                         </div>
                     </div>

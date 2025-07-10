@@ -49,11 +49,11 @@ class Penerimaan extends Admin_Controller
         $this->db->group_by('c.id_customer');
         $customers = $this->db->get()->result();
 
-        $data_coa_bank = $this->All_model->GetCoaCombo('5', " a.no_perkiraan like '1101%'");
+        $data_bank = $this->db->get('master_bank')->result();
 
         $data = [
             'customers' => $customers,
-            'bank'      => $data_coa_bank,
+            'bank'      => $data_bank,
         ];
 
         $this->template->title('Add Penerimaan Uang');
