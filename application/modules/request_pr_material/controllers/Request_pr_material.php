@@ -280,18 +280,6 @@ class Request_pr_material extends Admin_Controller
     echo json_encode($Arr_Data);
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
   public function approval_planning($so_number = null)
   {
     if ($this->input->post()) {
@@ -458,7 +446,7 @@ class Request_pr_material extends Admin_Controller
     $this->db->select('a.*');
     $this->db->from('new_inventory_4 a');
     $this->db->where('a.category', 'material');
-    $this->db->where('(SELECT COUNT(aa.id) FROM material_planning_base_on_produksi_detail aa WHERE aa.so_number = "'.$so_number.'" AND aa.id_material = a.code_lv4) <', 1);
+    $this->db->where('(SELECT COUNT(aa.id) FROM material_planning_base_on_produksi_detail aa WHERE aa.so_number = "' . $so_number . '" AND aa.id_material = a.code_lv4) <', 1);
     $list_material_non_pr = $this->db->get()->result_array();
 
     $data = [
@@ -574,8 +562,8 @@ class Request_pr_material extends Admin_Controller
 
     $this->db->trans_start();
     $this->db->update('material_planning_base_on_produksi', [
-      'no_rev' => ($get_pr->no_rev + 1), 
-      'reject_status' => '0', 
+      'no_rev' => ($get_pr->no_rev + 1),
+      'reject_status' => '0',
       'tgl_dibutuhkan' => $data['tgl_dibutuhkan'],
       'tingkat_pr' => $data['tingkat_pr'],
       'keterangan_1' => $data['keterangan_1'],
@@ -717,7 +705,7 @@ class Request_pr_material extends Admin_Controller
       $sisa_free     = $stock_free - $use_stock;
       $propose     = $value['propose_purchase'];
 
-      
+
 
       if ($propose > 0) {
         $hasil .= "<tr>";
@@ -755,7 +743,8 @@ class Request_pr_material extends Admin_Controller
     echo $hasil;
   }
 
-  public function del_detail(){
+  public function del_detail()
+  {
     $id = $this->input->post('id');
 
     $this->db->trans_begin();
@@ -775,7 +764,8 @@ class Request_pr_material extends Admin_Controller
     ]);
   }
 
-  public function add_material(){
+  public function add_material()
+  {
     $post = $this->input->post();
 
     $this->db->trans_begin();
@@ -789,12 +779,12 @@ class Request_pr_material extends Admin_Controller
     ];
     $this->db->insert('material_planning_base_on_produksi_detail', $ArrData);
 
-    if($this->db->trans_status() === FALSE){
+    if ($this->db->trans_status() === FALSE) {
       $this->db->trans_rollback();
 
       $valid = 0;
       $msg = "Sorry, please try again !";
-    } else{
+    } else {
       $this->db->trans_commit();
 
       $valid = 1;
@@ -807,12 +797,13 @@ class Request_pr_material extends Admin_Controller
     ]);
   }
 
-  public function get_refresh_material(){
+  public function get_refresh_material()
+  {
     $post = $this->input->post();
 
     $arr_pr_material = [];
     $get_pr_material = $this->db->select('id_material')->get_where('material_planning_base_on_produksi_detail', ['so_number' => $post['so_number']])->result_array();
-    foreach($get_pr_material as $pr_material) {
+    foreach ($get_pr_material as $pr_material) {
       $arr_pr_material[] = $pr_material['id_material'];
     }
     var_dump($arr_pr_material);
@@ -826,25 +817,26 @@ class Request_pr_material extends Admin_Controller
 
     $hasil = '';
     $no = 1;
-    foreach($get_material_non_pr as $material_non_pr){
+    foreach ($get_material_non_pr as $material_non_pr) {
       $hasil .= '<tr>';
-      $hasil .= '<td class="text-center">'.$no.'</td>';
-      $hasil .= '<td>'.$material_non_pr['nama'].'</td>';
-      $hasil .= '<td class="text-right">'.number_format($material_non_pr['min_stok'], 2).'</td>';
-      $hasil .= '<td class="text-right">'.number_format($material_non_pr['max_stok'], 2).'</td>';
-      $hasil .= '<td class="text-right">'.number_format(0, 2).'</td>';
+      $hasil .= '<td class="text-center">' . $no . '</td>';
+      $hasil .= '<td>' . $material_non_pr['nama'] . '</td>';
+      $hasil .= '<td class="text-right">' . number_format($material_non_pr['min_stok'], 2) . '</td>';
+      $hasil .= '<td class="text-right">' . number_format($material_non_pr['max_stok'], 2) . '</td>';
+      $hasil .= '<td class="text-right">' . number_format(0, 2) . '</td>';
       $hasil .= '<td><input type="text" class="form-control form-control-sm autoNumeric2 nmat_qty_pr_' . $material_non_pr['code_lv4'] . '" data-id_material="' . $material_non_pr['code_lv4'] . '"></td>';
       $hasil .= '<td><input type="text" class="form-control form-control-sm nmat_notes_' . $material_non_pr['code_lv4'] . '" data-id_material="' . $material_non_pr['code_lv4'] . '"></td>';
       $hasil .= '<td class="text-center"><button type="button" class="btn btn-sm btn-success add_material_pr add_material_pr_' . $material_non_pr['code_lv4'] . '" data-id_material="' . $material_non_pr['code_lv4'] . '"><i class="fa fa-plus"></i></button></td>';
       $hasil .= '</tr>';
-      
+
       $no++;
     }
 
     echo $hasil;
   }
 
-  public function close_pr_modal(){
+  public function close_pr_modal()
+  {
     $so_number = $this->input->post('so_number');
 
     $get_no_pr = $this->db->get_where('material_planning_base_on_produksi', ['so_number' => $so_number])->row();
@@ -854,7 +846,8 @@ class Request_pr_material extends Admin_Controller
     $this->template->render('close_pr_modal');
   }
 
-  public function close_pr() {
+  public function close_pr()
+  {
     $so_number = $this->input->post('so_number');
     $close_pr_reason = $this->input->post('close_pr_reason');
 
@@ -862,7 +855,7 @@ class Request_pr_material extends Admin_Controller
 
     $update_close_pr = $this->db->update('material_planning_base_on_produksi', ['close_pr' => 1, 'close_pr_desc' => $close_pr_reason], ['so_number' => $so_number]);
 
-    if($this->db->trans_status() === false) {
+    if ($this->db->trans_status() === false) {
       $this->db->trans_rollback();
 
       $valid = 0;

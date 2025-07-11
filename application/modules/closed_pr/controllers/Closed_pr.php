@@ -22,7 +22,7 @@ class Closed_pr extends Admin_Controller
 	public function __construct()
 	{
 		parent::__construct();
-		$this->load->library(array('Mpdf', 'upload', 'Image_lib'));
+		$this->load->library(array('upload', 'Image_lib'));
 		$this->load->model(array(
 			'Closed_pr/Closed_pr_model',
 			'Aktifitas/aktifitas_model',
@@ -37,7 +37,7 @@ class Closed_pr extends Admin_Controller
 		$this->auth->restrict($this->viewPermission);
 		$session = $this->session->userdata('app_session');
 		$this->template->page_icon('fa fa-users');
-		
+
 		$get_data = $this->db->query('
 			SELECT
 				a.so_number as id_pr,
@@ -71,29 +71,30 @@ class Closed_pr extends Admin_Controller
 		$this->template->render('index');
 	}
 
-	public function view_barang_pr() {
+	public function view_barang_pr()
+	{
 		$post = $this->input->post();
 
 		$hasil = '';
-		if($post['kategori_pr'] == 'PR Department') {
+		if ($post['kategori_pr'] == 'PR Department') {
 			$get_list_barang = $this->db->select('a.nm_barang as nm_barang, a.qty as qty, b.code as unit, b.code as unit_packing, 1 as nilai_konversi')
-			->from('rutin_non_planning_detail a')
-			->join('ms_satuan b', 'b.id = a.satuan', 'left')
-			->where('a.no_pengajuan', $post['id_pr'])
-			->get()
-			->result();
+				->from('rutin_non_planning_detail a')
+				->join('ms_satuan b', 'b.id = a.satuan', 'left')
+				->where('a.no_pengajuan', $post['id_pr'])
+				->get()
+				->result();
 		} else {
 			$get_list_barang = $this->db->select('IF(b.nama IS NULL, c.stock_name, b.nama) as nm_barang, a.propose_purchase as qty, IF(d.code IS NULL, f.code, d.code) as unit, IF(e.code IS NULL, g.code, e.code) as unit_packing, IF(b.konversi IS NULL, c.konversi, b.konversi) as nilai_konversi')
-			->from('material_planning_base_on_produksi_detail a')
-			->join('new_inventory_4 b', 'b.code_lv4 = a.id_material', 'left')
-			->join('accessories c', 'c.id = a.id_material', 'left')
-			->join('ms_satuan d', 'd.id = b.id_unit', 'left')
-			->join('ms_satuan e', 'e.id = b.id_unit_packing', 'left')
-			->join('ms_satuan f', 'f.id = c.id_unit', 'left')
-			->join('ms_satuan g', 'g.id = c.id_unit_gudang', 'left')
-			->where('a.so_number', $post['id_pr'])
-			->get()
-			->result();
+				->from('material_planning_base_on_produksi_detail a')
+				->join('new_inventory_4 b', 'b.code_lv4 = a.id_material', 'left')
+				->join('accessories c', 'c.id = a.id_material', 'left')
+				->join('ms_satuan d', 'd.id = b.id_unit', 'left')
+				->join('ms_satuan e', 'e.id = b.id_unit_packing', 'left')
+				->join('ms_satuan f', 'f.id = c.id_unit', 'left')
+				->join('ms_satuan g', 'g.id = c.id_unit_gudang', 'left')
+				->where('a.so_number', $post['id_pr'])
+				->get()
+				->result();
 			// print_r($this->db->last_query());
 			// exit;
 		}
