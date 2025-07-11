@@ -110,20 +110,20 @@
                                         </th>
                                         <th colspan="4"></th>
                                     </tr>
-                                    <!-- <tr class="bg-info">
+                                    <tr class="bg-info" hidden>
                                         <th colspan="4" class="text-right">Biaya Administrasi</th>
                                         <th>
                                             <input type="text" name="biaya_adm" class="form-control input-sm moneyFormat text-right" id="biayaAdm">
                                         </th>
                                         <th colspan="4"></th>
                                     </tr>
-                                    <tr class="bg-info">
+                                    <tr class="bg-info" hidden>
                                         <th colspan="4" class="text-right">Lebih Bayar</th>
                                         <th>
                                             <input type="text" name="lebih_bayar" class="form-control input-sm moneyFormat text-right" id="lebihBayar">
                                         </th>
                                         <th colspan="4"></th>
-                                    </tr> -->
+                                    </tr>
                                     <tr class="bg-info">
                                         <th colspan="4" class="text-right">Kontrol</th>
                                         <th>
