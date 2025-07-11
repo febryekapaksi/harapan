@@ -81,9 +81,9 @@
                                     <tr>
                                         <th style="min-width: 20px;" class="text-nowrap">No</th>
                                         <th style="min-width: 250px;" class="text-nowrap">No Invoice</th>
-                                        <th style="min-width: 100px;" class="text-nowrap">Total Invoice</th>
+                                        <th style="min-width: 100px;" class="text-nowrap">Nominal Invoice</th>
                                         <th style="min-width: 100px;" class="text-nowrap">Sisa Invoice</th>
-                                        <th style="min-width: 100px;" class="text-nowrap">Total Bayar</th>
+                                        <th style="min-width: 100px;" class="text-nowrap">Nominal Bayar</th>
                                         <th style="min-width: 20px;" class="text-nowrap"></th>
                                     </tr>
                                 </thead>
@@ -91,6 +91,13 @@
                                 <tfoot>
                                     <tr class="bg-info">
                                         <th colspan="4" class="text-right">Total Bayar Invoice</th>
+                                        <th>
+                                            <input type="text" name="total_terima" class="form-control input-sm moneyFormat text-right" id="totalBayarInvoice" readonly>
+                                        </th>
+                                        <th colspan="4"></th>
+                                    </tr>
+                                    <tr class="bg-info">
+                                        <th colspan="4" class="text-right">Total Tagihan Invoice</th>
                                         <th>
                                             <input type="text" name="total_invoice" class="form-control input-sm moneyFormat text-right" id="totalInvoice" readonly>
                                         </th>
@@ -103,7 +110,7 @@
                                         </th>
                                         <th colspan="4"></th>
                                     </tr>
-                                    <tr class="bg-info">
+                                    <!-- <tr class="bg-info">
                                         <th colspan="4" class="text-right">Biaya Administrasi</th>
                                         <th>
                                             <input type="text" name="biaya_adm" class="form-control input-sm moneyFormat text-right" id="biayaAdm">
@@ -116,14 +123,7 @@
                                             <input type="text" name="lebih_bayar" class="form-control input-sm moneyFormat text-right" id="lebihBayar">
                                         </th>
                                         <th colspan="4"></th>
-                                    </tr>
-                                    <tr class="bg-info">
-                                        <th colspan="4" class="text-right">Total Penerimaan</th>
-                                        <th>
-                                            <input type="text" name="total_terima" class="form-control input-sm moneyFormat text-right" id="totalTerima" readonly>
-                                        </th>
-                                        <th colspan="4"></th>
-                                    </tr>
+                                    </tr> -->
                                     <tr class="bg-info">
                                         <th colspan="4" class="text-right">Kontrol</th>
                                         <th>
@@ -192,7 +192,10 @@
             width: '100%'
         });
 
-        moneyFormat('.moneyFormat');
+        $('.moneyFormat').each(function() {
+            let val = parseFloat($(this).val().replace(/,/g, '')) || 0;
+            $(this).val(number_format(val, 2));
+        });
 
         $(document).on('click', '.btn-remove', function() {
             const id_invoice = $(this).closest('tr').find('td:nth-child(2)').text();
@@ -426,6 +429,7 @@
 
     function updateInvoiceTotals() {
         let totalInvoice = 0;
+        let totalBayarInvoice = 0;
         let totalBank = parseFloat($('#totalBank').val().replace(/,/g, '')) || 0;
         let sisaBank = totalBank;
 
@@ -433,6 +437,7 @@
         $('#tableInv tbody tr').each(function() {
             const $row = $(this);
             const tagihan = parseFloat($row.find('.tagihan').val().replace(/,/g, '')) || 0;
+
             totalInvoice += tagihan;
 
             let bayar = 0;
@@ -445,50 +450,33 @@
             }
 
             const sisa = tagihan - bayar;
+            totalBayarInvoice += bayar
 
             // Set Total Bayar
-            $row.find('.total_bayar').val(bayar.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }));
-
+            $row.find('.total_bayar').val(number_format(bayar, 2));
             // Set Sisa Invoice
-            $row.find('.sisa_invoice').val(sisa.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }));
+            $row.find('.sisa_invoice').val(number_format(sisa, 2));
         });
 
-        $('#totalInvoice').val(totalInvoice.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }));
+        $('#totalInvoice').val(number_format(totalInvoice, 2));
+        $('#totalBayarInvoice').val(number_format(totalBayarInvoice, 2));
 
-        calculateSelisihDanKontrol(totalBank, totalInvoice);
+        calculateSelisihDanKontrol(totalBank, totalBayarInvoice);
     }
 
 
-    function calculateSelisihDanKontrol(totalBank, totalInvoice) {
+    function calculateSelisihDanKontrol(totalBank, totalBayarInvoice) {
         const biayaAdm = parseFloat($('#biayaAdm').val().replace(/,/g, '')) || 0;
         const lebihBayar = parseFloat($('#lebihBayar').val().replace(/,/g, '')) || 0;
 
-        const selisih = totalBank - totalInvoice;
-        const kontrol = totalBank - (totalInvoice + biayaAdm - lebihBayar);
+        const selisih = totalBank - totalBayarInvoice;
+        const kontrol = selisih + biayaAdm - lebihBayar;
 
-        $('#selisih').val(selisih.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }));
-
-        $('#kontrol').val(kontrol.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }));
-
-        $('#totalTerima').val(totalBank.toLocaleString());
+        $('#selisih').val(number_format(selisih, 2));
+        $('#kontrol').val(number_format(kontrol, 2));
 
         // Enable/Disable tombol Save berdasarkan nilai kontrol
-        if (kontrol === 0) {
+        if (Math.abs(kontrol) < 0.01) {
             $('#btnSave').prop('disabled', false);
         } else {
             $('#btnSave').prop('disabled', true);
@@ -504,11 +492,35 @@
             autoGroup: true,
             placeholder: "0",
             rightAlign: false,
-            allowMinus: false,
+            allowMinus: true,
             integerDigits: 13,
             groupSeparator: ",",
             digitsOptional: false,
             showMaskOnHover: true,
         })
+    }
+
+    function number_format(number, decimals = 2, dec_point = '.', thousands_sep = ',') {
+        number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
+        var n = !isFinite(+number) ? 0 : +number;
+        var prec = !isFinite(+decimals) ? 0 : Math.abs(decimals);
+        var sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep;
+        var dec = (typeof dec_point === 'undefined') ? '.' : dec_point;
+        var s = '';
+
+        var toFixedFix = function(n, prec) {
+            var k = Math.pow(10, prec);
+            return '' + Math.round(n * k) / k;
+        };
+
+        s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+        if (s[0].length > 3) {
+            s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+        }
+        if ((s[1] || '').length < prec) {
+            s[1] = s[1] || '';
+            s[1] += new Array(prec - s[1].length + 1).join('0');
+        }
+        return s.join(dec);
     }
 </script>
