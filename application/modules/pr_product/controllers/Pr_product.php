@@ -130,10 +130,6 @@ class Pr_product extends Admin_Controller
             'app_post'          => '3',
             'app_1'             => '1',
             'app_2'             => '1',
-            'app_3'             => null,
-            'sts_reject1'       => '0',
-            'sts_reject2'       => '0',
-            'sts_reject3'       => '0',
         );
 
         $this->db->trans_start();
