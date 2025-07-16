@@ -332,4 +332,374 @@ class Pr_product extends Admin_Controller
         $this->template->title('Detail Purchase Request : ' . $so_number);
         $this->template->render('detail_planning', $data);
     }
+
+
+    public function edit_planning($so_number = null)
+    {
+        // Ambil header
+        $header = $this->db
+            ->select('a.*, b.due_date, c.name_customer')
+            ->join('so_internal b', 'a.so_number = b.so_number', 'left')
+            ->join('master_customers c', 'a.id_customer = c.id_customer', 'left')
+            ->get_where('material_planning_base_on_produksi a', ['a.so_number' => $so_number])
+            ->result_array();
+
+        // Ambil detail
+        $detail = $this->db
+            ->select('a.*, b.max_stok, b.min_stok')
+            ->join('new_inventory_4 b', 'a.id_material = b.code_lv4', 'left')
+            ->get_where('material_planning_base_on_produksi_detail a', ['a.so_number' => $so_number])
+            ->result_array();
+
+        // Ambil data inventory level 4 (dulunya dari get_inventory_lv4)
+        $GET_LEVEL4 = [];
+        $query = $this->db->select('code_lv4, nama')
+            ->from('new_inventory_4')
+            ->where('deleted_date IS NULL')
+            ->get()
+            ->result_array();
+        foreach ($query as $row) {
+            $GET_LEVEL4[$row['code_lv4']] = ['nama' => $row['nama']];
+        }
+
+        // Ambil stok pusat (dulunya dari getStokMaterial)
+        $get_stok_pusat = [];
+        $stok = $this->db
+            ->select('a.code_lv4, a.qty_stock, a.qty_booking, b.konversi')
+            ->join('new_inventory_4 b', 'a.code_lv4 = b.code_lv4')
+            ->get_where('warehouse_stock a', ['a.id_gudang' => 1])
+            ->result_array();
+
+        foreach ($stok as $s) {
+            $stok_packing = 0;
+            if ($s['qty_stock'] > 0 && $s['konversi'] > 0) {
+                $stok_packing = $s['qty_stock'] / $s['konversi'];
+            }
+            $get_stok_pusat[$s['code_lv4']] = [
+                'stok'          => $s['qty_stock'],
+                'booking'       => $s['qty_booking'],
+                'stok_packing'  => $stok_packing,
+                'konversi'      => $s['konversi']
+            ];
+        }
+
+        // NON PR 
+        $this->db->select('a.*');
+        $this->db->from('new_inventory_4 a');
+        $this->db->where('a.category', 'material');
+        $this->db->where('(SELECT COUNT(aa.id) FROM material_planning_base_on_produksi_detail aa WHERE aa.so_number = "' . $so_number . '" AND aa.id_material = a.code_lv4) <', 1);
+        $list_material_non_pr = $this->db->get()->result_array();
+
+        // Kirim ke view
+        $data = [
+            'so_number'             => $so_number,
+            'header'                => $header,
+            'detail'                => $detail,
+            'list_material_non_pr'  => $list_material_non_pr,
+            'GET_LEVEL4'            => $GET_LEVEL4,
+            'GET_STOK_PUSAT'        => $get_stok_pusat
+        ];
+
+        $this->template->page_icon('fa fa-edit');
+        $this->template->title('Edit PR : ' . $so_number);
+        $this->template->render('edit_planning', $data);
+    }
+
+    public function process_update_all()
+    {
+        $data       = $this->input->post();
+        $detail      = $data['detail'];
+        $so_number  = $data['so_number'];
+
+        $ArrUpdate = [];
+        foreach ($detail as $key => $value) {
+            $ArrUpdate[$key]['id'] = $value['id'];
+            $ArrUpdate[$key]['propose_purchase'] = str_replace(',', '', $value['qty']);
+            $ArrUpdate[$key]['note'] = $value['note'];
+        }
+
+        $get_pr = $this->db->get_where('material_planning_base_on_produksi', ['so_number' => $so_number])->row();
+
+
+        $this->db->trans_start();
+        $this->db->update('material_planning_base_on_produksi', [
+            'no_rev' => ($get_pr->no_rev + 1),
+            'reject_status' => '0',
+            'tgl_dibutuhkan' => $data['tgl_dibutuhkan'],
+            'tingkat_pr' => $data['tingkat_pr'],
+            // 'keterangan_1' => $data['keterangan_1'],
+            // 'keterangan_2' => $data['keterangan_2'],
+            'keterangan_3' => $data['keterangan_3']
+        ], ['so_number' => $so_number]);
+        if (!empty($ArrUpdate)) {
+            $this->db->update_batch('material_planning_base_on_produksi_detail', $ArrUpdate, 'id');
+        }
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $Arr_Data  = array(
+                'pesan'    => 'Process Failed !',
+                'status'  => 0,
+                'so_number'  => $so_number
+            );
+        } else {
+            $this->db->trans_commit();
+            $Arr_Data  = array(
+                'pesan'    => 'Process Success !',
+                'status'  => 1,
+                'so_number'  => $so_number
+            );
+            history("Update qty pr material  : " . $so_number);
+        }
+        echo json_encode($Arr_Data);
+    }
+
+    public function print_new()
+    {
+        $kode  = $this->uri->segment(3);
+        $data_session  = $this->session->userdata;
+        $session        = $this->session->userdata('app_session');
+        $printby    = $session['id_user'];
+
+        $data_url    = base_url();
+        $Split_Beda    = explode('/', $data_url);
+        $Jum_Beda    = count($Split_Beda);
+        $Nama_Beda    = $Split_Beda[$Jum_Beda - 2];
+
+        $getData        = $this->db->get_where('material_planning_base_on_produksi', array('so_number' => $kode))->result_array();
+        $getDataDetail  = $this->db->get_where('material_planning_base_on_produksi_detail', array('so_number' => $kode))->result_array();
+        $getCustomer    = $this->db->get_where('master_customers', array('id_customer' => $getData[0]['id_customer']))->result_array();
+
+        $data = array(
+            'Nama_Beda' => $Nama_Beda,
+            'printby' => $printby,
+            'getData' => $getData,
+            'getDataDetail' => $getDataDetail,
+            'getCustomer' => $getCustomer,
+            'GET_DET_Lv4' => get_inventory_lv4(),
+            'GET_ACCESSORIES' => get_accessories(),
+            'kode' => $kode
+        );
+        $this->load->view('print_new', $data);
+    }
+
+    public function edit_detail()
+    {
+        $post = $this->input->post();
+
+        $valid = 1;
+        $this->db->trans_begin();
+
+        $this->db->update('material_planning_base_on_produksi_detail', [
+            'propose_purchase'  => $post['qty_pr'],
+            'note'              => $post['notes']
+        ], [
+            'id' => $post['id']
+        ]);
+
+        if ($this->db->trans_status() === false) {
+            $this->db->trans_rollback();
+            $valid = 0;
+        } else {
+            $this->db->trans_commit();
+            $valid = 1;
+        }
+
+        echo json_encode([
+            'status' => $valid
+        ]);
+    }
+
+    public function refresh_pr_detail()
+    {
+        $post = $this->input->post();
+        $so_number = $post['so_number'];
+
+        $detail     = $this->db
+            ->select('a.*, b.max_stok, b.min_stok, b.nama as nm_material')
+            ->join('new_inventory_4 b', 'a.id_material=b.code_lv4', 'left')
+            ->get_where(
+                'material_planning_base_on_produksi_detail a',
+                array(
+                    'a.so_number' => $so_number
+                )
+            )
+            ->result_array();
+
+        $hasil = '';
+        $GET_LEVEL4 = get_inventory_lv4();
+        $GET_STOK_PUSAT = getStokMaterial(1);
+        foreach ($detail as $key => $value) {
+            $key++;
+            $nm_material   = (!empty($GET_LEVEL4[$value['id_material']]['nama'])) ? $GET_LEVEL4[$value['id_material']]['nama'] : '';
+            $stock_free   = $value['stock_free'];
+            $use_stock     = $value['use_stock'];
+            $sisa_free     = $stock_free - $use_stock;
+            $propose     = $value['propose_purchase'];
+
+
+
+            if ($propose > 0) {
+                $hasil .= "<tr>";
+                $hasil .= "<td class='text-center'>" . $key . "</td>";
+                $hasil .= "	<td class='text-left'>" . $value['nm_material'] . "
+            
+            </td>";
+                $hasil .= "<td class='text-right min_stok'>" . number_format($value['min_stok'], 2) . "</td>";
+                $hasil .= "<td class='text-right max_stok'>" . number_format($value['max_stok'], 2) . "</td>";
+                $hasil .= "<td class='text-right min_order'>" . number_format(0, 2) . "</td>";
+                if ($value['status_app'] == 'N') {
+                    $hasil .= "<td align='center'>";
+                    $hasil .= "<input type='hidden' name='detail[" . $key . "][id]' value='" . $value['id'] . "'>";
+                    $hasil .= "<input type='text' name='detail[" . $key . "][qty]' class='form-control input-sm text-center qty_pr_" . $value['id'] . " autoNumeric2' style='width:100px;' value='" . $propose . "'>";
+                    $hasil .= "</td>";
+                    $hasil .= "<td class='text-center'><span class='badge bg-blue text-bold'>Waiting Process</span></td>";
+                }
+                if ($value['status_app'] == 'Y') {
+                    $hasil .= "<td class='text-center'>" . number_format($propose, 2) . "</td>";
+                    $hasil .= "<td class='text-center'><span class='badge bg-green text-bold'>Approved</span></td>";
+                }
+                if ($value['status_app'] == 'D') {
+                    $hasil .= "<td class='text-center'>" . number_format($propose, 2) . "</td>";
+                    $hasil .= "<td class='text-center'><span class='badge bg-red text-bold'>Rejected</span></td>";
+                }
+                $hasil .= "<td class='text-center'><input type='text' class='form-control notes_" . $value['id'] . "' name='detail[" . $key . "][note]' value='" . $value['note'] . "'></td>";
+                $hasil .= '<td class="text-center">
+            <button type="button" class="btn btn-sm btn-warning edit_detail" data-id="' . $value['id'] . '"><i class="fa fa-edit"></i></button>
+            <button type="button" class="btn btn-sm btn-danger del_detail" data-id="' . $value['id'] . '"><i class="fa fa-trash"></i></button>
+          </td>';
+                $hasil .= "</tr>";
+            }
+        }
+
+        echo $hasil;
+    }
+
+    public function del_detail()
+    {
+        $id = $this->input->post('id');
+
+        $this->db->trans_begin();
+
+        $this->db->delete('material_planning_base_on_produksi_detail', ['id' => $id]);
+
+        if ($this->db->trans_status() === false) {
+            $this->db->trans_rollback();
+            $valid = 0;
+        } else {
+            $this->db->trans_commit();
+            $valid = 1;
+        }
+
+        echo json_encode([
+            'status' => $valid
+        ]);
+    }
+
+    public function add_material()
+    {
+        $post = $this->input->post();
+
+        $this->db->trans_begin();
+
+        $ArrData = [
+            'so_number'         => $post['so_number'],
+            'id_material'       => $post['id_material'],
+            'propose_purchase'  => $post['qty_pr'],
+            'status_app'        => 'N',
+            'note'              => $post['notes']
+        ];
+        $this->db->insert('material_planning_base_on_produksi_detail', $ArrData);
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+
+            $valid = 0;
+            $msg = "Sorry, please try again !";
+        } else {
+            $this->db->trans_commit();
+
+            $valid = 1;
+            $msg = "Success, new material has been added";
+        }
+
+        echo json_encode([
+            'status' => $valid,
+            'msg' => $msg
+        ]);
+    }
+
+    public function get_refresh_material()
+    {
+        $post = $this->input->post();
+
+        $arr_pr_material = [];
+        $get_pr_material = $this->db->select('id_material')->get_where('material_planning_base_on_produksi_detail', ['so_number' => $post['so_number']])->result_array();
+        foreach ($get_pr_material as $pr_material) {
+            $arr_pr_material[] = $pr_material['id_material'];
+        }
+        var_dump($arr_pr_material);
+        exit;
+
+        $this->db->select('a.code_lv4, a.nama');
+        $this->db->from('new_inventory_4 a');
+        $this->db->where('a.category', 'product');
+        $this->db->where_not_in('a.code_lv4', $arr_pr_material);
+        $get_material_non_pr = $this->db->get()->result_array();
+
+        $hasil = '';
+        $no = 1;
+        foreach ($get_material_non_pr as $material_non_pr) {
+            $hasil .= '<tr>';
+            $hasil .= '<td class="text-center">' . $no . '</td>';
+            $hasil .= '<td>' . $material_non_pr['nama'] . '</td>';
+            $hasil .= '<td class="text-right">' . number_format($material_non_pr['min_stok'], 2) . '</td>';
+            $hasil .= '<td class="text-right">' . number_format($material_non_pr['max_stok'], 2) . '</td>';
+            $hasil .= '<td class="text-right">' . number_format(0, 2) . '</td>';
+            $hasil .= '<td><input type="text" class="form-control form-control-sm autoNumeric2 nmat_qty_pr_' . $material_non_pr['code_lv4'] . '" data-id_material="' . $material_non_pr['code_lv4'] . '"></td>';
+            $hasil .= '<td><input type="text" class="form-control form-control-sm nmat_notes_' . $material_non_pr['code_lv4'] . '" data-id_material="' . $material_non_pr['code_lv4'] . '"></td>';
+            $hasil .= '<td class="text-center"><button type="button" class="btn btn-sm btn-success add_material_pr add_material_pr_' . $material_non_pr['code_lv4'] . '" data-id_material="' . $material_non_pr['code_lv4'] . '"><i class="fa fa-plus"></i></button></td>';
+            $hasil .= '</tr>';
+
+            $no++;
+        }
+
+        echo $hasil;
+    }
+
+    public function close_pr_modal()
+    {
+        $so_number = $this->input->post('so_number');
+
+        $get_no_pr = $this->db->get_where('material_planning_base_on_produksi', ['so_number' => $so_number])->row();
+
+        $this->template->set('no_pr', $get_no_pr->no_pr);
+        $this->template->set('so_number', $so_number);
+        $this->template->render('close_pr_modal');
+    }
+
+    public function close_pr()
+    {
+        $so_number = $this->input->post('so_number');
+        $close_pr_reason = $this->input->post('close_pr_reason');
+
+        $this->db->trans_start();
+
+        $update_close_pr = $this->db->update('material_planning_base_on_produksi', ['close_pr' => 1, 'close_pr_desc' => $close_pr_reason], ['so_number' => $so_number]);
+
+        if ($this->db->trans_status() === false) {
+            $this->db->trans_rollback();
+
+            $valid = 0;
+        } else {
+            $this->db->trans_commit();
+
+            $valid = 1;
+        }
+
+        echo json_encode([
+            'status' => $valid
+        ]);
+    }
 }

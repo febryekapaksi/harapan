@@ -64,6 +64,9 @@ if (!empty($header)) {
 							<td>Customer</td>
 							<td>:</td>
 							<td><?= $header[0]['name_customer']; ?></td>
+							<td>Keterangan</td>
+							<td>:</td>
+							<td><?= $keterangan_3 ?></td>
 						</tr>
 						<?php
 						$tgl_dibutuhkan = (!empty($header[0]['tgl_dibutuhkan'])) ? date('d F Y', strtotime($header[0]['tgl_dibutuhkan'])) : '';
@@ -72,9 +75,7 @@ if (!empty($header)) {
 							<td>Tgl Dibutuhkan</td>
 							<td>:</td>
 							<td><?= $tgl_dibutuhkan; ?></td>
-							<td>Keterangan</td>
-							<td>:</td>
-							<td><?= $keterangan_3 ?></td>
+
 						</tr>
 					</table>
 				</div>

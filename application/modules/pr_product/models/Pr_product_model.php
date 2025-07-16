@@ -180,7 +180,7 @@ class Pr_product_model extends BF_Model
                 "<div align='center'><span class='badge' style='background-color: {$status_info['warna']};'>{$status_info['sts']}</span></div>",
                 "<div align='center'>{$row['request_by']}</div>",
                 "<div align='center'>{$row['request_date']}</div>",
-                $status_info['aksi'],
+                "<div align='center'>{$status_info['aksi']}</div>",
             ];
 
             $data[] = $nestedData;
@@ -288,12 +288,12 @@ class Pr_product_model extends BF_Model
         $view = "<a href='{$base_url}/detail_planning/{$row['so_number']}' class='btn btn-sm btn-warning'><i class='fa fa-eye'></i></a>";
         $print = "<a href='{$base_url}/print_new/{$row['so_number']}' class='btn btn-sm btn-primary' target='_blank'><i class='fa fa-print'></i></a>";
         $edit = '';
-        if (@$GLOBALS['ENABLE_MANAGE'] && (count($getCheck) > 0 || $row['reject_status'] == '1')) {
+        if ($this->ENABLE_MANAGE && (count($getCheck) > 0 || $row['reject_status'] == '1')) {
             $edit = "<a href='{$base_url}/edit_planning/{$row['so_number']}' class='btn btn-sm btn-info'><i class='fa fa-edit'></i></a>";
         }
 
         $close = '';
-        if (@$GLOBALS['ENABLE_DELETE']) {
+        if ($this->ENABLE_DELETE) {
             $close = "<button type='button' class='btn btn-sm btn-danger close_pr_modal' data-so_number='{$row['so_number']}'><i class='fa fa-close'></i></button>";
         }
 

@@ -21,7 +21,7 @@
                         <th>Status</th>
                         <th>Request By</th>
                         <th>Request Date</th>
-                        <th>Option</th>
+                        <th class="text-center">Option</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
