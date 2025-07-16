@@ -201,10 +201,12 @@ if (!empty($header)) {
 					</div>
 				</div>
 			</div>
-			<div class="text-center">
-				<button type="button" class="btn btn-primary" name="save" id="save"><i class="fa fa-check-square-o"></i> Approve</button>
-				<button type="button" class="btn btn-danger" name="reject" id="reject"><i class="fa fa-ban"></i> Reject</button>
-				<button type="button" class="btn btn-default" name="back" id="back"><i class="fa fa-reply"></i> Kembali</button>
+			<div class="form-group row">
+				<div class="text-center">
+					<button type="button" class="btn btn-primary" name="save" id="save"><i class="fa fa-check-square-o"></i> Approve</button>
+					<button type="button" class="btn btn-danger" name="reject" id="reject"><i class="fa fa-ban"></i> Reject</button>
+					<button type="button" class="btn btn-default" name="back" id="back"><i class="fa fa-reply"></i> Kembali</button>
+				</div>
 			</div>
 		</form>
 	</div>
