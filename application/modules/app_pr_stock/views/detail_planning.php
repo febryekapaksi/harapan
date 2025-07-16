@@ -100,9 +100,8 @@ $tgl_dibutuhkan = (!empty($header[0]['tgl_dibutuhkan'])) ? date('d F Y', strtoti
 			</div>
 
 			<div class="form-group row">
-				<div class="col-md-12">
-					<!-- <button type="button" class="btn btn-primary" name="save" id="save">Process</button> -->
-					<button type="button" class="btn btn-danger" style='margin-left:5px;' name="back" id="back">Back</button>
+				<div class="text-center">
+					<button type="button" class="btn btn-default" name="back" id="back"><i class="fa fa-reply"></i> Kembali</button>
 				</div>
 			</div>
 		</form>

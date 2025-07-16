@@ -52,7 +52,7 @@ class App_pr_product_model extends BF_Model
 
             $nestedData = [
                 "<div align='center'>{$urut}</div>",
-                "<div align='left'>PRODUCTION PLANNING " . strtoupper($row['so_number']) . "</div>",
+                "<div align='left'>PRODUCT PLANNING " . strtoupper($row['so_number']) . "</div>",
                 "<div align='left'>" . strtoupper($row['so_number']) . "</div>",
                 "<div align='center'>" . strtoupper($row['no_pr']) . "</div>",
                 "<div align='left'>" . strtoupper($row['project']) . "</div>",

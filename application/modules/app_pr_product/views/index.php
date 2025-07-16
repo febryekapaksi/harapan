@@ -1,7 +1,6 @@
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 <div class="box box-primary">
     <div class="box-header">
-        <br>
         <div class="form-group row" hidden>
             <div class="col-md-1">
                 <b>Product Type</b>

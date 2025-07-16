@@ -4,25 +4,10 @@ defined('BASEPATH') or exit('No direct script access allowed');
 class App_pr_stock extends Admin_Controller
 {
   //Permission
-  protected $viewPermission   = 'Approval_PR_Stock.View';
-  protected $addPermission    = 'Approval_PR_Stock.Add';
-  protected $managePermission = 'Approval_PR_Stock.Manage';
-  protected $deletePermission = 'Approval_PR_Stock.Delete';
-
-  protected $viewPermission1   = 'Approval_PR_Stok_Head.View';
-  protected $addPermission1    = 'Approval_PR_Stok_Head.Add';
-  protected $managePermission1 = 'Approval_PR_Stok_Head.Manage';
-  protected $deletePermission1 = 'Approval_PR_Stok_Head.Delete';
-
-  protected $viewPermission2   = 'Approval_PR_Stock_Cost_Control.View';
-  protected $addPermission2    = 'Approval_PR_Stock_Cost_Control.Add';
-  protected $managePermission2 = 'Approval_PR_Stock_Cost_Control.Manage';
-  protected $deletePermission2 = 'Approval_PR_Stock_Cost_Control.Delete';
-
-  protected $viewPermission3   = 'Approval_PR_Stock_Management.View';
-  protected $addPermission3    = 'Approval_PR_Stock_Management.Add';
-  protected $managePermission3 = 'Approval_PR_Stock_Management.Manage';
-  protected $deletePermission3 = 'Approval_PR_Stock_Management.Delete';
+  protected $viewPermission   = 'Approval_PR_Stock_Management.View';
+  protected $addPermission    = 'Approval_PR_Stock_Management.Add';
+  protected $managePermission = 'Approval_PR_Stock_Management.Manage';
+  protected $deletePermission = 'Approval_PR_Stock_Management.Delete';
 
   public function __construct()
   {
@@ -38,41 +23,10 @@ class App_pr_stock extends Admin_Controller
   public function index()
   {
     $this->auth->restrict($this->viewPermission);
-    $session  = $this->session->userdata('app_session');
 
-    history("View index approval pr stock");
-    $this->template->title('Approval PR / PR Stock');
+    $this->template->page_icon('fa fa-calendar-check-o');
+    $this->template->title('Approval PR Stock');
     $this->template->render('index');
-  }
-
-  public function approval_head()
-  {
-    $this->auth->restrict($this->viewPermission1);
-    $session  = $this->session->userdata('app_session');
-
-    // history("View index approval pr stock");
-    $this->template->title('Approval PR Stock - Head');
-    $this->template->render('approval_head');
-  }
-
-  public function approval_cost_control()
-  {
-    $this->auth->restrict($this->viewPermission2);
-    $session  = $this->session->userdata('app_session');
-
-    // history("View index approval pr stock");
-    $this->template->title('Approval PR Stock - Cost Control');
-    $this->template->render('approval_cost_control');
-  }
-
-  public function approval_management()
-  {
-    $this->auth->restrict($this->viewPermission3);
-    $session  = $this->session->userdata('app_session');
-
-    // history("View index approval pr stock");
-    $this->template->title('Approval PR Stock - Management');
-    $this->template->render('approval_management');
   }
 
   public function data_side_approval_pr_material()
@@ -83,12 +37,12 @@ class App_pr_stock extends Admin_Controller
   public function approval_planning($so_number = null)
   {
     if ($this->input->post()) {
-      $data         = $this->input->post();
-      $session      = $this->session->userdata('app_session');
+      $data             = $this->input->post();
+      $session          = $this->session->userdata('app_session');
 
       $so_number        = $data['so_number'];
-      $tgl_dibutuhkan    = (!empty($data['tgl_dibutuhkan'])) ? date('Y-m-d', strtotime($data['tgl_dibutuhkan'])) : NULL;
-      $detail            = $data['detail'];
+      $tgl_dibutuhkan   = (!empty($data['tgl_dibutuhkan'])) ? date('Y-m-d', strtotime($data['tgl_dibutuhkan'])) : NULL;
+      $detail           = $data['detail'];
 
 
       $ArrPlanningDetail = [];
@@ -120,9 +74,6 @@ class App_pr_stock extends Admin_Controller
         'updated_date'    => $this->datetime
       );
 
-      // print_r($ArrBOMDetail);
-      // exit;
-
       $this->db->trans_start();
       $this->db->where('so_number', $so_number);
       $this->db->update('material_planning_base_on_produksi', $ArrHeader);
@@ -144,7 +95,7 @@ class App_pr_stock extends Admin_Controller
           'pesan'    => 'Save berhasil disimpan. Thanks ...',
           'status'  => 1
         );
-        history("Create material planning  : " . $so_number);
+        history("Create stok planning  : " . $so_number);
       }
       echo json_encode($Arr_Data);
     } else {
@@ -186,26 +137,26 @@ class App_pr_stock extends Admin_Controller
       }
 
       $data = [
-        'so_number' => $so_number,
-        'header' => $header,
-        'detail' => $detail,
-        'tingkat_approval' => $tingkat_approval,
-        'GET_LEVEL4'   => get_inventory_lv4(),
-        'GET_STOK_PUSAT' => getStokMaterial(1)
+        'so_number'         => $so_number,
+        'header'            => $header,
+        'detail'            => $detail,
+        'tingkat_approval'  => $tingkat_approval,
+        'GET_LEVEL4'        => get_inventory_lv4(),
+        'GET_STOK_PUSAT'    => getStokMaterial(1)
       ];
 
-      $posisi_approval = "";
-      if ($tingkat_approval == "1") {
-        $posisi_approval = "Approval PR Head";
-      }
-      if ($tingkat_approval == "2") {
-        $posisi_approval = "Approval PR Cost Control";
-      }
-      if ($tingkat_approval == "3") {
-        $posisi_approval = "Approval PR Management";
-      }
+      // $posisi_approval = "";
+      // if ($tingkat_approval == "1") {
+      //   $posisi_approval = "Approval PR Head";
+      // }
+      // if ($tingkat_approval == "2") {
+      //   $posisi_approval = "Approval PR Cost Control";
+      // }
+      // if ($tingkat_approval == "3") {
+      //   $posisi_approval = "Approval PR";
+      // }
 
-      $this->template->title($posisi_approval . ' - ' . $so_number);
+      $this->template->title('Approval PR : ' . $so_number);
       $this->template->render('approval_planning', $data);
     }
   }
@@ -255,7 +206,7 @@ class App_pr_stock extends Admin_Controller
       'GET_STOK_PUSAT' => getStokMaterial(1)
     ];
 
-    $this->template->title('Detail - ' . $so_number);
+    $this->template->title('Detail PR : ' . $so_number);
     $this->template->render('detail_planning', $data);
   }
 
@@ -274,9 +225,6 @@ class App_pr_stock extends Admin_Controller
       'app_date'    => $this->datetime
     );
 
-    // print_r($ArrBOMDetail);
-    // exit;
-
     $this->db->trans_start();
     $this->db->where('id', $id);
     $this->db->update('material_planning_base_on_produksi_detail', $ArrHeader);
@@ -285,16 +233,16 @@ class App_pr_stock extends Admin_Controller
     if ($this->db->trans_status() === FALSE) {
       $this->db->trans_rollback();
       $Arr_Data  = array(
-        'pesan'    => 'Process Failed !',
-        'status'  => 0,
-        'so_number'  => $so_number
+        'pesan'       => 'Process Failed !',
+        'status'      => 0,
+        'so_number'   => $so_number
       );
     } else {
       $this->db->trans_commit();
       $Arr_Data  = array(
-        'pesan'    => 'Process Success !',
-        'status'  => 1,
-        'so_number'  => $so_number
+        'pesan'       => 'Process Success !',
+        'status'      => 1,
+        'so_number'   => $so_number
       );
       history($action . " satuan pr stock  : " . $id);
     }
@@ -303,9 +251,9 @@ class App_pr_stock extends Admin_Controller
 
   public function process_approval_all()
   {
-    $data       = $this->input->post();
-    $check      = $data['check'];
-    $so_number  = $data['so_number'];
+    $data             = $this->input->post();
+    $check            = $data['check'];
+    $so_number        = $data['so_number'];
     $tingkat_approval = $data['tingkat_approval'];
 
     $ArrUpdateHeader = [];
@@ -386,10 +334,7 @@ class App_pr_stock extends Admin_Controller
 
     $this->db->update('material_planning_base_on_produksi', $ArrData, ['so_number' => $so_number]);
 
-    // $this->db->update('material_planning_base_on_produksi', ['reject_status' => 1, 'reject_reason' => $data['reject_reason']], ['so_number' => $so_number]);
-
     $this->db->trans_complete();
-
 
     if ($this->db->trans_status() === FALSE) {
       $this->db->trans_rollback();
@@ -405,8 +350,41 @@ class App_pr_stock extends Admin_Controller
         'status'  => 1,
         'so_number'  => $so_number
       );
-      history("Approve pr material  : " . $so_number);
+      history("Approve pr stock  : " . $so_number);
     }
     echo json_encode($Arr_Data);
   }
 }
+
+
+// TRASH
+
+  // public function approval_head()
+  // {
+  //   $this->auth->restrict($this->viewPermission1);
+  //   $session  = $this->session->userdata('app_session');
+
+  //   // history("View index approval pr stock");
+  //   $this->template->title('Approval PR Stock - Head');
+  //   $this->template->render('approval_head');
+  // }
+
+  // public function approval_cost_control()
+  // {
+  //   $this->auth->restrict($this->viewPermission2);
+  //   $session  = $this->session->userdata('app_session');
+
+  //   // history("View index approval pr stock");
+  //   $this->template->title('Approval PR Stock - Cost Control');
+  //   $this->template->render('approval_cost_control');
+  // }
+
+  //   public function approval_management()
+  // {
+  //   $this->auth->restrict($this->viewPermission3);
+  //   $session  = $this->session->userdata('app_session');
+
+  //   // history("View index approval pr stock");
+  //   $this->template->title('Approval PR Stock - Management');
+  //   $this->template->render('approval_management');
+  // }

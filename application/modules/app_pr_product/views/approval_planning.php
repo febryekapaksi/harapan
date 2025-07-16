@@ -113,11 +113,11 @@ if (!empty($header[0]['app_3']) && $header[0]['app_3'] == '1') {
                                 <?php
                                 foreach ($detail as $key => $value) {
                                     $key++;
-                                    $nm_material     = $value['nama'];
+                                    $nm_material    = $value['nama'];
                                     $stock_free     = $value['stock_free'];
-                                    $use_stock         = $value['use_stock'];
-                                    $sisa_free         = $stock_free - $use_stock;
-                                    $propose         = $value['propose_purchase'];
+                                    $use_stock      = $value['use_stock'];
+                                    $sisa_free      = $stock_free - $use_stock;
+                                    $propose        = $value['propose_purchase'];
 
                                     echo "<tr>";
                                     if ($value['status_app'] == 'N') {

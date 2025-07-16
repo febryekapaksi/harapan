@@ -12,13 +12,12 @@ $ENABLE_DELETE  = has_permission('Approval_PR_Stock.Delete');
 <div id='alert_edit' class="alert alert-success alert-dismissable" style="padding: 15px; display: none;"></div>
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 
-<div class="box">
+<div class="box box-primary">
 	<div class="box-header">
 		<?php if ($ENABLE_ADD) : ?>
 			<!-- <a class="btn btn-info btn-sm" style='float:right; margin-left:5px;' href="<?= base_url('stock_origa/download_excel'); ?>" target='_blank' title="Download"><i class="fa fa-excel">&nbsp;</i>Excel</a>
 					<a class="btn btn-success btn-sm" style='float:right;' href="<?= base_url('stock_origa/add') ?>" title="Add">Add Stock</a> -->
 		<?php endif; ?>
-		<br>
 		<div class="form-group row" hidden>
 			<div class="col-md-1">
 				<b>Product Type</b>
