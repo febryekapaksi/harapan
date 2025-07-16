@@ -161,7 +161,7 @@ class Penerimaan_cash extends Admin_Controller
 		$url = 'https://app.whacenter.com/api/send';
 
 		$data = [
-			'device_id' => '56e2f7c983ea935683296b276ff30ae6',
+			'device_id' => 'ea118812b9454dc34a477ae1c053f0fc',
 			'number' => $number, // format: 628xxx
 			'message' => $message
 		];
