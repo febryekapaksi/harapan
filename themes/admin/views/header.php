@@ -5,7 +5,8 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title><?= isset($idt->nm_perusahaan) ? $idt->nm_perusahaan : 'not-set'; ?><?= isset($template['title']) ? ' | ' . $template['title'] : ''; ?></title>
-  <link rel="shortcut icon" href="<?php echo base_url('assets/'); ?>images/importa.png" />
+  <link rel="shortcut icon" href="<?php echo base_url('assets/'); ?>images/harapan_logo.png" />
+
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
   <!-- Sweet Alert -->
@@ -110,61 +111,61 @@
               </a>
               <ul class="dropdown-menu">
                 <li style="background-color: #0080ff; min-width: 500px; max-width:500px; border: 1px solid #ccc;">
-                 
-                    <table border="1">
-                      <tr>
-                        <th width="60" class="text-center" rowspan="2">
-                          <img src="assets/images/Kaya_NFS.jpg" alt="" class="img-circle" width="50" height="50">
-                        </th>
-                        <th style="color: white; padding-left: 15px; word-wrap: break-word; white-space: normal;">
-                          <h4>Testing Inbox</h4>
-                        </th>
-                      </tr>
-                      <tr>
-                        <td style="max-width: 500px; word-wrap: break-word; white-space: normal; padding: 15px; text-align: justify; color: white;">
-                          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Illum asperiores ea nesciunt soluta nulla. Praesentium blanditiis quisquam facilis esse tempora nemo, iusto sunt itaque! Vitae dicta totam sapiente minus. Enim?
-                        </td>
-                      </tr>
-                    </table>
-                
+
+                  <table border="1">
+                    <tr>
+                      <th width="60" class="text-center" rowspan="2">
+                        <img src="assets/images/Kaya_NFS.jpg" alt="" class="img-circle" width="50" height="50">
+                      </th>
+                      <th style="color: white; padding-left: 15px; word-wrap: break-word; white-space: normal;">
+                        <h4>Testing Inbox</h4>
+                      </th>
+                    </tr>
+                    <tr>
+                      <td style="max-width: 500px; word-wrap: break-word; white-space: normal; padding: 15px; text-align: justify; color: white;">
+                        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Illum asperiores ea nesciunt soluta nulla. Praesentium blanditiis quisquam facilis esse tempora nemo, iusto sunt itaque! Vitae dicta totam sapiente minus. Enim?
+                      </td>
+                    </tr>
+                  </table>
+
                 </li>
                 <li style="background-color: #0080ff; min-width: 500px; max-width:500px; border: 1px solid #ccc;">
-                 
-                    <table border="1">
-                      <tr>
-                        <th width="60" class="text-center" rowspan="2">
-                          <img src="assets/images/Kaya_NFS.jpg" alt="" class="img-circle" width="50" height="50">
-                        </th>
-                        <th style="color: white; padding-left: 15px; word-wrap: break-word; white-space: normal;">
-                          <h4>Testing Inbox</h4>
-                        </th>
-                      </tr>
-                      <tr>
-                        <td style="max-width: 500px; word-wrap: break-word; white-space: normal; padding: 15px; text-align: justify; color: white;">
-                          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Illum asperiores ea nesciunt soluta nulla. Praesentium blanditiis quisquam facilis esse tempora nemo, iusto sunt itaque! Vitae dicta totam sapiente minus. Enim?
-                        </td>
-                      </tr>
-                    </table>
-                
+
+                  <table border="1">
+                    <tr>
+                      <th width="60" class="text-center" rowspan="2">
+                        <img src="assets/images/Kaya_NFS.jpg" alt="" class="img-circle" width="50" height="50">
+                      </th>
+                      <th style="color: white; padding-left: 15px; word-wrap: break-word; white-space: normal;">
+                        <h4>Testing Inbox</h4>
+                      </th>
+                    </tr>
+                    <tr>
+                      <td style="max-width: 500px; word-wrap: break-word; white-space: normal; padding: 15px; text-align: justify; color: white;">
+                        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Illum asperiores ea nesciunt soluta nulla. Praesentium blanditiis quisquam facilis esse tempora nemo, iusto sunt itaque! Vitae dicta totam sapiente minus. Enim?
+                      </td>
+                    </tr>
+                  </table>
+
                 </li>
                 <li style="background-color: #0080ff; min-width: 500px; max-width:500px; border: 1px solid #ccc;">
-                 
-                    <table border="1">
-                      <tr>
-                        <th width="60" class="text-center" rowspan="2">
-                          <img src="assets/images/Kaya_NFS.jpg" alt="" class="img-circle" width="50" height="50">
-                        </th>
-                        <th style="color: white; padding-left: 15px; word-wrap: break-word; white-space: normal;">
-                          <h4>Testing Inbox</h4>
-                        </th>
-                      </tr>
-                      <tr>
-                        <td style="max-width: 500px; word-wrap: break-word; white-space: normal; padding: 15px; text-align: justify; color: white;">
-                          Lorem, ipsum dolor sit amet consectetur adipisicing elit. Illum asperiores ea nesciunt soluta nulla. Praesentium blanditiis quisquam facilis esse tempora nemo, iusto sunt itaque! Vitae dicta totam sapiente minus. Enim?
-                        </td>
-                      </tr>
-                    </table>
-                
+
+                  <table border="1">
+                    <tr>
+                      <th width="60" class="text-center" rowspan="2">
+                        <img src="assets/images/Kaya_NFS.jpg" alt="" class="img-circle" width="50" height="50">
+                      </th>
+                      <th style="color: white; padding-left: 15px; word-wrap: break-word; white-space: normal;">
+                        <h4>Testing Inbox</h4>
+                      </th>
+                    </tr>
+                    <tr>
+                      <td style="max-width: 500px; word-wrap: break-word; white-space: normal; padding: 15px; text-align: justify; color: white;">
+                        Lorem, ipsum dolor sit amet consectetur adipisicing elit. Illum asperiores ea nesciunt soluta nulla. Praesentium blanditiis quisquam facilis esse tempora nemo, iusto sunt itaque! Vitae dicta totam sapiente minus. Enim?
+                      </td>
+                    </tr>
+                  </table>
+
                 </li>
               </ul>
             </li>
