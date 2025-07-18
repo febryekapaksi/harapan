@@ -36,7 +36,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 						<thead>
 							<tr>
 								<th width="5">#</th>
-								<th width="13%" hidden>Id Customer</th>
+								<th width="13%">Id Customer</th>
 								<th>Nama Customer</th>
 								<th>Sales</th>
 								<th hidden>Kategori Customer</th>
@@ -60,7 +60,7 @@ $ENABLE_DELETE  = has_permission('Master_customer.Delete');
 							?>
 									<tr>
 										<td><?= $numb; ?></td>
-										<td hidden><?= $customer->id_customer ?></td>
+										<td><?= $customer->id_customer ?></td>
 										<td><?= $customer->name_customer ?></td>
 										<td><?= ucfirst($customer->nama_karyawan) ?></td>
 										<td hidden><?php
