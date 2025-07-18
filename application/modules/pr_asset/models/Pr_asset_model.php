@@ -409,7 +409,9 @@ class Pr_asset_model extends BF_model
 				'category' => 'asset',
 				'tgl_pr'	=> date('Y-m-d'),
 				'created_by' => $this->auth->user_id(),
-				'created_date' => date('Y-m-d H:i:s')
+				'created_date' => date('Y-m-d H:i:s'),
+				'app_status_1' => "Y",
+				'app_status_2' => "Y",
 			);
 
 			$ArrDetail = array(
@@ -562,7 +564,7 @@ class Pr_asset_model extends BF_model
 			}
 			$nestedData[]	= "<div align='left'><span class='badge bg-" . $color . "'>" . strtoupper($status) . "</span></div>";
 			$view = '';
-			if($requestData['tanda'] !== '' && $requestData['tanda'] !== null) {
+			if ($requestData['tanda'] !== '' && $requestData['tanda'] !== null) {
 				$view = "<button type='button' class='btn btn-sm btn-primary look_hide' title='Look and Hide' data-id='" . $nomor . "' data-role='qtip'><i class='fa fa-check'></i></button>";
 			}
 			$print			= "&nbsp;<button type='button'class='btn btn-sm btn-info print_pr' title='Print PR' data-no_pr='" . $row['no_pr'] . "'><i class='fa fa-print'></i></button>";
@@ -587,7 +589,7 @@ class Pr_asset_model extends BF_model
 			}
 
 			//detail
-			if($requestData['tanda'] !== '' && $requestData['tanda'] !== null) {
+			if ($requestData['tanda'] !== '' && $requestData['tanda'] !== null) {
 				$nestedData2 	= array();
 				$nestedData2[]	= "<div class='prtCh_" . $nomor . "' align='center'></div><script type='text/javascript'>$('.prtCh_" . $nomor . "').parent().parent().attr('class','child-" . $nomor . "');$('.child-" . $nomor . "').hide()</script>"; //$('.prtCh_".$nomor."').parent().parent().attr('height','200px');
 				$nestedData2[]	= "<div align='left'></div>";
@@ -595,13 +597,13 @@ class Pr_asset_model extends BF_model
 				$nestedData2[]	= "<div align='right'><b>NILAI PR</b></br>" . number_format($row['nilai_pr']) . "</div>";
 				$nestedData2[]	= "<div align='right'><b>TGL DIBUTUHKAN</b></br>" . date('d F Y', strtotime($row['tgl_dibutuhkan'])) . "</div>";
 				$approve = "<button type='button' class='btn btn-sm btn-success approve' title='Approve' data-id='" . $nomor . "' data-tipe_approve='" . $tipe_approve . "' data-role='qtip'><i class='fa fa-check'></i></button>";
-	
+
 				$app_by = '';
 				$app_date = '';
 				if ($row['app_reason_1'] !== '' || $row['app_reason_1'] !== null) {
 					$app_reason = $row['app_reason_1'];
 					$app_date = date('d-M-Y H:i:s', strtotime($row['app_date_1']));
-	
+
 					$get_create_by = $this->db->get_where('users', ['id_user' => $row['app_by_1']])->row();
 					if (!empty($get_create_by)) {
 						$app_by = $get_create_by->nm_lengkap;
@@ -609,7 +611,7 @@ class Pr_asset_model extends BF_model
 				} else if ($row['app_reason_2'] !== '' || $row['app_reason_2'] !== null) {
 					$app_reason = $row['app_reason_2'];
 					$app_date = date('d-M-Y H:i:s', strtotime($row['app_date_2']));
-	
+
 					$get_create_by = $this->db->get_where('users', ['id_user' => $row['app_by_2']])->row();
 					if (!empty($get_create_by)) {
 						$app_by = $get_create_by->nm_lengkap;
@@ -617,7 +619,7 @@ class Pr_asset_model extends BF_model
 				} else if ($row['app_reason_3'] !== '' || $row['app_reason_3'] !== null) {
 					$app_reason = $row['app_reason_3'];
 					$app_date = date('d-M-Y H:i:s', strtotime($row['app_date_3']));
-	
+
 					$get_create_by = $this->db->get_where('users', ['id_user' => $row['app_by_3']])->row();
 					if (!empty($get_create_by)) {
 						$app_by = $get_create_by->nm_lengkap;
