@@ -4,12 +4,12 @@
 <!-- /.content-wrapper -->
 <!-- Main Footer -->
 <footer class="main-footer">
-    <!-- To the right -->
-    <div class="pull-right hidden-xs">
+  <!-- To the right -->
+  <div class="pull-right hidden-xs">
     <?= isset($idt->nm_perusahaan) ? $idt->nm_perusahaan : 'not-set'; ?> - Page rendered in <strong>{elapsed_time}</strong> seconds
-    </div>
-    <!-- Default to the left -->
-    <strong>Copyright &copy; 2020 <a href="<?= site_url(); ?>"><?= isset($idt->nm_perusahaan) ? $idt->nm_perusahaan : 'not-set'; ?></a>.</strong> All rights reserved.
+  </div>
+  <!-- Default to the left -->
+  <strong>Copyright &copy; <?= date('Y') ?> <a href="<?= site_url(); ?>"><?= isset($idt->nm_perusahaan) ? $idt->nm_perusahaan : 'not-set'; ?></a>.</strong> All rights reserved.
 </footer>
 </div>
 <!-- ./wrapper -->
@@ -40,25 +40,26 @@ fixed layout. -->
 
 <script src="https://cdn.datatables.net/fixedheader/3.1.7/js/dataTables.fixedHeader.min.js"></script>
 </body>
+
 </html>
 
 <script type="text/javascript">
-  $(document).ready(function(){
+  $(document).ready(function() {
     $('.chosen-select').select2();
 
-    $("li .treeview .active" ).each(function() {
+    $("li .treeview .active").each(function() {
       var classKey = $(this).attr('class').split(' ')[0]
-      var classHead = classKey+'head'
-      $('.'+classHead).addClass('active');
+      var classHead = classKey + 'head'
+      $('.' + classHead).addClass('active');
     });
 
 
   });
 
   function getNum(val) {
-     if (isNaN(val) || val == '') {
-       return 0;
-     }
-     return parseFloat(val);
+    if (isNaN(val) || val == '') {
+      return 0;
+    }
+    return parseFloat(val);
   }
 </script>
