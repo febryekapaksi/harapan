@@ -400,10 +400,7 @@
                         dataType: 'json',
                         success: function(result) {
                             if (result.status == '1') {
-                                // Setelah OTP dikirim, tampilkan modal input
-                                startOtpTimer();
-                                $('#modal-otp').modal('show');
-                                $('#otp-kd-pembayaran').val(result.kd_pembayaran);
+                                swal('Success', result.message, 'success')
                             } else {
                                 swal('Failed!', result.message, 'warning');
                             }

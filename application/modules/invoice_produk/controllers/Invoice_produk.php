@@ -495,6 +495,9 @@ class Invoice_produk extends Admin_Controller
 	public function create_invoice()
 	{
 		$post = $this->input->post();
+		$id_so = $post['no_so'];
+
+		$tgl_so = $this->db->select('tgl_so')->where('no_so', $id_so)->limit(1)->get('sales_order')->row('tgl_so');
 
 		$id_invoice = $this->Invoice_produk_model->generate_id_invoice();
 
@@ -504,8 +507,9 @@ class Invoice_produk extends Admin_Controller
 		if ($post['tipe_billing'] == 'delivery') {
 			$data_insert = [
 				'id_invoice' => $id_invoice,
-				'id_so' => $post['no_so'],
+				'id_so' => $id_so,
 				'tipe_so' => $post['tipe_so'],
+				'tgl_so' => $post['tgl_so'],
 				'id_penawaran' => $post['id_penawaran'],
 				'id_customer' => $post['id_customer'],
 				'id_billing' => $post['id_billing'],

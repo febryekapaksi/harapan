@@ -119,10 +119,10 @@ class App_pr_departemen extends Admin_Controller
                     'nilai_pr' => $harga,
                     'tgl_dibutuhkan' => $valx['tanggal'],
                     'satuan' => $valx['satuan'],
-                    'app_status' => 'Y',
-                    'app_reason' => strtolower($valx['keterangan']),
-                    'app_by' => $this->auth->user_id(),
-                    'app_date' => $dateTime,
+                    'app_status_3' => 'Y',
+                    'app_reason_3' => strtolower($valx['keterangan']),
+                    'app_by_3' => $this->auth->user_id(),
+                    'app_date_3' => $dateTime,
                     'created_by' => $this->auth->user_id(),
                     'created_date' => $dateTime
                 ];
@@ -157,12 +157,6 @@ class App_pr_departemen extends Admin_Controller
                 ];
             }
 
-            echo '<pre>';
-            print_r($ArrHeader);
-            print_r($ArrDetail);
-            echo '</pre>';
-            die();
-
             $this->db->trans_start();
             $this->db->update('rutin_non_planning_header', $ArrHeader, ['no_pengajuan' => $code_plan]);
             $this->db->update_batch('rutin_non_planning_detail', $ArrDetail, 'id');
@@ -171,7 +165,7 @@ class App_pr_departemen extends Admin_Controller
                 $this->db->insert('rutin_non_planning_header', [
                     'no_pr' => $no_pr,
                     'category' => 'non rutin',
-                    'tgl_pr' => date('Y-m-d'),
+                    'tanggal' => date('Y-m-d'),
                     'created_by' => $this->auth->user_id(),
                     'created_date' => $dateTime
                 ]);
