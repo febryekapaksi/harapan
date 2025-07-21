@@ -86,7 +86,7 @@ class Penerimaan extends Admin_Controller
             c.name_customer
         ')
             ->from('tr_invoice_sales i')
-            ->join('sales_order so', 'so.no_so = i.id_so', 'left')
+            // ->join('sales_order so', 'so.no_so = i.id_so', 'left')
             ->join('master_customers c', 'c.id_customer = i.id_customer', 'left')
             ->where('i.id_customer', $id_customer)
             ->where('i.sts', 1)
