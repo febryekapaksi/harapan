@@ -82,7 +82,7 @@ class Penerimaan extends Admin_Controller
             i.grand_total,
 			(i.grand_total - IFNULL(bayar.total_bayar, 0)) as sisa_tagihan,
             DATE_FORMAT(i.created_on, "%d/%b/%Y") as tgl_inv,
-            DATE_FORMAT(so.tgl_so, "%d/%b/%Y") as tgl_so,
+            DATE_FORMAT(i.tgl_so, "%d/%b/%Y") as tgl_so,
             c.name_customer
         ')
             ->from('tr_invoice_sales i')
