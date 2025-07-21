@@ -42,8 +42,8 @@ class Penerimaan extends Admin_Controller
         // Ambil daftar customer dari invoice yang masih aktif
         $this->db->select('c.id_customer, c.name_customer, c.npwp, c.telephone, c.fax, c.address_office, a.id_so');
         $this->db->from('tr_invoice_sales a');
-        $this->db->join('sales_order b', 'b.no_so = a.id_so', 'left');
-        $this->db->join('master_customers c', 'c.id_customer = b.id_customer', 'left');
+        // $this->db->join('sales_order b', 'b.no_so = a.id_so', 'left');
+        $this->db->join('master_customers c', 'c.id_customer = a.id_customer', 'left');
         $this->db->where('c.deleted_by IS NULL');
         $this->db->where('a.sts', 1);
         $this->db->group_by('c.id_customer');
