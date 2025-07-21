@@ -79,11 +79,11 @@ class Penerimaan_cash extends Admin_Controller
             i.grand_total,
 			(i.grand_total - IFNULL(bayar.total_bayar, 0)) as sisa_tagihan,
             DATE_FORMAT(i.created_on, "%d/%b/%Y") as tgl_inv,
-            DATE_FORMAT(so.tgl_so, "%d/%b/%Y") as tgl_so,
+            DATE_FORMAT(i.tgl_so, "%d/%b/%Y") as tgl_so,
             c.name_customer
         ')
 			->from('tr_invoice_sales i')
-			->join('sales_order so', 'so.no_so = i.id_so', 'left')
+			// ->join('sales_order so', 'so.no_so = i.id_so', 'left')
 			->join('master_customers c', 'c.id_customer = i.id_customer', 'left')
 			->where('i.id_customer', $id_customer)
 			->where('i.sts', 1)
@@ -219,7 +219,7 @@ class Penerimaan_cash extends Admin_Controller
 					'sisa_invoice_idr' => $sisa_invoice,
 					'id_customer' => $header['id_customer'],
 					'nm_customer' => $header['nm_customer'],
-					'created_by' => $this->session->userdata('id_user'),
+					'created_by' => $this->auth->user_id(),
 					'created_on' => date('Y-m-d H:i:s'),
 					'tipe_bayar' => "CASH"
 				];
