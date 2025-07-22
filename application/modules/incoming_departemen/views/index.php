@@ -77,7 +77,7 @@
 						</div>
 					</div>
 					<?php
-					if ($akses_menu['create'] == '1') {
+					if (isset($akses_menu['create']) && $akses_menu['create'] == '1') {
 						echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-success', 'style' => 'min-width:100px; float:right; margin: 5px 0px 5px 0px;', 'value' => 'Process', 'content' => 'Process', 'id' => 'modalDetail')) . ' ';
 					}
 					?>
@@ -289,8 +289,8 @@
 				}
 			}
 
-			if(sts_not_exc == 1) {
-				if(value > max) {
+			if (sts_not_exc == 1) {
+				if (value > max) {
 					sts_not_exc = 0;
 				}
 			}

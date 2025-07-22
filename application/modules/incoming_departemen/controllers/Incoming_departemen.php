@@ -12,7 +12,7 @@ class Incoming_departemen extends Admin_Controller
 	{
 		parent::__construct();
 		$this->load->model('master_model');
-		$this->load->library(array('Mpdf', 'upload', 'Image_lib'));
+		$this->load->library(array('upload', 'Image_lib'));
 		$this->template->title('Manage Data Supplier');
 		$this->template->page_icon('fa fa-building-o');
 

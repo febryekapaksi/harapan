@@ -22,7 +22,7 @@ class Purchase_order_payment extends Admin_Controller
 	public function __construct()
 	{
 		parent::__construct();
-		$this->load->library(array('Mpdf', 'upload', 'Image_lib'));
+		$this->load->library(array('upload', 'Image_lib'));
 		$this->load->model(array(
 			'Purchase_order_payment/Pr_model',
 			'Purchase_order_payment/Jurnal_model',
@@ -1770,14 +1770,14 @@ class Purchase_order_payment extends Admin_Controller
 			if (!empty($get_total_invoice)) {
 				$total_invoice[$item['kode_trans']] = $get_total_invoice->total_invoice;
 			} else {
-				if ($item['category'] == 'incoming non rutin') {
+				if ($item['tipe_incoming'] == 'incoming non rutin') {
 					$this->db->select('SUM(a.total_harga) as ttl_harga');
 					$this->db->from('tr_pr_detail_kasbon a');
 					$this->db->where('a.id_kasbon', $item['no_ipp']);
 					$get_total = $this->db->get()->row();
 
 					$total_invoice[$item['kode_trans']] = $get_total->ttl_harga;
-				} else if ($item['category'] == 'incoming asset') {
+				} else if ($item['tipe_incoming'] == 'incoming asset') {
 					$this->db->select('SUM(a.harga_total) as ttl_harga');
 					$this->db->from('dt_trans_po a');
 					$this->db->join('tr_purchase_order b', 'b.no_po = a.no_po');
@@ -1792,6 +1792,7 @@ class Purchase_order_payment extends Admin_Controller
 		}
 
 		$get_supplier = $this->db->get('new_supplier')->result();
+
 
 		$this->template->set('list_inc', $get_list_inc);
 		$this->template->set('no_po', $no_po);

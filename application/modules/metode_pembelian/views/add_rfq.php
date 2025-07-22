@@ -1,12 +1,7 @@
 <link rel="stylesheet" href="https://cdn.datatables.net/2.0.5/css/dataTables.dataTables.min.css">
 <form action="#" method="POST" id="form_proses_bro" enctype="multipart/form-data" autocomplete='off'>
 	<div class="box box-primary">
-		<div class="box-header">
-			<h3 class="box-title"><?php echo $title; ?></h3>
-		</div>
-		<!-- /.box-header -->
 		<div class="box-body">
-			<br>
 			<div class='form-group row'>
 				<label class='label-control col-sm-2'><b>Metode Pembelian <span class='text-red'>*</span></b></label>
 				<div class='col-sm-4'>
@@ -16,54 +11,27 @@
 						<option value='non po'>NON PO</option>
 					</select>
 				</div>
-			</div>
-			<div class='form-group row'>
+
 				<label class='label-control col-sm-2'><b>Category <span class='text-red'>*</span></b></label>
 				<div class='col-sm-4'>
 					<select id='category' name='category' class='form-control input-sm '>
 						<option value='0'>Select Category</option>
-						<option value='material'>MATERIAL</option>
+						<option value='product'>PRODUCT</option>
 						<option value='stok'>STOK</option>
 						<option value='departemen'>DEPARTEMEN</option>
 						<option value="asset">ASSET</option>
 					</select>
 				</div>
 			</div>
-			<!-- <div class='form-group row group-po'>		 	 
-				<label class='label-control col-sm-2'><b>Supplier Name <span class='text-red'>*</span></b></label>
-				<div class='col-sm-4'>              
-					<select id='id_supplier' name='id_supplier[]' class='form-control input-sm chosen-select' multiple>
-						
-					</select>
-				</div>
-			</div>
-			<div class='form-group row group-nonpo'>		 	 
-				<label class='label-control col-sm-2'><b>PIC <span class='text-red'>*</span></b></label>
-				<div class='col-sm-4'>              
-					
-				</div>
-			</div>
-			<div class='form-group row group-nonpo'>		 	 
-				<label class='label-control col-sm-2'><b>Keterangan</b></label>
-				<div class='col-sm-4'>              
-					
-				</div>
-			</div> -->
-			<?php
-			echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-danger', 'style' => 'min-width:100px; float:right; margin: 5px 0px 5px 0px;', 'content' => 'Back', 'id' => 'back')) . ' ';
-			echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-success', 'style' => 'min-width:100px; float:right; margin: 5px 5px 5px 0px;', 'value' => 'Create PO', 'content' => 'Create', 'id' => 'save_rfq')) . ' ';
-
-			?>
-			<br><br>
-			<div class="box box-success">
-				<br>
+			<hr>
+			<div class="table-responsive">
 				<table class="table table-bordered table-striped" id="my-grid3" width='100%'>
 					<thead>
 						<tr class='bg-blue'>
 							<th class="text-center no-sort" width='4%'>#</th>
 							<th class="text-center" width='7%'>No PR</th>
 							<th class="text-center" width='10%'>Tanggal PR</th>
-							<th class="text-center">Material Name</th>
+							<th class="text-center">Product Name</th>
 							<th class="text-center" width='10%'>Category</th>
 							<!-- <th class="text-center" width='7%'>Qty</th> -->
 							<th class="text-center" width='10%'>Dibutuhkan</th>
@@ -73,6 +41,13 @@
 					</thead>
 					<tbody></tbody>
 				</table>
+			</div>
+
+			<div class="text-center">
+				<?php
+				echo form_button(array('type' => 'button', 'class' => 'btn btn-default', 'style' => 'min-width:100px; margin: 5px 0px 5px 0px;', 'content' => 'Kembali', 'id' => 'back')) . ' ';
+				echo form_button(array('type' => 'button', 'class' => 'btn btn-success', 'style' => 'min-width:100px; margin: 5px 5px 5px 0px;', 'value' => 'Buat PO', 'content' => 'Buat PO', 'id' => 'save_rfq')) . ' ';
+				?>
 			</div>
 		</div>
 	</div>
@@ -332,3 +307,27 @@
 		});
 	}
 </script>
+
+<!-- temp -->
+
+
+<!-- <div class='form-group row group-po'>		 	 
+				<label class='label-control col-sm-2'><b>Supplier Name <span class='text-red'>*</span></b></label>
+				<div class='col-sm-4'>              
+					<select id='id_supplier' name='id_supplier[]' class='form-control input-sm chosen-select' multiple>
+						
+					</select>
+				</div>
+			</div>
+			<div class='form-group row group-nonpo'>		 	 
+				<label class='label-control col-sm-2'><b>PIC <span class='text-red'>*</span></b></label>
+				<div class='col-sm-4'>              
+					
+				</div>
+			</div>
+			<div class='form-group row group-nonpo'>		 	 
+				<label class='label-control col-sm-2'><b>Keterangan</b></label>
+				<div class='col-sm-4'>              
+					
+				</div>
+			</div> -->

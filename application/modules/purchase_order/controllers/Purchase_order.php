@@ -2852,14 +2852,6 @@ class Purchase_order extends Admin_Controller
 		$getparam = explode(";", $_GET['param']);
 
 		$getso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi');
-		// $getitemso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi_detail');
-
-		// $getitemso = $this->db->select("a.*, (b.qty_stock - b.qty_booking) AS avl_stock, c.code as code, d.id_stock as code1, c.nama as nm_material, '' as nm_material1");
-		// $getitemso = $this->db->from('material_planning_base_on_produksi_detail a');
-		// $getitemso = $this->db->join('warehouse_stock b', 'b.id_material = a.id_material', 'left');
-		// $getitemso = $this->db->join('new_inventory_4 c', 'c.code_lv4 = a.id_material', 'left');
-		// $getitemso = $this->db->where_in('a.so_number', $getparam);
-		// $getitemso = $this->db->group_by('a.id');
 
 		$getitemso = $this->db->query("
 			SELECT 
@@ -2933,11 +2925,10 @@ class Purchase_order extends Admin_Controller
 				a.code_plan IN ('" . str_replace(",", "','", implode(',', $getparam)) . "')
 		")->result();
 
-
-		// $getitemso = $this->db->get()->result();
-
+		// echo '<pre>';
 		// print_r($getitemso);
-		// exit;
+		// echo '</pre>';
+		// die();
 
 		$aktif = 'active';
 		$deleted = '0';
@@ -3086,14 +3077,14 @@ class Purchase_order extends Admin_Controller
 	public function view_po($no_po)
 	{
 		$session = $this->session->userdata('app_session');
-		$getparam = explode(";", $_GET['param']);
+		// $getparam = explode(";", $_GET['param']);
 
 		// print_r($no_po);
 		// exit;
 
 		$get_po = $this->db->get_where('tr_purchase_order', ['no_po' => $no_po])->row();
 
-		$getso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi');
+		$getso = $this->Pr_model->get_where_in('so_number', $no_po, 'material_planning_base_on_produksi');
 		// $getitemso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi_detail');
 
 		// $getitemso = $this->db->select("a.*, (b.qty_stock - b.qty_booking) AS avl_stock, c.code as code, d.id_stock as code1, c.nama as nm_material, d.stock_name as nm_material1, e.propose_purchase");
@@ -3260,7 +3251,7 @@ class Purchase_order extends Admin_Controller
 			'karyawan' => $karyawan,
 			'mata_uang' => $mata_uang,
 			// 'matauang' => $matauang,
-			'param' => $getparam,
+			// 'param' => $getparam,
 			// 'headerso' => $getso,
 			'get_po' => $get_po,
 			'getitemso' => $getitemso,

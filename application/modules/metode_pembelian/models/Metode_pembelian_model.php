@@ -15,13 +15,14 @@ class Metode_pembelian_model extends BF_Model
 	{
 		$data_Group			=  $this->db->get('groups');
 		$data = array(
-			'title'			=> 'Pembelian Non-Material & Jasa >> Metode Pembelian',
 			'action'			=> 'index',
 			'row_group'		=> $data_Group
 		);
 		history('View Progress PR Asset, Rutin, Non Rutin');
 		// $this->load->view('Pembelian/pr',$data);
 		$this->template->set($data);
+		$this->template->title('Metode Pembelian');
+		$this->template->page_icon('fa fa-shopping-cart');
 		$this->template->render('pr_new');
 	}
 
@@ -198,9 +199,6 @@ class Metode_pembelian_model extends BF_Model
 
 	public function get_data_json_progress_pr_new()
 	{
-		// $controller			= ucfirst(strtolower($this->uri->segment(1)));
-		// $Arr_Akses			= getAcccesmenu($controller);
-
 		$requestData	= $_REQUEST;
 		$fetch			= $this->query_data_json_progress_pr_new(
 			$requestData['category'],
@@ -235,7 +233,7 @@ class Metode_pembelian_model extends BF_Model
 			$nestedData[]	= "<div align='center'>" . $row['no_pr'] . "</div>";
 			$nestedData[]	= "<div align='center'>" . date('d-M-Y', strtotime($row['tgl_pr'])) . "</div>";
 			$nestedData[]	= "<div align='left'>" . strtoupper($row['departemen']) . "</div>";
-			if ($row['category'] == 'pr material') {
+			if ($row['category'] == 'pr product') {
 				$warna = '#a9179e';
 			} elseif ($row['category'] == 'pr stok') {
 				$warna = '#ff1ab3';
@@ -283,27 +281,6 @@ class Metode_pembelian_model extends BF_Model
 		if ($category <> '0') {
 			$where = " AND a.category='" . $category . "' ";
 		}
-
-		// $sql = "
-		// 	SELECT
-		// 		(@row:=@row+1) AS nomor,
-		// 		a.*,
-		// 		d.nm_dept
-		// 	FROM
-		// 		tran_pr_detail a
-		// 		LEFT JOIN rutin_non_planning_detail c ON a.id_barang=c.id
-		// 		LEFT JOIN rutin_non_planning_header e ON c.no_pengajuan=e.no_pengajuan
-		// 		LEFT JOIN department d ON e.id_dept=d.id,
-		// 		(SELECT @row:=0) r
-		//     WHERE 1=1 AND a.app_status = 'Y' " . $where . " 
-		// 		AND (
-		// 		a.no_pr_group LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-		// 		OR a.id_barang LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-		// 		OR a.nm_barang LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-		// 		OR a.created_date LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-		//     )
-		// 	GROUP BY a.no_pr_group
-		// ";
 
 		if ($category <> '0') {
 			if ($category == 'departemen') {
@@ -366,7 +343,7 @@ class Metode_pembelian_model extends BF_Model
 						LEFT JOIN users b ON b.id_user = a.created_by
 						JOIN material_planning_base_on_produksi_detail c ON c.so_number = a.so_number AND c.status_app = 'Y'
 					WHERE
-						a.category IN ('pr material') AND
+						a.category IN ('pr product') AND
 						a.metode_pembelian IS NULL AND (
 							a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
 							a.tgl_so LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
@@ -391,7 +368,7 @@ class Metode_pembelian_model extends BF_Model
 					LEFT JOIN users b ON b.id_user = a.created_by
 					JOIN material_planning_base_on_produksi_detail c ON c.so_number = a.so_number AND c.status_app = 'Y'
 				WHERE
-					a.category IN ('pr material', 'pr stok') AND
+					a.category IN ('pr product', 'pr stok') AND
 					a.metode_pembelian IS NULL AND
 					(
 						a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
@@ -432,7 +409,7 @@ class Metode_pembelian_model extends BF_Model
 		$data['totalData'] = $this->db->query($sql)->num_rows();
 		$data['totalFiltered'] = $this->db->query($sql)->num_rows();
 		$columns_order_by = array(
-			0 => 'nomor',
+			0 => 'tgl_buat',
 			1 => 'no_pr',
 			2 => 'tgl_pr',
 			3 => 'category'
@@ -634,12 +611,13 @@ class Metode_pembelian_model extends BF_Model
 		$query = "SELECT kode_supplier AS id_supplier, nama AS nm_supplier FROM new_supplier ORDER BY nm_supplier ASC ";
 		$restQuery = $this->db->query($query)->result_array();
 		$data = array(
-			'title'			=> 'Add Group PR',
 			'action'		=> 'index',
 			'row_group'		=> $data_Group,
 			'supList'		=> $restQuery,
 		);
 		$this->template->set($data);
+		$this->template->title("Add Metode Pembelian");
+		$this->template->page_icon("fa fa-cart-plus");
 		$this->template->render('add_rfq');
 	}
 
@@ -689,8 +667,8 @@ class Metode_pembelian_model extends BF_Model
 			$nestedData[]	= "<div align='center'>" . date('d-M-Y', strtotime($row['tgl_pr'])) . "</div>";
 
 			$list_barang = '';
-			if ($row['category'] == 'material' || $row['category'] == 'stok') {
-				if ($row['category'] == 'stok') {
+			if ($row['category'] == 'pr product' || $row['category'] == 'pr stok') {
+				if ($row['category'] == 'pr stok') {
 					$this->db->select('b.stock_name as nm_barang, a.propose_purchase as qty');
 					$this->db->from('material_planning_base_on_produksi_detail a');
 					$this->db->join('accessories b', 'b.id = a.id_material', 'left');
@@ -706,7 +684,7 @@ class Metode_pembelian_model extends BF_Model
 					$get_list_barang = $this->db->get()->result_array();
 				}
 			} else {
-				if ($row['category'] == 'asset') {
+				if ($row['category'] == 'pr asset') {
 					$this->db->select('a.nama_asset as nm_barang, 1 as qty');
 					$this->db->from('asset_planning a');
 					$this->db->where('a.status', 'Y');
@@ -724,25 +702,25 @@ class Metode_pembelian_model extends BF_Model
 			foreach ($get_list_barang as $barang) :
 				$list_barang .= $barang['nm_barang'] . ' x <span style="font-weight: bold;">' . number_format($barang['qty']) . '</span><br>';
 			endforeach;
-
 			$nestedData[]	= "<div align='left'>" . $list_barang . "</div>";
-			if ($row['category'] == 'material') {
+
+			if ($row['category'] == 'pr product') {
 				$warna = '#a9179e';
-			} elseif ($row['category'] == 'stok') {
+			} elseif ($row['category'] == 'pr stok') {
 				$warna = '#a19012';
-			} elseif ($row['category'] == 'asset') {
+			} elseif ($row['category'] == 'pr asset') {
 				$warna = '#66ccff';
 			} else {
 				$warna = '#1bb885';
 			}
 
 			$category = $row['category'];
-			if ($category == 'stok') {
-				$category = 'stok';
+			if ($category == 'pr stok') {
+				$category = 'pr stok';
 			}
 
-			if ($category == 'departemen') {
-				$category = 'departemen';
+			if ($category == 'pr departemen') {
+				$category = 'pr departemen';
 			}
 
 			$nestedData[]	= "<div align='center'><span class='badge' style='background-color: " . $warna . ";'>" . strtoupper($category) . "</span></div>";
@@ -771,24 +749,6 @@ class Metode_pembelian_model extends BF_Model
 		if ($category <> '0') {
 			$where = " AND category = '" . $category . "' ";
 		}
-
-		// $sql = "
-		// 	SELECT
-		// 		(@row:=@row+1) AS nomor,
-		// 		a.*
-		// 	FROM
-		// 		tran_pr_detail a,
-		// 		(SELECT @row:=0) r
-		//     WHERE 1=1 AND a.app_status = 'Y' AND no_rfq IS NULL " . $where . "
-		// 		AND (
-		// 		a.no_pr_group LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-		// 		OR a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-		// 		OR a.id_barang LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-		// 		OR a.nm_barang LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-		// 		OR a.created_date LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-		//     )
-		// ";
-
 
 		if ($category <> '0') {
 			if ($category == 'departemen') {
@@ -840,7 +800,7 @@ class Metode_pembelian_model extends BF_Model
 							a.tgl_so as tgl_pr,
 							b.nm_lengkap as request_by,
 							a.created_date as request_date,
-							IF(a.category = "pr stok", "stok", "material") as category,
+							IF(a.category = "pr stok", "pr stok", "pr product") as category,
 							a.so_number as so_number
 						FROM
 							material_planning_base_on_produksi a
@@ -863,13 +823,13 @@ class Metode_pembelian_model extends BF_Model
 							a.tgl_so as tgl_pr,
 							b.nm_lengkap as request_by,
 							a.created_date as request_date,
-							IF(a.category = "pr stok", "stok", "material") as category,
+							IF(a.category = "pr stok", "pr stok", "pr product") as category,
 							a.so_number as so_number
 						FROM
 							material_planning_base_on_produksi a
 							LEFT JOIN users b ON b.id_user = a.created_by
 						WHERE
-							a.category IN ("pr material") AND
+							a.category IN ("pr product") AND
 							a.metode_pembelian IS NULL AND
 							a.close_pr IS NULL
 							AND (
@@ -888,13 +848,13 @@ class Metode_pembelian_model extends BF_Model
 					a.tgl_so as tgl_pr,
 					b.nm_lengkap as request_by,
 					a.created_date as request_date,
-					IF(a.category = "pr stok", "stok", "material") as category,
+					IF(a.category = "pr stok", "pr stok", "pr product") as category,
 					a.so_number as so_number
 				FROM
 					material_planning_base_on_produksi a
 					LEFT JOIN users b ON b.id_user = a.created_by
 				WHERE
-					a.category IN ("pr material", "pr stok") AND
+					a.category IN ("pr product", "pr stok") AND
 					a.close_pr IS NULL AND
 					a.metode_pembelian IS NULL AND (
 						a.no_pr LIKE "%' . $this->db->escape_like_str($like_value) . '%" OR
@@ -952,7 +912,8 @@ class Metode_pembelian_model extends BF_Model
 			// exit;
 		}
 
-		// echo $sql; exit;	
+		// echo $sql;
+		// exit;
 
 		$data['totalData'] = $this->db->query($sql)->num_rows();
 		$data['totalFiltered'] = $this->db->query($sql)->num_rows();
@@ -964,6 +925,7 @@ class Metode_pembelian_model extends BF_Model
 		$sql .= " LIMIT " . $limit_start . " ," . $limit_length . " ";
 
 		$data['query'] = $this->db->query($sql);
+
 		return $data;
 	}
 
@@ -971,6 +933,7 @@ class Metode_pembelian_model extends BF_Model
 	{
 		$Arr_Kembali	= array();
 		$data			= $this->input->post();
+
 		$data_session	= $this->session->userdata;
 		$dateTime		= date('Y-m-d H:i:s');
 		$UserName		= $this->auth->user_name();
@@ -990,213 +953,6 @@ class Metode_pembelian_model extends BF_Model
 			$ArrList[] = $vaxl['id'];
 		}
 		$dtImplode		= "('" . implode("','", $ArrList) . "')";
-
-		// print_r($check);
-		// echo $dtImplode;
-		// exit;
-
-		// if ($jenis_pembelian == 'po') {
-		// 	//pengurutan kode
-		// 	$srcMtr			= "SELECT MAX(no_rfq) as maxP FROM tran_rfq_header WHERE no_rfq LIKE 'RFQX" . $Ym . "%' ";
-		// 	$numrowMtr		= $this->db->query($srcMtr)->num_rows();
-		// 	$resultMtr		= $this->db->query($srcMtr)->result_array();
-		// 	$angkaUrut2		= $resultMtr[0]['maxP'];
-		// 	$urutan2		= (int)substr($angkaUrut2, 8, 4);
-		// 	$urutan2++;
-		// 	$urut2			= sprintf('%04s', $urutan2);
-		// 	$no_rfq			= "RFQX" . $Ym . $urut2;
-
-		// 	$id_supplier	= $data['id_supplier'];
-		// 	// $check			= $data['check'];
-		// 	// $ArrList 		= array();
-		// 	// foreach($check AS $vaxl){
-		// 	// 	$ArrList[$vaxl] = $vaxl;
-		// 	// }
-		// 	// $dtImplode		= "('".implode("','", $ArrList)."')";
-
-		// 	$qListPRD 		= "SELECT * FROM tran_pr_detail WHERE id IN " . $dtImplode . "  ";
-		// 	$restListPRD 	= $this->db->query($qListPRD)->result_array();
-
-		// 	$ArrUpdate = array();
-		// 	foreach ($restListPRD as $val => $valx) {
-		// 		$ArrUpdate[$val]['id'] 	= $valx['id'];
-		// 		$ArrUpdate[$val]['no_rfq'] = $no_rfq;
-		// 		$ArrUpdate[$val]['jenis_pembelian'] = $jenis_pembelian;
-		// 	}
-
-		// 	$qListG 	= "SELECT id, id_barang, nm_barang, nilai_pr, SUM(qty) AS purchase, tgl_dibutuhkan, satuan, no_pr, spec, info FROM tran_pr_detail WHERE id IN " . $dtImplode . " GROUP BY id_barang";
-		// 	$restListG 	= $this->db->query($qListG)->result_array();
-
-		// 	$ArrDetail = array();
-		// 	$ArrHeader = array();
-		// 	$no = 0;
-		// 	foreach ($id_supplier as $sup => $supx) {
-		// 		$qSupplier			= "SELECT * FROM supplier WHERE id_supplier ='" . $supx . "' LIMIT 1 ";
-		// 		$restSupplier		= $this->db->query($qSupplier)->result();
-		// 		$SUM_MAT = 0;
-
-		// 		$no++;
-		// 		$num = sprintf('%03s', $no);
-		// 		foreach ($restListG as $val => $valx) {
-
-		// 			$SUM_MAT += $valx['purchase'];
-		// 			$ArrDetail[$sup . $val]['no_rfq'] 		= $no_rfq;
-		// 			$ArrDetail[$sup . $val]['hub_rfq'] 		= $no_rfq . '-' . $num;
-		// 			$ArrDetail[$sup . $val]['id_barang'] 		= $valx['id_barang'];
-		// 			$ArrDetail[$sup . $val]['nm_barang'] 		= $valx['nm_barang'];
-		// 			$ArrDetail[$sup . $val]['spec'] 			= $valx['spec'];
-		// 			$ArrDetail[$sup . $val]['info'] 			= $valx['info'];
-		// 			$ArrDetail[$sup . $val]['id_supplier']	= $supx;
-		// 			$ArrDetail[$sup . $val]['nm_supplier']	= $restSupplier[0]->nm_supplier;
-		// 			$ArrDetail[$sup . $val]['qty'] 			= $valx['purchase'];
-		// 			$ArrDetail[$sup . $val]['satuan'] 		= $valx['satuan'];
-		// 			$ArrDetail[$sup . $val]['price_ref'] 		= $valx['nilai_pr'];
-		// 			$ArrDetail[$sup . $val]['no_pr'] 		 	= $valx['no_pr'];
-		// 			$ArrDetail[$sup . $val]['tgl_dibutuhkan'] = $valx['tgl_dibutuhkan'];
-		// 			$ArrDetail[$sup . $val]['created_by'] 	= $UserName;
-		// 			$ArrDetail[$sup . $val]['created_date'] 	= $dateTime;
-		// 		}
-
-		// 		$ArrHeader[$sup]['no_rfq'] 			= $no_rfq;
-		// 		$ArrHeader[$sup]['hub_rfq'] 		= $no_rfq . '-' . $num;
-		// 		$ArrHeader[$sup]['category'] 		= $category;
-		// 		$ArrHeader[$sup]['id_supplier'] 	= $supx;
-		// 		$ArrHeader[$sup]['nm_supplier'] 	= $restSupplier[0]->nm_supplier;
-		// 		$ArrHeader[$sup]['total_request'] 	= $SUM_MAT;
-		// 		$ArrHeader[$sup]['created_by'] 		= $UserName;
-		// 		$ArrHeader[$sup]['created_date'] 	= $dateTime;
-		// 		$ArrHeader[$sup]['updated_by'] 		= $UserName;
-		// 		$ArrHeader[$sup]['updated_date'] 	= $dateTime;
-		// 	}
-
-		// 	// print_r($ArrHeader);
-		// 	// print_r($ArrDetail);
-		// 	// print_r($ArrUpdate);
-		// 	// exit;
-
-		// 	$this->db->trans_start();
-		// 	$this->db->insert_batch('tran_rfq_header', $ArrHeader);
-		// 	$this->db->insert_batch('tran_rfq_detail', $ArrDetail);
-		// 	$this->db->update_batch('tran_pr_detail', $ArrUpdate, 'id');
-		// 	$this->db->trans_complete();
-
-		// 	if ($this->db->trans_status() === FALSE) {
-		// 		$this->db->trans_rollback();
-		// 		$Arr_Kembali	= array(
-		// 			'pesan'		=> 'Insert purchase order data failed. Please try again later ...',
-		// 			'status'	=> 2
-		// 		);
-		// 	} else {
-		// 		$this->db->trans_commit();
-		// 		$Arr_Kembali	= array(
-		// 			'pesan'		=> 'Insert purchase order data success. Thanks ...',
-		// 			'status'	=> 1
-		// 		);
-		// 		history('Create RFQ ' . $no_rfq . ', ' . $category . '/' . $jenis_pembelian);
-		// 	}
-		// 	echo json_encode($Arr_Kembali);
-		// }
-		// if ($jenis_pembelian == 'non po') {
-		// 	$pic			= strtolower($data['pic']);
-		// 	$keterangan		= strtolower($data['keterangan']);
-		// 	//pengurutan kode
-		// 	$srcMtr			= "SELECT MAX(no_non_po) as maxP FROM tran_non_po_header WHERE no_non_po LIKE 'NPO" . $Ym . "%' ";
-		// 	$numrowMtr		= $this->db->query($srcMtr)->num_rows();
-		// 	$resultMtr		= $this->db->query($srcMtr)->result_array();
-		// 	$angkaUrut2		= $resultMtr[0]['maxP'];
-		// 	$urutan2		= (int)substr($angkaUrut2, 7, 4);
-		// 	$urutan2++;
-		// 	$urut2			= sprintf('%04s', $urutan2);
-		// 	$no_rfq			= "NPO" . $Ym . $urut2;
-
-		// 	// $check			= $data['check'];
-		// 	// $ArrList 		= array();
-		// 	// foreach($check AS $vaxl){
-		// 	// 	$ArrList[$vaxl] = $vaxl;
-		// 	// }
-		// 	// $dtImplode		= "('".implode("','", $ArrList)."')";
-
-		// 	$qListPRD 		= "SELECT * FROM tran_pr_detail WHERE id IN " . $dtImplode . "  ";
-		// 	$restListPRD 	= $this->db->query($qListPRD)->result_array();
-
-		// 	$ArrUpdate = array();
-		// 	foreach ($restListPRD as $val => $valx) {
-		// 		$ArrUpdate[$val]['id'] 	= $valx['id'];
-		// 		$ArrUpdate[$val]['no_rfq'] = $no_rfq;
-		// 		$ArrUpdate[$val]['jenis_pembelian'] = $jenis_pembelian;
-		// 	}
-
-		// 	$qListG 	= "SELECT no_pr, id, id_barang, nm_barang, nilai_pr, SUM(qty) AS purchase, tgl_dibutuhkan, satuan FROM tran_pr_detail WHERE id IN " . $dtImplode . " GROUP BY id_barang";
-		// 	$restListG 	= $this->db->query($qListG)->result_array();
-
-		// 	$ArrDetail = array();
-		// 	$ArrHeader = array();
-		// 	$SUM_MAT = 0;
-		// 	$SUM_QTY = 0;
-		// 	foreach ($restListG as $val => $valx) {
-
-		// 		$SUM_MAT += $valx['nilai_pr'];
-		// 		$SUM_QTY += $valx['purchase'];
-		// 		$nomor_PR = get_name('rutin_non_planning_detail', 'no_pengajuan', 'no_pr', $valx['no_pr']);
-		// 		$ArrDetail[$val]['no_non_po'] 	= $no_rfq;
-		// 		$ArrDetail[$val]['id_barang'] 	= $valx['id_barang'];
-		// 		$ArrDetail[$val]['nm_barang'] 	= $valx['nm_barang'];
-		// 		$ArrDetail[$val]['qty'] 		= $valx['purchase'];
-		// 		$ArrDetail[$val]['satuan'] 		= $valx['satuan'];
-		// 		$ArrDetail[$val]['no_pr'] 		= $valx['no_pr'];
-		// 		$ArrDetail[$val]['id_dept'] 		= get_name('rutin_non_planning_header', 'id_dept', 'no_pengajuan', $nomor_PR);
-		// 		$ArrDetail[$val]['id_costcenter'] 	= get_name('rutin_non_planning_header', 'id_costcenter', 'no_pengajuan', $nomor_PR);
-		// 		$ArrDetail[$val]['price_unit'] 		= $valx['nilai_pr'];
-		// 		$ArrDetail[$val]['tgl_dibutuhkan'] 	= $valx['tgl_dibutuhkan'];
-		// 		$ArrDetail[$val]['created_by'] 		= $data_session['ORI_User']['username'];
-		// 		$ArrDetail[$val]['created_date'] 	= date('Y-m-d H:i:s');
-		// 	}
-
-		// 	$ArrHeader['no_non_po'] 	= $no_rfq;
-		// 	$ArrHeader['tanggal_non_po'] = date('Y-m-d');
-		// 	$ArrHeader['pic'] 			= $pic;
-		// 	$ArrHeader['category'] 		= $category;
-		// 	$ArrHeader['qty'] 			= $SUM_QTY;
-		// 	$ArrHeader['nilai_request'] = $SUM_MAT;
-		// 	$ArrHeader['keterangan'] 	= $keterangan;
-		// 	$ArrHeader['created_by'] 	= $data_session['ORI_User']['username'];
-		// 	$ArrHeader['created_date'] 	= date('Y-m-d H:i:s');
-
-
-
-		// 	// print_r($ArrHeader);
-		// 	// print_r($ArrDetail);
-		// 	// print_r($ArrUpdate);
-		// 	// exit;
-
-		// 	$this->db->trans_start();
-		// 	$this->db->insert('tran_non_po_header', $ArrHeader);
-		// 	$this->db->insert_batch('tran_non_po_detail', $ArrDetail);
-		// 	$this->db->update_batch('tran_pr_detail', $ArrUpdate, 'id');
-		// 	$this->db->trans_complete();
-
-		// 	if ($this->db->trans_status() === FALSE) {
-		// 		$this->db->trans_rollback();
-		// 		$Arr_Kembali	= array(
-		// 			'pesan'		=> 'Insert purchase order data failed. Please try again later ...',
-		// 			'status'	=> 2
-		// 		);
-		// 	} else {
-		// 		$this->db->trans_commit();
-		// 		$Arr_Kembali	= array(
-		// 			'pesan'		=> 'Insert purchase order data success. Thanks ...',
-		// 			'status'	=> 1
-		// 		);
-		// 		history('Create NON PO ' . $no_rfq . ', ' . $category . '/' . $jenis_pembelian);
-		// 	}
-		// 	echo json_encode($Arr_Kembali);
-		// }
-
-		// if ($jenis_pembelian == 'po') {
-
-		// }
-		// if ($jenis_pembelian == 'non po') {
-		// }
 
 		foreach ($data['check'] as $valx) :
 			$category_pr = $data['category_' . $valx];

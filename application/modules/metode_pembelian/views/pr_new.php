@@ -1,4 +1,4 @@
-<?php 
+<?php
 $ENABLE_ADD     = has_permission('Metode_Pembelian.Add');
 $ENABLE_MANAGE  = has_permission('Metode_Pembelian.Manage');
 $ENABLE_VIEW    = has_permission('Metode_Pembelian.View');
@@ -8,8 +8,7 @@ $ENABLE_DELETE  = has_permission('Metode_Pembelian.Delete');
 <form action="#" method="POST" id="form_proses_bro" enctype="multipart/form-data">
 	<div class="box box-primary">
 		<div class="box-header">
-			<h3 class="box-title"><?php echo $title; ?></h3>
-			<div class="box-tool pull-right">
+			<div class="box-tool pull-left">
 				<?php
 				if ($ENABLE_ADD) {
 				?>
@@ -18,10 +17,13 @@ $ENABLE_DELETE  = has_permission('Metode_Pembelian.Delete');
 					</a>
 				<?php
 				}
-				?><br><br>
+				?>
+			</div>
+			<div class="box-tool pull-right">
 				<select id='category' name='category' class='form-control input-sm' style='min-width:200px;'>
 					<option value='0'>All Category</option>
-					<option value='material'>Material</option>
+					<option value='product'>Product</option>
+					<option value='asset'>Material</option>
 					<option value='stok'>Stok</option>
 					<option value='departemen'>Departemen</option>
 				</select>
@@ -29,9 +31,9 @@ $ENABLE_DELETE  = has_permission('Metode_Pembelian.Delete');
 		</div>
 		<!-- /.box-header -->
 		<div class="box-body">
-			<table class="table table-bordered table-striped" id="my-grid" width='100%'>
+			<table class="table table-bordered table-striped" id="example1" width='100%'>
 				<thead>
-					<tr class='bg-blue'>
+					<tr class="bg-blue">
 						<th class="text-center">#</th>
 						<th class="text-center">No PR</th>
 						<th class="text-center">Tgl PR</th>
@@ -87,7 +89,7 @@ $ENABLE_DELETE  = has_permission('Metode_Pembelian.Delete');
 			$.ajax({
 				type: 'POST',
 				url: base_url + active_controller + '/modal_detail_pr/',
-				data : {
+				data: {
 					'no_pr_group': $(this).data('no_pr_group'),
 					'tipe_pr': $(this).data('tipe_pr')
 				},
@@ -109,19 +111,15 @@ $ENABLE_DELETE  = has_permission('Metode_Pembelian.Delete');
 	});
 
 	function DataTables(category = null) {
-		var dataTable = $('#my-grid').DataTable({
+		var dataTable = $('#example1').DataTable({
+			"processing": true,
 			"serverSide": true,
 			"stateSave": true,
 			"bAutoWidth": true,
 			"destroy": true,
-			"processing": true,
 			"responsive": true,
-			"fixedHeader": {
-				"header": true,
-				"footer": true
-			},
 			"aaSorting": [
-				[2, "desc"]
+				[2, "asc"]
 			],
 			"columnDefs": [{
 				"targets": 'no-sort',
