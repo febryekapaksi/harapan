@@ -48,27 +48,27 @@ class Supplier extends Admin_Controller
 			$data			= $this->input->post();
 			// print_r($data);
 			// exit;
-			$session 	= $this->session->userdata('app_session');
-			$Ym			= date('y');
-			$id     = $data['id'];
-			$kode_supplier    = $data['kode_supplier'];
-			$nama    = $data['nama'];
-			$id_country    = $data['id_country'];
-			$id_provinsi    = $data['id_provinsi'];
-			$id_currency    = $data['id_currency'];
-			$telp    = $data['telp'];
-			$telp2    = $data['telp2'];
-			$fax    = $data['fax'];
-			$email    = $data['email'];
-			$email2    = $data['email2'];
-			$email3    = $data['email3'];
-			$contact    = $data['contact'];
-			$contact_person    = $data['contact_person'];
-			$tax_number    = $data['tax_number'];
-			$address    = $data['address'];
-			$tax_address    = $data['tax_address'];
-			$note    = $data['note'];
-			$bank_account    = $data['bank_account'];
+			$session 			= $this->session->userdata('app_session');
+			$Ym					= date('y');
+			$id     			= $data['id'];
+			$kode_supplier    	= $data['kode_supplier'];
+			$nama    			= $data['nama'];
+			$id_country    		= $data['id_country'];
+			$id_provinsi    	= $data['id_provinsi'];
+			$id_currency    	= $data['id_currency'];
+			$telp    			= $data['telp'];
+			$telp2    			= $data['telp2'];
+			$fax    			= $data['fax'];
+			$email    			= $data['email'];
+			$email2    			= $data['email2'];
+			$email3    			= $data['email3'];
+			$contact    		= $data['contact'];
+			$contact_person    	= $data['contact_person'];
+			$tax_number    		= $data['tax_number'];
+			$address    		= $data['address'];
+			$tax_address    	= $data['tax_address'];
+			$note    			= $data['note'];
+			$bank_account    	= $data['bank_account'];
 
 			$created_by   = 'updated_by';
 			$created_date = 'updated_date';
@@ -106,6 +106,9 @@ class Supplier extends Admin_Controller
 				'contact'			=> $contact,
 				'contact_person'	=> $contact_person,
 				'tax_number'		=> $tax_number,
+				'id_prov' 			=> $data['id_prov'],
+				'id_kabkot' 		=> $data['id_kabkot'],
+				'id_kec' 			=> $data['id_kec'],
 				'address'			=> $address,
 				'tax_address'		=> $tax_address,
 				'note'			    => $note,
@@ -146,15 +149,16 @@ class Supplier extends Admin_Controller
 			$country    = $this->db->order_by('name', 'asc')->get_where('country_all', array('iso3 !=' => NULL))->result_array();
 			$provinsi   = $this->db->order_by('urut', 'asc')->get('provinsi')->result_array();
 			$currency   = $this->db->order_by('negara', 'asc')->get('mata_uang')->result_array();
+			$prov 		= $this->supplier_model->get_data('prov');
 
-			// print_r($header);
-			// exit;
 			$data = [
-				'header' => $header,
-				'country' => $country,
-				'provinsi' => $provinsi,
-				'currency' => $currency,
+				'header' 	=> $header,
+				'country' 	=> $country,
+				'provinsi' 	=> $provinsi,
+				'currency' 	=> $currency,
+				'prov'		=> $prov,
 			];
+
 			$this->template->title('Add Supplier');
 			$this->template->page_icon('fa fa-edit');
 			$this->template->render('add', $data);
@@ -236,6 +240,27 @@ class Supplier extends Admin_Controller
 		}
 
 		echo json_encode($Arr_Data);
+	}
+
+	function getkota()
+	{
+		$id_prov = $_GET['id_prov'];
+		$data = $this->db->like('id_kabkot', $id_prov, 'after')->get('kabkot')->result();
+
+		echo "<option value=''>--Pilih--</option>";
+		foreach ($data as $kabkot) {
+			echo "<option value='$kabkot->id_kabkot'>$kabkot->kabkot</option>";
+		}
+	}
+	function getkecamatan()
+	{
+		$id_kabkot = $_GET['id_kabkot'];
+		$data = $this->db->like('id_kec', $id_kabkot, 'after')->get('kec')->result();
+
+		echo "<option value=''>--Pilih--</option>";
+		foreach ($data as $kec) {
+			echo "<option value='$kec->id_kec'>$kec->kecamatan</option>";
+		}
 	}
 
 	public function excel_report_all()

@@ -57,8 +57,8 @@ $ENABLE_DELETE  = has_permission('Master_Supplier.Delete');
 				...
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-danger" data-dismiss="modal">
-					<span class="glyphicon glyphicon-remove"></span> Close</button>
+				<!-- <button type="button" class="btn btn-danger" data-dismiss="modal">
+					<span class="glyphicon glyphicon-remove"></span> Close</button> -->
 			</div>
 		</div>
 	</div>

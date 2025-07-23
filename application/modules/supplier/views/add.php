@@ -15,6 +15,9 @@ $email3   		= (!empty($header[0]->email3)) ? $header[0]->email3 : '';
 $contact   		= (!empty($header[0]->contact)) ? $header[0]->contact : '';
 $contact_person	= (!empty($header[0]->contact_person)) ? $header[0]->contact_person : '';
 $tax_number   	= (!empty($header[0]->tax_number)) ? $header[0]->tax_number : '';
+$id_prov   		= (!empty($header[0]->id_prov)) ? $header[0]->id_prov : '';
+$id_kabkot   	= (!empty($header[0]->id_kabkot)) ? $header[0]->id_kabkot : '';
+$id_kec   		= (!empty($header[0]->id_kec)) ? $header[0]->id_kec : '';
 $address   		= (!empty($header[0]->address)) ? $header[0]->address : '';
 $tax_address   	= (!empty($header[0]->tax_address)) ? $header[0]->tax_address : '';
 $note   		= (!empty($header[0]->note)) ? $header[0]->note : '';
@@ -54,17 +57,52 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 				</div>
 			</div>
 			<div class="col-sm-6">
+				<!-- Provinsi -->
 				<div class="form-group row">
 					<div class="col-md-4">
-						<label for="customer">Provinsi</label>
+						<label>Provinsi <span class="text-red">*</span></label>
 					</div>
 					<div class="col-md-8">
-						<select id="id_provinsi" name="id_provinsi" class="form-control select">
-							<option value="0">Select Provinsi</option>
-							<?php foreach ($provinsi as $val => $value) {
-								$sel = ($value['id_prov'] == $id_provinsi) ? 'selected' : '';
+						<select id="id_prov" name="id_prov" class="form-control select" onchange="get_kota()" required <?= $disabled ?>>
+							<option value="">--Pilih--</option>
+							<?php foreach ($prov as $prov) {
+								$selected = ($id_prov == $prov->id_prov) ? 'selected' : '';
 							?>
-								<option value="<?= $value['id_prov']; ?>" <?= $sel; ?>><?= strtoupper($value['nama']) ?></option>
+								<option value="<?= $prov->id_prov ?>" <?= $selected ?>><?= $prov->provinsi ?></option>
+							<?php } ?>
+						</select>
+					</div>
+				</div>
+
+				<!-- Kabupaten/Kota -->
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label>Kabupaten/Kota <span class="text-red">*</span></label>
+					</div>
+					<div class="col-md-8">
+						<select id="id_kabkot" name="id_kabkot" class="form-control select" onchange="get_kec()" required <?= $disabled ?>>
+							<option value="">--Pilih--</option>
+							<?php foreach ($kabkot as $kabkot) {
+								$selected = ($id_kabkot == $kabkot->id_kabkot) ? 'selected' : '';
+							?>
+								<option value="<?= $kabkot->id_kabkot ?>" <?= $selected ?>><?= $kabkot->kabkot ?></option>
+							<?php } ?>
+						</select>
+					</div>
+				</div>
+
+				<!-- Kecamatan -->
+				<div class="form-group row">
+					<div class="col-md-4">
+						<label>Kecamatan <span class="text-red">*</span></label>
+					</div>
+					<div class="col-md-8">
+						<select id="id_kec" name="id_kec" class="form-control select" required <?= $disabled ?>>
+							<option value="">--Pilih--</option>
+							<?php foreach ($kec as $kec) {
+								$selected = ($id_kec == $kec->id_kec) ? 'selected' : '';
+							?>
+								<option value="<?= $kec->id_kec ?>" <?= $selected ?>><?= $kec->kecamatan ?></option>
 							<?php } ?>
 						</select>
 					</div>
@@ -380,6 +418,36 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 					}
 				});
 		});
-
 	});
+
+	function get_kota() {
+		const id_prov = $("#id_prov").val();
+
+		$.ajax({
+			type: "GET",
+			url: siteurl + 'supplier/getkota',
+			data: {
+				id_prov: id_prov
+			},
+			success: function(html) {
+				$("#id_kabkot").html(html);
+				$("#id_kec").html("<option value=''>--Pilih--</option>");
+			}
+		});
+	}
+
+
+	function get_kec() {
+		var id_kabkot = $("#id_kabkot").val();
+		$.ajax({
+			type: "GET",
+			url: siteurl + 'supplier/getkecamatan',
+			data: {
+				id_kabkot: id_kabkot
+			},
+			success: function(html) {
+				$("#id_kec").html(html);
+			}
+		});
+	}
 </script>

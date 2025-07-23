@@ -157,4 +157,12 @@ class Supplier_model extends BF_Model
 		$data['query'] = $this->db->query($sql);
 		return $data;
 	}
+
+	function carikota($id_prov)
+	{
+		$this->db->where('id_prov', $id_prov);
+		return $this->db->from('kota')
+			->get()
+			->result();
+	}
 }
