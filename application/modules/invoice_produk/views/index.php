@@ -11,12 +11,6 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 	}
 </style>
 <div class="box box-primary">
-	<div class="box-header">
-		<span class="pull-right">
-		</span>
-	</div>
-	<!-- /.box-header -->
-	<!-- /.box-header -->
 	<div class="box-body">
 		<ul class="nav nav-tabs" role="tablist">
 			<li role="presentation" class="dp_tab tab_pin active"><a onclick="change_tab('dp')">Invoice DP</a></li>

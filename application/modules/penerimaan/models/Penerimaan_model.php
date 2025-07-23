@@ -277,7 +277,7 @@ class Penerimaan_model extends BF_Model
 
 			$tgl_bayar_formated = date('d/M/Y', strtotime($row['tgl_pembayaran']));
 
-			$action = "<a href='" . site_url('penerimaan/print_struk/' . $row['kd_pembayaran']) . "' target='_blank' class='btn btn-sm btn-warning' title='Cetak Struk'><i class='fa fa-print'></i></a>";
+			$action = "<a href='" . site_url('penerimaan/print/' . $row['kd_pembayaran']) . "' target='_blank' class='btn btn-sm btn-warning' title='Cetak Invoice'><i class='fa fa-print'></i></a>";
 
 			$nestedData = [];
 			$nestedData[] = "<div align='center'>{$nomor}</div>";
@@ -291,7 +291,7 @@ class Penerimaan_model extends BF_Model
 			// $nestedData[] = "<div align='left'>" . number_format($row['biaya_pph_idr']) . "</div>";
 			$nestedData[] = "<div align='right'>" . number_format($row['biaya_admin_idr'], 2) . "</div>";
 			$nestedData[] = "<div align='right'>" . number_format($row['jumlah_pembayaran_idr'], 2) . "</div>";
-			$nestedData[] = "<div align='center'></div>";
+			$nestedData[] = "<div align='center'>{$action}</div>";
 
 			$data[] = $nestedData;
 			$urut++;
