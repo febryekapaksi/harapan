@@ -257,7 +257,7 @@ class Penerimaan_cash extends Admin_Controller
 		}
 
 		$otp_code = rand(100000, 999999);
-		$expired_at = date('Y-m-d H:i:s', strtotime('+1 minutes'));
+		$expired_at = date('Y-m-d H:i:s', strtotime('+3 minutes'));
 
 		// Update
 		$this->db->update('tr_invoice_payment_otp', [
