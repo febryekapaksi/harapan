@@ -136,17 +136,17 @@ class Spk_delivery_model extends BF_Model
   public function get_query_json_spk_deliv($sales_order = null, $like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
   {
     $columns_order_by = [
-      0 => 'a.tanggal_spk',
-      1 => 'a.no_delivery',
-      2 => 'a.no_so',
-      3 => 'b.id_penawaran',
-      4 => 'c.name_customer',
-      5 => 'a.status'
+      0 => 'a.no_delivery',
+      1 => 'a.no_so',
+      2 => 'b.id_penawaran',
+      3 => 'c.name_customer',
+      4 => 'a.pengiriman',
+      5 => 'a.tanggal_spk',
     ];
 
-    // =======================
-    // 1. Hitung totalData
-    // =======================
+    // ====================
+    // 1. Total Data Count
+    // ====================
     $this->db->select('a.no_delivery');
     $this->db->from('spk_delivery a');
     $this->db->join('sales_order d', 'a.no_so = d.no_so', 'left');
@@ -159,12 +159,11 @@ class Spk_delivery_model extends BF_Model
       $this->db->where('a.no_so', $sales_order);
     }
 
-    // $this->db->group_by('a.no_delivery');
     $totalData = $this->db->count_all_results();
 
-    // ============================
-    // 2. Hitung totalFiltered
-    // ============================
+    // ========================
+    // 2. Total Filtered Count
+    // ========================
     $this->db->select('a.no_delivery');
     $this->db->from('spk_delivery a');
     $this->db->join('sales_order d', 'a.no_so = d.no_so', 'left');
@@ -186,12 +185,11 @@ class Spk_delivery_model extends BF_Model
       $this->db->group_end();
     }
 
-    // $this->db->group_by('a.no_delivery');
     $totalFiltered = $this->db->count_all_results();
 
-    // =======================
-    // 3. Ambil data paginasi
-    // =======================
+    // ========================
+    // 3. Data Query (Paginated)
+    // ========================
     $this->db->select('
         a.no_delivery,
         a.no_so,
@@ -202,7 +200,7 @@ class Spk_delivery_model extends BF_Model
         a.status,
         a.upload_spk,
         a.pengiriman,
-        SUM(e.qty_delivery) AS qty_delivery,
+        e.qty_delivery,
         a.created_by,
         a.created_date
     ');
@@ -226,13 +224,10 @@ class Spk_delivery_model extends BF_Model
       $this->db->group_end();
     }
 
-    // $this->db->group_by('a.no_delivery');
-
-    // Order dan limit
     if ($column_order !== null && isset($columns_order_by[$column_order])) {
       $this->db->order_by($columns_order_by[$column_order], $column_dir);
     } else {
-      $this->db->order_by('a.created_date', 'DESC');
+      $this->db->order_by('a.no_delivery', 'desc');
     }
 
     if ($limit_length != -1) {
@@ -247,7 +242,6 @@ class Spk_delivery_model extends BF_Model
       'query' => $query
     ];
   }
-
 
 
   //Re-Print
