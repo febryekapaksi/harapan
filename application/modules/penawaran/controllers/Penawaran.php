@@ -273,12 +273,51 @@ class Penawaran extends Admin_Controller
             return;
         }
 
-        // Siapkan data untuk update loss
+        // Ambil semua diskon dari penawaran_detail
+        $this->db->select('diskon');
+        $this->db->from('penawaran_detail');
+        $this->db->where('id_penawaran', $id_penawaran);
+        $details = $this->db->get()->result_array();
+
+        $level_approval = 'M';
+        $status = 'WA';
+        $surplus_only = true;
+
+        foreach ($details as $det) {
+            $diskon = floatval($det['diskon']);
+
+            if ($diskon < -2) {
+                // Diskon terlalu besar, wajib approval direksi
+                $level_approval = 'D';
+                $status = 'WA';
+                $surplus_only = false;
+                break;
+            }
+
+            if ($diskon < 0) {
+                $surplus_only = false;
+            }
+        }
+
+        if ($surplus_only) {
+            // Tidak ada diskon atau diskon semua positif → langsung approve
+            $status = 'A'; // Approved
+        }
+
+        // Siapkan data update
         $update = [
-            'status_draft' => 1
+            'status_draft'   => 1,
+            'status'         => $status,
+            'level_approval' => $level_approval
         ];
 
-        // Lakukan update ke tabel penawaran
+        if ($status === 'A') {
+            // Jika langsung approve, set approved_by_manager
+            $update['approved_by_manager'] = $this->auth->user_id();
+            $update['approved_at_manager'] = date('Y-m-d H:i:s');
+        }
+
+        // Update ke database
         $this->db->where('id_penawaran', $id_penawaran);
         $this->db->update('penawaran', $update);
 
@@ -287,6 +326,7 @@ class Penawaran extends Admin_Controller
             'pesan'  => 'Penawaran berhasil direquest Approval.'
         ]);
     }
+
 
     // Bagian Print out
     public function print_penawaran($id_penawaran)
