@@ -159,7 +159,7 @@ class Spk_delivery_model extends BF_Model
       $this->db->where('a.no_so', $sales_order);
     }
 
-    $this->db->group_by('a.no_delivery');
+    // $this->db->group_by('a.no_delivery');
     $totalData = $this->db->count_all_results();
 
     // ============================
@@ -186,6 +186,7 @@ class Spk_delivery_model extends BF_Model
       $this->db->group_end();
     }
 
+    // $this->db->group_by('a.no_delivery');
     $totalFiltered = $this->db->count_all_results();
 
     // =======================
@@ -225,7 +226,7 @@ class Spk_delivery_model extends BF_Model
       $this->db->group_end();
     }
 
-    $this->db->group_by('a.no_delivery');
+    // $this->db->group_by('a.no_delivery');
 
     // Order dan limit
     if ($column_order !== null && isset($columns_order_by[$column_order])) {
