@@ -186,7 +186,6 @@ class Spk_delivery_model extends BF_Model
       $this->db->group_end();
     }
 
-    $this->db->group_by('a.no_delivery');
     $totalFiltered = $this->db->count_all_results();
 
     // =======================
