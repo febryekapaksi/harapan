@@ -104,13 +104,16 @@
 <body>
     <!-- Header dan Judul -->
     <div style="display: flex;">
-        <div style="width: 70%;">
+        <div class="text-left" style="width: 140px;">
+            <img src="<?= base_url('assets/images/logo_sbf.png') ?>" alt="" width="100" height="60">
+        </div>
+        <div style="width: 60%;">
             <strong>PT Surya Bangun Fajar</strong><br>
             Jl. Kalijaga No.35 Kel. Pegambiran Kec. Lemahwungkuk<br>
             Kota Cirebon Jawa Barat 45113<br>
             Indonesia
         </div>
-        <div class="text-right" style="width: 30%;">
+        <div class="text-right" style="width: 40%;">
             <h2>SURAT JALAN</h2>
         </div>
     </div>
