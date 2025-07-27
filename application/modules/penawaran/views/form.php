@@ -31,7 +31,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                             </div>
                             <div class="col-md-8">
                                 <input type="date" class="form-control" name="quotation_date" id="quotation_date" <?= $readonly ?>
-                                    value="<?= isset($penawaran['quotation_date']) ? date('Y-m-d', strtotime($penawaran['quotation_date'])) : '' ?>">
+                                    value="<?= isset($penawaran['quotation_date']) ? date('Y-m-d', strtotime($penawaran['quotation_date'])) : '' ?>" required>
                             </div>
                         </div>
 
