@@ -10,6 +10,8 @@
                 <td>No PO</td>
                 <td>:</td>
                 <td><?= $no_surat ?></td>
+            </tr>
+            <tr>
                 <td>No PR</td>
                 <td>:</td>
                 <td><?= $no_pr ?></td>
@@ -20,9 +22,6 @@
                 <td>
                     <input type="date" name="incoming_date" id="" class="form-control form-control-sm" value="<?= date('Y-m-d') ?>">
                 </td>
-                <td></td>
-                <td></td>
-                <td></td>
             </tr>
         </table>
         <br>
@@ -31,10 +30,11 @@
         <?php
         $total_freight = 0;
         $kurs = 1;
-        if ($no_ros != '') {
-            $dataros = $this->db->query("SELECT * from report_of_shipment WHERE id='" . $no_ros . "'")->row();
-            $total_freight = $dataros->fc_cost;
-            $kurs = $dataros->freight_curs;
+        if (!empty($no_ros)) {
+            $dataros = $this->db->query("SELECT * FROM report_of_shipment WHERE id = '" . $this->db->escape_str($no_ros) . "'")->row();
+
+            $total_freight = !empty($dataros) ? $dataros->fc_cost : 0;
+            $kurs = !empty($dataros) ? $dataros->freight_curs : 0;
         }
         ?>
         <input type="hidden" name='total_freight' id='total_freight' value='<?= $total_freight; ?>'>
@@ -61,6 +61,7 @@
                 </thead>
                 <tbody>
                     <?php
+                    $kode_trans = !empty($kode_trans) ? $kode_trans : '';
                     $this->db->select('a.*, b.code as code_product, b.konversi, c.code as unit_measure, d.code as unit_packing, e.qty_order');
                     $this->db->from('dt_trans_po a');
                     $this->db->join('new_inventory_4 b', 'b.code_lv4 = a.idmaterial', 'left');
@@ -106,7 +107,7 @@
                                         <input type='hidden' name='addInMat[$Noo][qty_order]' value='" . $valx['qty'] . "'>
                                         <input type='hidden' name='addInMat[$Noo][qty_rusak]' data-no='$No' class='form-control input-sm text-right maskM'>
                                         <input type='hidden' name='addInMat[$Noo][expired]' data-no='$No' class='form-control input-sm text-left tanggal' readonly placeholder='Expired Date'>
-                                        <input type='hidden' name='addInMat[$Noo][harga]' value='" . $valx['net_price'] . "'>
+                                        <input type='hidden' name='addInMat[$Noo][harga]' value=''>
                                         <input type='hidden' name='addInMat[$Noo][qty_sisa]' value='" . ($valx['qty'] - $ttl_qty_incoming_check) . "'>
                                     </td>";
                                     echo "<td>" . $valx['code_product'] . "</td>";
@@ -175,15 +176,6 @@
             changeMonth: true,
             changeYear: true
         });
-
-        // $(document).on('keyup', '.qtyDiterima', function() {
-        //     let belumDiterima = getNum($(this).parent().parent().find('.belumDiterima').text().split(',').join(''))
-        //     let qtyDiterima = getNum($(this).val().split(',').join(''))
-
-        //     if (qtyDiterima > belumDiterima) {
-        //         $(this).val(belumDiterima)
-        //     }
-        // })
 
         $(document).on('change', '.qtyDiterima', function() {
             var ttl_qty_terima = 0;

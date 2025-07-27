@@ -57,8 +57,11 @@
 				<div class="modal-body" id="view2">
 				</div>
 				<div class="modal-footer">
-					<!--<button type="button" class="btn btn-primary">Save</button>-->
-					<button type="button" class="btn btn-default " data-dismiss="modal">Close</button>
+					<div class="text-center">
+						<?php
+						echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-success', 'style' => 'min-width:100px; margin: 5px 0px 5px 0px;', 'value' => 'Save', 'content' => '<i class="fa fa-save"></i>&emsp;Save', 'id' => 'checkMaterial')) . ' ';
+						?>
+					</div>
 				</div>
 			</div>
 		</div>

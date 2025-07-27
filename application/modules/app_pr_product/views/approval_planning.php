@@ -278,15 +278,7 @@ if (!empty($header[0]['app_3']) && $header[0]['app_3'] == '1') {
                                             type: "success",
                                             timer: 7000
                                         });
-                                        if (tingkat_approval == '1') {
-                                            window.location.href = base_url + active_controller + '/approval_head';
-                                        }
-                                        if (tingkat_approval == '2') {
-                                            window.location.href = base_url + active_controller + '/approval_cost_control';
-                                        }
-                                        if (tingkat_approval == '3') {
-                                            window.location.href = base_url + active_controller + '/approval_management';
-                                        }
+                                        window.location.href = base_url + active_controller;
                                     } else {
                                         swal({
                                             title: "Save Failed!",

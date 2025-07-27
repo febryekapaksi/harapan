@@ -65,7 +65,7 @@ class Pr_model extends BF_Model
 
 	function generate_code($tgl)
 	{
-		$query = $this->db->query("SELECT MAX(no_po) as max_id FROM tr_purchase_order WHERE no_po LIKE '%P".date('y', strtotime($tgl))."%'");
+		$query = $this->db->query("SELECT MAX(no_po) as max_id FROM tr_purchase_order WHERE no_po LIKE '%P" . date('y', strtotime($tgl)) . "%'");
 		$row = $query->row_array();
 		$thn = date('y', strtotime($tgl));
 		$max_id = $row['max_id'];
@@ -259,69 +259,6 @@ class Pr_model extends BF_Model
 
 	public function cariPurchaserequest($filter_status = null)
 	{
-		// $this->db->select('a.*, b.nm_lengkap as nama_user');
-		// $this->db->from('material_planning_base_on_produksi a');
-		// $this->db->join('users b', 'b.id_user = a.booking_by', 'left');
-		// $this->db->join('tr_purchase_order c', 'c.no_po = a.po_number', 'left');
-		// $this->db->where_in('c.status', array('1', null));
-		// $this->db->where('a.app_req', '1');
-		// $this->db->where('a.app_po_req', '0');
-
-		// if($filter_status !== null){
-		// 	if($filter_status == '1'){
-		// 		$query = $this->db->query('
-		// 			SELECT 
-		// 				a.so_number as so_number,
-		// 				a.tgl_so as tgl_so, 
-		// 				b.nm_lengkap as nama_user
-		// 			FROM
-		// 				material_planning_base_on_produksi a
-		// 				LEFT JOIN users b ON b.id_user = a.booking_by
-		// 			WHERE
-		// 				(SELECT COUNT(x.id) as hitung FROM material_planning_base_on_produksi_detail x WHERE x.so_number = a.so_number ) > 0 AND
-		// 				(SELECT COUNT(ab.id) FROM dt_trans_po ab WHERE ab.idpr = a.id AND ab.tipe IS NULL) < 1
-		// 		');
-		// 	} else if($filter_status == '2'){
-		// 		$query = $this->db->query('
-		// 			SELECT 
-		// 				a.so_number as so_number,
-		// 				a.tgl_so as tgl_so, 
-		// 				b.nm_lengkap as nama_user
-		// 			FROM
-		// 				material_planning_base_on_produksi a
-		// 				LEFT JOIN users b ON b.id_user = a.booking_by
-		// 			WHERE
-		// 				(SELECT COUNT(x.id) as hitung FROM material_planning_base_on_produksi_detail x WHERE x.so_number = a.so_number) > 0 AND
-		// 				(SELECT COUNT(ab.id) FROM dt_trans_po ab WHERE ab.idpr = a.id AND ab.tipe IS NULL) > 0 AND
-		// 				(SELECT COUNT(ab.id) FROM dt_trans_po ab WHERE ab.idpr = a.id AND ab.tipe IS NULL) <> (SELECT COUNT(x.id) as hitung FROM material_planning_base_on_produksi_detail x WHERE x.so_number = a.so_number)
-		// 		');
-		// 	} else {
-		// 		$query = $this->db->query('
-		// 			SELECT 
-		// 				a.so_number as so_number,
-		// 				a.tgl_so as tgl_so, 
-		// 				b.nm_lengkap as nama_user
-		// 			FROM
-		// 				material_planning_base_on_produksi a
-		// 				LEFT JOIN users b ON b.id_user = a.booking_by
-		// 			WHERE
-		// 				(SELECT COUNT(x.id) as hitung FROM material_planning_base_on_produksi_detail x WHERE x.so_number = a.so_number ) > 0
-		// 		');
-		// 	}
-		// }else{
-		// 	$query = $this->db->query('
-		// 		SELECT 
-		// 			a.so_number as so_number,
-		// 			a.tgl_so as tgl_so, 
-		// 			b.nm_lengkap as nama_user
-		// 		FROM
-		// 			material_planning_base_on_produksi a
-		// 			LEFT JOIN users b ON b.id_user = a.booking_by
-		// 		WHERE
-		// 			(SELECT COUNT(x.id) as hitung FROM material_planning_base_on_produksi_detail x WHERE x.so_number = a.so_number ) > 0
-		// 	');
-		// }
-
 		$query = $this->db->query('
 			SELECT 
 				a.so_number as so_number,

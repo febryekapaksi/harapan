@@ -25,6 +25,11 @@ $ENABLE_DELETE  = has_permission('Incoming_Material.Delete');
                                 ?>
                             </select>
                         </div>
+                        <div class="col-md-6">
+                            <?php
+                            echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-success', 'style' => 'min-width:100px; float:left;', 'value' => 'Process', 'content' => '<i class="fa fa-refresh"></i> Process', 'id' => 'modalDetail')) . ' ';
+                            ?>
+                        </div>
                     </div>
                     <div class='form-group row'>
                         <label class='label-control col-sm-2'><b>No PO</b></label>
@@ -42,9 +47,7 @@ $ENABLE_DELETE  = has_permission('Incoming_Material.Delete');
                         </div>
                     </div>
                 </div>
-                <?php
-                echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-success', 'style' => 'min-width:100px; float:left;', 'value' => 'Process', 'content' => '<i class="fa fa-refresh"></i> Process', 'id' => 'modalDetail')) . ' ';
-                ?>
+
             </div>
             <div class="col-md-12">
                 <hr>

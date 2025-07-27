@@ -5,6 +5,8 @@
 				<td class="text-left" style='vertical-align:middle;' width='15%'>No PO</td>
 				<td class="text-left" style='vertical-align:middle;' width='2%'>:</td>
 				<td class="text-left" style='vertical-align:middle;'><?= $no_surat; ?></td>
+			</tr>
+			<tr>
 				<td class="text-left" style='vertical-align:middle;' width='15%'>No PR</td>
 				<td class="text-left" style='vertical-align:middle;' width='2%'>:</td>
 				<td class="text-left" style='vertical-align:middle;'><?= $no_pr; ?></td>
@@ -284,11 +286,6 @@
 			<!-- <div class="form-group">
 				<input type="file" name="file_incoming_material[]" id="" class="form-control form-control-sm" multiple>
 			</div> -->
-		</div>
-		<div class="col-md-9" style="margin-top: 25px;">
-			<?php
-			echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-success', 'style' => 'min-width:100px; float:right; margin: 5px 0px 5px 0px;', 'value' => 'Save', 'content' => 'Save', 'id' => 'checkMaterial')) . ' ';
-			?>
 		</div>
 	</div>
 

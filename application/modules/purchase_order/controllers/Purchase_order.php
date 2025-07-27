@@ -1429,6 +1429,9 @@ class Purchase_order extends Admin_Controller
 		$code = $this->Pr_model->generate_code($tgl);
 		$no_surat = $this->Pr_model->BuatNomor($tgl);
 
+		$nominal_kurs = isset($post['nominal_kurs']) ? str_replace(',', '', $post['nominal_kurs']) : 0;
+		$id_dept = isset($post['dept']) && is_array($post['dept']) ? implode(',', $post['dept']) : '';
+
 		$this->db->trans_start();
 
 		$po_pr_depart = 0;
@@ -1449,7 +1452,7 @@ class Purchase_order extends Admin_Controller
 				'no_surat'			=> $no_surat,
 				'id_suplier'		=> $post['supplier'],
 				'loi'				=> $post['loi'],
-				'nominal_kurs'		=> str_replace(',', '', $post['nominal_kurs']),
+				'nominal_kurs'		=> $nominal_kurs,
 				'tanggal'			=> $post['tanggal'],
 				'expect_tanggal'	=> date('Y-m-d', strtotime($post['expect_tanggal'])),
 				'term'				=> $post['term'],
@@ -1465,14 +1468,14 @@ class Purchase_order extends Admin_Controller
 				'total_barang'		=> str_replace(',', '', $post['hargatotal']),
 				'status'			=> '1',
 				'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
-				'persen_disc' => str_replace(',', '', $post['persendisc']),
-				'nilai_disc' => str_replace(',', '', $post['totaldisc']),
-				'note' => $post['note'],
-				'delivery_date' => $post['delivery_date'],
-				'id_dept' => implode(',', $post['dept']),
+				'persen_disc' 		=> str_replace(',', '', $post['persendisc']),
+				'nilai_disc' 		=> str_replace(',', '', $post['totaldisc']),
+				'note' 				=> $post['note'],
+				'delivery_date' 	=> $post['delivery_date'],
+				'id_dept' 			=> $id_dept,
 				'created_on'		=> date('Y-m-d H:i:s'),
 				'created_by'		=> $this->auth->user_id(),
-				'tipe'		=> 'pr depart'
+				'tipe'				=> 'pr depart'
 			];
 		} else if ($po_pr_asset == '1') {
 			$data = [
@@ -1480,7 +1483,7 @@ class Purchase_order extends Admin_Controller
 				'no_surat'			=> $no_surat,
 				'id_suplier'		=> $post['supplier'],
 				'loi'				=> $post['loi'],
-				'nominal_kurs'		=> str_replace(',', '', $post['nominal_kurs']),
+				'nominal_kurs'		=> $nominal_kurs,
 				'tanggal'			=> $post['tanggal'],
 				'expect_tanggal'	=> date('Y-m-d', strtotime($post['expect_tanggal'])),
 				'term'				=> $post['term'],
@@ -1496,14 +1499,14 @@ class Purchase_order extends Admin_Controller
 				'total_barang'		=> str_replace(',', '', $post['hargatotal']),
 				'status'			=> '1',
 				'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
-				'persen_disc' => str_replace(',', '', $post['persendisc']),
-				'nilai_disc' => str_replace(',', '', $post['totaldisc']),
-				'note' => $post['note'],
-				'delivery_date' => $post['delivery_date'],
-				'id_dept' => implode(',', $post['dept']),
+				'persen_disc' 		=> str_replace(',', '', $post['persendisc']),
+				'nilai_disc' 		=> str_replace(',', '', $post['totaldisc']),
+				'note' 				=> $post['note'],
+				'delivery_date' 	=> $post['delivery_date'],
+				'id_dept' 			=> $id_dept,
 				'created_on'		=> date('Y-m-d H:i:s'),
 				'created_by'		=> $this->auth->user_id(),
-				'tipe'		=> 'pr asset'
+				'tipe'				=> 'pr asset'
 			];
 		} else {
 			$data = [
@@ -1511,7 +1514,7 @@ class Purchase_order extends Admin_Controller
 				'no_surat'			=> $no_surat,
 				'id_suplier'		=> $post['supplier'],
 				'loi'				=> $post['loi'],
-				'nominal_kurs'		=> str_replace(',', '', $post['nominal_kurs']),
+				'nominal_kurs'		=> $nominal_kurs,
 				'tanggal'			=> $post['tanggal'],
 				'expect_tanggal'	=> date('Y-m-d', strtotime($post['expect_tanggal'])),
 				'term'				=> $post['term'],
@@ -1527,21 +1530,18 @@ class Purchase_order extends Admin_Controller
 				'total_barang'		=> str_replace(',', '', $post['hargatotal']),
 				'status'			=> '1',
 				'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
-				'persen_disc' => str_replace(',', '', $post['persendisc']),
-				'nilai_disc' => str_replace(',', '', $post['totaldisc']),
-				'note' => $post['note'],
-				'delivery_date' => $post['delivery_date'],
-				'id_dept' => implode(',', $post['dept']),
+				'persen_disc' 		=> str_replace(',', '', $post['persendisc']),
+				'nilai_disc' 		=> str_replace(',', '', $post['totaldisc']),
+				'note' 				=> $post['note'],
+				'delivery_date' 	=> $post['delivery_date'],
+				'id_dept' 			=> $id_dept,
 				'created_on'		=> date('Y-m-d H:i:s'),
 				'created_by'		=> $this->auth->user_id()
 			];
 		}
+
 		//Add Data
 		$insert_tr_purchase_order = $this->db->insert('tr_purchase_order', $data);
-		// if(!$insert_tr_purchase_order){
-		// 	print_r($this->db->error($insert_tr_purchase_order));
-		// 	exit;
-		// }
 
 		$valid_qty = 1;
 		$numb1 = 0;
@@ -1586,11 +1586,7 @@ class Purchase_order extends Admin_Controller
 				);
 
 				$insert_dt_trans_po = $this->db->insert('dt_trans_po', $dt);
-				// if(!$insert_dt_trans_po){
-				// 	print_r($this->db->error($insert_dt_trans_po));
-				// 	exit;
-				// }
-				// $nopr = $used[no_pr];
+
 				$dataupdate = [
 					'status_po'				=> 'CLS',
 				];
@@ -1605,19 +1601,13 @@ class Purchase_order extends Admin_Controller
 					} else {
 						$get_data_pr = $this->db->query("SELECT IF(propose_purchase IS NOT NULL, propose_purchase, 0) AS qty_pr FROM material_planning_base_on_produksi_detail WHERE id = '" . $used['idpr'] . "'")->row();
 					}
-					// print_r($get_other_po_brg->other_qty.' - '.$get_data_pr->qty_pr);
-					// print_r($used[tipe_pr]);
-					// exit;
 
 
 					$qty_all = ($used['qty'] + $get_other_po_brg->other_qty);
-					// print($used[idpr].' ('. $used[qty] . ' + '.$get_other_po_brg->other_qty.') - ' . $get_data_pr->qty_pr.'<br>');
 					if ($get_other_po_brg->other_qty > $get_data_pr->qty_pr) {
 						$valid_qty = 0;
 					}
 				}
-
-				// $this->db->where('no_pr', $nopr)->update("tr_purchase_request", $dataupdate);
 			}
 		}
 
@@ -1628,31 +1618,30 @@ class Purchase_order extends Admin_Controller
 		$countMat = $this->db->get()->row_array();
 		if (count($countMat) > 0) {
 			$update_material_planning = $this->db->where_in('so_number', explode(',', $post['so_number']))->update('material_planning_base_on_produksi', ['po_number' => $code, 'po_date' => date('Y-m-d')]);
-
-			// if(!$update_material_planning){
-			// 	print_r($update_material_planning);
-			// 	exit;
-			// }
 		}
 
 		// Untuk PR Departemen
 		$this->db->select('*');
 		$this->db->from('rutin_non_planning_header');
 		$this->db->where_in('no_pengajuan', explode(',', $post['so_number']));
-		$countDept = $this->db->get()->row_array();
-		if (count($countDept) > 0) {
-			$update_rutin_non_planning = $this->db->where_in('no_pengajuan', explode(',', $post['so_number']))->update('rutin_non_planning_header', ['po_number' => $code, 'po_date' => date('Y-m-d')]);
+		$countDept = $this->db->get()->result_array();
+
+		if (!empty($countDept)) {
+			$update_rutin_non_planning = $this->db
+				->where_in('no_pengajuan', explode(',', $post['so_number']))
+				->update('rutin_non_planning_header', [
+					'po_number' => $code,
+					'po_date' => date('Y-m-d')
+				]);
+
 			if (!$update_rutin_non_planning) {
-				print_r($this->db->error($update_rutin_non_planning));
+				print_r($this->db->error());
 				exit;
 			}
 		}
 
+		// JIKA ADA TOP 
 		$num_top = $this->input->post('num_top');
-		// if($num_top < 1 || $num_top == '') {
-		// 	$num_top = 1;
-		// }
-
 		if ($num_top > 0 && $num_top !== '') {
 			for ($i = 1; $i <= $num_top; $i++) {
 				if (isset($post['group_top_' . $i])) {

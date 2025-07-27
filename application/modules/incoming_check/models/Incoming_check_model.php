@@ -460,10 +460,6 @@ class Incoming_check_model extends BF_Model
                 'status' => 'IN PARSIAL',
             );
 
-            // print_r($ArrUpdate);
-            // print_r($ArrInsertH);
-            // print_r($ArrDeatilAdj);
-            // exit;
             $this->db->trans_start();
             $this->db->insert('warehouse_adjustment', $ArrInsertH);
             $this->db->insert_batch('warehouse_adjustment_detail', $ArrDeatilAdj);
@@ -507,577 +503,9 @@ class Incoming_check_model extends BF_Model
         echo json_encode($Arr_Data);
     }
 
-    // public function process_check_material()
-    // {
-    //     $data             = $this->input->post();
-    //     $data_session    = $this->session->userdata;
-
-    //     $detail            = $data['detail'];
-    //     $id_header        = $data['id_header'];
-    //     $gudang            = $data['gudang_tujuan'];
-    //     $id_tujuan        = $data['id_tujuan'];
-    //     $kode_trans        = $data['kode_trans'];
-    //     $no_po            = $data['no_pox'];
-    //     $no_ros            = $data['no_rosx'];
-    //     $total_freight    = $data['total_freight'];
-
-    //     $UserName        = $data_session['ORI_User']['username'];
-    //     $DateTime        = date('Y-m-d H:i:s');
-
-    //     // echo $gudang;
-    //     // print_r($detail);
-    //     // exit;
-
-    //     $ArrDeatil         = array();
-    //     $ArrDeatilAdj         = array();
-    //     $ArrUpdateStock         = array();
-    //     $ArrUpdateStockExp         = array();
-    //     $ArrStock         = array();
-    //     $ArrHist         = array();
-    //     $ArrStockNew         = array();
-    //     $ArrHistNew         = array();
-    //     $ArrUpdatePO     = array();
-    //     $ArrUpdExp         = array();
-    //     $ArrInsExp         = array();
-    //     $ArrUpdExpHist         = array();
-    //     $ArrInsExpHist         = array();
-    //     $SUM_MAT = 0;
-
-    //     $total_harga_product = 0;
-    //     $total_harga_product_usd = 0;
-    //     $kurs_ros = 1;
-    //     $data_ros = $this->db->query("SELECT * FROM report_of_shipment WHERE id='$no_ros' ")->row();
-    //     if (!empty($data_ros->freight_curs)) $kurs_ros = $data_ros->freight_curs;
-
-    //     foreach ($detail as $val2 => $valx2) {
-    //         $qtyIN         = 0;
-    //         $qtyRISK     = 0;
-
-    //         foreach ($valx2['detail'] as $val => $valx) {
-    //             $KONVERSI     = (!empty($valx['konversi'])) ? str_replace(',', '', $valx['konversi']) : 0;
-    //             $QTY_OKE     = str_replace(',', '', $valx['qty_oke']) * $KONVERSI;
-    //             $QTY_RISK     = str_replace(',', '', $valx['qty_rusak']) * $KONVERSI;
-
-    //             $EXPIRED = (!empty($valx['expired'])) ? $valx['expired'] : NULL;
-
-    //             if ($QTY_OKE > 0 or $QTY_RISK > 0) {
-
-    //                 $qtyIN         += $QTY_OKE;
-    //                 $qtyRISK     += $QTY_RISK;
-
-    //                 //UPDATE ADJUSTMENT DETAIL
-    //                 $getDetAjust = $this->db->get_where('warehouse_adjustment_detail', array('id' => $valx2['id']))->result();
-    //                 $HARGA_UNIT = $getDetAjust[0]->harga;
-
-    //                 $ArrDeatil[$val2]['id']                 = $valx2['id'];
-    //                 $ArrDeatil[$val2]['check_qty_oke']         = $qtyIN;
-    //                 $ArrDeatil[$val2]['check_qty_rusak']     = $qtyRISK;
-    //                 $ArrDeatil[$val2]['check_expired_date'] = $EXPIRED;
-    //                 $ArrDeatil[$val2]['check_keterangan']     = $valx['keterangan'];
-    //                 $ArrDeatil[$val2]['id_material']         = $getDetAjust[0]->id_material;
-    //                 $ArrDeatil[$val2]['harga']                 = $HARGA_UNIT;
-
-    //                 //INSERT ADJUSTMENT CHECK
-    //                 $ArrDeatilAdj[$val2 . $val]['no_ipp']         = $getDetAjust[0]->no_ipp;
-    //                 $ArrDeatilAdj[$val2 . $val]['id_detail']         = $valx2['id'];
-    //                 $ArrDeatilAdj[$val2 . $val]['kode_trans']     = $kode_trans;
-    //                 $ArrDeatilAdj[$val2 . $val]['id_material']     = $getDetAjust[0]->id_material;
-    //                 $ArrDeatilAdj[$val2 . $val]['nm_material']     = $getDetAjust[0]->nm_material;
-    //                 $ArrDeatilAdj[$val2 . $val]['id_category']     = $getDetAjust[0]->id_category;
-    //                 $ArrDeatilAdj[$val2 . $val]['nm_category']     = $getDetAjust[0]->nm_category;
-    //                 $ArrDeatilAdj[$val2 . $val]['qty_order']         = $getDetAjust[0]->qty_order;
-    //                 $ArrDeatilAdj[$val2 . $val]['qty_oke']         = $QTY_OKE;
-    //                 $ArrDeatilAdj[$val2 . $val]['qty_rusak']         = $QTY_RISK;
-    //                 $ArrDeatilAdj[$val2 . $val]['expired_date']     = $EXPIRED;
-    //                 $ArrDeatilAdj[$val2 . $val]['konversi']         = $KONVERSI;
-    //                 $ArrDeatilAdj[$val2 . $val]['keterangan']     = strtolower($valx['keterangan']);
-    //                 $ArrDeatilAdj[$val2 . $val]['update_by']         = $UserName;
-    //                 $ArrDeatilAdj[$val2 . $val]['update_date']     = $DateTime;
-    //                 $ArrDeatilAdj[$val2 . $val]['unit_price']     = $HARGA_UNIT;
-    //                 $ArrDeatilAdj[$val2 . $val]['unit_price_idr'] = $HARGA_UNIT * $kurs_ros;
-
-    //                 //MATERIAL YANG AKAN DI UPDATE
-    //                 $ArrUpdateStock[$val2]['id']         = $getDetAjust[0]->id_material;
-    //                 $ArrUpdateStock[$val2]['qty_good']     = $qtyIN;
-    //                 $ArrUpdateStock[$val2]['qty_risk']     = $qtyRISK;
-    //                 $ArrUpdateStock[$val2]['unit_price'] = $HARGA_UNIT;
-
-    //                 //MATERIAL YANG AKAN DI UPDATE EXPIRED
-    //                 if (!empty($EXPIRED)) {
-    //                     $ArrUpdateStockExp[$val2]['id']         = $getDetAjust[0]->id_material;
-    //                     $ArrUpdateStockExp[$val2]['qty_good']     = $qtyIN;
-    //                     $ArrUpdateStockExp[$val2]['qty_risk']     = $qtyRISK;
-    //                     $ArrUpdateStockExp[$val2]['expired']     = $EXPIRED;
-    //                 }
-
-    //                 //UPDATE PO
-    //                 $rest_po    = $this->db->select('qty_in,price_ref_sup,net_price')->get_where('tran_material_po_detail', array('id' => $getDetAjust[0]->id_po_detail))->result();
-
-    //                 $ArrUpdatePO[$val2]['id']             = $getDetAjust[0]->id_po_detail;
-    //                 $ArrUpdatePO[$val2]['qty_in']         = $rest_po[0]->qty_in + $qtyIN + $qtyRISK;
-    //                 $total_harga_product = ($total_harga_product + ($QTY_OKE * $getDetAjust[0]->harga * $kurs_ros));
-    //                 $total_harga_product_usd = ($total_harga_product_usd + ($QTY_OKE * $rest_po[0]->net_price));
-    //             }
-    //         }
-    //         $SUM_MAT     += $qtyIN + $qtyRISK;
-    //     }
-
-    //     $getDetAjust = $this->db->get_where('warehouse_adjustment', array('kode_trans' => $kode_trans))->result();
-    //     $ArrUpdate = array(
-    //         'checked' => 'Y',
-    //         'jumlah_mat_check' => $getDetAjust[0]->jumlah_mat_check + $SUM_MAT,
-    //         'kurs' => $kurs_ros,
-    //         'checked_by' => $UserName,
-    //         'checked_date' => $DateTime
-    //     );
-
-    //     //PROCESS UPDATE STOCK
-    //     //grouping sum
-    //     $temp = [];
-    //     $temp2 = [];
-    //     $grouping_temp = [];
-    //     $key = 0;
-    //     foreach ($ArrUpdateStock as $value) {
-    //         $key++;
-    //         //grouping good
-    //         if (!array_key_exists($value['id'], $temp)) {
-    //             $temp[$value['id']]['good'] = 0;
-    //         }
-    //         $temp[$value['id']]['good'] += $value['qty_good'];
-
-    //         //grouping risk
-    //         if (!array_key_exists($value['id'], $temp2)) {
-    //             $temp2[$value['id']]['risk'] = 0;
-    //         }
-    //         $temp2[$value['id']]['risk'] += $value['qty_risk'];
-
-
-    //         $grouping_temp[$value['id']]['id']             = $value['id'];
-    //         $grouping_temp[$value['id']]['qty_good']     = $temp[$value['id']]['good'];
-    //         $grouping_temp[$value['id']]['qty_risk']     = $temp2[$value['id']]['risk'];
-    //         $grouping_temp[$value['id']]['kurs']         = $kurs_ros;
-    //         $grouping_temp[$value['id']]['unit_price']     = $value['unit_price'];
-    //     }
-
-    //     $ArrStock = array();
-    //     $ArrHist = array();
-    //     $ArrStockNew = array();
-    //     $ArrHistNew = array();
-
-    //     foreach ($grouping_temp as $key => $value) {
-    //         $rest_pusat     = $this->db->get_where('warehouse_stock', array('id_gudang' => $id_tujuan, 'id_material' => $key))->result();
-    //         $kode_gudang     = get_name('warehouse', 'kd_gudang', 'id', $id_tujuan);
-
-    //         $qtyIN         = $value['qty_good'];
-    //         $qtyRISK     = $value['qty_risk'];
-
-    //         if (!empty($rest_pusat)) {
-    //             //update stock
-    //             $ArrStock[$key]['id']             = $rest_pusat[0]->id;
-    //             $ArrStock[$key]['qty_stock']     = $rest_pusat[0]->qty_stock + $qtyIN;
-    //             $ArrStock[$key]['qty_rusak']     = $rest_pusat[0]->qty_rusak + $qtyRISK;
-    //             $ArrStock[$key]['update_by']     = $UserName;
-    //             $ArrStock[$key]['update_date']     = $DateTime;
-    //             $ArrStock[$key]['harga']        = 0;
-
-    //             //insert history
-    //             $ArrHist[$key]['id_material']         = $rest_pusat[0]->id_material;
-    //             $ArrHist[$key]['idmaterial']         = $rest_pusat[0]->idmaterial;
-    //             $ArrHist[$key]['nm_material']         = $rest_pusat[0]->nm_material;
-    //             $ArrHist[$key]['id_category']         = $rest_pusat[0]->id_category;
-    //             $ArrHist[$key]['nm_category']         = $rest_pusat[0]->nm_category;
-    //             $ArrHist[$key]['id_gudang']         = $id_tujuan;
-    //             $ArrHist[$key]['kd_gudang']         = $kode_gudang;
-    //             $ArrHist[$key]['kd_gudang_dari']     = "PURCHASE";
-    //             $ArrHist[$key]['id_gudang_ke']         = $id_tujuan;
-    //             $ArrHist[$key]['kd_gudang_ke']         = $kode_gudang;
-    //             $ArrHist[$key]['qty_stock_awal']     = $rest_pusat[0]->qty_stock;
-    //             $ArrHist[$key]['qty_stock_akhir']     = $rest_pusat[0]->qty_stock + $qtyIN;
-    //             $ArrHist[$key]['qty_booking_awal'] = $rest_pusat[0]->qty_booking;
-    //             $ArrHist[$key]['qty_booking_akhir'] = $rest_pusat[0]->qty_booking;
-    //             $ArrHist[$key]['qty_rusak_awal']     = $rest_pusat[0]->qty_rusak;
-    //             $ArrHist[$key]['qty_rusak_akhir']     = $rest_pusat[0]->qty_rusak + $qtyRISK;
-    //             $ArrHist[$key]['no_ipp']             = $no_po . "/" . $kode_trans;
-    //             $ArrHist[$key]['jumlah_mat']         = $qtyIN + $qtyRISK;
-    //             $ArrHist[$key]['ket']                 = 'incoming material';
-    //             $ArrHist[$key]['update_by']         = $UserName;
-    //             $ArrHist[$key]['update_date']         = $DateTime;
-    //             $ArrHist[$key]['harga']             = 0;
-    //         } else {
-    //             $sqlMat    = "SELECT * FROM raw_materials WHERE id_material='" . $key . "' LIMIT 1 ";
-    //             $restMat    = $this->db->query($sqlMat)->result();
-
-    //             //update stock
-    //             $ArrStockNew[$key]['id_material']     = $restMat[0]->id_material;
-    //             $ArrStockNew[$key]['idmaterial']     = $restMat[0]->idmaterial;
-    //             $ArrStockNew[$key]['nm_material']     = $restMat[0]->nm_material;
-    //             $ArrStockNew[$key]['id_category']     = $restMat[0]->id_category;
-    //             $ArrStockNew[$key]['nm_category']     = $restMat[0]->nm_category;
-    //             $ArrStockNew[$key]['id_gudang']     = $id_tujuan;
-    //             $ArrStockNew[$key]['kd_gudang']     = $kode_gudang;
-    //             $ArrStockNew[$key]['qty_stock']     = $qtyIN;
-    //             $ArrStockNew[$key]['qty_booking']     = 0;
-    //             $ArrStockNew[$key]['qty_rusak']     = $qtyRISK;
-    //             $ArrStockNew[$key]['update_by']     = $UserName;
-    //             $ArrStockNew[$key]['update_date']     = date('Y-m-d H:i:s');
-    //             $ArrStockNew[$key]['harga']         = 0;
-
-    //             //insert history
-    //             $ArrHistNew[$key]['id_material']         = $restMat[0]->id_material;
-    //             $ArrHistNew[$key]['idmaterial']         = $restMat[0]->idmaterial;
-    //             $ArrHistNew[$key]['nm_material']         = $restMat[0]->nm_material;
-    //             $ArrHistNew[$key]['id_category']         = $restMat[0]->id_category;
-    //             $ArrHistNew[$key]['nm_category']         = $restMat[0]->nm_category;
-    //             $ArrHistNew[$key]['id_gudang']             = $id_tujuan;
-    //             $ArrHistNew[$key]['kd_gudang']             = $kode_gudang;
-    //             $ArrHistNew[$key]['kd_gudang_dari']     = "PURCHASE";
-    //             $ArrHistNew[$key]['id_gudang_ke']         = $id_tujuan;
-    //             $ArrHistNew[$key]['kd_gudang_ke']         = $kode_gudang;
-    //             $ArrHistNew[$key]['qty_stock_awal']     = 0;
-    //             $ArrHistNew[$key]['qty_stock_akhir']     = $qtyIN;
-    //             $ArrHistNew[$key]['qty_booking_awal']     = 0;
-    //             $ArrHistNew[$key]['qty_booking_akhir']    = 0;
-    //             $ArrHistNew[$key]['qty_rusak_awal']     = 0;
-    //             $ArrHistNew[$key]['qty_rusak_akhir']     = $qtyRISK;
-    //             $ArrHistNew[$key]['no_ipp']             = $no_po . "/" . $kode_trans;
-    //             $ArrHistNew[$key]['jumlah_mat']         = $qtyIN + $qtyRISK;
-    //             $ArrHistNew[$key]['ket']                 = 'incoming material (insert new)';
-    //             $ArrHistNew[$key]['update_by']             = $UserName;
-    //             $ArrHistNew[$key]['update_date']         = $DateTime;
-    //             $ArrHistNew[$key]['harga']                 = 0;
-    //         }
-    //     }
-
-    //     //PROCESS UPDATE STOCK EXPIRED
-    //     //grouping sum
-    //     $tempEXP = [];
-    //     $temp2EXP = [];
-    //     $grouping_tempEXP = [];
-    //     $key = 0;
-    //     // print_r($ArrUpdateStockExp);
-    //     // exit;
-    //     foreach ($ArrUpdateStockExp as $value) {
-    //         $key++;
-    //         //grouping good
-    //         if (!array_key_exists($value['id'] . $value['expired'], $tempEXP)) {
-    //             $tempEXP[$value['id'] . $value['expired']]['good'] = 0;
-    //         }
-    //         $tempEXP[$value['id'] . $value['expired']]['good'] += $value['qty_good'];
-
-    //         //grouping risk
-    //         if (!array_key_exists($value['id'], $temp2EXP)) {
-    //             $temp2EXP[$value['id'] . $value['expired']]['risk'] = 0;
-    //         }
-    //         $temp2EXP[$value['id'] . $value['expired']]['risk'] += $value['qty_risk'];
-
-
-    //         $grouping_tempEXP[$value['id'] . $value['expired']]['id']         = $value['id'];
-    //         $grouping_tempEXP[$value['id'] . $value['expired']]['qty_good']     = $tempEXP[$value['id'] . $value['expired']]['good'];
-    //         $grouping_tempEXP[$value['id'] . $value['expired']]['qty_risk']     = $temp2EXP[$value['id'] . $value['expired']]['risk'];
-    //         $grouping_tempEXP[$value['id'] . $value['expired']]['expired']     = $value['expired'];
-    //     }
-
-    //     foreach ($grouping_tempEXP as $key => $value) {
-    //         $rest_exp    = $this->db->get_where('warehouse_stock_expired', array('id_material' => $value['id'], 'id_gudang' => $id_tujuan, 'expired' => $value['expired']))->result();
-
-    //         $QTY_GOOD = $value['qty_good'];
-    //         $QTY_RISK = $value['qty_risk'];
-
-    //         if (!empty($rest_exp)) {
-    //             $ArrUpdExp[$key]['id']             = $rest_exp[0]->id;
-    //             $ArrUpdExp[$key]['qty_stock']     = $rest_exp[0]->qty_stock + $QTY_GOOD;
-    //             $ArrUpdExp[$key]['qty_rusak']     = $rest_exp[0]->qty_rusak + $QTY_RISK;
-    //             $ArrUpdExp[$key]['update_by']     = $UserName;
-    //             $ArrUpdExp[$key]['update_date'] = $DateTime;
-
-    //             $ArrUpdExpHist[$key]['id_material']     = $rest_exp[0]->id_material;
-    //             $ArrUpdExpHist[$key]['nm_material']     = $rest_exp[0]->nm_material;;
-    //             $ArrUpdExpHist[$key]['id_gudang']         = $id_tujuan;
-    //             $ArrUpdExpHist[$key]['expired']         = $value['expired'];
-    //             $ArrUpdExpHist[$key]['qty_stock']         = $rest_exp[0]->qty_stock;
-    //             $ArrUpdExpHist[$key]['qty_rusak']         = $rest_exp[0]->qty_rusak;
-    //             $ArrUpdExpHist[$key]['qty_stock_akhir'] = $rest_exp[0]->qty_stock + $QTY_GOOD;
-    //             $ArrUpdExpHist[$key]['qty_rusak_akhir'] = $rest_exp[0]->qty_rusak + $QTY_RISK;
-    //             $ArrUpdExpHist[$key]['kode_trans']         = $kode_trans;
-    //             $ArrUpdExpHist[$key]['update_by']         = $UserName;
-    //             $ArrUpdExpHist[$key]['update_date']     = $DateTime;
-    //         } else {
-    //             $sqlMat    = "SELECT * FROM raw_materials WHERE id_material='" . $value['id'] . "' LIMIT 1 ";
-    //             $restMat    = $this->db->query($sqlMat)->result();
-
-    //             $ArrInsExp[$key]['id_material']     = $restMat[0]->id_material;
-    //             $ArrInsExp[$key]['nm_material']     = $restMat[0]->nm_material;;
-    //             $ArrInsExp[$key]['id_gudang']         = $id_tujuan;
-    //             $ArrInsExp[$key]['expired']         = $value['expired'];
-    //             $ArrInsExp[$key]['qty_stock']         = $QTY_GOOD;
-    //             $ArrInsExp[$key]['qty_rusak']         = $QTY_RISK;
-    //             $ArrInsExp[$key]['update_by']         = $UserName;
-    //             $ArrInsExp[$key]['update_date']     = $DateTime;
-
-    //             $ArrInsExpHist[$key]['id_material']     = $restMat[0]->id_material;
-    //             $ArrInsExpHist[$key]['nm_material']     = $restMat[0]->nm_material;;
-    //             $ArrInsExpHist[$key]['id_gudang']         = $id_tujuan;
-    //             $ArrInsExpHist[$key]['expired']         = $value['expired'];
-    //             $ArrInsExpHist[$key]['qty_stock']         = 0;
-    //             $ArrInsExpHist[$key]['qty_rusak']         = 0;
-    //             $ArrInsExpHist[$key]['qty_stock_akhir'] = $QTY_GOOD;
-    //             $ArrInsExpHist[$key]['qty_rusak_akhir'] = $QTY_RISK;
-    //             $ArrInsExpHist[$key]['kode_trans']         = $kode_trans;
-    //             $ArrInsExpHist[$key]['update_by']         = $UserName;
-    //             $ArrInsExpHist[$key]['update_date']     = $DateTime;
-    //         }
-    //     }
-
-
-    //     // print_r($ArrUpdate);
-    //     // print_r($ArrDeatil);
-    //     // print_r($ArrDeatilAdj);
-
-    //     // print_r($ArrStock);
-    //     // print_r($ArrHist);
-    //     // print_r($ArrStockNew);
-    //     // print_r($ArrHistNew);
-
-    //     // print_r($ArrUpdExp);
-    //     // print_r($ArrUpdExpHist);
-    //     // print_r($ArrInsExp);
-    //     // print_r($ArrInsExpHist);
-    //     // exit;
-
-    //     // jurnal
-    //     $jenis_jurnal = 'JV032';
-    //     $nomor_jurnal = $jenis_jurnal . $no_ros . rand(100, 999);
-    //     $det_Jurnaltes1 = array();
-    //     $total_forward_bef_ppn = 0;
-    //     $total_forward_ppn = 0;
-    //     $payment_date = date('Y-m-d');
-    //     $data_ros_forward = $this->db->query("SELECT * FROM report_of_shipment_forward WHERE id_ros='$no_ros' ")->result();
-    //     if (!empty($data_ros_forward)) {
-    //         foreach ($data_ros_forward as $keys) {
-    //             $total_forward_bef_ppn = ($total_forward_bef_ppn + $keys->cost);
-    //             $total_forward_ppn = ($total_forward_ppn + $keys->ppn);
-    //         }
-    //     }
-    //     $this->db->trans_start();
-    //     // loping warehouse_adjustment_detail
-    //     $harga_freight = 0;
-    //     foreach ($ArrDeatil as $key => $val) {
-    //         if ($total_harga_product > 0) $harga_freight = round(((($val['harga'] * $kurs_ros * $val['check_qty_oke']) / $total_harga_product) * $total_freight * $kurs_ros / $val['check_qty_oke']), 0);
-    //         $ArrDeatil[$key]['harga_freight'] = $harga_freight;
-    //         $stock_exp    = "SELECT sum(qty_stock) as ttl_qty,sum((qty_stock)*harga) as ttl_harga FROM warehouse_stock WHERE id_material = '" . $val['id_material'] . "' and kd_gudang='" . $kode_gudang . "' group by id_material";
-    //         $dtstock    = $this->db->query($stock_exp)->result();
-
-    //         if (!empty($dtstock)) {
-    //             $ttl_harga = ($dtstock[0]->ttl_harga + ((($val['harga'] * $kurs_ros) + $harga_freight) * $val['check_qty_oke']));
-    //             $ttl_qty = ($dtstock[0]->ttl_qty + $val['check_qty_oke']);
-    //             $newharga = round(($ttl_harga / $ttl_qty), 0);
-    //             $this->db->query("update warehouse_stock set harga='" . $newharga . "' WHERE id_material = '" . $val['id_material'] . "' and kd_gudang='" . $kode_gudang . "'");
-    //         } else {
-    //             $newharga = ($val['harga'] + $harga_freight);
-    //             $ArrStockNew[$val['id_material']]['harga'] = $newharga;
-    //         }
-    //     }
-
-
-    //     // $this->db->update_batch('tran_material_po_detail', $ArrUpdatePO, 'id');
-    //     insert_jurnal($grouping_temp, 'incoming', $id_tujuan, $kode_trans, 'incoming', 'incoming material', 'penambahan gudang pusat');
-
-    //     $this->db->where('id', $id_header);
-    //     $this->db->update('warehouse_adjustment', $ArrUpdate);
-
-    //     // Jurnal
-    //     $data_po = $this->db->query("SELECT * FROM tran_material_po_header WHERE no_po='$no_po'")->row();
-    //     $datajurnal1 = $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' order by parameter_no")->result();
-    //     $hutang = 0;
-    //     $uangmuka = 0;
-    //     $kurs = $kurs_ros;
-    //     $total_harga = 0;
-    //     $total_rupiah = $total_harga_product;
-    //     $total_forex = $total_harga_product_usd;
-    //     $selisih_kurs = 0;
-    //     $unbill_coa = "";
-    //     $unbill_nilai = 0;
-    //     foreach ($datajurnal1 as $rec) {
-    //         if ($rec->parameter_no == "1") {
-    //             $det_Jurnaltes1[] = array(
-    //                 'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $rec->no_perkiraan, 'keterangan' => 'Material ' . $no_po, 'no_request' => $no_po, 'debet' => ($rec->posisi == 'K' ? 0 : ($total_harga_product + $total_forward_bef_ppn)), 'kredit' => ($rec->posisi == 'D' ? 0 : ($total_harga_product + $total_forward_bef_ppn)), 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_supplier, 'stspos' => "1"
-    //             );
-    //         }
-    //         if ($rec->parameter_no == "2") {
-    //             $uangmuka = $total_rupiah;
-    //             if ($data_po->nilai_dp > 0) {
-    //                 if ($data_po->nilai_dp <= $total_forex) {
-    //                     $uangmuka = $data_po->nilai_dp_kurs; //($kurs * $data_po->nilai_dp);
-    //                     $selisih_kurs = ($uangmuka - ($kurs * $data_po->nilai_dp));
-    //                     $hutang = ($total_rupiah - ($kurs * $data_po->nilai_dp));
-    //                     $this->db->query("update tran_material_po_header set nilai_terima_barang_kurs=" . $hutang . ",proses_uang_muka='Y', nilai_dp=0, sisa_dp=0 where no_po='" . $no_po . "'");
-    //                 } else {
-    //                     $nilai_kurs_saat_dp = ($data_po->nilai_dp_kurs / $data_po->nilai_dp);
-    //                     $selisih_kurs = (($total_forex * $nilai_kurs_saat_dp) - ($kurs * $total_forex));
-
-    //                     $this->db->query("update tran_material_po_header set proses_uang_muka='Y', nilai_dp=(nilai_dp-" . $total_forex . "), sisa_dp=(sisa_dp-" . $total_forex . ") where no_po='" . $no_po . "'");
-    //                 }
-    //                 $det_Jurnaltes1[] = array(
-    //                     'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $rec->no_perkiraan, 'keterangan' => 'Uang muka ' . $no_po, 'no_request' => $no_po, 'debet' => ($rec->posisi == 'K' ? 0 : $uangmuka), 'kredit' => ($rec->posisi == 'D' ? 0 : $uangmuka), 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_supplier, 'stspos' => "1"
-    //                 );
-    //             } else {
-    //                 $det_Jurnaltes1[] = array(
-    //                     'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $rec->no_perkiraan, 'keterangan' => 'Uang muka ' . $no_po, 'no_request' => $no_po, 'debet' => 0, 'kredit' => 0, 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_supplier, 'stspos' => "1"
-    //                 );
-    //             }
-    //         }
-    //         if ($rec->parameter_no == "3") {
-    //             if ($hutang > 0) {
-    //                 $det_Jurnaltes1[] = array(
-    //                     'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $rec->no_perkiraan, 'keterangan' => 'Hutang ' . $no_po, 'no_request' => $no_po, 'debet' => ($rec->posisi == 'K' ? 0 : $hutang), 'kredit' => ($rec->posisi == 'D' ? 0 : $hutang), 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_supplier, 'stspos' => "1"
-    //                 );
-    //                 $unbill_nilai = $hutang;
-    //             } else {
-    //                 $det_Jurnaltes1[] = array(
-    //                     'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $rec->no_perkiraan, 'keterangan' => 'Hutang ' . $no_po, 'no_request' => $no_po, 'debet' => ($rec->posisi == 'K' ? 0 : $total_rupiah), 'kredit' => ($rec->posisi == 'D' ? 0 : $total_rupiah), 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_supplier, 'stspos' => "1"
-    //                 );
-    //             }
-    //             $unbill_coa = $rec->no_perkiraan;
-    //             $unbill_nilai = $total_rupiah;
-    //         }
-    //         if ($rec->parameter_no == "4") {
-    //             $det_Jurnaltes1[] = array(
-    //                 'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $rec->no_perkiraan, 'keterangan' => 'Cash/Bank' . $no_po, 'no_request' => $no_po, 'debet' => 0, 'kredit' => 0, 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_supplier, 'stspos' => "1"
-    //             );
-    //         }
-    //         if ($rec->parameter_no == "5") {
-    //             $det_Jurnaltes1[] = array(
-    //                 'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $rec->no_perkiraan, 'keterangan' => 'Hutang Forwarder ' . $no_po, 'no_request' => $no_po, 'debet' => 0, 'kredit' => ($total_forward_bef_ppn + $total_forward_ppn), 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_supplier, 'stspos' => "1"
-    //             );
-    //         }
-    //         if ($rec->parameter_no == "6") {
-    //             $det_Jurnaltes1[] = array(
-    //                 'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $rec->no_perkiraan, 'keterangan' => 'PPN dibayar dimuka' . $no_po, 'no_request' => $no_po, 'debet' => $total_forward_ppn, 'kredit' => 0, 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_supplier, 'stspos' => "1"
-    //             );
-    //         }
-    //         if ($rec->parameter_no == "7") {
-    //             $det_Jurnaltes1[] = array(
-    //                 'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $rec->no_perkiraan, 'keterangan' => 'Selisih kurs' . $no_po, 'no_request' => $no_po, 'kredit' => ($selisih_kurs < 0 ? ($selisih_kurs * -1) : 0), 'debet' => ($selisih_kurs >= 0 ? $selisih_kurs : 0), 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_supplier, 'stspos' => "1"
-    //             );
-    //         }
-    //     }
-    //     $this->db->query("update tran_material_po_header set total_terima_barang_idr=(total_terima_barang_idr+" . $total_rupiah . ") where no_po='" . $no_po . "'");
-
-    //     $this->db->insert_batch('jurnaltras', $det_Jurnaltes1);
-    //     //auto jurnal
-    //     $session = $this->session->userdata('app_session');
-    //     $jenis_jurnal = 'JV032';
-    //     $data_vendor     = $this->db->query("select * from supplier where id_supplier='" . $data_po->id_supplier . "'")->row();
-    //     $nama_vendor     = $data_vendor->nm_supplier;
-    //     $tanggal        = $payment_date;
-    //     $Bln             = substr($tanggal, 5, 2);
-    //     $Thn             = substr($tanggal, 0, 4);
-    //     $Nomor_JV = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tanggal);
-    //     $keterangan        = 'Incoming Material ' . $kode_trans;
-
-    //     $datadetail = array();
-    //     $total = 0;
-    //     foreach ($det_Jurnaltes1 as $vals) {
-    //         $datadetail = array(
-    //             'tipe'            => 'JV',
-    //             'nomor'            => $Nomor_JV,
-    //             'tanggal'        => $tanggal,
-    //             'no_perkiraan'    => $vals['no_perkiraan'],
-    //             'keterangan'    => $vals['keterangan'],
-    //             'no_reff'        => $vals['no_reff'],
-    //             'debet'            => $vals['debet'],
-    //             'kredit'        => $vals['kredit'],
-    //         );
-    //         $this->db->insert(DBACC . '.jurnal', $datadetail);
-    //         $total = ($total + $vals['kredit']);
-    //     }
-
-    //     $dataJVhead = array(
-    //         'nomor'             => $Nomor_JV,
-    //         'tgl'                 => $tanggal,
-    //         'jml'                => $total,
-    //         'bulan'                => $Bln,
-    //         'tahun'                => $Thn,
-    //         'kdcab'                => '101',
-    //         'jenis'                => 'JV',
-    //         'keterangan'        => $keterangan,
-    //         'user_id'            => $session['username'],
-    //         'ho_valid'            => '',
-    //     );
-    //     $this->db->insert(DBACC . '.javh', $dataJVhead);
-    //     $Qry_Update_Cabang_acc = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
-    //     $this->db->query($Qry_Update_Cabang_acc);
-
-    //     $matauang = '';
-    //     $no_reff = $no_po;
-    //     $row_po = $this->db->query("select * from tran_material_po_header where no_po='" . $no_reff . "'")->row();
-    //     if (!empty($row_po)) {
-    //         if ($row_po->mata_uang == 'IDR') $matauang = 'IDR';
-    //     }
-    //     if ($matauang == 'IDR') {
-    //         $datahutang = array(
-    //             'tipe'            => 'JV',
-    //             'nomor'            => $Nomor_JV,
-    //             'tanggal'        => $tanggal,
-    //             'no_perkiraan'    => $unbill_coa,
-    //             'keterangan'      => $keterangan,
-    //             'no_reff'           => $no_reff,
-    //             'kredit'            => $unbill_nilai,
-    //             'debet'          => 0,
-    //             'id_supplier'     => $data_po->id_supplier,
-    //             'nama_supplier'   => $nama_vendor,
-    //             'no_request'      => $kode_trans,
-    //         );
-    //         $this->db->insert('tr_kartu_hutang', $datahutang);
-    //     }
-    //     // end auto jurnal
-
-
-
-    //     $this->db->update_batch('warehouse_adjustment_detail', $ArrDeatil, 'id');
-    //     $this->db->insert_batch('warehouse_adjustment_check', $ArrDeatilAdj);
-
-    //     if (!empty($ArrStock)) {
-    //         $this->db->update_batch('warehouse_stock', $ArrStock, 'id');
-    //         $this->db->insert_batch('warehouse_history', $ArrHist);
-    //     }
-    //     if (!empty($ArrStockNew)) {
-    //         $this->db->insert_batch('warehouse_stock', $ArrStockNew);
-    //         $this->db->insert_batch('warehouse_history', $ArrHistNew);
-    //     }
-    //     if (!empty($ArrUpdExp)) {
-    //         $this->db->update_batch('warehouse_stock_expired', $ArrUpdExp, 'id');
-    //         $this->db->insert_batch('warehouse_stock_expired_hist', $ArrUpdExpHist);
-    //     }
-    //     if (!empty($ArrInsExp)) {
-    //         $this->db->insert_batch('warehouse_stock_expired', $ArrInsExp);
-    //         $this->db->insert_batch('warehouse_stock_expired_hist', $ArrInsExpHist);
-    //     }
-    //     $this->db->trans_complete();
-
-
-    //     if ($this->db->trans_status() === FALSE) {
-    //         $this->db->trans_rollback();
-    //         $Arr_Data    = array(
-    //             'pesan'        => 'Save process failed. Please try again later ...',
-    //             'status'    => 0
-    //         );
-    //     } else {
-    //         $this->db->trans_commit();
-    //         $Arr_Data    = array(
-    //             'pesan'        => 'Save process success. Thanks ...',
-    //             'status'    => 1
-    //         );
-    //         history("Material Incoming Check id : " . $no_po . "/" . $kode_trans);
-    //     }
-    //     echo json_encode($Arr_Data);
-    // }
-
     public function process_check_material()
     {
         $post = $this->input->post();
-        // print_r($post);
-        // exit;
 
         $this->db->trans_begin();
 
@@ -1097,52 +525,18 @@ class Incoming_check_model extends BF_Model
             $this->db->where('a.code_lv4', $det_inc['id_material']);
             $get_material_data = $this->db->get()->row_array();
 
-            // $get_no_po = $this->db->select('no_surat')->get_where('tr_purchase_order', ['no_po' => $det_inc['no_ipp']])->row();
-
             if ($valid == 1) {
                 $get_ttl_qty = $this->db->select('IF(SUM(qty_ng + qty_oke) IS NULL, 0, SUM(qty_ng + qty_oke)) as ttl_qty_checked')->get_where('tr_checked_incoming_detail', ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id']])->row();
-
-                // print_r($get_ttl_qty->ttl_qty_checked.' - '.$det_inc['qty_order']);
-                // exit;
 
                 if ((int) $get_ttl_qty->ttl_qty_checked > $det_inc['qty_order']) {
                     $valid = 2;
                 } else {
-                    // $this->db->insert('tr_checked_incoming_detail', [
-                    //     'kode_trans' => $post['kode_trans'],
-                    //     'no_ipp' => $post['no_pox'],
-                    //     'id_detail' => $det_inc['id'],
-                    //     'id_material' => $det_inc['id_material'],
-                    //     'nm_material' => $det_inc['nm_material'],
-                    //     'qty_order' => $get_qty_order['qty'],
-                    //     'qty_incoming' => $post['ttl_incoming_' . $det_inc['id']],
-                    //     'unit' => $get_material_data['unit'],
-                    //     'packing' => $get_material_data['packing'],
-                    //     'konversi' => $get_material_data['konversi'],
-                    //     'qty_oke' => str_replace(',', '', $post['qty_oke_' . $det_inc['id']]),
-                    //     'qty_ng' => str_replace(',', '', $post['qty_ng_' . $det_inc['id']]),
-                    //     'expired_date' => $post['expired_date_' . $det_inc['id']],
-                    //     'created_by' => $this->auth->user_id(),
-                    //     'created_date' => date('Y-m-d H:i:s')
-                    // ]);
-
-
                     $qty_awal_stock = 0;
                     $get_stock = $this->db->select('qty_stock')->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row();
 
                     if (!empty($get_stock)) {
                         $qty_awal_stock = $get_stock->qty_stock;
                     }
-                    // $get_checked_incoming = $this->db->select('sts')->get_where('tr_checked_incoming_detail', ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material']])->result_array();
-                    // foreach($get_checked_incoming as $checked_incom){
-                    //     if($checked_incom['sts'] == '0'){
-
-
-
-
-
-                    //     }
-                    // }
 
                     $this->db->select('b.nama');
                     $this->db->from('tr_purchase_order a');
@@ -1175,7 +569,7 @@ class Incoming_check_model extends BF_Model
                         'id_gudang_ke' => 1,
                         'kd_gudang_ke' => 'GUDANG PUSAT'
                     ])->row_array();
-                    $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming, SUM(qty_ng) as ttl_new_ng')
+                    $get_new_incoming_ttl = $this->db->select('SUM(qty_order) as ttl_new_incoming, SUM(qty_ng) as ttl_new_ng')
                         ->get_where('tr_checked_incoming_detail', [
                             'kode_trans' => $post['kode_trans'],
                             'id_material' => $det_inc['id_material'],
@@ -1215,26 +609,26 @@ class Incoming_check_model extends BF_Model
                         'id_detail' => $det_inc['id'],
                         'sts' => '0'
                     ])->row_array();
-                $this->db->insert('warehouse_stock', [
-                    'id_material' => $det_inc['id_material'],
-                    'nm_material' => $det_inc['nm_material'],
-                    'id_gudang' => '1',
-                    'kd_gudang' => 'PUS',
-                    'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
-                    'update_by' => $this->auth->user_id(),
-                    'update_date' => date('Y-m-d H:i:s')
-                ]);
 
-                $this->db->insert('warehouse_stock_per_day', [
-                    'id_material' => $det_inc['id_material'],
-                    'nm_material' => $det_inc['nm_material'],
-                    'id_gudang' => 1,
-                    'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
-                    'hist_date' => date('Y-m-d H:i:s')
-                ]);
+                // $this->db->insert('warehouse_stock', [
+                //     'id_material' => $det_inc['id_material'],
+                //     'nm_product' => $det_inc['nm_material'],
+                //     'id_gudang' => '1',
+                //     'kd_gudang' => 'PUS',
+                //     'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
+                //     'update_by' => $this->auth->user_id(),
+                //     'update_date' => date('Y-m-d H:i:s')
+                // ]);
+
+                // $this->db->insert('warehouse_stock_per_day', [
+                //     'id_material' => $det_inc['id_material'],
+                //     'nm_material' => $det_inc['nm_material'],
+                //     'id_gudang' => 1,
+                //     'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
+                //     'hist_date' => date('Y-m-d H:i:s')
+                // ]);
             } else {
                 $get_stock = $this->db->select('qty_stock')->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->row_array();
-
                 $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming')
                     ->get_where('tr_checked_incoming_detail', [
                         'kode_trans' => $post['kode_trans'],
@@ -1243,23 +637,24 @@ class Incoming_check_model extends BF_Model
                         'sts' => '0'
                     ])->row_array();
 
-                $this->db->insert('warehouse_stock_per_day', [
-                    'id_material' => $det_inc['id_material'],
-                    'nm_material' => $det_inc['nm_material'],
-                    'id_gudang' => 1,
-                    'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
-                    'hist_date' => date('Y-m-d H:i:s')
-                ]);
 
-                $this->db->update('warehouse_stock', [
-                    'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
-                    'update_by' => $this->auth->user_id(),
-                    'update_date' => date('Y-m-d H:i:s')
-                ], [
-                    'id_material' => $det_inc['id_material'],
-                    'id_gudang' => '1',
-                    'kd_gudang' => 'PUS'
-                ]);
+                // $this->db->insert('warehouse_stock_per_day', [
+                //     'id_material' => $det_inc['id_material'],
+                //     'nm_material' => $det_inc['nm_material'],
+                //     'id_gudang' => 1,
+                //     'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+                //     'hist_date' => date('Y-m-d H:i:s')
+                // ]);
+
+                // $this->db->update('warehouse_stock', [
+                //     'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+                //     'update_by' => $this->auth->user_id(),
+                //     'update_date' => date('Y-m-d H:i:s')
+                // ], [
+                //     'id_material' => $det_inc['id_material'],
+                //     'id_gudang' => '1',
+                //     'kd_gudang' => 'PUS'
+                // ]);
             }
 
             $this->db->update('tr_checked_incoming_detail', ['sts' => '1'], ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id'],  'sts' => '0']);
@@ -1307,13 +702,13 @@ class Incoming_check_model extends BF_Model
                 'id_material' => $det_inc['id_material'],
                 'nm_material' => $nm_material,
                 'kode_produk' => $kode_material,
-                'tipe_material' => 'material',
+                'tipe_material' => 'product',
                 'id_gudang_ke' => '1',
                 'nm_gudang_ke' => 'GUDANG PUSAT',
                 'tgl' => date('Y-m-d'),
                 'no_transaksi' => $post['kode_trans'],
                 'jenis_transaksi' => 'In Pembelian',
-                'qty_transaksi' => $get_new_incoming_ttl['ttl_new_incoming'],
+                'qty_transaksi' => ($get_new_incoming_ttl['ttl_new_incoming'] !== null ? $get_new_incoming_ttl['ttl_new_incoming'] : 0),
                 'qty' => $nilai_qty,
                 'nilai_beli' => $hargasatuan,
                 'costbook' => $nilai_costbook,
@@ -1361,15 +756,6 @@ class Incoming_check_model extends BF_Model
                 'updated_date' => date('Y-m-d H:i:s')
             ]);
 
-            // $unactivate_costbooklama = $this->db->update('tr_nilai_costbook', ['sts' => 2], ['id_material' => $det_inc['id_material']]);
-
-            // $insert_new_nilai_costbook = $this->db->insert('tr_nilai_costbook_material', [
-            //     'id_costbook' => $id_costbook,
-            //     'id_material' => $det_inc['id_material'],
-            //     'tipe_material' => 'material',
-            //     'nilai_costbook' => ()
-            // ]);
-
             $totalhargabarang += $get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan;
         endforeach;
 
@@ -1382,54 +768,15 @@ class Incoming_check_model extends BF_Model
         $this->load->library('upload', $config);
         $this->upload->initialize($config);
 
-        // $_FILES['upload_po']['name'] = $_FILES['file_incoming_material']['name'];
-        // $_FILES['upload_po']['type'] = $_FILES['file_incoming_material']['type'];
-        // $_FILES['upload_po']['tmp_name'] = $_FILES['file_incoming_material']['tmp_name'];
-        // $_FILES['upload_po']['error'] = $_FILES['file_incoming_material']['error'];
-        // $_FILES['upload_po']['size'] = $_FILES['file_incoming_material']['size'];
-
         $upload_incoming = '';
-        // if (!$this->upload->do_upload('upload_po')) {
-        //     // If upload fails, display error
-        //     $error = array('error' => $this->upload->display_errors());
-        //     // print_r($error);
-        // } else {
-        //     $data_upload_po = $this->upload->data();
-        //     $upload_incoming = 'uploads/incoming_check/' . $data_upload_po['file_name'];
-        // }
-
-        // $files = $_FILES['file_incoming_material'];
-        // $file_count = count($files['name']);
-        // for ($i = 0; $i < $file_count; $i++) {
-        //     $_FILES['file_incoming_material']['name'] = $files['name'][$i];
-        //     $_FILES['file_incoming_material']['type'] = $files['type'][$i];
-        //     $_FILES['file_incoming_material']['tmp_name'] = $files['tmp_name'][$i];
-        //     $_FILES['file_incoming_material']['error'] = $files['error'][$i];
-        //     $_FILES['file_incoming_material']['size'] = $files['size'][$i];
-
-        //     if (!$this->upload->do_upload('file_incoming_material')) {
-        //         // If upload fails, display error
-        //         $error = array('error' => $this->upload->display_errors());
-        //         // print_r($error);
-        //     } else {
-        //         $data_upload_incoming = $this->upload->data();
-        //         $upload_incoming = $upload_incoming . '|' . 'uploads/incoming_check/' . $data_upload_incoming['file_name'];
-        //     }
-        // }
 
         $get_sum_material = $this->db->select('IF(SUM(qty_order) IS NULL, 0, SUM(qty_order)) jumlah_mat_check')->get_where('tr_incoming_check_detail', ['kode_trans' => $post['kode_trans']])->row();
 
         $get_checked_val = $this->db->select('IF(SUM(qty_ng + qty_oke) IS NULL, 0 ,SUM(qty_ng + qty_oke)) AS qty_check')->get_where('tr_checked_incoming_detail', ['kode_trans' => $post['kode_trans'], 'sts' => '1'])->row_array();
 
-        // if (($get_checked_val['qty_check'] < $get_sum_material->jumlah_mat_check)){
-        //     $this->db->update('tr_incoming_check', ['file_incoming_check' => $upload_incoming], ['kode_trans' => $post['kode_trans']]);
-        // }else{
-        //     $this->db->update('tr_incoming_check', ['checked' => 'Y', 'file_incoming_check' => $upload_incoming], ['kode_trans' => $post['kode_trans']]);
-        // }
+
         $this->db->update('tr_incoming_check', ['checked' => 'Y', 'file_incoming_check' => $upload_incoming], ['kode_trans' => $post['kode_trans']]);
 
-        // print_r(number_format($ttl_detail_po['po_qty']).' - '.number_format($ttl_detail_po_checked['po_qty']));
-        // exit;
 
         $get_incoming = $this->db->get_where('tr_incoming_check', ['kode_trans' => $post['kode_trans']])->row();
 
@@ -1502,16 +849,8 @@ class Incoming_check_model extends BF_Model
                     $hutang = ($total_rupiah);
                     $hutang = ($total_rupiah);
                     $this->db->query("update tr_purchase_order set nilai_terima_barang_idr=" . $hutang . ", kurs_terima_barang=" . $kurs . " where no_po='" . $no_po . "'");
-
-
-
-                    // $det_Jurnaltes1[] = array(
-                    // 	'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $coa_uangmuka, 'keterangan' => 'Uang muka ' . $no_po, 'no_request' => $no_po, 'debet' => ($rec->posisi == 'K' ? 0 : $uangmuka), 'kredit' => ($rec->posisi == 'D' ? 0 : $uangmuka), 'nilai_valas_debet' => ($rec->posisi == 'K' ? 0 : $uangmukausd), 'nilai_valas_kredit' => ($rec->posisi == 'D' ? 0 : $uangmukausd), 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_suplier, 'stspos' => "1"
-                    // );
                 } else {
-                    // $det_Jurnaltes1[] = array(
-                    // 	'nomor' => $nomor_jurnal, 'tanggal' => $payment_date, 'tipe' => 'JV', 'no_perkiraan' => $coa_uangmuka, 'keterangan' => 'Uang muka ' . $no_po, 'no_request' => $no_po, 'debet' => 0, 'kredit' => 0, 'nilai_valas_debet' => ($rec->posisi == 'K' ? 0 : 0), 'nilai_valas_kredit' => ($rec->posisi == 'D' ? 0 : 0), 'no_reff' => $no_ros, 'jenis_jurnal' => $jenis_jurnal, 'nocust' => $data_po->id_suplier, 'stspos' => "1"
-                    // );
+
                     $hutang = ($total_rupiah);
                     $this->db->query("update tr_purchase_order set nilai_terima_barang_idr=" . $hutang . " where no_po='" . $no_po . "'");
                 }
@@ -1630,26 +969,6 @@ class Incoming_check_model extends BF_Model
             'no_request'      => $kode_trans,
         );
         $this->db->insert('tr_kartu_hutang', $datahutang);
-
-
-        // $datauangmuka = array(
-        // 	'tipe'       	 => 'JV',
-        // 	'nomor'       	 => $Nomor_JV,
-        // 	'tanggal'        => $tanggal,
-        // 	'no_perkiraan'    => $coa_uangmuka,
-        // 	'keterangan'      => $keterangan,
-        // 	'no_reff'     	  => $no_reff,
-        // 	'debet'           => 0,
-        // 	'kredit'      	  => $uangmuka2,
-        // 	'debet_usd'       => 0,
-        // 	'kredit_usd'      => $uangmukausd2,
-        // 	'id_supplier'     => $data_po->id_suplier,
-        // 	'nama_supplier'   => $nama_vendor,
-        // 	'no_request'      => $kode_trans, 
-        // );
-        // $this->db->insert('tr_kartu_hutang', $datauangmuka);
-        // end auto jurnal
-
 
 
         if ($this->db->trans_status() === FALSE || $valid == 2) {
@@ -4680,45 +3999,6 @@ class Incoming_check_model extends BF_Model
         //     $where_gudang = " AND a.kd_gudang_ke = '" . $gudang . "' ";
         // }
 
-        // $sql = "
-        // 	SELECT
-        // 		(@row:=@row+1) AS nomor,
-        // 		a.*,
-        // 		SUM(b.qty_oke) AS qty_req,
-        // 		SUM(b.check_qty_oke) AS qty_cek
-        // 	FROM
-        // 		warehouse_adjustment a
-        // 		LEFT JOIN warehouse_adjustment_detail b ON a.kode_trans=b.kode_trans AND b.check_qty_oke IS NULL,
-        // 		(SELECT @row:=0) r
-        //     WHERE 1=1 AND a.category = 'incoming material' AND a.status_id = '1'
-        // 		" . $where_no_po . "
-        // 		" . $where_gudang . "
-        // 	AND(
-        // 		a.no_ipp LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-        // 		OR a.kd_gudang_ke LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-        // 		OR a.kode_trans LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-        // 		OR b.nm_material LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-        //     )
-        // 	GROUP BY a.kode_trans
-        // ";
-
-        // $this->db->select('a.*, b.no_surat, c.nm_lengkap');
-        // $this->db->from('tr_incoming_check a');
-        // $this->db->join('tr_purchase_order b', 'b.no_po = a.no_ipp', 'left');
-        // $this->db->join('users c', 'c.id_user = a.created_by', 'left');
-        // $this->db->where('1=1');
-        // $this->db->where('a.category', 'incoming material');
-        // $this->db->group_start();
-        // $this->db->or_where('a.kode_trans LIKE', '%'.$this->db->escape_like_str($like_value).'%');
-        // $this->db->or_where('b.no_surat LIKE', '%'.$this->db->escape_like_str($like_value).'%');
-        // $this->db->or_where('(SELECT aa.nm_material FROM tr_incoming_check_detail aa WHERE aa.kode_trans = a.kode_trans) LIKE', '%'.$this->db->escape_like_str($like_value).'%');
-        // $this->db->or_where('(SELECT SUM(ab.qty_order) FROM tr_incoming_check_detail ab WHERE ab.kode_trans = a.kode_trans) LIKE', '%'.$this->db->escape_like_str($like_value).'%');
-        // $this->db->or_where('c.nm_lengkap LIKE', '%'.$this->db->escape_like_str($like_value).'%');
-        // $this->db->or_where('DATE_FORMAT(a.created_date, "%d-%M-%Y %H:%i:%s") LIKE', '%'.$this->db->escape_like_str($like_value).'%');
-        // $this->db->group_end();
-        // $this->db->group_by('a.kode_trans');
-        // $sql = $this->db->query();
-
         $sql = '
         SELECT a.*, b.no_surat, c.nm_lengkap, f.nm_lengkap as checker, IF(SUM(d.qty_oke) IS NULL, 0, SUM(d.qty_oke)) AS ttl_qty_oke, IF(SUM(d.qty_rusak) IS NULL, 0, SUM(d.qty_rusak)) AS ttl_qty_rusak
             FROM tr_incoming_check a
@@ -4728,7 +4008,7 @@ class Incoming_check_model extends BF_Model
             LEFT JOIN tr_checked_incoming_detail e ON e.kode_trans = a.kode_trans
             LEFT JOIN users f ON f.id_user = e.created_by
             WHERE 1 = 1
-            AND a.category = "incoming material"
+            AND a.category = "incoming product"
             AND (
             a.kode_trans LIKE "%' . $this->db->escape_like_str($like_value) . '%"
             OR b.no_surat LIKE "%' . $this->db->escape_like_str($like_value) . '%"
@@ -4738,12 +4018,6 @@ class Incoming_check_model extends BF_Model
             GROUP BY a.kode_trans
         ';
 
-
-
-        // print_r($sql);
-        // exit;
-
-        // echo $sql; exit;
 
         $data['totalData'] = $this->db->query($sql)->num_rows();
         $data['totalFiltered'] = $this->db->query($sql)->num_rows();

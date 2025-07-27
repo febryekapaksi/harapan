@@ -251,9 +251,9 @@ class Incoming_product_model extends BF_Model
     public function modal_incoming_product()
     {
         $data = $this->input->post();
-        // $no_po      = $data['no_ipp'];
-        $kode_trans = $data['kode_trans'];
-        $arrNoPO    = $data['list_no_po'];
+        $no_po      = $data['no_ipp'] ?? null;
+        $kode_trans = $data['kode_trans'] ?? null;
+        $arrNoPO    = $data['list_no_po'] ?? [];
 
         $this->db->select('a.*, b.code as code_product, b.konversi, c.code as unit_measure, d.code as unit_packing, e.qty_order');
         $this->db->from('dt_trans_po a');
@@ -305,35 +305,13 @@ class Incoming_product_model extends BF_Model
         $dateTime        = date('Y-m-d H:i:s');
         $no_po            = $data['no_po'];
         $incoming_date = $data['incoming_date'];
-        // $gudang            = $data['gudang'];
-        // $pembeda        = $data['pembeda'];
-        // $asal_incoming    = $data['asal_incoming'];
-        // $nm_gudang_ke     = get_name('warehouse', 'kd_gudang', 'id', $gudang);
-        // $note		= strtolower($data['note']);
+
         $addInMat        = $data['addInMat'];
-        // $adjustment     = $data['adjustment'];
-        // $no_ros            = $data['no_ros'];
+
         $Ym             = date('ym');
-        // echo $no_po;
-        // print_r($addInMat);
-        // exit;
+
         $table = 'dt_trans_po';
-        // if($pembeda == 'N'){
-        // 	$table = 'tran_material_non_po_detail';
-        // }
 
-        // if($adjustment == 'IN'){
-        // $histHlp = "Material Adjustment In Purchase To ".$nm_gudang_ke." / ".$no_po;
-
-        //pengurutan kode
-        // $srcMtr            = "SELECT MAX(kode_trans) as maxP FROM warehouse_adjustment WHERE kode_trans LIKE 'TRS" . $Ym . "%' ";
-        // $numrowMtr        = $this->db->query($srcMtr)->num_rows();
-        // $resultMtr        = $this->db->query($srcMtr)->result_array();
-        // $angkaUrut2        = $resultMtr[0]['maxP'];
-        // $urutan2        = (int)substr($angkaUrut2, 7, 4);
-        // $urutan2++;
-        // $urut2            = sprintf('%04s', $urutan2);
-        // $kode_trans        = "TRS" . $Ym . $urut2;
 
         $ArrUpdate         = array();
         $ArrInList         = array();
@@ -346,7 +324,7 @@ class Incoming_product_model extends BF_Model
 
         $ArrInsertH = array(
             'no_ipp'             => $no_po,
-            'category'             => 'incoming material',
+            'category'             => 'incoming product',
             'jumlah_mat'         => $SumMat + $SumRisk,
             'kd_gudang_dari'     => 'PURCHASE',
             // 'note' => $note,
@@ -409,23 +387,6 @@ class Incoming_product_model extends BF_Model
 
                 $jumlah_mat += $qtyIN;
             }
-
-
-
-
-            // $check_warehouse = $this->db->get_where('warehouse_stock', ['id_material' => $get_trans_po->idmaterial, 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->num_rows();
-
-            // if($check_warehouse > 0){
-            //     $this->db->update('warehouse_stock', ['qty_stock' => ($get_trans_po->qty_ins + $qtyIN)], ['id_material' => $get_trans_po->idmaterial, 'kd_gudang' => 'PUS']);
-            // }else{
-            //     $this->db->insert('warehouse_stock', [
-            //         'id_material' => $get_trans_po->idmaterial,
-            //         'nm_material' => $get_trans_po->namamaterial,
-            //         'id_gudang' => '1',
-            //         'kd_gudang' => 'PUS',
-            //         'qty_stock' => $qtyIN
-            //     ]);
-            // }
         }
 
         $config['upload_path'] = './uploads/incoming_material'; //path folder
@@ -462,7 +423,7 @@ class Incoming_product_model extends BF_Model
             'kode_trans' => $kodecollect,
             'tanggal' => $incoming_date,
             'no_ipp' => $no_po,
-            'category' => 'incoming material',
+            'category' => 'incoming product',
             'jumlah_mat' => $jumlah_mat,
             'id_gudang_dari' => 1,
             'kd_gudang_dari' => 'PUS',
@@ -475,34 +436,6 @@ class Incoming_product_model extends BF_Model
 
 
         $checkSumQty = $this->db->query("SELECT SUM(qty) as total_qty, SUM(qty_in) AS qty_terkirim FROM dt_trans_po WHERE no_po = '" . $no_po . "'")->row();
-
-        // if (($checkSumQty->total_qty - $checkSumQty->qty_terkirim) <= 0) {
-        //     $this->db->update('tr_purchase_order', ['status' => '3'], ['no_po' => $no_po]);
-        // }
-
-        // $this->db->insert('warehouse_adjustment', $ArrInsertH);
-        // $this->db->insert_batch('warehouse_adjustment_detail', $ArrDeatilAdj);
-
-        // if ($pembeda == 'P') {
-        //     $this->db->update_batch('tran_material_po_detail', $ArrUpdate, 'id');
-        //     $qCheck = "SELECT * FROM tran_material_po_detail WHERE no_po='" . $no_po . "' AND qty_in < qty_purchase ";
-        //     $NumChk = $this->db->query($qCheck)->num_rows();
-        //     if ($NumChk < 1) {
-        //         $this->db->where('no_po', $no_po);
-        //         $this->db->update('tran_material_po_header', $ArrHeader2);
-        //     }
-        //     if ($NumChk > 0) {
-        //         $this->db->where('no_po', $no_po);
-        //         $this->db->update('tran_material_po_header', $ArrHeader3);
-        //     }
-        // }
-        // if ($pembeda == 'N') {
-        //     $this->db->update_batch('tran_material_non_po_detail', $ArrUpdate, 'id');
-        //     $this->db->where('no_non_po', $no_po);
-        //     $this->db->update('tran_material_non_po_header', $ArrHeader2x);
-        // }
-        // $this->db->trans_complete();
-        // }
 
 
         if ($this->db->trans_status() === FALSE || $valid > 1) {
