@@ -14,10 +14,10 @@ class Spk_delivery_model extends BF_Model
 
   public function data_side_spk_deliv()
   {
-    $controller      = ucfirst(strtolower($this->uri->segment(1)));
-    // $Arr_Akses			= getAcccesmenu($controller);
-    $requestData    = $_REQUEST;
-    $fetch          = $this->get_query_json_spk_deliv(
+    $controller    = ucfirst(strtolower($this->uri->segment(1)));
+    $requestData   = $_REQUEST;
+
+    $fetch         = $this->get_query_json_spk_deliv(
       $requestData['sales_order'],
       $requestData['search']['value'],
       $requestData['order'][0]['column'],
@@ -25,113 +25,126 @@ class Spk_delivery_model extends BF_Model
       $requestData['start'],
       $requestData['length']
     );
-    $totalData      = $fetch['totalData'];
-    $totalFiltered  = $fetch['totalFiltered'];
-    $query          = $fetch['query'];
 
-    $data  = array();
-    $urut1  = 1;
-    $urut2  = 0;
-    $GET_USER = get_list_user();
-    foreach ($query->result_array() as $row) {
-      $total_data     = $totalData;
-      $start_dari     = $requestData['start'];
-      $asc_desc       = $requestData['order'][0]['dir'];
-      if ($asc_desc == 'asc') {
-        $nomor = ($total_data - $start_dari) - $urut2;
+    $totalData     = $fetch['totalData'];
+    $totalFiltered = $fetch['totalFiltered'];
+    $query         = $fetch['query'];
+
+    $data = [];
+    $urut1 = 1;
+    $urut2 = 0;
+
+    // ========== PRELOAD: Mapping qty_delivery ==========
+    $result_data = $query->result_array();
+    $no_deliveries = array_column($result_data, 'no_delivery');
+    $qty_map = [];
+
+    if (!empty($no_deliveries)) {
+      $qtys = $this->db->select('no_delivery, SUM(qty_delivery) as qty_delivery')
+        ->from('spk_delivery_detail')
+        ->where_in('no_delivery', $no_deliveries)
+        ->group_by('no_delivery')
+        ->get()->result_array();
+
+      foreach ($qtys as $rowQty) {
+        $qty_map[$rowQty['no_delivery']] = $rowQty['qty_delivery'];
       }
-      if ($asc_desc == 'desc') {
-        $nomor = $urut1 + $start_dari;
-      }
+    }
 
-      $nestedData   = array();
-      $nestedData[]  = "<div align='center'>" . $nomor . "</div>";
-      $nestedData[]  = "<div align='center'>" . strtoupper($row['no_delivery']) . "</div>";
-      $nestedData[]  = "<div align='center'>" . strtoupper($row['no_so']) . "</div>";
-      $nestedData[]  = "<div align='left'>" . strtoupper($row['name_customer']) . "</div>";
-      $nestedData[]  = "<div align='center'>" . strtoupper($row['pengiriman']) . "</div>";
-      $nestedData[]  = "<div align='center'>" . date('d/M/Y', strtotime($row['tanggal_spk'])) . "</div>";
+    foreach ($result_data as $row) {
+      $total_data = $totalData;
+      $start_dari = $requestData['start'];
+      $asc_desc = $requestData['order'][0]['dir'];
+      $nomor = ($asc_desc == 'asc')
+        ? ($total_data - $start_dari) - $urut2
+        : $urut1 + $start_dari;
 
-      // $close_by = (!empty($GET_USER[$row['created_by']]['nama'])) ? $GET_USER[$row['created_by']]['nama'] : '';
-      // $close_date = (!empty($row['created_date'])) ? date('d-M-Y H:i', strtotime($row['created_date'])) : '';
-      // $nestedData[]  = "<div align='left'>" . $close_by . "</div>";
-      // $nestedData[]  = "<div align='center'>" . $close_date . "</div>";
+      $nestedData = [];
 
-      $getQTYSO = $this->db->select('SUM(qty_order) AS qty_order')->get_where('sales_order_detail', array('no_so' => $row['no_so']))->result_array();
-      $qty_order = (!empty($getQTYSO[0]['qty_order'])) ? $getQTYSO[0]['qty_order'] : 0;
+      $nestedData[] = "<div align='center'>" . $nomor . "</div>";
+      $nestedData[] = "<div align='center'>" . strtoupper($row['no_delivery']) . "</div>";
+      $nestedData[] = "<div align='center'>" . strtoupper($row['no_so']) . "</div>";
+      $nestedData[] = "<div align='left'>" . strtoupper($row['name_customer']) . "</div>";
+      $nestedData[] = "<div align='center'>" . strtoupper($row['pengiriman']) . "</div>";
+      $nestedData[] = "<div align='center'>" . date('d/M/Y', strtotime($row['tanggal_spk'])) . "</div>";
 
-      if ($row['status'] == 'NOT YET DELIVER') {
-        $status = 'Waiting Loading';
-        $warna = 'blue';
-        $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
-      } else if ($row['status'] == 'LOADING') {
-        $status = 'On Loading';
-        $warna = 'yellow';
-        $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
-      } elseif ($row['status'] == 'ON DELIVER') {
-        $status = 'Delivery';
-        $warna = 'green';
-        $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
-      } else if ($row['status'] == 'DELIVERY CONFIRMED') {
-        if ($qty_order == $row['qty_delivery']) {
-          $status = 'Closed';
-          $warna = 'green';
-          $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
-        }
-        if ($qty_order > $row['qty_delivery'] and $row['qty_delivery'] > 0) {
-          $status = 'Partial SPK';
+      $qty_delivery = isset($qty_map[$row['no_delivery']]) ? $qty_map[$row['no_delivery']] : 0;
+
+      // get qty_order dari sales_order_detail
+      $getQTYSO = $this->db->select('SUM(qty_order) AS qty_order')
+        ->get_where('sales_order_detail', ['no_so' => $row['no_so']])
+        ->row_array();
+      $qty_order = !empty($getQTYSO['qty_order']) ? $getQTYSO['qty_order'] : 0;
+
+      // Status logic
+      $status = 'Unknown';
+      $warna = 'default';
+      $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a>";
+
+      switch ($row['status']) {
+        case 'NOT YET DELIVER':
+          $status = 'Waiting Loading';
+          $warna = 'blue';
+          break;
+        case 'LOADING':
+          $status = 'On Loading';
           $warna = 'yellow';
-          $action = "<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-warning view-spk' title='View'><i class='fa fa-eye'></i></a> ";
-        }
+          break;
+        case 'ON DELIVER':
+          $status = 'Delivery';
+          $warna = 'green';
+          break;
+        case 'DELIVERY CONFIRMED':
+          if ($qty_order == $qty_delivery) {
+            $status = 'Closed';
+            $warna = 'green';
+          } elseif ($qty_order > $qty_delivery && $qty_delivery > 0) {
+            $status = 'Partial SPK';
+            $warna = 'yellow';
+          }
+          break;
       }
 
+      $nestedData[] = "<div align='center'><span class='badge bg-" . $warna . "'>" . $status . "</span></div>";
+      $nestedData[] = "<div align='center'>" . $action . "</div>";
 
-      $nestedData[]  = "<div align='center'><span class='badge bg-" . $warna . "'>" . $status . "</span></div>";
-      $nestedData[]  = "<div align='center'>" . $action . "</div>";
-
-      $release = "";
-      $print = "";
-      $create = "";
+      // Optional print button
       $ButtonPrint = "";
-
-      $getSPKDelivery = $this->db->get_where('spk_delivery', array('no_so' => $row['no_so'], 'deleted_date' => NULL))->result_array();
       $LI_A = "";
-      foreach ($getSPKDelivery as $key => $value) {
+      $getSPKDelivery = $this->db->get_where('spk_delivery', ['no_so' => $row['no_so'], 'deleted_date' => NULL])->result_array();
+      foreach ($getSPKDelivery as $value) {
         $LI_A .= "<li><a href='" . base_url('spk_delivery/print_spk/' . $value['no_delivery']) . "' target='_blank'>" . $value['no_delivery'] . "</a></li>";
       }
 
-      if ($row['qty_delivery'] > 0) {
+      if ($qty_delivery > 0) {
         $ButtonPrint = '<div class="dropdown">
-                          <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown">Print
-                          <span class="caret"></span></button>
-                          <ul class="dropdown-menu">' . $LI_A . '</ul>
-                        </div>';
+        <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown">Print
+        <span class="caret"></span></button>
+        <ul class="dropdown-menu">' . $LI_A . '</ul>
+      </div>';
       }
 
-      if ($qty_order != $row['qty_delivery'] and $this->ENABLE_ADD) {
-        $create  = "<a href='" . base_url('spk_delivery/add/' . $row['no_so']) . "' class='btn btn-sm btn-primary' title='Create SPK Delivery' data-role='qtip'><i class='fa fa-plus'></i></a>";
+      // Optional create button
+      $create = "";
+      if ($qty_order != $qty_delivery && $this->ENABLE_ADD) {
+        $create = "<a href='" . base_url('spk_delivery/add/' . $row['no_so']) . "' class='btn btn-sm btn-primary' title='Create SPK Delivery' data-role='qtip'><i class='fa fa-plus'></i></a>";
       }
-      // if($row['sts_request'] == 'N'){
-      //   $release	= "<button type='button' class='btn btn-sm btn-primary request' data-id='".$row['id']."' title='Request To Subgudang' data-role='qtip'><i class='fa fa-hand-pointer-o'></i></button>";
-      // }
-      // else{
-      //   $print	= "<a href='".base_url('plan_mixing/print_spk/'.$row['kode_det'])."' target='_blank' class='btn btn-sm btn-warning' title='Print SPK' data-role='qtip'><i class='fa fa-print'></i></a>";
-      // }
-      // $nestedData[]  = "<div align='center'>" . $create . $release . $print . $ButtonPrint . "</div>";
+
       $data[] = $nestedData;
       $urut1++;
       $urut2++;
     }
 
-    $json_data = array(
-      "draw"              => intval($requestData['draw']),
-      "recordsTotal"      => intval($totalData),
-      "recordsFiltered"   => intval($totalFiltered),
-      "data"              => $data
-    );
+    $json_data = [
+      "draw"            => intval($requestData['draw']),
+      "recordsTotal"    => intval($totalData),
+      "recordsFiltered" => intval($totalFiltered),
+      "data"            => $data
+    ];
 
     echo json_encode($json_data);
   }
+
 
   public function get_query_json_spk_deliv($sales_order = null, $like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
   {
@@ -147,35 +160,23 @@ class Spk_delivery_model extends BF_Model
     // ====================
     // 1. Total Data Count
     // ====================
-    $this->db->select('a.no_delivery');
     $this->db->from('spk_delivery a');
     $this->db->join('sales_order d', 'a.no_so = d.no_so', 'left');
-    $this->db->join('sales_order_detail e', 'd.no_so = e.no_so', 'left');
     $this->db->join('penawaran b', 'd.id_penawaran = b.id_penawaran', 'left');
     $this->db->join('master_customers c', 'b.id_customer = c.id_customer', 'left');
     $this->db->where('a.deleted_date IS NULL');
-
-    if ($sales_order) {
-      $this->db->where('a.no_so', $sales_order);
-    }
-
+    if ($sales_order) $this->db->where('a.no_so', $sales_order);
     $totalData = $this->db->count_all_results();
 
     // ========================
     // 2. Total Filtered Count
     // ========================
-    $this->db->select('a.no_delivery');
     $this->db->from('spk_delivery a');
     $this->db->join('sales_order d', 'a.no_so = d.no_so', 'left');
-    $this->db->join('sales_order_detail e', 'd.no_so = e.no_so', 'left');
     $this->db->join('penawaran b', 'd.id_penawaran = b.id_penawaran', 'left');
     $this->db->join('master_customers c', 'b.id_customer = c.id_customer', 'left');
     $this->db->where('a.deleted_date IS NULL');
-
-    if ($sales_order) {
-      $this->db->where('a.no_so', $sales_order);
-    }
-
+    if ($sales_order) $this->db->where('a.no_so', $sales_order);
     if ($like_value) {
       $this->db->group_start();
       $this->db->like('a.no_so', $like_value);
@@ -184,37 +185,31 @@ class Spk_delivery_model extends BF_Model
       $this->db->or_like('c.name_customer', $like_value);
       $this->db->group_end();
     }
-
     $totalFiltered = $this->db->count_all_results();
 
     // ========================
     // 3. Data Query (Paginated)
     // ========================
     $this->db->select('
-        a.no_delivery,
-        a.no_so,
-        b.id_penawaran,
-        c.name_customer,
-        a.tanggal_spk,
-        a.delivery_address,
-        a.status,
-        a.upload_spk,
-        a.pengiriman,
-        e.qty_delivery,
-        a.created_by,
-        a.created_date
-    ');
+    a.no_delivery,
+    a.no_so,
+    b.id_penawaran,
+    c.name_customer,
+    a.tanggal_spk,
+    a.delivery_address,
+    a.status,
+    a.upload_spk,
+    a.pengiriman,
+    a.created_by,
+    a.created_date
+  ');
     $this->db->from('spk_delivery a');
     $this->db->join('sales_order d', 'a.no_so = d.no_so', 'left');
-    $this->db->join('sales_order_detail e', 'd.no_so = e.no_so', 'left');
     $this->db->join('penawaran b', 'd.id_penawaran = b.id_penawaran', 'left');
     $this->db->join('master_customers c', 'b.id_customer = c.id_customer', 'left');
     $this->db->where('a.deleted_date IS NULL');
 
-    if ($sales_order) {
-      $this->db->where('a.no_so', $sales_order);
-    }
-
+    if ($sales_order) $this->db->where('a.no_so', $sales_order);
     if ($like_value) {
       $this->db->group_start();
       $this->db->like('a.no_so', $like_value);
@@ -224,12 +219,14 @@ class Spk_delivery_model extends BF_Model
       $this->db->group_end();
     }
 
+    // Ordering
     if ($column_order !== null && isset($columns_order_by[$column_order])) {
       $this->db->order_by($columns_order_by[$column_order], $column_dir);
     } else {
       $this->db->order_by('a.no_delivery', 'desc');
     }
 
+    // Pagination
     if ($limit_length != -1) {
       $this->db->limit($limit_length, $limit_start);
     }

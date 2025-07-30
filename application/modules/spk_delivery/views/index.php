@@ -29,7 +29,7 @@
 		<div class="table-responsive">
 			<table id="example1" class="table table-bordered table-striped" width='100%'>
 				<thead>
-					<tr>
+					<tr class="bg-blue">
 						<th class='text-center'>#</th>
 						<th class='text-center'>No SPK Delivery</th>
 						<th class='text-center'>No Sales Order</th>
