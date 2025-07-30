@@ -1080,6 +1080,10 @@ class Invoice_produk extends Admin_Controller
 
 		// $is_spk_pertama = ($spk_pertama && $spk_pertama->no_surat_jalan == $id);
 
+		echo '<pre>';
+		print_r($get_invoice_detail);
+		echo '</pre>';
+		die();
 
 		// Susun data untuk dikirim ke view
 		$data = [

@@ -187,7 +187,7 @@
                     <td class="text-center"><?= number_format($item->qty) ?></td>
                     <td class="text-center"><?= strtoupper($item->uom) ?></td>
                     <td class="text-right"><?= number_format($item->harga, 2) ?></td>
-                    <td class="text-right"><?= number_format($item->disc, 2) ?></td>
+                    <td class="text-right">0</td>
                     <td class="text-right"><?= number_format($item->subtotal, 2) ?></td>
                 </tr>
             <?php endforeach; ?>
