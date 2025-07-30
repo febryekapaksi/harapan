@@ -509,7 +509,7 @@ class Invoice_produk extends Admin_Controller
 				'id_invoice' => $id_invoice,
 				'id_so' => $id_so,
 				'tipe_so' => $post['tipe_so'],
-				'tgl_so' => $post['tgl_so'],
+				'tgl_so' => $tgl_so,
 				'id_penawaran' => $post['id_penawaran'],
 				'id_customer' => $post['id_customer'],
 				'id_billing' => $post['id_billing'],
@@ -530,7 +530,7 @@ class Invoice_produk extends Admin_Controller
 
 			$data_insert_detail = [];
 			$get_delivery_details = $this->db
-				->select('b.id_product, b.product, a.qty_delivery, d.code as uom, b.price_list, b.diskon_persen')
+				->select('b.id_product, b.product, a.qty_delivery, d.code as uom, b.price_list, b.harga_penawaran, b.diskon_persen')
 				->from('spk_delivery_detail a')
 				->join('sales_order_detail b', 'b.no_so = a.no_so AND  b.id_product = a.id_product', 'left')
 				->join('new_inventory_4 c', 'c.code_lv4 = a.id_product', 'left')
@@ -555,7 +555,7 @@ class Invoice_produk extends Admin_Controller
 					'nm_produk' => $item_details->product,
 					'qty' => $item_details->qty_delivery,
 					'uom' => $item_details->uom,
-					'harga' => $item_details->price_list,
+					'harga' => $item_details->harga_penawaran,
 					'disc' => $nilai_disc,
 					'subtotal' => $subtotal,
 					'created_by' => $this->auth->user_id(),
@@ -1052,7 +1052,11 @@ class Invoice_produk extends Admin_Controller
 
 		// Ambil detail item invoice
 		$get_invoice_detail = $this->db
-			->get_where('tr_invoice_sales_detail', ['id_invoice' => $id_invoice])
+			->select('a.*, b.id_product, b.product, b.price_list, b.diskon_persen, b.harga_penawaran')
+			->from('tr_invoice_sales_detail a')
+			->join('sales_order_detail b', 'b.no_so = a.id_so AND b.id_product = a.id_produk', 'left')
+			->where('a.id_invoice', $id_invoice)
+			->get()
 			->result();
 
 		// Ambil data sales order
@@ -1080,10 +1084,10 @@ class Invoice_produk extends Admin_Controller
 
 		// $is_spk_pertama = ($spk_pertama && $spk_pertama->no_surat_jalan == $id);
 
-		echo '<pre>';
-		print_r($get_invoice_detail);
-		echo '</pre>';
-		die();
+		// echo '<pre>';
+		// print_r($get_invoice_detail);
+		// echo '</pre>';
+		// die();
 
 		// Susun data untuk dikirim ke view
 		$data = [

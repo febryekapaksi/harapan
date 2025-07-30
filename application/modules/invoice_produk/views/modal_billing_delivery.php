@@ -74,6 +74,7 @@ $tipe_billing = $results['tipe_billing'];
         $no = 1;
         $subtotal = 0;
         foreach ($results['list_so_detail'] as $item_detail) {
+
             $nilai_disc = (float) $item_detail->diskon_persen;
             $total_harga = round((($item_detail->price_list * $item_detail->qty_delivery) * (1 + ($nilai_disc / 100))), -2);
 
@@ -82,8 +83,8 @@ $tipe_billing = $results['tipe_billing'];
             echo '<td class="text-left">' . $item_detail->product . '</td>';
             echo '<td class="text-center">' . number_format($item_detail->qty_order) . '</td>';
             echo '<td class="text-center">' . number_format($item_detail->qty_delivery) . '</td>';
-            echo '<td class="text-right">' . number_format($item_detail->price_list, 2) . '</td>';
-            echo '<td class="text-right">' . number_format($nilai_disc, 2) . '</td>';
+            echo '<td class="text-right">' . number_format($item_detail->harga_penawaran, 2) . '</td>';
+            echo '<td class="text-right">' . 0 . '</td>';
             echo '<td class="text-right">' . number_format($total_harga, 2) . '</td>';
             echo '</tr>';
 
