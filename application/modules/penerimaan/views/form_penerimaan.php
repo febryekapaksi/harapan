@@ -10,7 +10,7 @@
                                 <label>Tanggal Pembayaran <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="tgl_pembayaran" id="tgl_pembayaran" value="<?= date('Y-m-d') ?>" readonly>
+                                <input type="date" class="form-control" name="tgl_pembayaran" id="tgl_pembayaran">
                             </div>
                         </div>
 
