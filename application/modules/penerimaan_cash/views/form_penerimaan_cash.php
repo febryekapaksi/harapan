@@ -286,26 +286,27 @@
                     $('#tableModalInv tbody').html(html);
                     // Cekbox chaining logic
                     const checkboxes = $('#tableModalInv .select-inv');
+                    checkboxes.prop('disabled', false); //sementara biar aktip semua 
 
-                    checkboxes.prop('disabled', true); // awalnya semua disabled
-                    if (checkboxes.length > 0) checkboxes.eq(0).prop('disabled', false); // kecuali yang pertama
+                    // checkboxes.prop('disabled', true); // awalnya semua disabled
+                    // if (checkboxes.length > 0) checkboxes.eq(0).prop('disabled', false); // kecuali yang pertama
 
-                    checkboxes.on('change', function() {
-                        const idx = checkboxes.index(this);
-                        const checked = $(this).prop('checked');
+                    // checkboxes.on('change', function() {
+                    //     const idx = checkboxes.index(this);
+                    //     const checked = $(this).prop('checked');
 
-                        if (checked) {
-                            // Aktifkan checkbox berikutnya
-                            if (idx + 1 < checkboxes.length) {
-                                checkboxes.eq(idx + 1).prop('disabled', false);
-                            }
-                        } else {
-                            // Uncheck & disable semua checkbox setelahnya
-                            for (let i = idx + 1; i < checkboxes.length; i++) {
-                                checkboxes.eq(i).prop('checked', false).prop('disabled', true);
-                            }
-                        }
-                    });
+                    //     if (checked) {
+                    //         // Aktifkan checkbox berikutnya
+                    //         if (idx + 1 < checkboxes.length) {
+                    //             checkboxes.eq(idx + 1).prop('disabled', false);
+                    //         }
+                    //     } else {
+                    //         // Uncheck & disable semua checkbox setelahnya
+                    //         for (let i = idx + 1; i < checkboxes.length; i++) {
+                    //             checkboxes.eq(i).prop('checked', false).prop('disabled', true);
+                    //         }
+                    //     }
+                    // });
 
                     $('#ModalInv').modal('show');
                 },
