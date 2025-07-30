@@ -98,6 +98,81 @@ class Penerimaan_cash extends Admin_Controller
 		echo json_encode($data);
 	}
 
+	public function save_tanpa_otp()
+	{
+		$post = $this->input->post();
+
+		$tgl_pembayaran = $post['tgl_pembayaran'];
+		$id_customer = $post['id_customer'];
+		$detail = $post['detail'];
+		$total_invoice = str_replace(",", "", $post['total_invoice']);
+		$total_terima = str_replace(",", "", $post['total_terima']);
+		$id_invoices = array_column($detail, 'id_invoice');
+		$invoice_string = implode(', ', $id_invoices);
+
+		$kd_pembayaran = $this->penerimaan_cash_model->generate_nopn($tgl_pembayaran);
+		$customer = $this->db->get_where('master_customers', ['id_customer' => $id_customer])->row();
+
+		// Simpan header langsung (tanpa OTP)
+		$header = [
+			'kd_pembayaran' => $kd_pembayaran,
+			'tgl_pembayaran' => $tgl_pembayaran,
+			'no_invoice' => $invoice_string,
+			'id_customer' => $id_customer,
+			'nm_customer' => $customer->name_customer,
+			'jumlah_piutang_idr' => $total_invoice,
+			'jumlah_pembayaran_idr' => $total_terima,
+			'keterangan' => $post['ket_bayar'],
+			'created_by' => $this->auth->user_id(),
+			'created_on' => date('Y-m-d H:i:s'),
+			'tipe_bayar' => "CASH"
+		];
+		$this->db->insert('tr_invoice_payment', $header);
+
+		// Simpan detail
+		foreach ($detail as $row) {
+			$invoice = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $row['id_invoice']])->result();
+			$total_bayar = floatval(str_replace(',', '', $row['total_bayar']));
+			$tagihan = floatval(str_replace(',', '', $row['tagihan']));
+			$sisa_invoice = floatval(str_replace(',', '', $row['sisa_invoice']));
+
+			foreach ($invoice as $inv) {
+				$data_detail = [
+					'kd_pembayaran' => $kd_pembayaran,
+					'no_invoice' => $row['id_invoice'],
+					'no_ipp' => $row['id_so'],
+					'so_number' => $row['id_so'],
+					'tgl_invoice' => date('Y-m-d', strtotime($inv->created_on)),
+					'total_ppn_idr' => $inv->nilai_ppn,
+					'total_invoice_idr' => $tagihan,
+					'total_bayar_idr' => $total_bayar,
+					'sisa_invoice_idr' => $sisa_invoice,
+					'id_customer' => $header['id_customer'],
+					'nm_customer' => $header['nm_customer'],
+					'created_by' => $this->auth->user_id(),
+					'created_on' => date('Y-m-d H:i:s'),
+					'tipe_bayar' => "CASH"
+				];
+
+				$this->db->insert('tr_invoice_payment_detail', $data_detail);
+
+				// Update tr_invoice_sales
+				$invoice_lunas = ($sisa_invoice <= 0);
+				$this->db->where('id_invoice', $inv->id_invoice)
+					->update('tr_invoice_sales', [
+						'sts' => $invoice_lunas ? 0 : 1,
+						'total_bayar' => $total_bayar
+					]);
+			}
+		}
+
+		echo json_encode([
+			'status' => 1,
+			'message' => 'Pembayaran berhasil disimpan.',
+			'redirect_url' => base_url("penerimaan_cash/print_struk/$kd_pembayaran")
+		]);
+	}
+
 	public function save()
 	{
 		$post = $this->input->post();

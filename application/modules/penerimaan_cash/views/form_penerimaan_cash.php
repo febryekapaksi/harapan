@@ -387,17 +387,27 @@
                 if (confirm) {
                     $.ajax({
                         type: 'POST',
-                        url: siteurl + active_controller + 'save',
+                        url: siteurl + active_controller + 'save_tanpa_otp',
                         data: formData,
                         contentType: false,
                         processData: false,
                         dataType: 'json',
                         success: function(result) {
                             if (result.status == '1') {
+                                swal({
+                                    title: 'Berhasil!',
+                                    text: result.message,
+                                    type: 'success'
+                                }, function() {
+                                    // Redirect atau cetak struk langsung
+                                    window.location.href = siteurl + active_controller
+                                    // window.location.href = result.redirect_url;
+                                });
+
                                 // Setelah OTP dikirim, tampilkan modal input
-                                startOtpTimer();
-                                $('#modal-otp').modal('show');
-                                $('#otp-kd-pembayaran').val(result.kd_pembayaran);
+                                // startOtpTimer();
+                                // $('#modal-otp').modal('show');
+                                // $('#otp-kd-pembayaran').val(result.kd_pembayaran);
                             } else {
                                 swal('Failed!', result.message, 'warning');
                             }
