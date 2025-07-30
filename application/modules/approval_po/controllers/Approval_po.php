@@ -26,6 +26,7 @@ class Approval_po extends Admin_Controller
     $session  = $this->session->userdata('app_session');
 
     history("View index approval pr material");
+    $this->template->page_icon('fa fa-list');
     $this->template->title('Approval PO');
     $this->template->render('index');
   }
@@ -284,22 +285,6 @@ class Approval_po extends Admin_Controller
   public function po_approval($no_po)
   {
     $session = $this->session->userdata('app_session');
-    // $getparam = explode(";", $_GET['param']);
-
-    // $getso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi');
-    // $getitemso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi_detail');
-
-    // $getitemso = $this->db->select("x.*, a.propose_purchase, (b.qty_stock - b.qty_booking) AS avl_stock, c.code as code, d.id_stock as code1, c.nama as nm_material, d.stock_name as nm_material1, c.konversi, d.konversi as konversi1, e.code as satuan, f.code as satuan1");
-    // $getitemso = $this->db->from('material_planning_base_on_produksi_detail a');
-    // $getitemso = $this->db->join('dt_trans_po x', 'x.idpr = a.id');
-    // $getitemso = $this->db->join('warehouse_stock b', 'b.id_material = a.id_material', 'left');
-    // $getitemso = $this->db->join('new_inventory_4 c', 'c.code_lv4 = a.id_material', 'left');
-    // $getitemso = $this->db->join('accessories d', 'd.id = a.id_material', 'left');
-    // $getitemso = $this->db->join('ms_satuan e', 'e.id = c.id_unit', 'left');
-    // $getitemso = $this->db->join('ms_satuan f', 'f.id = d.id_unit', 'left');
-    // $getitemso = $this->db->where_in('x.no_po', $no_po);
-    // $getitemso = $this->db->group_by('a.id');
-    // $getitemso = $this->db->get()->result();
 
     $getitemso = $this->db->query("
 			SELECT 
@@ -342,7 +327,7 @@ class Approval_po extends Admin_Controller
         LEFT JOIN ms_satuan g ON g.id = c.id_unit_packing
         LEFT JOIN ms_satuan h ON h.id = d.id_unit_gudang
 			WHERE
-				a.no_po IN ('".str_replace(",","','",$no_po)."') AND
+				a.no_po IN ('" . str_replace(",", "','", $no_po) . "') AND
 				(a.tipe IS NULL OR a.tipe = '')
       GROUP BY a.id
 
@@ -383,7 +368,7 @@ class Approval_po extends Admin_Controller
 				JOIN rutin_non_planning_detail e ON e.id = a.idpr
         LEFT JOIN ms_satuan f ON f.id = e.satuan
 			WHERE
-				a.no_po IN ('".str_replace(",","','",$no_po)."') AND 
+				a.no_po IN ('" . str_replace(",", "','", $no_po) . "') AND 
 				a.tipe = 'pr depart'
       GROUP BY a.id
 
@@ -424,14 +409,11 @@ class Approval_po extends Admin_Controller
 				JOIN rutin_non_planning_detail e ON e.id = a.idpr
         LEFT JOIN ms_satuan f ON f.id = e.satuan
 			WHERE
-				a.no_po IN ('".str_replace(",","','",$no_po)."') AND 
+				a.no_po IN ('" . str_replace(",", "','", $no_po) . "') AND 
 				a.tipe = 'pr asset'
 		")->result();
 
-   
 
-    // print_r($getitemso);
-    // exit;
 
     $aktif = 'active';
     $deleted = '0';
@@ -443,8 +425,8 @@ class Approval_po extends Admin_Controller
     $mata_uang = $this->db->get_where('mata_uang', ['deleted' => null])->result();
     $list_supplier = $this->db->get_where('new_supplier', ['deleted_by' => null])->result();
     $list_group_top = $this->db->get_where('list_help', ['group_by' => 'top', 'sts' => 'Y'])->result();
-		$list_top = $this->db->get_where('tr_top_po', ['no_po' => $no_po])->result();
-		$num_top = count($list_top);
+    $list_top = $this->db->get_where('tr_top_po', ['no_po' => $no_po])->result();
+    $num_top = count($list_top);
 
     // $matauang = $this->db->get_where('matauang')->result();
 
@@ -452,18 +434,18 @@ class Approval_po extends Admin_Controller
     $data_department = $this->db->select('if(nama IS NULL, "", nama) as nm_department')->get_where('ms_department', ['id' => $header_po->id_dept])->row();
 
     $nm_depart = [];
-		$get_nm_depart = $this->db->query("SELECT nama FROM ms_department WHERE id IN ('".str_replace(",","','",$header_po->id_dept)."')")->result();
-		if(!empty($get_nm_depart)) {
-			foreach($get_nm_depart as $item_depart) {
-				$nm_depart[] = strtoupper($item_depart->nama);
-			}
-		}
+    $get_nm_depart = $this->db->query("SELECT nama FROM ms_department WHERE id IN ('" . str_replace(",", "','", $header_po->id_dept) . "')")->result();
+    if (!empty($get_nm_depart)) {
+      foreach ($get_nm_depart as $item_depart) {
+        $nm_depart[] = strtoupper($item_depart->nama);
+      }
+    }
 
-		if(!empty($nm_depart)) {
-			$nm_depart = implode(', ', $nm_depart);
-		}else{
-			$nm_depart = '';
-		}
+    if (!empty($nm_depart)) {
+      $nm_depart = implode(', ', $nm_depart);
+    } else {
+      $nm_depart = '';
+    }
 
     $data = [
       'customers' => $customers,
@@ -475,11 +457,12 @@ class Approval_po extends Admin_Controller
       'data_department' => $data_department,
       'nm_depart' => $nm_depart,
       'list_top' => $list_top,
-			'list_group_top' => $list_group_top,
-			'num_po' => $num_top
+      'list_group_top' => $list_group_top,
+      'num_po' => $num_top
     ];
 
     $this->template->set('results', $data);
+    $this->template->page_icon('fa fa-check-square-o');
     $this->template->title('Approval Purchase Order');
     $this->template->render('approval_po');
   }
