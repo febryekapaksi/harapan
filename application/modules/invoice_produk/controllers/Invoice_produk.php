@@ -721,7 +721,7 @@ class Invoice_produk extends Admin_Controller
 				$subtotal = 0;
 				foreach ($get_hitung_nilai_invoice as $item_hitung) {
 					$nilai_disc = (float) $item_hitung->diskon;
-					$total_harga = round(($item_hitung->price_list * $item_hitung->qty) * (1 + ($nilai_disc / 100)), -2); // bulat ribuan
+					$total_harga = round(($item_hitung->harga_penawaran * $item_hitung->qty), -2); // bulat ribuan
 					$subtotal += $total_harga;
 				}
 
