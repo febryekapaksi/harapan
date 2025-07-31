@@ -23,24 +23,26 @@
 	<div class="box box-primary">
 
 		<div class="box-body">
-			<table id="example1" width='100%' class="table table-bordered table-striped" width='100%'>
-				<thead>
-					<tr class='bg-blue'>
-						<th class="text-center">No</th>
-						<th class="text-center">No Trans</th>
-						<th class="text-center">No PR</th>
-						<th class="text-center">Warehouse</th>
-						<th class="text-center">Material</th>
-						<th class="text-center">Sum Material</th>
-						<th class="text-center">Receiver</th>
-						<th class="text-center">Checker</th>
-						<th class="text-center">Incoming Date</th>
-						<th class="text-center">Status</th>
-						<th class="text-center">Option</th>
-					</tr>
-				</thead>
-				<tbody></tbody>
-			</table>
+			<div class="table-responsive">
+				<table id="example1" width='100%' class="table table-bordered table-striped" width='100%'>
+					<thead>
+						<tr class='bg-blue'>
+							<th class="text-center">No</th>
+							<th class="text-center">No Trans</th>
+							<th class="text-center">No PR</th>
+							<th class="text-center">Warehouse</th>
+							<th class="text-center">Material</th>
+							<th class="text-center">Sum Material</th>
+							<th class="text-center">Receiver</th>
+							<th class="text-center">Checker</th>
+							<th class="text-center">Incoming Date</th>
+							<th class="text-center">Status</th>
+							<th class="text-center">Option</th>
+						</tr>
+					</thead>
+					<tbody></tbody>
+				</table>
+			</div>
 		</div>
 		<!-- /.box-body -->
 	</div>
@@ -96,6 +98,8 @@
 				$("#ModalView2").modal();
 				$("#view2").html(data);
 
+				// Hide tombol Save saat modal muncul
+				$('#checkMaterial').hide();
 			},
 			error: function() {
 				swal({
@@ -119,6 +123,7 @@
 				$("#ModalView2").modal('show');
 				$("#view2").html(data);
 
+				$('#checkMaterial').show();
 			},
 			error: function() {
 				swal({

@@ -82,6 +82,7 @@ class Incoming_check_model extends BF_Model
             // 'no_ipp'        => $no_ipp
         );
         history('View Incoming Check Material');
+        $this->template->page_icon('fa fa-check-square-o');
         $this->template->render('incoming_check', $data);
     }
 
@@ -610,23 +611,23 @@ class Incoming_check_model extends BF_Model
                         'sts' => '0'
                     ])->row_array();
 
-                // $this->db->insert('warehouse_stock', [
-                //     'id_material' => $det_inc['id_material'],
-                //     'nm_product' => $det_inc['nm_material'],
-                //     'id_gudang' => '1',
-                //     'kd_gudang' => 'PUS',
-                //     'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
-                //     'update_by' => $this->auth->user_id(),
-                //     'update_date' => date('Y-m-d H:i:s')
-                // ]);
+                $this->db->insert('warehouse_stock', [
+                    'id_material' => $det_inc['id_material'],
+                    'nm_product' => $det_inc['nm_material'],
+                    'id_gudang' => '1',
+                    'kd_gudang' => 'PUS',
+                    'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
+                    'update_by' => $this->auth->user_id(),
+                    'update_date' => date('Y-m-d H:i:s')
+                ]);
 
-                // $this->db->insert('warehouse_stock_per_day', [
-                //     'id_material' => $det_inc['id_material'],
-                //     'nm_material' => $det_inc['nm_material'],
-                //     'id_gudang' => 1,
-                //     'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
-                //     'hist_date' => date('Y-m-d H:i:s')
-                // ]);
+                $this->db->insert('warehouse_stock_per_day', [
+                    'id_material' => $det_inc['id_material'],
+                    'nm_material' => $det_inc['nm_material'],
+                    'id_gudang' => 1,
+                    'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
+                    'hist_date' => date('Y-m-d H:i:s')
+                ]);
             } else {
                 $get_stock = $this->db->select('qty_stock')->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->row_array();
                 $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming')
@@ -637,24 +638,23 @@ class Incoming_check_model extends BF_Model
                         'sts' => '0'
                     ])->row_array();
 
+                $this->db->insert('warehouse_stock_per_day', [
+                    'id_material' => $det_inc['id_material'],
+                    'nm_material' => $det_inc['nm_material'],
+                    'id_gudang' => 1,
+                    'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+                    'hist_date' => date('Y-m-d H:i:s')
+                ]);
 
-                // $this->db->insert('warehouse_stock_per_day', [
-                //     'id_material' => $det_inc['id_material'],
-                //     'nm_material' => $det_inc['nm_material'],
-                //     'id_gudang' => 1,
-                //     'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
-                //     'hist_date' => date('Y-m-d H:i:s')
-                // ]);
-
-                // $this->db->update('warehouse_stock', [
-                //     'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
-                //     'update_by' => $this->auth->user_id(),
-                //     'update_date' => date('Y-m-d H:i:s')
-                // ], [
-                //     'id_material' => $det_inc['id_material'],
-                //     'id_gudang' => '1',
-                //     'kd_gudang' => 'PUS'
-                // ]);
+                $this->db->update('warehouse_stock', [
+                    'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+                    'update_by' => $this->auth->user_id(),
+                    'update_date' => date('Y-m-d H:i:s')
+                ], [
+                    'id_material' => $det_inc['id_material'],
+                    'id_gudang' => '1',
+                    'kd_gudang' => 'PUS'
+                ]);
             }
 
             $this->db->update('tr_checked_incoming_detail', ['sts' => '1'], ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id'],  'sts' => '0']);

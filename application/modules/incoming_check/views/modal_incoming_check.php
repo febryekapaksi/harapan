@@ -89,106 +89,108 @@
 
 	?>
 		<b>No. PO : <?= $get_no_surat->no_surat ?></b>
-		<table id="my-grid" class="table table-striped table-bordered table-hover table-condensed" width="100%" style="margin-top: 1.5vh;">
-			<thead>
-				<tr>
-					<th class="text-center">No.</th>
-					<th class="text-center">No. PO</th>
-					<th class="text-center">Material</th>
-					<th class="text-center">Incoming</th>
-					<th class="text-center">Unit</th>
-					<th class="text-center">Konversi</th>
-					<th class="text-center">Qty Pack</th>
-					<th class="text-center">Packing</th>
-					<th class="text-center">Qty NG</th>
-					<th class="text-center">Qty Oke</th>
-					<th class="text-center">Qty Pack</th>
-					<th class="text-center">Expired Date</th>
-					<th class="text-center">Document</th>
-					<th class="text-center">Lot Description</th>
-					<th class="text-center">#</th>
-				</tr>
-			</thead>
-			<tbody class="list_incoming_check_<?= $no_ipp ?>">
-				<?php
-				$no = 1;
-				foreach ($result as $item) :
-					$packing = $item['qty_order'];
-					if ($item['konversi'] > 0) {
-						$packing = ($item['qty_order'] / $item['konversi']);
-					}
+		<div class="table-responsive">
+			<table id="my-grid" class="table table-striped table-bordered table-hover table-condensed" width="100%" style="margin-top: 1.5vh;">
+				<thead>
+					<tr>
+						<th class="text-center">No.</th>
+						<th class="text-center">No. PO</th>
+						<th class="text-center">Material</th>
+						<th class="text-center">Incoming</th>
+						<th class="text-center">Unit</th>
+						<th class="text-center">Konversi</th>
+						<th class="text-center">Qty Pack</th>
+						<th class="text-center">Packing</th>
+						<th class="text-center" style="min-width: 50px;">Qty NG</th>
+						<th class="text-center" style="min-width: 50px;">Qty Oke</th>
+						<th class="text-center" style="min-width: 50px;">Qty Pack</th>
+						<th class="text-center">Expired Date</th>
+						<th class="text-center">Document</th>
+						<th class="text-center">Lot Description</th>
+						<th class="text-center">#</th>
+					</tr>
+				</thead>
+				<tbody class="list_incoming_check_<?= $no_ipp ?>">
+					<?php
+					$no = 1;
+					foreach ($result as $item) :
+						$packing = $item['qty_order'];
+						if ($item['konversi'] > 0) {
+							$packing = ($item['qty_order'] / $item['konversi']);
+						}
 
-					$konversi = 1;
-					if ($item['konversi'] > 0) {
-						$konversi = $item['konversi'];
-					}
+						$konversi = 1;
+						if ($item['konversi'] > 0) {
+							$konversi = $item['konversi'];
+						}
 
-					echo '<tr>';
-					echo '
+						echo '<tr>';
+						echo '
 						<input type="hidden" name="id" value="' . $item['id'] . '">
 						<input type="hidden" name="kode_trans_' . $item['id'] . '" value="' . $item['kode_trans'] . '">
 						<input type="hidden" name="id_material_' . $item['id'] . '" value="' . $item['id_material'] . '">
 					';
-					echo '<td class="text-center">' . $no . '</td>';
-					echo '<td class="text-center">' . $get_no_surat->no_surat . '</td>';
-					echo '<td class="">' . $item['nm_material'] . '</td>';
-					echo '<td class="text-center">' . number_format($item['qty_order'], 2) . ' <input type="hidden" name="qty_order_' . $item['id'] . '" value="' . $item['qty_order'] . '"> </td>';
-					echo '<td class="text-center">' . $item['satuan'] . '</td>';
-					echo '<td class="text-center">' . $konversi . ' <input type="hidden" name="konversi_' . $konversi . '" class="konversi_' . $item['id'] . '" value="' . $konversi . '"></td>';
-					echo '<td class="text-center">' . number_format(($item['qty_order'] / $konversi), 2) . '</td>';
-					echo '<td class="text-center">' . $item['packing'] . '</td>';
-					echo '<td class="">
+						echo '<td class="text-center">' . $no . '</td>';
+						echo '<td class="text-center">' . $get_no_surat->no_surat . '</td>';
+						echo '<td class="">' . $item['nm_material'] . '</td>';
+						echo '<td class="text-center">' . number_format($item['qty_order'], 2) . ' <input type="hidden" name="qty_order_' . $item['id'] . '" value="' . $item['qty_order'] . '"> </td>';
+						echo '<td class="text-center">' . $item['satuan'] . '</td>';
+						echo '<td class="text-center">' . $konversi . ' <input type="hidden" name="konversi_' . $konversi . '" class="konversi_' . $item['id'] . '" value="' . $konversi . '"></td>';
+						echo '<td class="text-center">' . number_format(($item['qty_order'] / $konversi), 2) . '</td>';
+						echo '<td class="text-center">' . $item['packing'] . '</td>';
+						echo '<td class="">
 					<input type="text" name="qty_ng_' . $item['id'] . '" id="" class="form-control form-control-sm input_hid maskM qty_ng qty_ng_' . $item['id'] . '" data-id="' . $item['id'] . '" data-incoming="' . $item['qty_order'] . '" data-konversi="' . $konversi . '" required>
 				</td>';
-					echo '<td class="">
+						echo '<td class="">
 					<input type="text" name="qty_oke_' . $item['id'] . '" id="" class="form-control form-control-sm maskM input_hid qty_oke qty_oke_' . $item['id'] . '" data-id="' . $item['id'] . '" data-id_material="' . $item['id_material'] . '">
 				</td>';
-					echo '<td class="">
+						echo '<td class="">
 					<input type="text" name="qty_pack_' . $item['id'] . '" id="" class="form-control form-control-sm maskM qty_pack_' . $item['id'] . '" readonly>
 				</td>';
-					echo '<td class="">
+						echo '<td class="">
 					<input type="date" name="expired_date_' . $item['id'] . '" id="" class="form-control form-control-sm input_hid expired_date_' . $item['id'] . '" min="' . date('Y-m-d') . '" data-id="' . $item['id'] . '">
 				</td>';
-					echo '<td>
+						echo '<td>
 					<input type="file" name="upload_file_' . $item['id'] . '" id="" class="form-control input_hid upload_file_' . $item['id'] . '" data-id="' . $item['id'] . '">
 				</td>';
-					echo '<td>
+						echo '<td>
 					<input type="text" name="lot_info_' . $item['id'] . '" id="" class="form-control input_hid lot_info_' . $item['id'] . '" data-id="' . $item['id'] . '">
 				</td>';
-					echo '<td>
+						echo '<td>
 					<button type="button" class="btn btn-sm btn-primary add_lot add_lot_' . $item['id'] . '" data-id="' . $item['id'] . '" data-kode_trans="' . $item['kode_trans'] . '" data-id_material="' . $item['id_material'] . '" data-no_ipp="' . $no_ipp . '"><i class="fa fa-plus"></i></button>
 				</td>';
-					echo '</tr>';
-
-					$get_checked = $this->db->get_where('tr_checked_incoming_detail', ['id_detail' => $item['id']])->result_array();
-					foreach ($get_checked as $checked_item) :
-						$hidden = '';
-						if ($checked_item['sts'] == '1') {
-							$hidden = 'disabled';
-						}
-						echo '<tr>';
-						echo '<td colspan="8"></td>';
-						echo '<td><input type="text" class="form-control" name="" id="" value="' . number_format($checked_item['qty_ng'], 2) . '" readonly></td>';
-						echo '<td><input type="text" class="form-control" name="" id="" value="' . number_format($checked_item['qty_oke'], 2) . '" readonly></td>';
-						echo '<td><input type="text" class="form-control" name="" id="" value="' . number_format($checked_item['qty_pack'], 2) . '" readonly></td>';
-						echo '<td class="text-center" style="vertical-align: middle;">' . date('d F Y', strtotime($checked_item['expired_date'])) . '</td>';
-						echo '<td class="text-center"><a href="' . base_url($checked_item['uploaded_file']) . '" class="btn btn-sm btn-primary" target="_blank">Download File</a></td>';
-						echo '<td>' . $checked_item['lot_description'] . '</td>';
-						echo '<td class="text-center">';
-						if ($checked_item['sts'] == '0') {
-							echo '<button type="button" class="btn btn-sm btn-danger del_checked" data-id="' . $checked_item['id'] . '" data-kode_trans="' . $checked_item['kode_trans'] . '" data-no_ipp="' . $no_ipp . '"><i class="fa fa-trash"></i></button>';
-						}
-						echo '</td>';
 						echo '</tr>';
+
+						$get_checked = $this->db->get_where('tr_checked_incoming_detail', ['id_detail' => $item['id']])->result_array();
+						foreach ($get_checked as $checked_item) :
+							$hidden = '';
+							if ($checked_item['sts'] == '1') {
+								$hidden = 'disabled';
+							}
+							echo '<tr>';
+							echo '<td colspan="8"></td>';
+							echo '<td><input type="text" class="form-control" name="" id="" value="' . number_format($checked_item['qty_ng'], 2) . '" readonly></td>';
+							echo '<td><input type="text" class="form-control" name="" id="" value="' . number_format($checked_item['qty_oke'], 2) . '" readonly></td>';
+							echo '<td><input type="text" class="form-control" name="" id="" value="' . number_format($checked_item['qty_pack'], 2) . '" readonly></td>';
+							echo '<td class="text-center" style="vertical-align: middle;">' . date('d F Y', strtotime($checked_item['expired_date'])) . '</td>';
+							echo '<td class="text-center"><a href="' . base_url($checked_item['uploaded_file']) . '" class="btn btn-sm btn-primary" target="_blank">Download File</a></td>';
+							echo '<td>' . $checked_item['lot_description'] . '</td>';
+							echo '<td class="text-center">';
+							if ($checked_item['sts'] == '0') {
+								echo '<button type="button" class="btn btn-sm btn-danger del_checked" data-id="' . $checked_item['id'] . '" data-kode_trans="' . $checked_item['kode_trans'] . '" data-no_ipp="' . $no_ipp . '"><i class="fa fa-trash"></i></button>';
+							}
+							echo '</td>';
+							echo '</tr>';
+						endforeach;
+
+
+						$no++;
+						$Noo++;
 					endforeach;
-
-
-					$no++;
-					$Noo++;
-				endforeach;
-				?>
-			</tbody>
-		</table>
+					?>
+				</tbody>
+			</table>
+		</div>
 
 	<?php
 	}

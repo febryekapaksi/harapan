@@ -231,15 +231,15 @@ class Incoming_product_model extends BF_Model
 
         $data = array(
             'result'     => $result,
-            'checked'     => $result_header[0]->checked,
-            'no_po' => $result_header[0]->no_po,
+            // 'checked'     => $result_header[0]->checked,
+            // 'no_po' => $result_header[0]->no_po,
             'no_surat' => $no_surat,
-            'qty_spk'     => $result_header[0]->qty_spk,
-            'no_ros'     => $result_header[0]->no_ros,
+            // 'qty_spk'     => $result_header[0]->qty_spk,
+            // 'no_ros'     => $result_header[0]->no_ros,
             'tanggal'     => date('d F Y', strtotime($result[0]['tgl_incoming'])),
             // 'id_milik'     => get_name('production_detail', 'id_milik', 'no_spk', $result_header[0]->no_spk),
-            'dated'     => date('ymdhis', strtotime($result_header[0]->created_date)),
-            'resv'         => date('d F Y', strtotime($result_header[0]->created_date)),
+            // 'dated'     => date('ymdhis', strtotime($result_header[0]->created_date)),
+            // 'resv'         => date('d F Y', strtotime($result_header[0]->created_date)),
             'file_incoming_material' => $get_file_incoming->file_incoming_material
 
         );
@@ -434,9 +434,7 @@ class Incoming_product_model extends BF_Model
             'created_date' => date('Y-m-d H:i:s')
         ]);
 
-
         $checkSumQty = $this->db->query("SELECT SUM(qty) as total_qty, SUM(qty_in) AS qty_terkirim FROM dt_trans_po WHERE no_po = '" . $no_po . "'")->row();
-
 
         if ($this->db->trans_status() === FALSE || $valid > 1) {
             $this->db->trans_rollback();

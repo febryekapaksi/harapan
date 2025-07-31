@@ -1,5 +1,9 @@
 <div class="box-body">
-    <?php if ($tanda != 'request') { ?>
+    <?php
+    // validasi aman untuk $tanda dan $checked
+    $tanda   = isset($tanda) ? $tanda : null;
+    $checked = isset($checked) ? $checked : null;
+    if ($tanda != 'request') { ?>
         <table id="my-grid" class="table" width="100%">
             <thead>
                 <tr>
@@ -35,15 +39,25 @@
                 foreach ($result as $val => $valx) {
                     $No++;
 
-                    $qty_oke         = number_format($valx['qty_oke'], 4);
-                    $qty_rusak         = number_format($valx['qty_rusak'], 4);
-                    $keterangan     = (!empty($valx['keterangan'])) ? ucfirst($valx['keterangan']) : '-';
-                    $qty_kurang     = number_format($valx['qty_order'] - $valx['qty_oke'], 4);
-                    if ($tanda == 'check' and $checked == 'Y') {
-                        $qty_oke         = number_format($valx['check_qty_oke'], 4);
-                        $qty_rusak         = number_format($valx['check_qty_rusak'], 4);
-                        $keterangan     = (!empty($valx['check_keterangan'])) ? ucfirst($valx['check_keterangan']) : '-';
-                        $qty_kurang     = number_format($valx['qty_order'] - $valx['check_qty_oke'], 4);
+                    $qty_order       = isset($valx['qty_order']) ? floatval($valx['qty_order']) : 0;
+                    $qty_oke_raw     = isset($valx['qty_oke']) ? floatval($valx['qty_oke']) : 0;
+                    $qty_rusak_raw   = isset($valx['qty_rusak']) ? floatval($valx['qty_rusak']) : 0;
+                    $keterangan_raw  = isset($valx['keterangan']) ? $valx['keterangan'] : null;
+
+                    $qty_oke         = number_format($qty_oke_raw, 4);
+                    $qty_rusak       = number_format($qty_rusak_raw, 4);
+                    $keterangan      = (!empty($keterangan_raw)) ? ucfirst($keterangan_raw) : '-';
+                    $qty_kurang      = number_format($qty_order - $qty_oke_raw, 4);
+
+                    if ($tanda === 'check' && $checked === 'Y') {
+                        $check_qty_oke    = isset($valx['check_qty_oke']) ? floatval($valx['check_qty_oke']) : 0;
+                        $check_qty_rusak  = isset($valx['check_qty_rusak']) ? floatval($valx['check_qty_rusak']) : 0;
+                        $check_keterangan = isset($valx['check_keterangan']) ? $valx['check_keterangan'] : null;
+
+                        $qty_oke     = number_format($check_qty_oke, 4);
+                        $qty_rusak   = number_format($check_qty_rusak, 4);
+                        $keterangan  = (!empty($check_keterangan)) ? ucfirst($check_keterangan) : '-';
+                        $qty_kurang  = number_format($qty_order - $check_qty_oke, 4);
                     }
 
                     echo "<tr>";
