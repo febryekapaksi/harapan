@@ -192,93 +192,94 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 						<div class="col-sm-12">
 							<div class="col-sm-12">
 								<div class="form-group row">
-									<table id="example" class='table table-bordered table-striped'>
-										<thead>
-											<tr class='bg-blue'>
-												<th>Item</th>
-												<th>Kode Produk</th>
-												<th>Description</th>
-												<th width='7%' hidden>Width</th>
-												<th width='7%' hidden>Length</th>
-												<th width='7%'>Qty PR</th>
-												<th width='7%'>Qty Unit</th>
-												<th width='7%'>Qty Pack</th>
-												<th width='7%'>PO Qty</th>
-												<th width='7%'>Unit Packing</th>
-												<th width='8%' hidden>Rate LME</th>
-												<th width='7%' hidden>Alloy Price</th>
-												<th width='7%' hidden>Fab Cost</th>
-												<th width='7%'>Unit Price <br> Exclude PPN</th>
-												<th width='6%' hidden>Disc %</th>
-												<th width='6%' hidden>Biaya Kirim</th>
-												<th width='7%'>PPN</th>
-												<th width='9%'>Nilai Barang</th>
-												<th width='12%'>Nilai Discount</th>
-												<th width='7%'>Nilai PPN</th>
-												<th width='9%'>Total Barang + PPN</th>
-												<th width='8%'>Note</th>
-												<th width='5%'>#</th>
-											</tr>
-										</thead>
-										<tbody>
-											<?php
-											// if ($results['getitemso']) {
-											$n = 1;
-											// print_r($results['getitemso']);
-											// exit;
-											// print_r($value . "<br>");
-											$key = 0;
-											$nilai_ppn = 0;
-											$total_harga = 0;
-											$total_harga_ppn = 0;
-											foreach ($results['getitemso'] as $value) {
+									<div class="table-responsive">
+										<table id="example" class='table table-bordered table-striped'>
+											<thead>
+												<tr class='bg-blue'>
+													<th style="min-width: 200px;">Item</th>
+													<th style="min-width: 120px;">Kode Produk</th>
+													<th>Description</th>
+													<th width='7%' hidden>Width</th>
+													<th width='7%' hidden>Length</th>
+													<th width='7%'>Qty PR</th>
+													<th width='7%'>Qty Unit</th>
+													<th width='7%'>Qty Pack</th>
+													<th width='7%'>PO Qty</th>
+													<th width='7%'>Unit Packing</th>
+													<th width='8%' hidden>Rate LME</th>
+													<th width='7%' hidden>Alloy Price</th>
+													<th width='7%' hidden>Fab Cost</th>
+													<th width='7%'>Unit Price <br> Exclude PPN</th>
+													<th width='6%' hidden>Disc %</th>
+													<th width='6%' hidden>Biaya Kirim</th>
+													<th width='7%'>PPN</th>
+													<th width='9%'>Nilai Barang</th>
+													<th width='12%'>Nilai Discount</th>
+													<th width='7%'>Nilai PPN</th>
+													<th width='9%'>Total Barang + PPN</th>
+													<th width='8%'>Note</th>
+													<th width='5%'>#</th>
+												</tr>
+											</thead>
+											<tbody>
+												<?php
+												// if ($results['getitemso']) {
+												$n = 1;
+												// print_r($results['getitemso']);
+												// exit;
+												// print_r($value . "<br>");
+												$key = 0;
+												$nilai_ppn = 0;
+												$total_harga = 0;
+												$total_harga_ppn = 0;
+												foreach ($results['getitemso'] as $value) {
 
-												$get_trans_po = $this->db->get_where('dt_trans_po', ['idpr' => $value->id])->num_rows();
+													$get_trans_po = $this->db->get_where('dt_trans_po', ['idpr' => $value->id])->num_rows();
 
-												// echo '<tr><td>' . $value->nm_material . '</td></tr>';
+													// echo '<tr><td>' . $value->nm_material . '</td></tr>';
 
-												$no = $n++;
-												$key++;
-												$disabled = "readonly";
-												// $disabled = ($loi == 'Import') ? '' : 'readonly';
-												// $disabled2 = ($loi == 'Import') ? 'readonly' : '';
-												// $idmat = $value->idmaterial;
-												// $harga 	= $this->db->query("SELECT * FROM ms_product_pricelist WHERE id_category3 = '$idmat'")->row();
+													$no = $n++;
+													$key++;
+													$disabled = "readonly";
+													// $disabled = ($loi == 'Import') ? '' : 'readonly';
+													// $disabled2 = ($loi == 'Import') ? 'readonly' : '';
+													// $idmat = $value->idmaterial;
+													// $harga 	= $this->db->query("SELECT * FROM ms_product_pricelist WHERE id_category3 = '$idmat'")->row();
 
-												// $stock = $this->db->query("SELECT * FROM stock_material WHERE id_category3 = '$idmat'")->row();
+													// $stock = $this->db->query("SELECT * FROM stock_material WHERE id_category3 = '$idmat'")->row();
 
-												// $avl 	 =	$stock->qty_free;
-												$po    = $value->qty;
+													// $avl 	 =	$stock->qty_free;
+													$po    = $value->qty;
 
-												$total = $value->hargasatuan * $value->qty;
+													$total = $value->hargasatuan * $value->qty;
 
 
-												// if ($value->status_app !== 'Y') {
+													// if ($value->status_app !== 'Y') {
 
-												$header_po = $this->db->get_where('dt_trans_po', ['idpr' => $value->idpr])->row();
-												// if ($header_po->qty == null || $header_po->qty > $value->propose_purchase) {
-												$status = "<div class='badge bg-green'>Done PO</div>";
-												if ($header_po->qty == null || $header_po->qty > $value->propose_purchase) {
-													$status = "<div class='badge bg-red'>Outstanding PO</div>";
-												}
-
-												if ($value->nm_material1 !== '' || $value->nm_material1 !== null) {
-													if ($value->konversi1 <= 0) {
-														$qty_pack = $value->propose_purchase;
-													} else {
-														$qty_pack = ($value->propose_purchase / $value->konversi1);
+													$header_po = $this->db->get_where('dt_trans_po', ['idpr' => $value->idpr])->row();
+													// if ($header_po->qty == null || $header_po->qty > $value->propose_purchase) {
+													$status = "<div class='badge bg-green'>Done PO</div>";
+													if ($header_po->qty == null || $header_po->qty > $value->propose_purchase) {
+														$status = "<div class='badge bg-red'>Outstanding PO</div>";
 													}
-												} else {
 
-													if ($value->konversi <= 0) {
-														$qty_pack = $value->propose_purchase;
+													if ($value->nm_material1 !== '' || $value->nm_material1 !== null) {
+														if ($value->konversi1 <= 0) {
+															$qty_pack = $value->propose_purchase;
+														} else {
+															$qty_pack = ($value->propose_purchase / $value->konversi1);
+														}
 													} else {
-														$qty_pack = ($value->propose_purchase / $value->konversi);
+
+														if ($value->konversi <= 0) {
+															$qty_pack = $value->propose_purchase;
+														} else {
+															$qty_pack = ($value->propose_purchase / $value->konversi);
+														}
 													}
-												}
 
 
-												echo "
+													echo "
 												<tr>
 												<td>  " . $value->nm_material . $value->nm_material1 . "
 														  <input type='hidden' class='form-control input-sm' id='dt_idpr_" . $key . "' name='dt[" . $key . "][idpr]' value='" . $value->id . "'>
@@ -300,13 +301,21 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 											  <td>" . $value->satuan . $value->satuan1 . "</td>
 											  ";
 
-												if ($value->nm_material1 == "") {
-													echo "<td>" . number_format($value->propose_purchase / $value->konversi, 2) . "</td>";
-												} else {
-													echo "<td>" . number_format($value->propose_purchase / $value->konversi1, 2) . "</td>";
-												}
+													if ($value->nm_material1 == "") {
+														if ((float)$value->konversi > 0) {
+															echo "<td>" . number_format($value->propose_purchase / (float)$value->konversi, 2) . "</td>";
+														} else {
+															echo "<td>0</td>"; // fallback jika konversi = 0
+														}
+													} else {
+														if ((float)$value->konversi1 > 0) {
+															echo "<td>" . number_format($value->propose_purchase / (float)$value->konversi1, 2) . "</td>";
+														} else {
+															echo "<td>0</td>"; // fallback jika konversi1 = 0
+														}
+													}
 
-												echo "
+													echo "
 											  
 												
 												<td>
@@ -349,17 +358,18 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 														</td>
 										 </tr>
 												";
+													// }
+
+													$nilai_ppn += $value->ppn;
+													$total_harga += $total;
+													$total_harga_ppn += ($total - $value->nilai_disc + $value->ppn);
+												}
 												// }
 
-												$nilai_ppn += $value->ppn;
-												$total_harga += $total;
-												$total_harga_ppn += ($total - $value->nilai_disc + $value->ppn);
-											}
-											// }
-
-											?>
-										</tbody>
-									</table>
+												?>
+											</tbody>
+										</table>
+									</div>
 								</div>
 							</div>
 						</div>
@@ -411,20 +421,29 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 						</div>
 					</div>
 					<div class="col-sm-12">
-						<div class="row">
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="id_customer">Total Discount</label>
-									</div>
-									<div class="col-md-1 text-right">
-										<span>(%)</span> <br><br>
-										<span>($)</span>
-									</div>
-									<div class="col-md-7" id="ForHarga">
-										<input type="text" class="form-control auto_num" id="persendisc" onkeyup required name="persendisc" onblur="cariTotal()" placeholder="Persen Disc (%)" value="<?= $results['header_po']->persen_disc ?>" readonly>
-										<input type="text" class="form-control auto_num" id="totaldisc" onkeyup required name="totaldisc" onblur="cariTotal()" placeholder="Nilai Disc" value="<?= $results['header_po']->nilai_disc ?>" readonly>
-									</div>
+						<div class="col-sm-6">
+							<div class="form-group row">
+								<div class="col-md-4">
+									<label for="id_customer">Total Discount</label>
+								</div>
+								<div class="col-md-1 text-right">
+									<span>(%)</span> <br><br>
+									<span>($)</span>
+								</div>
+								<div class="col-md-7" id="ForHarga">
+									<input type="text" class="form-control auto_num" id="persendisc" onkeyup required name="persendisc" onblur="cariTotal()" placeholder="Persen Disc (%)" value="<?= $results['header_po']->persen_disc ?>" readonly>
+									<input type="text" class="form-control auto_num" id="totaldisc" onkeyup required name="totaldisc" onblur="cariTotal()" placeholder="Nilai Disc" value="<?= $results['header_po']->nilai_disc ?>" readonly>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group row">
+								<div class="col-md-4">
+									<label for="id_customer">Biaya Kirim</label>
+								</div>
+								<div class="col-md-8" id="ForTax">
+									<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
+									<input type="text" class="form-control" id="kirim" value="<?= number_format($results['header_po']->taxtotal, 2) ?>" readonly name="kirim">
 								</div>
 							</div>
 						</div>
@@ -445,6 +464,16 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 								</div>
 							</div>
 						</div>
+						<div class="col-sm-6">
+							<div class="form-group row">
+								<div class="col-md-4">
+									<label for="id_customer">Total Order</label>
+								</div>
+								<div class="col-md-8" id="ForSum">
+									<input readonly type="text" class="form-control" id="subtotal" value="<?= number_format($total_harga_ppn + $results['header_po']->total_ppn + $results['header_po']->taxtotal) ?>" onkeyup required name="subtotal">
+								</div>
+							</div>
+						</div>
 					</div>
 					<div class="col-sm-12" hidden>
 						<div class="col-sm-6">
@@ -458,43 +487,25 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 							</div>
 						</div>
 					</div>
+
 					<div class="col-sm-12">
 						<div class="col-sm-6">
 							<div class="form-group row">
 								<div class="col-md-4">
-									<label for="id_customer">Biaya Kirim</label>
+									<label for="">Reject Reason</label>
 								</div>
-								<div class="col-md-8" id="ForTax">
-									<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
-									<input type="text" class="form-control" id="kirim" value="<?= number_format($results['header_po']->taxtotal, 2) ?>" readonly name="kirim">
+								<div class="col-md-8">
+									<textarea name="reject_reason" id="" class="form-control form-control-sm reject_reason"></textarea>
 								</div>
 							</div>
 						</div>
 					</div>
-					
-					<div class="col-sm-12">
-						<div class="col-sm-6">
-							<div class="form-group row">
-								<div class="col-md-4">
-									<label for="id_customer">Total Order</label>
-								</div>
-								<div class="col-md-8" id="ForSum">
-									<input readonly type="text" class="form-control" id="subtotal" value="<?= number_format($total_harga_ppn + $results['header_po']->total_ppn + $results['header_po']->taxtotal) ?>" onkeyup required name="subtotal">
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="form-group">
-								<label for="">Reject Reason</label>
-								<textarea name="reject_reason" id="" cols="30" rows="5" class="form-control form-control-sm reject_reason"></textarea>
-							</div>
-						</div>
-					</div>
+
 					<div class="col-sm-12">
 						<div class="row">
 							<div class="col-sm-12">
 								<input type="hidden" name="num_top" class="num_top" value="<?= $results['num_po'] ?>">
-								
+
 								<table class="table table-bordered">
 									<thead class="bg-blue">
 										<tr>
@@ -545,9 +556,9 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 						</div>
 					</div>
 					<center>
-						<button type="submit" class="btn btn-success btn-sm" name="save" id="simpan-com"><i class="fa fa-save"></i>Approve</button>
-						<button type="submit" class="btn btn-danger btn-sm" name="save" id="reject-com"><i class="fa fa-save"></i>Reject</button>
-						<a href="<?= base_url('approval_po') ?>" class="btn btn-sm btn-danger"><i class="fa fa-arrow-left"></i> Back</a>
+						<button type="submit" class="btn btn-success btn-sm" name="save" id="simpan-com"><i class="fa fa-save"></i> Approve</button>
+						<button type="submit" class="btn btn-danger btn-sm" name="save" id="reject-com"><i class="fa fa-save"></i> Reject</button>
+						<a href="<?= base_url('approval_po') ?>" class="btn btn-sm btn-default"><i class="fa fa-arrow-left"></i> Back</a>
 					</center>
 				</div>
 			</div>

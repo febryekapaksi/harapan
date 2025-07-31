@@ -285,6 +285,7 @@ class Approval_po extends Admin_Controller
   public function po_approval($no_po)
   {
     $session = $this->session->userdata('app_session');
+    $this->template->page_icon('fa fa-check-square-o');
 
     $getitemso = $this->db->query("
 			SELECT 

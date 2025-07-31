@@ -404,7 +404,8 @@ class Metode_pembelian_model extends BF_Model
 			";
 		}
 
-		// echo $sql; exit;
+		// echo $sql;
+		// exit;
 
 		$data['totalData'] = $this->db->query($sql)->num_rows();
 		$data['totalFiltered'] = $this->db->query($sql)->num_rows();

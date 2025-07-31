@@ -198,8 +198,8 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 													<th width='5%' class="text-center">
 														<input type="checkbox" id="select_all" checked>
 													</th>
-													<th>Item</th>
-													<th>Kode Produk</th>
+													<th style="min-width: 150px;">Item</th>
+													<th style="min-width: 100px;">Kode Produk</th>
 													<th>Description</th>
 													<th width='7%' hidden>Width</th>
 													<th width='7%' hidden>Length</th>
@@ -213,7 +213,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 													<th width='7%'>Unit Price <br> Exclude PPN</th>
 													<th width='6%' hidden>Disc %</th>
 													<th width='6%' hidden>Biaya Kirim</th>
-													<th width='7%'>PPN</th>
+													<th width='10%'>PPN</th>
 													<th width='9%'>Nilai Barang</th>
 													<th width='12%'>Nilai Discount</th>
 													<th width='7%'>Nilai PPN</th>
@@ -393,7 +393,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="id_customer">Keterangan</label>
 									</div>
 									<div class="col-md-8" id="ForHarga">
-										<textarea name="note" id="" class="form-control" rows="5"></textarea>
+										<textarea name="note" id="" class="form-control"></textarea>
 									</div>
 								</div>
 							</div>
@@ -416,6 +416,17 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 									</div>
 								</div>
 							</div>
+							<div class="col-sm-6">
+								<div class="form-group row">
+									<div class="col-md-4">
+										<label for="id_customer">Biaya Kirim</label>
+									</div>
+									<div class="col-md-8" id="ForTax">
+										<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
+										<input type="text" class="form-control" id="kirim" onblur="cariTotal()" required name="kirim">
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 					<div class="col-sm-12">
@@ -435,6 +446,16 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 									</div>
 								</div>
 							</div>
+							<div class="col-sm-6">
+								<div class="form-group row">
+									<div class="col-md-4">
+										<label for="id_customer">Total Order</label>
+									</div>
+									<div class="col-md-8" id="ForSum">
+										<input readonly type="text" class="form-control" id="subtotal" onkeyup required name="subtotal">
+									</div>
+								</div>
+							</div>
 						</div>
 					</div>
 					<div class="col-sm-12" hidden>
@@ -451,35 +472,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 							</div>
 						</div>
 					</div>
-					<div class="col-sm-12">
-						<div class="row">
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="id_customer">Biaya Kirim</label>
-									</div>
-									<div class="col-md-8" id="ForTax">
-										<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
-										<input type="text" class="form-control" id="kirim" onblur="cariTotal()" required name="kirim">
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-12">
-						<div class="row">
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="id_customer">Total Order</label>
-									</div>
-									<div class="col-md-8" id="ForSum">
-										<input readonly type="text" class="form-control" id="subtotal" onkeyup required name="subtotal">
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
+
 					<div class="col-sm-12">
 						<div class="row">
 							<div class="col-sm-12">
@@ -505,7 +498,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 						</div>
 					</div>
 					<center>
-						<button type="submit" class="btn btn-success btn-sm" name="save" id="simpan-com"><i class="fa fa-save"></i>Simpan</button>
+						<button type="submit" class="btn btn-success btn-sm" name="save" id="simpan-com"><i class="fa fa-save"></i> Simpan</button>
 					</center>
 				</div>
 			</div>

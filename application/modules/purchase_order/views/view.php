@@ -211,12 +211,12 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 						<div class="col-sm-12">
 							<div class="col-sm-12">
-								<div class="form-group row">
+								<div class="table-responsive">
 									<table class='table table-bordered table-striped'>
 										<thead>
 											<tr class='bg-blue'>
-												<th>Item</th>
-												<th>Kode Produk</th>
+												<th style="min-width: 200px;">Item</th>
+												<th style="min-width: 120px;">Kode Produk</th>
 												<th>Description</th>
 												<th width='7%' hidden>Width</th>
 												<th width='7%' hidden>Length</th>
@@ -414,20 +414,29 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 						</div>
 					</div>
 					<div class="col-sm-12">
-						<div class="row">
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="id_customer">Total Discount</label>
-									</div>
-									<div class="col-md-1 text-right">
-										<span>(%)</span> <br><br>
-										<span>($)</span>
-									</div>
-									<div class="col-md-7" id="ForHarga">
-										<input type="text" class="form-control auto_num" id="persendisc" onkeyup required name="persendisc" onblur="cariTotal()" placeholder="Persen Disc (%)" value="<?= $results['get_po']->persen_disc ?>">
-										<input type="text" class="form-control auto_num" id="totaldisc" onkeyup required name="totaldisc" onblur="cariTotal()" placeholder="Nilai Disc" value="<?= $results['get_po']->nilai_disc ?>">
-									</div>
+						<div class="col-sm-6">
+							<div class="form-group row">
+								<div class="col-md-4">
+									<label for="id_customer">Total Discount</label>
+								</div>
+								<div class="col-md-1 text-right">
+									<span>(%)</span> <br><br>
+									<span>($)</span>
+								</div>
+								<div class="col-md-7" id="ForHarga">
+									<input type="text" class="form-control auto_num" id="persendisc" onkeyup required name="persendisc" onblur="cariTotal()" placeholder="Persen Disc (%)" value="<?= $results['get_po']->persen_disc ?>">
+									<input type="text" class="form-control auto_num" id="totaldisc" onkeyup required name="totaldisc" onblur="cariTotal()" placeholder="Nilai Disc" value="<?= $results['get_po']->nilai_disc ?>">
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6">
+							<div class="form-group row">
+								<div class="col-md-4">
+									<label for="id_customer">Biaya Kirim</label>
+								</div>
+								<div class="col-md-8" id="ForTax">
+									<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
+									<input type="text" class="form-control auto_num" id="kirim" onblur="cariTotal()" required name="kirim" value="<?= $results['get_po']->taxtotal; ?>">
 								</div>
 							</div>
 						</div>
@@ -448,6 +457,16 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 								</div>
 							</div>
 						</div>
+						<div class="col-sm-6">
+							<div class="form-group row">
+								<div class="col-md-4">
+									<label for="id_customer">Total Order</label>
+								</div>
+								<div class="col-md-8" id="ForSum">
+									<input readonly type="text" class="form-control" id="subtotal" onkeyup required name="subtotal">
+								</div>
+							</div>
+						</div>
 					</div>
 					<div class="col-sm-12" hidden>
 						<div class="col-sm-6">
@@ -461,31 +480,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 							</div>
 						</div>
 					</div>
-					<div class="col-sm-12">
-						<div class="col-sm-6">
-							<div class="form-group row">
-								<div class="col-md-4">
-									<label for="id_customer">Biaya Kirim</label>
-								</div>
-								<div class="col-md-8" id="ForTax">
-									<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
-									<input type="text" class="form-control auto_num" id="kirim" onblur="cariTotal()" required name="kirim" value="<?= $results['get_po']->taxtotal; ?>">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-12">
-						<div class="col-sm-6">
-							<div class="form-group row">
-								<div class="col-md-4">
-									<label for="id_customer">Total Order</label>
-								</div>
-								<div class="col-md-8" id="ForSum">
-									<input readonly type="text" class="form-control" id="subtotal" onkeyup required name="subtotal">
-								</div>
-							</div>
-						</div>
-					</div>
+
 					<div class="col-sm-12">
 						<div class="row">
 							<div class="col-sm-12">
@@ -541,7 +536,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 						</div>
 					</div>
 					<center>
-						<a href="<?= base_url('purchase_order') ?>" class="btn btn-sm btn-danger">
+						<a href="<?= base_url('purchase_order') ?>" class="btn btn-sm btn-default">
 							<i class="fa fa-arrow-left"></i> Back
 						</a>
 					</center>

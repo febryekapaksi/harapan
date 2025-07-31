@@ -2839,6 +2839,7 @@ class Purchase_order extends Admin_Controller
 	{
 		$session = $this->session->userdata('app_session');
 		$getparam = explode(";", $_GET['param']);
+		$this->template->page_icon('fa fa-cart-plus');
 
 		$getso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi');
 
@@ -3066,10 +3067,7 @@ class Purchase_order extends Admin_Controller
 	public function view_po($no_po)
 	{
 		$session = $this->session->userdata('app_session');
-		// $getparam = explode(";", $_GET['param']);
-
-		// print_r($no_po);
-		// exit;
+		$this->template->page_icon('fa fa-list-alt');
 
 		$get_po = $this->db->get_where('tr_purchase_order', ['no_po' => $no_po])->row();
 

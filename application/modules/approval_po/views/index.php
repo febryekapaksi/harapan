@@ -50,12 +50,12 @@ $ENABLE_DELETE  = has_permission('Approval_PR_Material.Delete');
 		<table id="example1" class="table table-bordered table-striped" width='100%'>
 			<thead>
 				<tr class="bg-blue">
-					<td class="text-center">#</td>
-					<td class="text-center">No. PO</td>
-					<td class="text-center">Tanggal PO</td>
-					<td class="text-center">Created By</td>
-					<td class="text-center">Created Date</td>
-					<td class="text-center">Action</td>
+					<th class="text-center">#</th>
+					<th class="text-center">No. PO</th>
+					<th class="text-center">Tanggal PO</th>
+					<th class="text-center">Created By</th>
+					<th class="text-center">Created Date</th>
+					<th class="text-center">Action</th>
 				</tr>
 			</thead>
 			<tbody></tbody>
