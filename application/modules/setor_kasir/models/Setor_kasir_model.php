@@ -1,27 +1,27 @@
 <?php if (!defined('BASEPATH')) exit('No direct script access allowed');
 
-class Setor_bank_model extends BF_Model
+class Setor_kasir_model extends BF_Model
 {
 
     public function __construct()
     {
         parent::__construct();
-        $this->ENABLE_ADD     = has_permission('Setor_Bank.Add');
-        $this->ENABLE_MANAGE  = has_permission('Setor_Bank.Manage');
-        $this->ENABLE_VIEW    = has_permission('Setor_Bank.View');
-        $this->ENABLE_DELETE  = has_permission('Setor_Bank.Delete');
+        $this->ENABLE_ADD     = has_permission('Setor_Kasir.Add');
+        $this->ENABLE_MANAGE  = has_permission('Setor_Kasir.Manage');
+        $this->ENABLE_VIEW    = has_permission('Setor_Kasir.View');
+        $this->ENABLE_DELETE  = has_permission('Setor_Kasir.Delete');
     }
 
     public function generateKodeSetoran($tgl_setor)
     {
         // Format jadi: ST-KS + YYMMDD
-        $prefix = 'ST-BN' . date('ymd', strtotime($tgl_setor));
+        $prefix = 'ST-KS' . date('ymd', strtotime($tgl_setor));
 
         // Cari nomor urut terakhir di tanggal yang sama
         $last = $this->db->like('id', $prefix)
             ->order_by('id', 'DESC')
             ->limit(1)
-            ->get('tr_setor_bank')
+            ->get('tr_setor_kasir')
             ->row();
 
         $no = 1;
@@ -33,11 +33,11 @@ class Setor_bank_model extends BF_Model
         return $prefix . str_pad($no, 3, '0', STR_PAD_LEFT);
     }
 
-    public function get_json_setoran_bank()
+    public function get_json_setoran_kasir()
     {
         $requestData = $_REQUEST;
 
-        $fetch = $this->get_query_json_setoran_bank(
+        $fetch = $this->get_query_json_setoran_kasir(
             $requestData['search']['value'],
             $requestData['order'][0]['column'],
             $requestData['order'][0]['dir'],
@@ -59,13 +59,13 @@ class Setor_bank_model extends BF_Model
         $kd_pembayaran = '-';
         if (!empty($result_data)) {
             $ids = array_column($result_data, 'id');
-            $details = $this->db->select('id_setor_bank, GROUP_CONCAT(kd_pembayaran SEPARATOR ",") as kode_penerimaan')
-                ->from('tr_setor_bank_detail')
-                ->where_in('id_setor_bank', $ids)
-                ->group_by('id_setor_bank')
+            $details = $this->db->select('id_setor_kasir, GROUP_CONCAT(kd_pembayaran SEPARATOR ",") as kode_penerimaan')
+                ->from('tr_setor_kasir_detail')
+                ->where_in('id_setor_kasir', $ids)
+                ->group_by('id_setor_kasir')
                 ->get()->result_array();
             foreach ($details as $d) {
-                $mapPenerimaan[$d['id_setor_bank']] = $d['kode_penerimaan'];
+                $mapPenerimaan[$d['id_setor_kasir']] = $d['kode_penerimaan'];
             }
         }
 
@@ -76,6 +76,8 @@ class Setor_bank_model extends BF_Model
             $nomor = ($asc_desc == 'asc')
                 ? ($total_data - $start_dari) - $urut2
                 : $urut1 + $start_dari;
+
+            $status_text = ($row['status'] == 0) ? '<span class="badge badge-pill bg-blue">Open</span>' : '<span class="badge badge-pill bg-green">Done</span>';
 
             $nestedData = [];
             $nestedData[] = "<div align='center'>{$nomor}</div>";
@@ -89,12 +91,11 @@ class Setor_bank_model extends BF_Model
                 }
                 $kd_pembayaran .= "</ul>";
             }
+            $nestedData[] = "<div align='left'>{$row['sales']}</div>";
             $nestedData[] = "<div align='left'>{$kd_pembayaran}</div>";
             $nestedData[] = "<div align='right'>" . number_format($row['total_setoran'], 0, ',', '.') . "</div>";
-
-            $nestedData[] = "<div align='center'>
-            <a href='javascript:void(0)' class='btn btn-sm btn-warning view-setoran' data-id='{$row['id']}'><i class='fa fa-eye'></i></a>
-        </div>";
+            $nestedData[] = "<div align='center'>{$status_text}</div>";
+            $nestedData[] = "<div align='center'><input type='checkbox' class='check-setor-kasir' data-id='{$row['id']}' /></div>";
 
             $data[] = $nestedData;
             $urut1++;
@@ -111,7 +112,7 @@ class Setor_bank_model extends BF_Model
         echo json_encode($json_data);
     }
 
-    public function get_query_json_setoran_bank($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
+    public function get_query_json_setoran_kasir($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
     {
         $columns_order_by = [
             0 => 's.id',
@@ -121,11 +122,11 @@ class Setor_bank_model extends BF_Model
         ];
 
         // Total data
-        $this->db->from('tr_setor_bank s');
+        $this->db->from('tr_setor_kasir s');
         $totalData = $this->db->count_all_results();
 
         // Filtered data
-        $this->db->from('tr_setor_bank s');
+        $this->db->from('tr_setor_kasir s');
         if ($like_value) {
             $this->db->group_start();
             $this->db->like('s.id', $like_value);
@@ -135,8 +136,8 @@ class Setor_bank_model extends BF_Model
         $totalFiltered = $this->db->count_all_results();
 
         // Main query
-        $this->db->select('s.id, s.tgl_setor, s.total_setoran');
-        $this->db->from('tr_setor_bank s');
+        $this->db->select('s.id, s.sales, s.tgl_setor, s.total_setoran, s.status');
+        $this->db->from('tr_setor_kasir s');
         if ($like_value) {
             $this->db->group_start();
             $this->db->like('s.id', $like_value);
