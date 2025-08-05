@@ -27,39 +27,61 @@ class Loading_model extends BF_Model
         $totalData     = $fetch['totalData'];
         $totalFiltered = $fetch['totalFiltered'];
         $query         = $fetch['query'];
+        $result_data   = $query->result_array();
+
+        // Mapping no_delivery dari detail
+        $mapDelivery = [];
+        if (!empty($result_data)) {
+            $ids = array_column($result_data, 'id');
+            $details = $this->db->select('no_loading, GROUP_CONCAT(DISTINCT no_delivery SEPARATOR ",") as deliveries')
+                ->from('loading_delivery_detail')
+                ->where_in('no_loading', array_column($result_data, 'no_loading'))
+                ->group_by('no_loading')
+                ->get()->result_array();
+
+            foreach ($details as $d) {
+                $mapDelivery[$d['no_loading']] = explode(',', $d['deliveries']);
+            }
+        }
 
         $data  = [];
         $urut  = 1;
 
-        foreach ($query->result_array() as $row) {
+        foreach ($result_data as $row) {
             $nestedData = [];
 
-            // $action = "<a href='javascript:void(0);' data-id='" . $row['no_loading'] . "' class='btn btn-sm btn-info view-loading' title='View'><i class='fa fa-eye'></i></a> ";
+            // Buat status muatan
             if ($row['status'] == 0) {
+                $status = "<span class='badge bg-yellow'>Draft</span>";
                 $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                 $action .= "<a href='"  . base_url("loading/confirm_qty/{$row['id']}") .  "' class='btn btn-sm btn-info' title='Confirm Qty'><i class='fa fa-cubes'></i></a> ";
             } else if ($row['status'] == 1) {
+                $status = "<span class='badge bg-aqua'>Confirm QTY</span>";
                 $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                 $action .= "<a href='"  . base_url("loading/confirm_berat/{$row['id']}") .  "' class='btn btn-sm btn-success' title='Confirm Berat'><i class='fa fa-tachometer'></i></a> ";
             } else if ($row['status'] == 2) {
-                $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
-            } else {
-                $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
-            }
-
-            // Buat status muatan 
-            if ($row['status'] == 0) {
-                $status = "<span class='badge bg-yellow'>Draft</span>";
-            } else if ($row['status'] == 1) {
-                $status = "<span class='badge bg-aqua'>Confirm QTY</span>";
-            } else if ($row['status'] == 2) {
                 $status = "<span class='badge bg-blue'>Confirm Berat</span>";
+                $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
             } else {
                 $status = "<span class='badge bg-green'>Approved</span>";
+                $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
             }
 
             $nestedData[] = "<div>" . $urut . "</div>";
             $nestedData[] = "<div>" . strtoupper($row['no_loading']) . "</div>";
+
+            // Tambahkan list no_delivery sebagai <ul>
+            if (!empty($mapDelivery[$row['no_loading']])) {
+                $ul = "<ul style='padding-left:16px;margin:0'>";
+                foreach ($mapDelivery[$row['no_loading']] as $spk) {
+                    $ul .= "<li>" . htmlspecialchars($spk) . "</li>";
+                }
+                $ul .= "</ul>";
+                $nestedData[] = $ul;
+            } else {
+                $nestedData[] = '-';
+            }
+
             $nestedData[] = "<div>" . strtoupper($row['nopol']) . "</div>";
             $nestedData[] = "<div>" . strtoupper($row['pengiriman']) . "</div>";
             $nestedData[] = "<div>" . number_format($row['total_berat'], 2) . " / " . number_format($row['kapasitas'], 2) . " Kg</div>";
@@ -85,41 +107,63 @@ class Loading_model extends BF_Model
 
     public function get_query_json_loading($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
     {
-        $sql = "SELECT
-                (@row:=@row+1) AS nomor,
-                id,
-                no_loading,
-                pengiriman,
-                nopol,
-                kapasitas,
-                total_berat,
-                tanggal_muat,
-                status,
-                created_by,
-                created_at
-            FROM loading_delivery, (SELECT @row := 0) AS r
-            WHERE 1=1 AND (
-                no_loading LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-                OR pengiriman LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-                OR nopol LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-            )";
-
-        $data['totalData'] = $this->db->query($sql)->num_rows();
-        $data['totalFiltered'] = $this->db->query($sql)->num_rows();
-
         $columns_order_by = [
-            0 => 'no_loading',
-            1 => 'nopol',
-            2 => 'pengiriman',
-            3 => 'total_berat',
-            4 => 'tanggal_muat',
+            0 => 'l.no_loading',
+            1 => 'l.no_loading',
+            2 => 'list_spk',
+            3 => 'l.nopol',
+            4 => 'l.pengiriman',
+            5 => 'l.total_berat',
+            6 => 'l.tanggal_muat',
         ];
 
-        $sql .= " ORDER BY " . $columns_order_by[$column_order] . " " . $column_dir;
-        $sql .= " LIMIT " . $limit_start . ", " . $limit_length;
+        $base_sql = "SELECT
+                    l.id,
+                    l.no_loading,
+                    l.pengiriman,
+                    l.nopol,
+                    l.kapasitas,
+                    l.total_berat,
+                    l.tanggal_muat,
+                    l.status,
+                    GROUP_CONCAT(DISTINCT d.no_delivery SEPARATOR '<br>') AS list_spk
+                FROM loading_delivery l
+                LEFT JOIN loading_delivery_detail d ON d.no_loading = l.no_loading
+                WHERE 1=1";
 
-        $data['query'] = $this->db->query($sql);
-        return $data;
+        if ($like_value) {
+            $base_sql .= " AND (
+            l.no_loading LIKE '%" . $this->db->escape_like_str($like_value) . "%'
+            OR l.pengiriman LIKE '%" . $this->db->escape_like_str($like_value) . "%'
+            OR l.nopol LIKE '%" . $this->db->escape_like_str($like_value) . "%'
+            OR d.no_delivery LIKE '%" . $this->db->escape_like_str($like_value) . "%'
+        )";
+        }
+
+        $group_by = " GROUP BY l.no_loading";
+        $count_sql = $base_sql . $group_by;
+
+        $this->db->query("SET SQL_BIG_SELECTS=1");
+        $totalData = $this->db->query($count_sql)->num_rows();
+        $totalFiltered = $totalData;
+
+        if ($column_order !== null && isset($columns_order_by[$column_order])) {
+            $base_sql .= $group_by . " ORDER BY " . $columns_order_by[$column_order] . " " . $column_dir;
+        } else {
+            $base_sql .= $group_by . " ORDER BY l.no_loading DESC";
+        }
+
+        if ($limit_length != -1) {
+            $base_sql .= " LIMIT {$limit_start}, {$limit_length}";
+        }
+
+        $query = $this->db->query($base_sql);
+
+        return [
+            'totalData' => $totalData,
+            'totalFiltered' => $totalFiltered,
+            'query' => $query
+        ];
     }
 
     public function data_side_approval_loading()

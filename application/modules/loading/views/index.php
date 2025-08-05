@@ -13,6 +13,7 @@
                     <tr>
                         <th>#</th>
                         <th>No. Muat Kendaraan</th>
+                        <th>No. SPK Delivery</th>
                         <th>Nopol Kendaraan</th>
                         <th>Pengiriman</th>
                         <th>Muatan</th>
