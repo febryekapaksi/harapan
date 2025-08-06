@@ -535,7 +535,7 @@ class Surat_jalan extends Admin_Controller
                 'qty_delivery' => $qty_terkirim
             ]);
 
-            $current = $this->db->select('qty_delivery, qty_order')
+            $current = $this->db->select('qty_delivery, qty_order, qty_terkirim')
                 ->get_where('sales_order_detail', ['id' => $value['id_so_det']])
                 ->row();
 
