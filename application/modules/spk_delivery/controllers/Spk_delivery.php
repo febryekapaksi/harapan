@@ -186,15 +186,24 @@ class Spk_delivery extends Admin_Controller
       $so_det = $this->db->get_where('sales_order_detail', ['id' => $id_so_det])->row_array();
       $qty_order = (float)$so_det['qty_order'];
 
-      // Hitung total qty_spk sebelumnya
-      $prev = $this->db->select_sum('qty_spk')
+      // // Hitung total qty_spk sebelumnya
+      // $prev = $this->db->select_sum('qty_spk')
+      //   ->get_where('spk_delivery_detail', ['id_so_det' => $id_so_det])
+      //   ->row();
+
+      // $prev_spk = isset($prev->qty_spk) ? $prev->qty_spk : 0;
+
+      // $total_spk = $prev_spk + $qty_spk;
+      // $qty_belum_spk = max(0, $qty_order - $total_spk);
+
+      // Hitung total qty_spk dari semua spk_delivery_detail untuk id_so_det
+      $spk_sum = $this->db->select_sum('qty_spk')
         ->get_where('spk_delivery_detail', ['id_so_det' => $id_so_det])
         ->row();
+      $total_spk_now = (float)$spk_sum->qty_spk + $qty_spk;
 
-      $prev_spk = isset($prev->qty_spk) ? $prev->qty_spk : 0;
-
-      $total_spk = $prev_spk + $qty_spk;
-      $qty_belum_spk = max(0, $qty_order - $total_spk);
+      // Hitung ulang sisa belum SPK
+      $qty_belum_spk = max(0, $qty_order - $total_spk_now);
 
       // Insert detail SPK (tanpa menyalin qty_so karena sudah ada di master SO)
       $ArrDetail[] = [
@@ -210,7 +219,7 @@ class Spk_delivery extends Admin_Controller
 
       // Update qty_spk dan status_planning di sales_order_detail
       $this->db->update('sales_order_detail', [
-        'qty_spk'         => $total_spk,
+        'qty_spk'         => $total_spk_now,
         'qty_belum_spk'   => $qty_belum_spk,
         'status_planning' => ($qty_belum_spk > 0) ? 0 : 1,
       ], ['id' => $id_so_det]);

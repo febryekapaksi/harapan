@@ -10,7 +10,7 @@
         <div class="table-responsive">
             <table class="table table-bordered" id="tableLoading">
                 <thead>
-                    <tr>
+                    <tr class="bg-blue">
                         <th>#</th>
                         <th>No. Muat Kendaraan</th>
                         <th>No. SPK Delivery</th>

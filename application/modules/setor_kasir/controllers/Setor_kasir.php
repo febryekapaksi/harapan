@@ -141,6 +141,15 @@ class Setor_kasir extends Admin_Controller
         $this->template->render('form_kasir', $data);
     }
 
+    public function save_bank()
+    {
+        $post = $this->input->post();
+        echo '<pre>';
+        print_r($post);
+        echo '</pre>';
+        die();
+    }
+
     // fungsi get untuk ajax
     public function get_penerimaan()
     {

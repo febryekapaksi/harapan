@@ -309,24 +309,22 @@ class Loading extends Admin_Controller
             p.nama,
             p.weight,
             d.qty_spk,
-            p.weight,
             (p.weight * d.qty_spk) AS jumlah_berat
         ')
             ->from('spk_delivery_detail d')
             ->join('spk_delivery s', 's.no_delivery = d.no_delivery')
             ->join('master_customers c', 'c.id_customer = s.id_customer')
             ->join('new_inventory_4 p', 'p.code_lv4 = d.id_product')
-            // LEFT JOIN ke tabel loading_delivery_detail
-            ->join('loading_delivery_detail l', 'l.no_delivery = s.no_delivery', 'left')
-            // Ambil hanya yang belum pernah ada di loading_delivery_detail
+            ->join('loading_delivery_detail l', 'l.id_spk_detail = d.id', 'left') // per item, bukan per delivery
             ->where('s.pengiriman', $pengiriman)
-            ->where('l.no_delivery IS NULL')
+            ->where('l.id_spk_detail IS NULL') // hanya yang belum termuat
             ->order_by('s.no_delivery')
             ->get()
             ->result();
 
         echo json_encode($data);
     }
+
 
     public function save()
     {
@@ -369,7 +367,7 @@ class Loading extends Admin_Controller
             $ArrDetail[$key]['jumlah_berat']    = $value['jumlah_berat'];
 
             // Update status SPK
-            // $this->db->update('spk_delivery', ['status' => 'LOADING'], ['no_delivery' => $no_delivery]);
+            $this->db->update('spk_delivery', ['status' => 'LOADING'], ['no_delivery' => $no_delivery]);
         }
 
         $this->db->trans_start();
