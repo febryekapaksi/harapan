@@ -675,12 +675,11 @@ class Invoice_produk extends Admin_Controller
 			';
 
 			$get_delivery = $this->db
-				->select('a.no_surat_jalan, a.no_delivery, a.no_so, c.name_customer')
-				->from('spk_delivery a')
-				->join('surat_jalan sj', 'sj.no_delivery = a.no_delivery', 'left')
-				->join('sales_order b', 'b.no_so = a.no_so', 'left')
+				->select('sj.no_surat_jalan, sj.no_delivery, sj.no_so, c.name_customer')
+				->from('surat_jalan sj')
+				->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
+				->join('sales_order b', 'b.no_so = sj.no_so', 'left')
 				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
-				->where('a.no_surat_jalan <>', null)
 				->where('sj.status !=', 'ON DELIVER')
 				->where('sj.status IS NOT NULL')
 				->get()
