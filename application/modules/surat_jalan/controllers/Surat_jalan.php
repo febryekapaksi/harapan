@@ -199,11 +199,12 @@ class Surat_jalan extends Admin_Controller
 
             // Update ke SPK dan SO Detail
             $this->db->update('spk_delivery', ['status' => 'ON DELIVER', 'no_surat_jalan' => $no_surat_jalan], ['no_delivery' => $post['no_delivery']]);
-            $this->db->update('sales_order_detail', [
-                'qty_delivery' => $qty,
-                'status_kirim' => '1',
-                'tgl_delivery' => date('Y-m-d H:i:s', strtotime($post['delivery_date']))
-            ], ['id' => $id_so_det]);
+
+            $this->db->set('qty_delivery', 'qty_delivery + ' . (int) $qty, FALSE);
+            $this->db->set('status_kirim', '1');
+            $this->db->set('tgl_delivery', date('Y-m-d H:i:s', strtotime($post['delivery_date'])));
+            $this->db->where('id', $id_so_det);
+            $this->db->update('sales_order_detail');
         }
 
         // Simpan ke DB
@@ -540,7 +541,7 @@ class Surat_jalan extends Admin_Controller
                 ->row();
 
             $new_qty_terkirim = $current->qty_terkirim + $qty_terkirim;
-            if ($new_qty_terkirim <= $current->qty_delivery) {
+            if ($new_qty_terkirim <= $current->qty_terkirim) {
                 $this->db->set('qty_terkirim', 'qty_terkirim + ' . (int) $qty_terkirim, FALSE);
                 $this->db->where('id', $value['id_so_det']);
                 $this->db->update('sales_order_detail');
