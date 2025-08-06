@@ -539,9 +539,9 @@ class Surat_jalan extends Admin_Controller
                 ->get_where('sales_order_detail', ['id' => $value['id_so_det']])
                 ->row();
 
-            $new_qty_delivery = $current->qty_delivery + $qty_terkirim;
-            if ($new_qty_delivery <= $current->qty_order) {
-                $this->db->set('qty_delivery', 'qty_delivery + ' . (int) $qty_terkirim, FALSE);
+            $new_qty_terkirim = $current->qty_terkirim + $qty_terkirim;
+            if ($new_qty_terkirim <= $current->qty_delivery) {
+                $this->db->set('qty_terkirim', 'qty_terkirim + ' . (int) $qty_terkirim, FALSE);
                 $this->db->where('id', $value['id_so_det']);
                 $this->db->update('sales_order_detail');
             }

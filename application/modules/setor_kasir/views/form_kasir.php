@@ -63,9 +63,6 @@
                                                         Sales: <?= $sk->sales ?> |
                                                         Tgl Setor: <?= date('d M Y', strtotime($sk->tgl_setor)) ?>
                                                     </td>
-                                                    <td hidden>
-                                                        <input type="hidden">
-                                                    </td>
                                                 </tr>
 
                                                 <?php if (!empty($detail_kasir[$sk->id])): ?>
@@ -78,6 +75,12 @@
                                                         $kd = $d->kd_pembayaran;
                                                     ?>
                                                         <tr>
+                                                            <td hidden>
+                                                                <input type="hidden" name="detail[<?= $kd ?>][id_setor_kasir]" value="<?= $sk->id ?>">
+                                                                <input type="hidden" name="detail[<?= $kd ?>][id_sales]" value="<?= $sk->id_sales ?>">
+                                                                <input type="hidden" name="detail[<?= $kd ?>][sales]" value="<?= $sk->sales ?>">
+                                                                <input type="hidden" name="detail[<?= $kd ?>][tgl_setor_kasir]" value="<?= $sk->tgl_setor ?>">
+                                                            </td>
                                                             <td><input type="text" name="detail[<?= $kd ?>][kd_pembayaran]" class="form-control input-sm" value="<?= $kd ?>" readonly /></td>
                                                             <td><input type="text" name="detail[<?= $kd ?>][name_customer]" class="form-control input-sm" value="<?= $d->name_customer ?>" readonly /></td>
                                                             <td><textarea class="form-control input-sm" name="detail[<?= $kd ?>][no_invoice]" readonly><?= $d->no_invoice ?></textarea></td>
