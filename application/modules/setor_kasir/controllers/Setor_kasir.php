@@ -188,8 +188,8 @@ class Setor_kasir extends Admin_Controller
                 'id_setor_kasir'    => $item['id_setor_kasir'],
                 'id_sales'          => $item['id_sales'],
                 'sales'             => $item['sales'],
-                'tgl_setor_kasir'   => $item['tgl_setor'],
-                'id_customer'       => $item['id_customer'] ?? null, // fallback jika tidak ada
+                'tgl_setor_kasir'   => $item['tgl_setor_kasir'],
+                'id_customer'       => $item['id_customer'], // fallback jika tidak ada
                 'name_customer'     => $item['name_customer'],
                 'no_invoice'        => $item['no_invoice'],
                 'total_invoice'     => str_replace(",", "", $item['total_invoice']),
@@ -201,6 +201,10 @@ class Setor_kasir extends Admin_Controller
             // Update status di tr_invoice_payment
             $this->db->where('kd_pembayaran', $item['kd_pembayaran'])
                 ->update('tr_invoice_payment', ['status_setor' => 1]);
+
+            // ✅ Tambahan: update status setor kasir
+            $this->db->where('id', $item['id_setor_kasir'])
+                ->update('tr_setor_kasir', ['status' => 1]);
         }
 
         if ($this->db->trans_status() === FALSE) {

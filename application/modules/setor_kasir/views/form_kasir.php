@@ -82,7 +82,9 @@
                                                                 <input type="hidden" name="detail[<?= $kd ?>][tgl_setor_kasir]" value="<?= $sk->tgl_setor ?>">
                                                             </td>
                                                             <td><input type="text" name="detail[<?= $kd ?>][kd_pembayaran]" class="form-control input-sm" value="<?= $kd ?>" readonly /></td>
-                                                            <td><input type="text" name="detail[<?= $kd ?>][name_customer]" class="form-control input-sm" value="<?= $d->name_customer ?>" readonly /></td>
+                                                            <td> <input type="hidden" name="detail[<?= $kd ?>][id_customer]" value="<?= $d->id_customer ?>">
+                                                                <input type="text" name="detail[<?= $kd ?>][name_customer]" class="form-control input-sm" value="<?= $d->name_customer ?>" readonly />
+                                                            </td>
                                                             <td><textarea class="form-control input-sm" name="detail[<?= $kd ?>][no_invoice]" readonly><?= $d->no_invoice ?></textarea></td>
                                                             <td><input type="text" name="detail[<?= $kd ?>][total_invoice]" class="form-control input-sm total-invoice moneyFormat text-right" value="<?= $d->total_invoice ?>" readonly /></td>
                                                             <td><input type="text" name="detail[<?= $kd ?>][total_invoiced]" class="form-control input-sm total-invoiced moneyFormat text-right" value="<?= $d->total_penerimaan ?>" readonly /></td>
@@ -162,6 +164,10 @@
 <script>
     $(document).ready(function() {
         moneyFormat('.moneyFormat');
+
+        $('.select2').select2({
+            width: '100%',
+        });
 
         $('#bank').on('change', function() {
             var norek = $(this).find(':selected').data('rekening');
