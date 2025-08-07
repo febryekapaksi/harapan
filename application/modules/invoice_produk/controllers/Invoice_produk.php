@@ -108,26 +108,20 @@ class Invoice_produk extends Admin_Controller
 			$get_so_detail = $this->db
 				->query("
 					SELECT
-						b.product,
-						b.qty_order,
-						a.qty_delivery,
-						b.harga_beli,
-						b.price_list,
-						b.harga_penawaran,
-						b.diskon_persen,
-						b.diskon_nilai,
-						b.product
+						sod.product,
+						sod.qty_order,
+						sjd.qty_terkirim AS qty_delivery,
+						pd.harga_penawaran,
+						pd.price_list,
+						pd.diskon AS diskon_persen,
+						pd.diskon_nilai
 					FROM
-						spk_delivery_detail a
-						LEFT JOIN sales_order_detail b ON b.id = a.id_so_det
-						LEFT JOIN spk_delivery c ON c.no_delivery = a.no_delivery
-					WHERE
-						a.no_so = '" . $no_so . "' AND
-						a.qty_delivery != 0 AND
-						c.no_surat_jalan = '" . $id . "'
-					GROUP BY a.id
-				")
-				->result();
+						surat_jalan_detail sjd
+					LEFT JOIN sales_order_detail sod ON sod.id = sjd.id_so_det
+					LEFT JOIN penawaran_detail pd ON pd.id_penawaran = sod.id_penawaran AND pd.id_product = sod.id_product
+					LEFT JOIN penawaran p ON p.id_penawaran = pd.id_penawaran
+					WHERE sjd.no_surat_jalan = '" . $id . "'
+				")->result();
 
 			// $persen_dp = 0;
 			// $get_persen_dp = $this->db->select('a.persen_billing_plan')->get_where('tr_billing_plan a', ['a.no_so' => $no_so, 'a.tipe_billing_plan' => 1])->result();
