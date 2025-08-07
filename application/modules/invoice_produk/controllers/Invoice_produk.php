@@ -681,11 +681,15 @@ class Invoice_produk extends Admin_Controller
 
 			foreach ($get_delivery as $item) {
 
-				$this->db->select('c.price_list, c.harga_penawaran, c.diskon, c.diskon_nilai, a.qty_delivery as qty, c.total_pl, d.ppn');
+				$this->db->select('
+									b.harga_penawaran,
+									b.diskon_persen as diskon,
+									b.diskon_nilai,
+									a.qty_delivery as qty,
+									b.price_list
+								');
 				$this->db->from('spk_delivery_detail a');
 				$this->db->join('sales_order_detail b', 'b.id = a.id_so_det');
-				$this->db->join('penawaran_detail c', 'c.id_penawaran = b.id_penawaran AND c.id_product = b.id_product');
-				$this->db->join('penawaran d', 'd.id_penawaran = c.id_penawaran');
 				$this->db->where('a.no_delivery', $item->no_delivery);
 				$get_hitung_nilai_invoice = $this->db->get()->result();
 
