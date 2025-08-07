@@ -8,7 +8,7 @@
         <div class="table-responsive">
             <table id="tableSj" class="table table-bordered table-striped" width='100%'>
                 <thead>
-                    <tr>
+                    <tr class="bg-blue">
                         <th class='text-center'>#</th>
                         <th class='text-center'>No Surat Jalan</th>
                         <th class='text-center'>Customer</th>
