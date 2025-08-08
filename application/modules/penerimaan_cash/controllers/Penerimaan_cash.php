@@ -95,6 +95,7 @@ class Penerimaan_cash extends Admin_Controller
 			->get()
 			->result();
 
+
 		echo json_encode($data);
 	}
 
@@ -457,6 +458,7 @@ class Penerimaan_cash extends Admin_Controller
 		$ppn = ($dpp * 12) / 100;
 		$grand_total = $exclude_ppn + $ppn;
 
+
 		// Kirim ke view
 		$html = $this->load->view('struk_penerimaan_cash', [
 			'header' => $header,
@@ -469,7 +471,7 @@ class Penerimaan_cash extends Admin_Controller
 			'total_pembayaran' => $total_pembayaran,
 			'total_pembayaran_sebelumnya' => $total_pembayaran_sebelumnya,
 			'total_kurang_pembayaran' => $total_kurang_pembayaran,
-			'grand_total' => $grand_total,
+			// 'grand_total' => $grand_total,
 		], true);
 
 		$dompdf = new Dompdf();

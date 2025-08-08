@@ -560,17 +560,13 @@ class Invoice_produk extends Admin_Controller
 			$insert_invoice_details = $this->db->insert_batch('tr_invoice_sales_detail', $data_insert_detail);
 		}
 
-		if ($this->db->trans_status() === false) {
+		if ($this->db->trans_status() === FALSE) {
 			$this->db->trans_rollback();
-			$valid = 0;
+			echo json_encode(['status' => false, 'message' => 'Gagal menyimpan data Invoice.']);
 		} else {
 			$this->db->trans_commit();
-			$valid = 1;
+			echo json_encode(['status' => true, 'message' => 'Data Invoice berhasil disimpan.']);
 		}
-
-		echo json_encode([
-			'status' => $valid
-		]);
 	}
 
 	public function change_tab()

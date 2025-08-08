@@ -147,7 +147,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 					<button type="button" class="btn btn-danger" data-dismiss="modal">
 						<span class="glyphicon glyphicon-remove"></span> Close
 					</button>
-					<button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Create Invoice</button>
+					<button type="submit" id="saveInvoice" class="btn btn-success"><i class="fa fa-save"></i> Create Invoice</button>
 				</div>
 			</form>
 		</div>
@@ -188,6 +188,8 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 	}
 	$(document).ready(function() {
 		loadmod();
+
+
 	});
 
 	function change_tab(tipe) {
@@ -304,14 +306,13 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 		const form = document.getElementById('frm-data');
 		const formData = new FormData(form);
 
-		// Ambil ID yang dicentang (jika ada)
+		// (optional) tangkap ID biaya lain kalau ada
 		const idOtherCost = [];
 		document.querySelectorAll('.check_other_cost:checked').forEach(el => {
 			idOtherCost.push(el.dataset.id);
 		});
 		formData.append('id_other_cost[]', idOtherCost);
 
-		// Tampilkan konfirmasi swal
 		swal({
 			title: "Warning!",
 			text: "Are you sure to create this invoice?",
@@ -330,13 +331,13 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 					processData: false,
 					dataType: 'json',
 					success: function(result) {
-						if (result.status == 1) {
+						if (result.status) {
 							swal({
 								title: 'Success!',
-								text: 'Invoice has been created!',
+								text: result.message,
 								type: 'success'
 							}, function() {
-								location.reload(true);
+								window.location.href = siteurl + active_controller;
 							});
 						} else {
 							swal('Failed!', 'Invoice has not been created!', 'warning');
@@ -349,7 +350,6 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 			}
 		});
 	});
-
 
 	$(document).on('click', '.view_invoice_modal', function() {
 		var no_so = $(this).data('no_so');

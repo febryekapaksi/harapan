@@ -73,16 +73,20 @@
 
     <hr>
 
-    <?php foreach ($details as $d): ?>
+    <?php
+    $grand_total = 0;
+    foreach ($details as $d): ?>
         <b><?= $d->no_invoice ?></b><br>
         <?php
         $items = $this->db
             ->where('id_invoice', $d->no_invoice)
             ->get('tr_invoice_sales_detail')->result();
         ?>
-        <?php foreach ($items as $i): ?>
+        <?php
+        foreach ($items as $i): ?>
             <?php
-            $total_item = round(($i->harga * $i->qty) * (1 + ($i->disc / 100)), -2); // sesuai logika customermu
+            $total_item = round(($i->harga * $i->qty) * (1 + ($i->disc / 100)), -2);
+            $grand_total += $total_item // sesuai logika customermu
             ?>
             <table>
                 <tr>

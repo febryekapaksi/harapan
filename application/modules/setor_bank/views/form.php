@@ -311,7 +311,6 @@
             }, function(confirm) {
                 if (confirm) {
                     $('#submitBtn').prop('disabled', true);
-
                     $.ajax({
                         type: 'POST',
                         url: siteurl + active_controller + 'save',
