@@ -11,6 +11,7 @@
                     <tr class="bg-blue">
                         <th class='text-center'>#</th>
                         <th class='text-center'>No Surat Jalan</th>
+                        <th class='text-center'>No Muat Kendaraan</th>
                         <th class='text-center'>Customer</th>
                         <th class='text-center'>Tanggal Kirim</th>
                         <th class='text-center no-sort'>Status</th>
