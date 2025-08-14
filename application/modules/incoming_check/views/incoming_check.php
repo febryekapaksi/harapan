@@ -115,7 +115,7 @@
 	$(document).on('click', '.check', function(e) {
 		e.preventDefault();
 
-		$("#head_title2").html("<b>CHECK INCOMING MATERIAL</b>");
+		$("#head_title2").html("<b>CHECK INCOMING PRODUCT</b>");
 		$.ajax({
 			type: 'POST',
 			url: base_url + active_controller + '/modal_incoming_check/' + $(this).data('kode_trans'),
@@ -243,7 +243,7 @@
 	$(document).on('click', '.download_qr', function(e) {
 		e.preventDefault();
 
-		$("#head_title2").html("<b>CHECK INCOMING MATERIAL</b>");
+		$("#head_title2").html("<b>CHECK INCOMING PRODUCT</b>");
 		$.ajax({
 			type: 'POST',
 			url: base_url + active_controller + '/download_qr/' + $(this).data('kode_trans'),
