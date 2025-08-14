@@ -8,13 +8,38 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 	thead input {
 		width: 100%;
 	}
+
+	.col-md-8 table td {
+		padding-right: 8px;
+		padding-bottom: 4px;
+		vertical-align: middle;
+	}
 </style>
 <div id='alert_edit' class="alert alert-success alert-dismissable" style="padding: 15px; display: none;"></div>
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 
 <div class="box box-primary">
 	<div class="box-header">
-
+		<div class="row">
+			<div class="col-md-8">
+				<table>
+					<tr>
+						<td><label class="form-label">Pilih Tanggal SO</label></td>
+						<td><input type="date" id="start_date" class="form-control input-sm"></td>
+						<td><i class="fa fa-arrow-right"></i></span></td>
+						<td><input type="date" id="end_date" class="form-control input-sm"></td>
+						<td>
+							<button id="btnFilter" class="btn bg-purple btn-sm">
+								<i class="fa fa-filter"></i> Filter
+							</button>
+							<button id="btnReset" class="btn btn-default btn-sm">
+								Reset
+							</button>
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
 	</div>
 	<!-- /.box-header -->
 	<div class="box-body">
@@ -25,6 +50,7 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 						<th class="text-center"> #</th>
 						<th class="text-center">SO No.</th>
 						<th class="text-center">Quotation No.</th>
+						<th class="text-center">Tanggal SO</th>
 						<th class="text-center" width="30%">Customer</th>
 						<th class="text-center">Marketing</th>
 						<th class="text-center">Nilai Penawaran</th>
@@ -149,41 +175,54 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 			});
 		});
 
+		// tombol filter
+		$('#btnFilter').on('click', function(e) {
+			e.preventDefault();
+			if ($.fn.dataTable.isDataTable('#example1')) {
+				$('#example1').DataTable().ajax.reload(null, true);
+			}
+		});
+
+		// tombol reset
+		$('#btnReset').on('click', function(e) {
+			e.preventDefault();
+			$('#start_date, #end_date').val('');
+			if ($.fn.dataTable.isDataTable('#example1')) {
+				$('#example1').DataTable().ajax.reload(null, true);
+			}
+		});
 	});
 
 	function DataTables(status = null) {
 		var dataTable = $('#example1').DataTable({
-			"processing": true,
-			"serverSide": true,
-			"stateSave": true,
-			"autoWidth": false,
-			"destroy": true,
-			"responsive": true,
-			"aaSorting": [
-				[1, "asc"]
-			],
-			"columnDefs": [{
-				"targets": 'no-sort',
-				"orderable": false,
+			processing: true,
+			serverSide: true,
+			stateSave: true,
+			autoWidth: false,
+			destroy: true,
+			responsive: true,
+			aaSorting: [
+				[3, "desc"]
+			], // kolom ke-4 = tgl_so
+			columnDefs: [{
+				targets: 'no-sort',
+				orderable: false
 			}],
-			"sPaginationType": "simple_numbers",
-			"iDisplayLength": 10,
-			"aLengthMenu": [
+			sPaginationType: "simple_numbers",
+			iDisplayLength: 10,
+			aLengthMenu: [
 				[10, 20, 50, 100, 150],
 				[10, 20, 50, 100, 150]
 			],
-			"ajax": {
+			ajax: {
 				url: base_url + active_controller + 'data_side_sales_order',
 				type: "post",
 				data: function(d) {
-					d.status = status
+					d.status = status;
+					d.start_date = $('#start_date').val(); // format: YYYY-MM-DD atau ""
+					d.end_date = $('#end_date').val(); // format: YYYY-MM-DD atau ""
 				},
-				cache: false,
-				error: function() {
-					$(".my-grid-error").html("");
-					$("#my-grid").append('<tbody class="my-grid-error"><tr><th colspan="3">No data found in the server</th></tr></tbody>');
-					$("#my-grid_processing").css("display", "none");
-				}
+				cache: false
 			}
 		});
 	}

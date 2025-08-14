@@ -54,12 +54,17 @@ class Sales_order_model extends BF_Model
 	{
 		$requestData = $_REQUEST;
 
+		$start_date = $this->input->post('start_date'); // 'YYYY-MM-DD' atau ''
+		$end_date   = $this->input->post('end_date');   // 'YYYY-MM-DD' atau ''
+
 		$fetch = $this->get_query_json_sales_order(
 			$requestData['search']['value'],
 			$requestData['order'][0]['column'],
 			$requestData['order'][0]['dir'],
 			$requestData['start'],
-			$requestData['length']
+			$requestData['length'],
+			$start_date,
+			$end_date
 		);
 
 		$totalData = $fetch['totalData'];
@@ -84,7 +89,7 @@ class Sales_order_model extends BF_Model
 
 			if ($row['status'] === 'A') {
 				$action = "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning' title='Print SO'><i class='fa fa-print'></i></a> ";
-				$action .= "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-light' title='View'><i class='fa fa-eye'></i></a> ";
+				$action .= "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-default' title='View'><i class='fa fa-eye'></i></a> ";
 				$status_label = "<span class='badge bg-green'>Deal</span>";
 
 				// Tambahkan status SPK
@@ -102,10 +107,14 @@ class Sales_order_model extends BF_Model
 				$status_label = "<span class='badge bg-grey'>Draft</span>";
 			}
 
+			$data_tgl = $row['tgl_so'];
+			$tgl_so = ($data_tgl != null) ? date('d/M/Y', strtotime($row['tgl_so'])) : "";
+
 			$nestedData = [];
 			$nestedData[] = "<div align='left'>{$nomor}</div>";
 			$nestedData[] = "<div align='left'>" . $row['no_so'] . "</div>";
 			$nestedData[] = "<div align='left'>" . $row['id_penawaran'] . "</div>";
+			$nestedData[] = "<div align='center'>" . $tgl_so . "</div>";
 			$nestedData[] = "<div align='left'>" . strtoupper($row['name_customer']) . "</div>";
 			$nestedData[] = "<div align='left'>" . ucfirst($row['sales']) . "</div>";
 			$nestedData[] = "<div align='left'>" . number_format($row['total_penawaran'], 2) . "</div>";
@@ -127,33 +136,45 @@ class Sales_order_model extends BF_Model
 		]);
 	}
 
-
-	public function get_query_json_sales_order($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
+	public function get_query_json_sales_order($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null, $start_date = null, $end_date = null)
 	{
 		$columns_order_by = [
 			0 => 'so.no_so',
 			1 => 'so.no_so',
 			2 => 'p.id_penawaran',
-			3 => 'c.name_customer',
-			4 => 'p.sales',
-			5 => 'p.total_penawaran',
-			6 => 'so.nilai_so',
-			7 => 'so.revisi',
-			8 => 'so.status'
+			3 => 'so.tgl_so',       // ← tanggal SO
+			4 => 'c.name_customer',
+			5 => 'p.sales',
+			6 => 'p.total_penawaran',
+			7 => 'so.nilai_so',
+			8 => 'so.revisi',
+			9 => 'p.tipe_penawaran',
+			10 => 'so.status'
+			// 11 action (dummy)
 		];
 
-		// Total data
+		// ==== Total data (tanpa search & tanpa date filter) ====
 		$this->db->from('penawaran p');
 		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 		$this->db->where('p.status', 'A');
 		$totalData = $this->db->count_all_results();
 
-		// Total filtered
+		// ==== Total filtered (pakai search + date filter) ====
 		$this->db->from('penawaran p');
 		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 		$this->db->where('p.status', 'A');
+
+		// filter tanggal (DATE type)
+		if (!empty($start_date) && !empty($end_date)) {
+			$this->db->where('so.tgl_so >=', $start_date);
+			$this->db->where('so.tgl_so <=', $end_date);
+		} elseif (!empty($start_date)) {
+			$this->db->where('so.tgl_so >=', $start_date);
+		} elseif (!empty($end_date)) {
+			$this->db->where('so.tgl_so <=', $end_date);
+		}
 
 		if ($like_value) {
 			$this->db->group_start();
@@ -162,17 +183,25 @@ class Sales_order_model extends BF_Model
 			$this->db->or_like('c.name_customer', $like_value);
 			$this->db->group_end();
 		}
-
 		$totalFiltered = $this->db->count_all_results();
 
-		// Ambil data
-		$this->db->select('so.no_so, so.nilai_so, so.status, so.status_do, so.status_planning, so.revisi, so.status_spk, 
-					   p.id_penawaran, p.total_penawaran, p.tipe_penawaran, p.sales, 
-					   c.name_customer');
+		// ==== Ambil data (pakai semua filter) ====
+		$this->db->select('so.no_so, so.tgl_so, so.nilai_so, so.status, so.status_do, so.status_planning, so.revisi, so.status_spk,
+                       p.id_penawaran, p.total_penawaran, p.tipe_penawaran, p.sales,
+                       c.name_customer');
 		$this->db->from('penawaran p');
 		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 		$this->db->where('p.status', 'A');
+
+		if (!empty($start_date) && !empty($end_date)) {
+			$this->db->where('so.tgl_so >=', $start_date);
+			$this->db->where('so.tgl_so <=', $end_date);
+		} elseif (!empty($start_date)) {
+			$this->db->where('so.tgl_so >=', $start_date);
+		} elseif (!empty($end_date)) {
+			$this->db->where('so.tgl_so <=', $end_date);
+		}
 
 		if ($like_value) {
 			$this->db->group_start();
@@ -185,7 +214,7 @@ class Sales_order_model extends BF_Model
 		if ($column_order !== null && isset($columns_order_by[$column_order])) {
 			$this->db->order_by($columns_order_by[$column_order], $column_dir);
 		} else {
-			$this->db->order_by('p.created_at', 'desc');
+			$this->db->order_by('so.tgl_so', 'desc'); // default terbaru
 		}
 
 		if ($limit_length != -1) {
@@ -195,9 +224,9 @@ class Sales_order_model extends BF_Model
 		$query = $this->db->get();
 
 		return [
-			'totalData' => $totalData,
+			'totalData'     => $totalData,
 			'totalFiltered' => $totalFiltered,
-			'query' => $query
+			'query'         => $query
 		];
 	}
 }

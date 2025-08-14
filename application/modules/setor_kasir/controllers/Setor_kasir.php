@@ -25,7 +25,7 @@ class Setor_kasir extends Admin_Controller
     public function index()
     {
         $this->template->page_icon('fa fa-money');
-        $this->template->title('Setor Kasir');
+        $this->template->title('Setor Kas Keuangan');
 
         $this->template->render('index');
     }
@@ -38,7 +38,7 @@ class Setor_kasir extends Admin_Controller
     public function create()
     {
         $this->template->page_icon('fa fa-sign-in');
-        $this->template->title('Input Setoran Kasir');
+        $this->template->title('Input Setoran');
 
         $sales = $this->db
             ->where('department_id', 2)

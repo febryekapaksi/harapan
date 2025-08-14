@@ -76,6 +76,139 @@
   </script>
 </head>
 
+<!-- === CUSTOM LOOK & FEEL (safe to remove) === -->
+<style>
+  /* ==== WARNA BRAND (ubah sesukamu) ==== */
+  :root {
+    --brand: #1775b4ff;
+    /* biru lebih terang */
+    --sidebar: #1f3b52;
+    --accent: #5dade2;
+    /* garis kiri menu aktif */
+    --content: #f5f7fb;
+  }
+
+  /* ==== HEADER / NAVBAR / LOGO ==== */
+  .skin-blue .main-header .logo,
+  .skin-blue .main-header .navbar {
+    background-color: var(--brand);
+  }
+
+  .skin-blue .main-header .navbar .sidebar-toggle:hover {
+    background: rgba(255, 255, 255, .08);
+  }
+
+  .main-header .logo {
+    height: 52px;
+    line-height: 52px;
+  }
+
+  .main-header .navbar {
+    min-height: 52px;
+  }
+
+  /* ==== SIDEBAR ==== */
+  .skin-blue .main-sidebar {
+    background-color: var(--sidebar);
+  }
+
+  .skin-blue .sidebar-menu>li.header {
+    background: #173247;
+    color: #a9c9e0;
+  }
+
+  .skin-blue .sidebar-menu>li>a {
+    color: #d0e1ed;
+  }
+
+  .skin-blue .sidebar-menu>li:hover>a,
+  .skin-blue .sidebar-menu>li.active>a {
+    background: #22577a;
+    color: #fff;
+  }
+
+  .skin-blue .sidebar-menu>li.active>a {
+    border-left: 3px solid var(--accent);
+  }
+
+  .sidebar-menu .treeview-menu>li>a {
+    color: #b9d0de;
+  }
+
+  .sidebar-menu .treeview-menu>li>a:hover {
+    color: #fff;
+  }
+
+  /* ==== AREA KONTEN & BOX ==== */
+  .content-wrapper {
+    background-color: var(--content);
+  }
+
+  .box {
+    border-radius: 10px;
+    border: 2px solid #e6ecf3;
+  }
+
+  .box.box-primary {
+    border-top-color: var(--accent);
+  }
+
+  .box-header .box-title {
+    font-weight: 600;
+  }
+
+  /* ==== TABEL / DATATABLES ==== */
+  .table {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .table>thead>tr>th {
+    background: #eaf2f9;
+    color: #2a4a62;
+    border-bottom: 1px solid #dbe6f0;
+  }
+
+  /* ==== BUTTON ==== */
+  .btn {
+    border-radius: 8px !important;
+  }
+
+  .btn-primary {
+    background: #3498db;
+    border-color: #2e86c1;
+  }
+
+  .btn-primary:hover {
+    background: #2e86c1;
+  }
+
+  /* ==== FORM & SELECT2 ==== */
+  .select2-container .select2-selection--single {
+    height: 34px;
+    border-radius: 4px;
+    border-color: #cfd9e3;
+  }
+
+  .select2-selection__rendered {
+    line-height: 32px;
+  }
+
+  .select2-selection__arrow {
+    height: 32px;
+  }
+
+  /* ==== UTILITIES SPACING RINGAN ==== */
+  .mt-8 {
+    margin-top: 8px
+  }
+
+  .mr-8 {
+    margin-right: 8px
+  }
+</style>
+<!-- === /CUSTOM LOOK & FEEL === -->
+
 <body class="hold-transition skin-blue sidebar-mini fixed">
   <div class="ajax_loader">
     <img src="<?php echo base_url('assets/images/ajax_loader.gif'); ?>">
@@ -88,9 +221,9 @@
       <!-- Logo -->
       <a href="<?= site_url(); ?>" class="logo">
         <!-- mini logo for sidebar mini 50x50 pixels -->
-        <span class="logo-mini"><b>M</b></span>
+        <span class="logo-mini"><img src="<?php echo base_url('assets/'); ?>images/harapan_logo.png" width="70%"></span>
         <!-- logo for regular state and mobile devices -->
-        <span class="logo-lg"><b><?= isset($idt->nm_perusahaan) ? $idt->nm_perusahaan : 'not-set'; ?></b></span>
+        <span class=" logo-lg"><b><?= isset($idt->nm_perusahaan) ? $idt->nm_perusahaan : 'not-set'; ?></b></span>
       </a>
 
       <!-- Header Navbar -->
@@ -103,7 +236,7 @@
         <div class="navbar-custom-menu">
           <ul class="nav navbar-nav">
             <!-- Notifications Menu -->
-
+            <!-- 
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                 <span class="hidden-xs">
@@ -168,7 +301,7 @@
 
                 </li>
               </ul>
-            </li>
+            </li> -->
 
             <!-- User Account Menu -->
             <li class="dropdown user user-menu">

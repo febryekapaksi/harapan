@@ -27,6 +27,7 @@ class Sales_order extends Admin_Controller
     $this->auth->restrict($this->viewPermission);
     $session = $this->session->userdata('app_session');
 
+    $this->template->page_icon('fa fa-shopping-cart');
     $this->template->render('index');
   }
 

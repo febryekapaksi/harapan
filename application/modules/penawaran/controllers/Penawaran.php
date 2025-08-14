@@ -23,6 +23,8 @@ class Penawaran extends Admin_Controller
 
     public function index()
     {
+        $this->template->page_icon('fa fa-shopping-cart');
+        $this->template->title('List Penawaran');
         $this->template->render('index');
     }
 
@@ -220,6 +222,7 @@ class Penawaran extends Admin_Controller
 
     public function index_loss()
     {
+        $this->template->page_icon('fa fa-ban');
         $this->template->title('Loss Penawaran');
         $this->template->render('index_loss');
     }
@@ -369,6 +372,8 @@ class Penawaran extends Admin_Controller
     // Bagian Approval 
     public function approval_manager()
     {
+        $this->template->page_icon('fa fa-check-square-o');
+        $this->template->title('Approval Manager');
         $this->template->render('list_approval_manager');
     }
 
@@ -460,6 +465,8 @@ class Penawaran extends Admin_Controller
 
     public function approval_direksi()
     {
+        $this->template->page_icon('fa fa-check-square-o');
+        $this->template->title('Approval Direksi');
         $this->template->render('list_approval_direksi');
     }
 

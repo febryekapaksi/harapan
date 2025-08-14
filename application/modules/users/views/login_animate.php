@@ -5,204 +5,215 @@
   <meta charset="UTF-8">
   <title>// echo $idt->nm_perusahaan;</title>  -->
 <style>
-  /* NOTE: The styles were added inline because Prefixfree needs access to your styles and they must be inlined if they are on local disk! */
+  /* ====== Global & Background ====== */
+  html,
   body {
-    font-family: "Open Sans", sans-serif;
-    height: 100vh;
-    background: url("<?php echo base_url(); ?>assets/img/wallpaper_harapan.jpg") 50% fixed;
-    background-size: cover;
+    height: 100%;
   }
 
-  @keyframes spinner {
-    0% {
-      transform: rotateZ(0deg);
-    }
-
-    100% {
-      transform: rotateZ(359deg);
-    }
+  body {
+    font-family: "Open Sans", Arial, sans-serif;
+    min-height: 100vh;
+    margin: 0;
+    background: url("<?= base_url(); ?>assets/img/wallpaper_harapan.jpg") 50% / cover fixed no-repeat;
   }
 
-  * {
-    box-sizing: border-box;
-  }
-
+  /* ====== Overlay (gelap + blur kaca) ====== */
   .wrapper {
     display: flex;
     align-items: center;
-    flex-direction: column;
     justify-content: center;
+    flex-direction: column;
+    min-height: 100vh;
     width: 100%;
-    min-height: 100%;
-    padding: 20px;
-    background: rgba(4, 40, 68, 0.85);
+    padding: 24px;
+    background: rgba(4, 40, 68, .55);
+    /* gelap lembut */
+    backdrop-filter: blur(6px) saturate(110%);
+    /* efek kaca */
+    -webkit-backdrop-filter: blur(6px) saturate(110%);
   }
 
+  /* ====== Card Login ====== */
   .login {
-    border-radius: 2px 2px 5px 5px;
-    padding: 10px 20px 20px 20px;
-    width: 90%;
-    max-width: 320px;
-    background: #ffffff;
     position: relative;
-    padding-bottom: 80px;
-    box-shadow: 0px 1px 5px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 380px;
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid rgba(0, 0, 0, .06);
+    box-shadow: 0 12px 34px rgba(3, 24, 43, .25);
+    padding: 22px 22px 24px;
   }
 
-  .login.loading button {
-    max-height: 100%;
-    padding-top: 50px;
-  }
-
-  .login.loading button .spinner {
-    opacity: 1;
-    top: 40%;
-  }
-
-  .login.ok button {
-    background-color: #8bc34a;
-  }
-
-  .login.ok button .spinner {
-    border-radius: 0;
-    border-top-color: transparent;
-    border-right-color: transparent;
-    height: 20px;
-    animation: none;
-    transform: rotateZ(-45deg);
-  }
-
-  .login input {
+  /* Logo atas (opsional) */
+  .login>span img {
     display: block;
-    padding: 15px 10px;
-    margin-bottom: 10px;
+    margin: 0px auto 30px;
+  }
+
+  /* ====== Field (input + icon) ====== */
+  .login .field {
+    position: relative;
+    margin-bottom: 12px;
+  }
+
+  .login .field input {
     width: 100%;
-    border: 1px solid #ddd;
-    transition: border-width 0.2s ease;
-    border-radius: 2px;
-    color: #ccc;
+    padding: 12px 12px 12px 38px;
+    /* ruang ikon kiri */
+    border: 1px solid #d7e1ea;
+    border-radius: 10px;
+    background: #fff;
+    color: #1f2a36;
+    transition: all .18s ease;
   }
 
-  .login input+i.fa {
-    color: #fff;
-    font-size: 1em;
+  .login .field input::placeholder {
+    color: #9aa8b6;
+  }
+
+  .login .field i.fa {
     position: absolute;
-    margin-top: -47px;
-    opacity: 0;
-    left: 0;
-    transition: all 0.1s ease-in;
+    left: 11px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #3498db;
+    font-size: 14px;
+    pointer-events: none;
+    opacity: .95;
   }
 
-  .login input:focus {
-    outline: none;
-    color: #444;
-    border-color: #2196F3;
-    border-left-width: 35px;
+  /* Fokus */
+  .login .field input:focus {
+    outline: 0;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, .16);
   }
 
-  .login input:focus+i.fa {
-    opacity: 1;
-    left: 30px;
-    transition: all 0.25s ease-out;
+  .login .field input:focus+i.fa {
+    color: #2e86c1;
   }
 
-  .login a {
-    font-size: 0.8em;
-    color: #2196F3;
-    text-decoration: none;
-  }
-
-  .login .title {
-    color: #444;
-    font-size: 1.2em;
-    font-weight: bold;
-    margin: 10px 0 30px 0;
-    border-bottom: 1px solid #eee;
-    padding-bottom: 20px;
-  }
-
-  .login button {
+  /* ====== Tombol ====== */
+  .login .btn {
+    display: block;
     width: 100%;
-    height: 100%;
-    padding: 10px 10px;
-    background: #2196F3;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    padding: 12px 14px;
+    border: 0;
+    border-radius: 10px;
+    background: linear-gradient(180deg, #49a9e7, #2e86c1);
     color: #fff;
-    display: block;
-    border: none;
-    margin-top: 20px;
-    position: absolute;
-    left: 0;
-    bottom: 0;
-    max-height: 60px;
-    border: 0px solid rgba(0, 0, 0, 0.1);
-    border-radius: 0 0 2px 2px;
-    transform: rotateZ(0deg);
-    transition: all 0.1s ease-out;
-    border-bottom-width: 7px;
+    font-weight: 600;
+    letter-spacing: .2px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(52, 152, 219, .35);
+    transition: transform .08s ease, box-shadow .2s ease, opacity .2s ease;
   }
 
-  .login button .spinner {
+  .login .btn:hover {
+    box-shadow: 0 8px 20px rgba(52, 152, 219, .45);
+    transform: translateY(-1px);
+  }
+
+  .login .btn:active {
+    transform: translateY(1px);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, .18);
+  }
+
+  /* ====== Spinner state (opsional, jika kamu toggle .loading / .ok via JS) ====== */
+  @keyframes spinner {
+    from {
+      transform: rotate(0)
+    }
+
+    to {
+      transform: rotate(360deg)
+    }
+  }
+
+  .login .btn .spinner {
+    display: none;
+  }
+
+  .login.loading .btn {
+    position: relative;
+  }
+
+  .login.loading .btn .spinner {
     display: block;
-    width: 40px;
-    height: 40px;
     position: absolute;
-    border: 4px solid #ffffff;
-    border-top-color: rgba(255, 255, 255, 0.3);
-    border-radius: 100%;
     left: 50%;
-    top: 0;
-    opacity: 0;
-    margin-left: -20px;
-    margin-top: -20px;
-    animation: spinner 0.6s infinite linear;
-    transition: top 0.3s 0.3s ease, opacity 0.3s 0.3s ease, border-radius 0.3s ease;
-    box-shadow: 0px 1px 0px rgba(0, 0, 0, 0.2);
+    top: 50%;
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+    border: 3px solid #fff;
+    border-top-color: rgba(255, 255, 255, .35);
+    border-radius: 50%;
+    animation: spinner .6s linear infinite;
   }
 
-  .login:not(.loading) button:hover {
-    box-shadow: 0px 1px 3px #2196F3;
+  .login.ok .btn {
+    background: #8bc34a;
   }
 
-  .login:not(.loading) button:focus {
-    border-bottom-width: 4px;
-  }
-
+  /* ====== Footer ====== */
   footer {
-    display: block;
-    padding-top: 50px;
+    margin-top: 18px;
     text-align: center;
-    color: #ddd;
-    font-weight: normal;
-    text-shadow: 0px -1px 0px rgba(0, 0, 0, 0.2);
-    font-size: 0.8em;
+    color: #d7dee6;
+    font-size: 12px;
+    text-shadow: 0 -1px 0 rgba(0, 0, 0, .28);
   }
 
-  footer a,
-  footer a:link {
-    color: #fff;
-    text-decoration: none;
+  /* ====== Responsive kecil ====== */
+  @media (max-width: 420px) {
+    .login {
+      padding: 18px 16px 20px;
+      border-radius: 14px;
+    }
+
+    .login .btn {
+      border-radius: 12px;
+    }
   }
 </style>
+
 <!--</head>
 
 <body>-->
 
 <div class="wrapper">
-  <?= form_open($this->uri->uri_string(), array('id' => 'frm_login', 'name' => 'frm_login', 'class' => 'login', 'autocomplete' => 'off')) ?>
-  <p class="title">Log in</p>
-  <input type="text" name="username" placeholder="Username" value="<?= set_value('username') ?>" required autofocus>
-  <i class="fa fa-user"></i>
-  <input type="password" name="password" placeholder="Password" value="" required>
-  <i class="fa fa-key"></i>
-  <button type="submit" class="btn" name="login">Sign In</button>
-  </form>
+  <?= form_open($this->uri->uri_string(), ['id' => 'frm_login', 'name' => 'frm_login', 'class' => 'login', 'autocomplete' => 'off']) ?>
+
+  <span>
+    <img src="<?= base_url('assets/images/harapan_logo.png'); ?>" width="25%" alt="Logo">
+  </span>
+
+  <!-- Username -->
+  <div class="field">
+    <input type="text" name="username" placeholder="Username" value="<?= set_value('username') ?>" required autofocus>
+    <i class="fa fa-user"></i>
+  </div>
+
+  <!-- Password -->
+  <div class="field">
+    <input type="password" name="password" placeholder="Password" required>
+    <i class="fa fa-lock"></i>
+  </div>
+
+  <button type="submit" class="btn" name="login"><i class="fa fa-sign-in"></i>&emsp;Sign In</button>
+
+  <?= form_close() ?>
+
   <footer>
-    <font color="white">
-      <p>Copyright &copy; <?php echo $idt->nm_perusahaan; ?> <?= date('Y'); ?></p>
-    </font>
+    <p style="color:#fff">Copyright &copy; <?= $idt->nm_perusahaan; ?> <?= date('Y'); ?></p>
   </footer>
-  </p>
 </div>
+
 <script src="<?php echo base_url(); ?>assets/login/js/index.js"></script>
 </body>
 

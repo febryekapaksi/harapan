@@ -23,6 +23,8 @@ class Penawaran_dropship extends Admin_Controller
 
     public function index()
     {
+        $this->template->page_icon('fa fa-shopping-cart');
+        $this->template->title('Penawaran Dropship');
         $this->template->render('index');
     }
 
