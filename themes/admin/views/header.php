@@ -211,7 +211,7 @@
 
 <body class="hold-transition skin-blue sidebar-mini fixed">
   <div class="ajax_loader">
-    <img src="<?php echo base_url('assets/images/ajax_loader.gif'); ?>">
+    <img src="<?php echo base_url('assets/images/ajax_loader_new.gif'); ?>">
   </div>
   <div class="wrapper">
 
