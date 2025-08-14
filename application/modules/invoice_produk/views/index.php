@@ -192,35 +192,28 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 
 	});
 
-	function change_tab(tipe) {
-
+	function change_tab(tipe, startDate = null, endDate = null) {
 		$('.' + tipe + '_tab').addClass('active');
-		if (tipe == 'dp') {
-			$('.delivery_tab').removeClass('active');
-			$('.retensi_tab').removeClass('active');
-			$('.jaminan_tab').removeClass('active');
+		if (tipe === 'dp') {
+			$('.delivery_tab,.retensi_tab,.jaminan_tab').removeClass('active');
 		}
-		if (tipe == 'delivery') {
-			$('.dp_tab').removeClass('active');
-			$('.retensi_tab').removeClass('active');
-			$('.jaminan_tab').removeClass('active');
+		if (tipe === 'delivery') {
+			$('.dp_tab,.retensi_tab,.jaminan_tab').removeClass('active');
 		}
-		if (tipe == 'retensi') {
-			$('.dp_tab').removeClass('active');
-			$('.delivery_tab').removeClass('active');
-			$('.jaminan_tab').removeClass('active');
+		if (tipe === 'retensi') {
+			$('.dp_tab,.delivery_tab,.jaminan_tab').removeClass('active');
 		}
-		if (tipe == 'jaminan') {
-			$('.delivery_tab').removeClass('active');
-			$('.retensi_tab').removeClass('active');
-			$('.dp_tab').removeClass('active');
+		if (tipe === 'jaminan') {
+			$('.delivery_tab,.retensi_tab,.dp_tab').removeClass('active');
 		}
 
 		$.ajax({
 			type: 'post',
 			url: siteurl + active_controller + 'change_tab',
 			data: {
-				'tipe': tipe
+				tipe: tipe,
+				start_date: startDate,
+				end_date: endDate
 			},
 			cache: false,
 			dataType: 'json',
@@ -228,7 +221,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 				$('.tab_invoice').html(result.hasil);
 				loadmod();
 			},
-			error: function(result) {
+			error: function() {
 				swal({
 					title: 'Warning !',
 					text: 'Please try again later !',
@@ -396,5 +389,20 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 				$('#dialog-view').modal('show');
 			}
 		});
+	});
+
+	// Filter khusus tab delivery
+	$(document).on('click', '#btnFilterDelivery', function(e) {
+		e.preventDefault();
+		const s = $('#start_date_delivery').val() || null;
+		const e2 = $('#end_date_delivery').val() || null;
+		change_tab('delivery', s, e2);
+	});
+
+	$(document).on('click', '#btnResetDelivery', function(e) {
+		e.preventDefault();
+		$('#start_date_delivery').val('');
+		$('#end_date_delivery').val('');
+		change_tab('delivery', null, null);
 	});
 </script>

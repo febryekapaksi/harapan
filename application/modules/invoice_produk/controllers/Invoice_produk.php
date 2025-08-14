@@ -575,6 +575,18 @@ class Invoice_produk extends Admin_Controller
 
 		$hasil = '<table class="table table-bordered datatable">';
 
+		$tipe  = $this->input->post('tipe', TRUE);
+		$start = $this->input->post('start_date', TRUE);
+		$end   = $this->input->post('end_date', TRUE);
+
+		// normalisasi simple ke YYYY-MM-DD
+		$norm = function ($v) {
+			if (!$v) return null;
+			return preg_match('#^\d{4}-\d{2}-\d{2}$#', $v) ? $v : null;
+		};
+		$start = $norm($start);
+		$end   = $norm($end);
+
 		if ($tipe == 'dp') {
 			$hasil .= '
 				<thead>
@@ -652,28 +664,68 @@ class Invoice_produk extends Admin_Controller
 
 		if ($tipe == 'delivery') {
 			$hasil .= '
-				<thead class="bg-blue">
-					<tr>
+					<div class="row" style="margin:0 0 10px 0; align-items:center;">
+						<div class="col-sm-2" style="display:flex; align-items:center;">
+							<label class="form-label" style="margin:0;">Pilih Tanggal Invoice</label>
+						</div>
+						<div class="col-sm-2">
+							<input type="date" id="start_date_delivery" class="form-control input-sm"
+								value="' . htmlspecialchars($start ?? '', ENT_QUOTES, 'UTF-8') . '">
+						</div>
+						<div class="col-sm-1 text-center" style="font-size:16px; display:flex; align-items:center; justify-content:center;">
+							<i class="fa fa-arrow-right"></i>
+						</div>
+						<div class="col-sm-2">
+							<input type="date" id="end_date_delivery" class="form-control input-sm"
+								value="' . htmlspecialchars($end ?? '', ENT_QUOTES, 'UTF-8') . '">
+						</div>
+						<div class="col-sm-3">
+							<button id="btnFilterDelivery" class="btn bg-purple btn-sm">
+								<i class="fa fa-filter"></i> Filter
+							</button>
+							<button id="btnResetDelivery" class="btn btn-default btn-sm">
+								Reset
+							</button>
+						</div>
+					</div>
+				';
+
+			$hasil .= '
+					<thead class="bg-blue">
+						<tr>
 						<th class="text-center">No. DO</th>
 						<th class="text-center">No. SO</th>
+						<th class="text-center">Tgl. Invoice</th>
 						<th class="text-center">Nama Customer</th>
 						<th class="text-center">Nominal Invoice</th>
 						<th class="text-center">Action</th>
-					</tr>
-				</thead>
-				<tbody>
-			';
+						</tr>
+					</thead>
+					<tbody>
+					';
 
-			$get_delivery = $this->db
-				->select('sj.no_surat_jalan, sj.no_delivery, sj.no_so, c.name_customer')
+			// Query + filter tanggal
+			$this->db
+				->select('sj.no_surat_jalan, sj.no_delivery, sj.no_so, c.name_customer, i.created_on')
 				->from('surat_jalan sj')
+				->join('tr_invoice_sales i', 'sj.no_surat_jalan = i.id_billing AND i.tipe_billing="delivery"', 'left')
 				->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
 				->join('sales_order b', 'b.no_so = sj.no_so', 'left')
 				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
 				->where('sj.status !=', 'ON DELIVER')
-				->where('sj.status IS NOT NULL')
-				->get()
-				->result();
+				->where('sj.status IS NOT NULL');
+
+			// Pakai tanggal invoice jika ada, fallback ke tanggal SJ (ganti sj.created_on ke kolom tanggal SJ-mu jika berbeda)
+			if ($start && $end) {
+				$this->db->where("DATE(i.created_on) >=", $start);
+				$this->db->where("DATE(i.created_on) <=", $end);
+			} elseif ($start) {
+				$this->db->where("DATE(i.created_on) >=", $start);
+			} elseif ($end) {
+				$this->db->where("DATE(i.created_on) <=", $end);
+			}
+
+			$get_delivery = $this->db->get()->result();
 
 			foreach ($get_delivery as $item) {
 
@@ -731,6 +783,7 @@ class Invoice_produk extends Admin_Controller
 				$hasil .= '<tr>';
 				$hasil .= '<td class="text-center">' . $item->no_surat_jalan . '</td>';
 				$hasil .= '<td class="text-center">' . $item->no_so . '</td>';
+				$hasil .= '<td class="text-center">' . date('d/M/Y', strtotime($item->created_on)) . '</td>';
 				$hasil .= '<td class="text-left">' . $item->name_customer . '</td>';
 				$hasil .= '<td class="text-right">' . number_format($nominal_invoice, 2) . '</td>';
 
