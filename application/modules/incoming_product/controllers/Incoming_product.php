@@ -34,8 +34,8 @@ class Incoming_product extends Admin_Controller
         $this->auth->restrict($this->viewPermission);
         $session = $this->session->userdata('app_session');
         $this->template->page_icon('fa fa-users');
-        $data_Group    = $this->db->query('SELECT * FROM groups')->result_array();
-        $pusat        = $this->db->query("SELECT * FROM warehouse WHERE 'desc'='pusat' ORDER BY urut ASC")->result_array();
+        $data_Group = $this->db->query('SELECT * FROM `groups`')->result_array();
+        $pusat      = $this->db->query("SELECT * FROM `warehouse` WHERE `desc`='pusat' ORDER BY `urut` ASC")->result_array();
         $no_po        = $this->db->query("
 										SELECT a.no_po, a.no_surat, a.status, 'PO' as ket_,b.nama AS nm_supplier FROM tr_purchase_order a LEFT JOIN new_supplier b ON b.kode_supplier = a.id_suplier WHERE a.status = '2' AND a.tipe IS NULL AND (SELECT IF(SUM(aa.qty_oke + aa.qty_ng) IS NULL, 0, SUM(aa.qty_oke + aa.qty_ng)) FROM tr_checked_incoming_detail aa WHERE aa.no_ipp = a.no_po) < (SELECT SUM(ab.qty) FROM dt_trans_po ab WHERE ab.no_po = a.no_po) AND (SELECT COUNT(ac.id) FROM dt_trans_po ac JOIN new_inventory_4 ca ON ca.code_lv4 = ac.idmaterial WHERE ac.no_po = a.no_po AND ac.idmaterial <> '') > 0 ORDER BY a.no_po ASC
 										")->result_array();
