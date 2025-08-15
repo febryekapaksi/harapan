@@ -404,10 +404,9 @@ class Loading extends Admin_Controller
 
     public function save_confirm_qty()
     {
-        $post = $this->input->post();
+        $post   = $this->input->post();
         $detail = $post['detail'];
-
-        $no_loading =  $post['id_loading'];
+        $no_loading = $post['id_loading'];
 
         $ArrHeader = [
             'no_loading'    => $no_loading,
@@ -423,63 +422,77 @@ class Loading extends Admin_Controller
 
         $ArrDetail = [];
 
-        foreach ($detail as $key => $value) {
-            $no_delivery = $value['no_delivery'];
-            $id_spk_detail = $value['id_spk_detail'];
-            $qty_spk = $value['qty_spk'];
-            $qty_aktual = $value['qty_aktual'];
+        // ======== PENTING: mulai transaksi SEBELUM ada update ========
+        $this->db->trans_begin();
 
-            $ArrDetail[$key]['no_loading']      = $no_loading;
-            $ArrDetail[$key]['no_delivery']     = $no_delivery;
-            $ArrDetail[$key]['id_spk_detail']   = $value['id_spk_detail'];
-            $ArrDetail[$key]['no_so']           = $value['no_so'];
-            $ArrDetail[$key]['customer']        = $value['customer'];
-            $ArrDetail[$key]['id_product']      = $value['id_product'];
-            $ArrDetail[$key]['product']         = $value['product'];
-            $ArrDetail[$key]['qty_spk']         = $qty_aktual;
-            $ArrDetail[$key]['jumlah_berat']    = $value['jumlah_berat'];
-            $ArrDetail[$key]['keterangan']      = $value['keterangan'];
+        foreach ($detail as $key => $value) {
+            $no_delivery   = $value['no_delivery'];
+            $id_spk_detail = $value['id_spk_detail'];
+            $qty_spk       = (int)$value['qty_spk'];
+            $qty_aktual    = (int)$value['qty_aktual'];
+
+            $ArrDetail[$key]['no_loading']   = $no_loading;
+            $ArrDetail[$key]['no_delivery']  = $no_delivery;
+            $ArrDetail[$key]['id_spk_detail'] = $id_spk_detail;
+            $ArrDetail[$key]['no_so']        = $value['no_so'];
+            $ArrDetail[$key]['customer']     = $value['customer'];
+            $ArrDetail[$key]['id_product']   = $value['id_product'];
+            $ArrDetail[$key]['product']      = $value['product'];
+            $ArrDetail[$key]['qty_spk']      = $qty_aktual; // yang dimuat aktual
+            $ArrDetail[$key]['jumlah_berat'] = $value['jumlah_berat'];
+            $ArrDetail[$key]['keterangan']   = $value['keterangan'];
 
             if ($qty_aktual < $qty_spk) {
-                //ambil data spk untuk ngembaliin qty_spk berdasarkan selisih qty_spk - qty_aktual
+                // Ambil spk_detail yang lama
                 $spk = $this->db->get_where('spk_delivery_detail', ['id' => $id_spk_detail])->row_array();
                 if (!$spk) {
+                    $this->db->trans_rollback();
                     show_404();
                 }
-                $qty_spk_old = $spk['qty_spk'];
 
-                $outstanding = $qty_spk_old - $qty_aktual;
+                $qty_spk_old = (int)$spk['qty_spk'];
+                $outstanding = max(0, $qty_spk_old - $qty_aktual);
 
-                //tambahkan ke qty_spk dari $spk
-                $qty_spk_new    = $qty_aktual;
-
-                $qty_belum_spk_old = $spk['qty_belum_spk'];
-
+                // Update spk_delivery_detail: qty_spk jadi qty_aktual, dan qty_belum_spk bertambah outstanding
+                $qty_belum_spk_old = (int)$spk['qty_belum_spk'];
                 $qty_belum_spk_new = $qty_belum_spk_old + $outstanding;
 
-                $this->db->update('spk_delivery_detail', ['qty_spk' => $qty_spk_new, 'qty_belum_spk' => $qty_belum_spk_new], ['id' => $id_spk_detail]);
+                $this->db->update(
+                    'spk_delivery_detail',
+                    ['qty_spk' => $qty_aktual, 'qty_belum_spk' => $qty_belum_spk_new],
+                    ['id' => $id_spk_detail]
+                );
+
+                // ======== SINKRONKAN KE SALES_ORDER_DETAIL ========
+                // Prefer pakai id_so_det (kalau ada di payload/spk_delivery_detail)
+                $id_so_det = !empty($value['id_so_det'])
+                    ? (int)$value['id_so_det']
+                    : (isset($spk['id_so_det']) ? (int)$spk['id_so_det'] : 0);
+
+                if ($id_so_det > 0 && $outstanding > 0) {
+                    // Kurangi qty_spk SO dan tambah qty_belum_spk SO sebesar outstanding
+                    $this->db
+                        ->set('qty_spk',       'GREATEST(qty_spk - ' . $outstanding . ', 0)', false)
+                        ->set('qty_belum_spk', 'qty_belum_spk + ' . $outstanding,           false)
+                        ->where('id', $id_so_det)
+                        ->update('sales_order_detail');
+                }
             }
 
-            $no_so = $value['no_so'];
-            $this->updateStatusSPKByNoSO($no_so);
+            // Update status per SO (kalau logikamu butuh)
+            $this->updateStatusSPKByNoSO($value['no_so']);
 
-            // Update status SPK
+            // Update status SPK header
             $this->db->update('spk_delivery', ['status' => 'LOADING'], ['no_delivery' => $no_delivery]);
         }
 
-        $this->db->trans_start();
-
-
+        // Header loading_delivery + detailnya
         $this->db->update('loading_delivery', $ArrHeader, ['no_loading' => $no_loading]);
 
-        // Hapus detail lama, insert ulang
         $this->db->delete('loading_delivery_detail', ['no_loading' => $no_loading]);
         if (!empty($ArrDetail)) {
             $this->db->insert_batch('loading_delivery_detail', $ArrDetail);
         }
-
-
-        $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
@@ -492,6 +505,7 @@ class Loading extends Admin_Controller
 
         echo json_encode($Arr_Data);
     }
+
 
     public function save_confirm_berat()
     {

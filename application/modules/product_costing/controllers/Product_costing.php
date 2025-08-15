@@ -32,7 +32,8 @@ class Product_costing extends Admin_Controller
         ];
 
         history("View index product costing");
-        $this->template->title('Costing / Product Costing');
+        $this->template->title('Product Costing');
+        $this->template->page_icon('fa fa-cubes');
         $this->template->render('index', $data);
     }
 
@@ -247,6 +248,8 @@ class Product_costing extends Admin_Controller
 
     public function list_price_list()
     {
+        $this->template->title('Price List');
+        $this->template->page_icon('fa fa-list-alt');
         // Ambil semua code_lv2 yang digunakan di product list
         $usedCodeLv2 = $this->db
             ->distinct()

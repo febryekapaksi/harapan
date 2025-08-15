@@ -33,7 +33,7 @@
         <table id="priceListTable" class="table table-bordered table-striped">
             <thead class="bg-blue">
                 <tr>
-                    <th rowspan="2" class="text-center" style="vertical-align: middle;">Produk</th>
+                    <th rowspan="2" class="text-center" style="vertical-align: middle; min-width: 250px">Produk</th>
                     <th colspan="2" class="text-center" style="vertical-align: middle;">Dropship</th>
                     <?php foreach ($tokoList as $toko): ?>
                         <th colspan="2" class="text-center"><?= $toko['nama'] ?></th>
