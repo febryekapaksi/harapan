@@ -198,6 +198,138 @@
     height: 32px;
   }
 
+  /* ==== MODAL (Bootstrap 3 / AdminLTE2) ==== */
+  .modal-content {
+    border-radius: 12px;
+    border: 1px solid #e6ecf3;
+    box-shadow: 0 18px 40px rgba(3, 24, 43, .25);
+    overflow: hidden;
+    /* header/footer ikut rounded */
+    background-clip: padding-box;
+  }
+
+  .modal-header {
+    border-bottom: 1px solid #eef2f6;
+    padding: 12px 16px;
+  }
+
+  .modal-title {
+    font-weight: 600;
+    color: #2a4a62;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .modal-footer {
+    border-top: 1px solid #eef2f6;
+    padding: 12px 16px;
+  }
+
+  /* Tombol di modal ikut tumpul */
+  .modal-footer .btn {
+    border-radius: 8px !important;
+  }
+
+  /* Backdrop lebih lembut */
+  .modal-backdrop.in {
+    opacity: .45;
+    background-color: #000;
+  }
+
+  /* Animasi muncul (slide-up ringan) */
+  .modal.fade .modal-dialog {
+    -webkit-transform: translate(0, 20px);
+    transform: translate(0, 20px);
+    transition: transform .18s ease, -webkit-transform .18s ease;
+  }
+
+  .modal.in .modal-dialog {
+    -webkit-transform: translate(0, 0);
+    transform: translate(0, 0);
+  }
+
+  /* Ukuran small & large tetap proporsional */
+  @media (min-width: 768px) {
+    .modal-sm .modal-content {
+      border-radius: 10px;
+    }
+
+    .modal-lg .modal-content {
+      border-radius: 12px;
+    }
+  }
+
+  /* (Opsional) Select2 di dalam modal biar konsisten rounded */
+  .select2-dropdown {
+    border-radius: 8px;
+    border-color: #cfd9e3;
+  }
+
+  .select2-container--open .select2-selection--single {
+    border-color: #3498db;
+  }
+
+  /* ==== SweetAlert v1 (swal) ==== */
+  .sweet-overlay {
+    background: rgba(0, 0, 0, .45) !important;
+    /* backdrop lebih lembut */
+  }
+
+  .sweet-alert {
+    border-radius: 12px !important;
+    padding: 18px 16px !important;
+    box-shadow: 0 18px 40px rgba(3, 24, 43, .25);
+  }
+
+  /* Judul & teks */
+  .sweet-alert h2 {
+    margin: 0 0 8px;
+    font-weight: 600;
+    color: #2a4a62;
+    font-size: 20px;
+  }
+
+  .sweet-alert p {
+    color: #4a6075;
+    font-size: 16px;
+  }
+
+  /* Tombol */
+  .sweet-alert button {
+    border-radius: 8px !important;
+    padding: 6px 16px !important;
+    font-weight: 500;
+  }
+
+  .sweet-alert .confirm {
+    background: var(--brand, #3498db) !important;
+  }
+
+  .sweet-alert .confirm:hover {
+    background: #2e86c1 !important;
+  }
+
+  .sweet-alert .cancel {
+    background: #e5e9f0 !important;
+    color: #2a4a62 !important;
+  }
+
+  .sweet-alert .cancel:hover {
+    background: #d8dee9 !important;
+  }
+
+  /* Ikon warning biar senada */
+  .sweet-alert .sa-icon.sa-warning {
+    border-color: #f39c12;
+  }
+
+  .sweet-alert .sa-icon.sa-warning .sa-body,
+  .sweet-alert .sa-icon.sa-warning .sa-dot {
+    background-color: #f39c12;
+  }
+
   /* ==== UTILITIES SPACING RINGAN ==== */
   .mt-8 {
     margin-top: 8px
