@@ -258,6 +258,8 @@ class Loading_model extends BF_Model
         $sql .= " LIMIT " . $limit_start . ", " . $limit_length;
 
         $data['query'] = $this->db->query($sql);
+
+
         return $data;
     }
 }

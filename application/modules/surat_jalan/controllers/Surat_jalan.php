@@ -59,23 +59,30 @@ class Surat_jalan extends Admin_Controller
 
     public function add()
     {
-        $loading = $this->db
-            ->select('DISTINCT ld.no_loading, l.nopol, l.tanggal_muat', false)
-            ->from('loading_delivery_detail ld')
-            ->join('loading_delivery l', 'ld.no_loading = l.no_loading')
-            ->where('l.status', 3)
-            ->where("CONCAT(ld.no_so, '|', ld.no_delivery) NOT IN (
-                        SELECT CONCAT(no_so, '|', no_delivery)
-                        FROM surat_jalan
-                        WHERE no_loading = ld.no_loading
-                    )")
-            ->group_by('ld.no_loading, l.nopol, l.tanggal_muat')
-            ->get()
-            ->result_array();
+        $sql = "
+                SELECT l.no_loading, l.nopol, l.tanggal_muat
+                FROM loading_delivery l
+                WHERE l.status = 3
+                AND EXISTS (
+                    SELECT 1
+                    FROM loading_delivery_detail ld
+                    WHERE ld.no_loading = l.no_loading
+                    AND NOT EXISTS (
+                        SELECT 1
+                        FROM surat_jalan sj
+                        WHERE sj.no_loading  = ld.no_loading
+                        AND sj.no_so       = ld.no_so
+                        AND sj.no_delivery = ld.no_delivery
+                    )
+                )
+                GROUP BY l.no_loading, l.nopol, l.tanggal_muat
+                ORDER BY l.tanggal_muat DESC
+                ";
+        $loading = $this->db->query($sql)->result_array();
 
         $data = [
             'loading' => $loading
-        ];;
+        ];
 
         $this->template->title('Add Surat Jalan');
         $this->template->page_icon('fa fa-envelope');
@@ -178,13 +185,12 @@ class Surat_jalan extends Admin_Controller
             ];
         }
 
-
-
         // Prepare Detail
         $ArrDetail = [];
         foreach ($detail as $key => $value) {
             $id_product = $value['id_product'];
             $id_so_det  = $value['id_so_det'];
+            $id_spk_det  = $value['id_spk_det'];
             $qty        = $value['qty'];
 
             $ArrDetail[$key] = [
@@ -195,6 +201,7 @@ class Surat_jalan extends Admin_Controller
                 'weight'          => $value['weight'],
                 'total_berat'     => $value['total_berat'],
                 'id_so_det'       => $id_so_det,
+                'id_spk_det'       => $id_spk_det,
             ];
 
             // Update ke SPK dan SO Detail

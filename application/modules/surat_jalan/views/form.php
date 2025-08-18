@@ -113,7 +113,7 @@
         <div class="modal-content">
             <div class="modal-header bg-primary">
                 <button type="button" class="close text-white" data-dismiss="modal"><i class="fa fa-times"></i></button>
-                <h4 class="modal-title"><b>Detail Loading</b></h4>
+                <h4 class="modal-title"><span style="font-weight: bold; color: white;">Detail Loading</span></h4>
             </div>
             <div class="modal-body">
                 <div class="table-responsive">
@@ -140,6 +140,7 @@
                                 <th>Produk</th>
                                 <th>Qty</th>
                                 <th>Berat (Kg)</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody id="view-detail-body">
@@ -236,6 +237,7 @@
                                 <td hidden>${item.pengiriman}</td>
                                 <td hidden>${item.weight}</td>
                                 <td hidden>${item.id_so_det}</td>
+                                <td hidden>${item.id_spk_detail}</td>
                                 <td hidden>${item.tanggal_kirim}</td>
                             </tr>
                         `;
@@ -288,6 +290,7 @@
                                 <input type="hidden" name="detail[${index}][id]" value="${data.id}">
                                 <input type="hidden" name="detail[${index}][id_product]" value="${data.id_product}">
                                 <input type="hidden" name="detail[${index}][id_so_det]" value="${data.id_so_det}">
+                                <input type="hidden" name="detail[${index}][id_spk_det]" value="${data.id_spk_detail}">
                                 <input type="text" class="form-control" name="detail[${index}][no_delivery]" value="${data.no_delivery}" readonly>
                             </td>
                             <td>

@@ -86,9 +86,10 @@ class Pr_product_model extends BF_Model
     public function get_query_json_reorder_point($like = null, $column_order = null, $column_dir = null, $limit_start = 0, $limit_length = 10)
     {
         $columns_order_by = [
-            0 => 'a.code',
+            0 => 'a.code',        // atau ganti sesuai urutan kolom di tabel datatables-mu
             1 => 'a.nama',
             2 => 'z.nama',
+            3 => 'a.code_lv4',    // <— tambahkan jika ingin bisa di-sort oleh code_lv4
         ];
 
         $this->db->from('new_inventory_4 a');
@@ -101,6 +102,9 @@ class Pr_product_model extends BF_Model
             $this->db->group_start();
             $this->db->like('a.nama', $like);
             $this->db->or_like('a.code', $like);
+            $this->db->or_like('a.code_lv4', $like);                         // <— cari pakai code_lv4
+            // opsional: kalau user ketik tanpa titik, tetap ketemu
+            $this->db->or_like('REPLACE(a.code_lv4,".","")', str_replace('.', '', $like), 'both', false);
             $this->db->group_end();
         }
 
