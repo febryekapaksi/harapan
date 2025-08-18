@@ -97,6 +97,7 @@ class Penawaran extends Admin_Controller
             'total_penawaran'           => str_replace(',', '', $data['total_penawaran']),
             'total_price_list'          => str_replace(',', '', $data['total_price_list']),
             'total_diskon_persen'       => $data['total_diskon_persen'],
+            'diskon_khusus'             => str_replace(',', '', $data['diskon_khusus']),
             'total_harga_freight'       => str_replace(',', '', $data['total_harga_freight']),
             'total_harga_freight_exppn' => str_replace(',', '', $data['total_harga_freight_exppn']),
             'dpp'                       => str_replace(',', '', $data['dpp']),

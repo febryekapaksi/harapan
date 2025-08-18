@@ -30,7 +30,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                 <label for="quotation_date">Quotation Date <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="quotation_date" id="quotation_date" <?= $readonly ?>
+                                <input type="date" class="form-control" name="quotation_date" id="quotation_date" max="<?= date('Y-m-d') ?>" <?= $readonly ?>
                                     value="<?= isset($penawaran['quotation_date']) ? date('Y-m-d', strtotime($penawaran['quotation_date'])) : '' ?>" required>
                             </div>
                         </div>
@@ -288,6 +288,10 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                     <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_price_list" id="total_price_list" value="<?= isset($penawaran['total_price_list']) ? $penawaran['total_price_list'] : '' ?>" readonly></td>
                                 </tr>
                                 <tr>
+                                    <td colspan="6" class="text-right"><strong>Discount Khusus</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control moneyFormat" name="diskon_khusus" id="diskon_khusus" value="<?= isset($penawaran['diskon_khusus']) ? $penawaran['diskon_khusus'] : '' ?>"></td>
+                                </tr>
+                                <tr>
                                     <td colspan="6" class="text-right"><strong>Total % Discount</strong></td>
                                     <td colspan="2"><input type="text" class="form-control" name="total_diskon_persen" id="total_diskon_persen" value="<?= isset($penawaran['total_diskon_persen']) ? $penawaran['total_diskon_persen'] : '' ?>" readonly></td>
                                 </tr>
@@ -536,6 +540,8 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
             hitungTotal(loop);
             hitungAllTotal();
         });
+
+        $(document).on('input', '#diskon_khusus, #freight', hitungAllTotal);
 
         // Trigger untuk mengambil data dari select customer
         $('#id_customer').change(function() {
@@ -940,11 +946,17 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
             totalPriceList += val
         });
 
+        // --- diskon khusus (nominal) ---
+        let diskonKhusus = parseFloat($('#diskon_khusus').val().replaceAll(',', '')) || 0;
+        if (diskonKhusus > totalPenawaran) diskonKhusus = totalPenawaran; // cegah minus
+
+        const totalPenawaranAfterDisc = totalPenawaran - diskonKhusus
+
         const totalDiskon = ((totalPenawaran - totalPriceList) / totalPriceList) * 100;
 
         const freight = parseFloat($('#freight').val().replaceAll(',', '')) || 0;
 
-        const totalHargaFreight = totalPenawaran + freight;
+        const totalHargaFreight = totalPenawaranAfterDisc + freight;
         const excludePPn = totalHargaFreight / 1.11;
 
         const dpp = (excludePPn * 11) / 12;
