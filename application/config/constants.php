@@ -85,6 +85,6 @@ defined('EXIT__AUTO_MIN')      or define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      or define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 define('DBHRIS', 'hr_ori');
-define('DBERP', 'db_sendigs_manufaktur');
-define('DBACC', 'gl_sendigs_manufaktur');
+define('DBERP', 'db_harapan');
+define('DBACC', 'db_harapan_gl');
 define('FILE_ALLOW', 'doc|docx|xls|xlsx|ppt|pptx|7z|zip|rar|jpeg|jpg|gif|bmp|png');

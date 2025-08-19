@@ -46,6 +46,8 @@ class Penawaran extends Admin_Controller
         $data['payment_terms'] = $payment_terms;
         $data['mode'] = "add";
 
+        $this->template->title("Buat Penawaran");
+        $this->template->page_icon("fa fa-shopping-cart");
         $this->template->render('form', $data);
     }
 
@@ -72,6 +74,8 @@ class Penawaran extends Admin_Controller
         $data['mode'] = "edit";
 
         // View form edit
+        $this->template->title("Edit Penawaran");
+        $this->template->page_icon("fa fa-shopping-cart");
         $this->template->render('form', $data);
     }
 
@@ -374,7 +378,7 @@ class Penawaran extends Admin_Controller
     public function approval_manager()
     {
         $this->template->page_icon('fa fa-check-square-o');
-        $this->template->title('Approval Manager');
+        $this->template->title('Approval Penawaran Manager');
         $this->template->render('list_approval_manager');
     }
 
@@ -398,6 +402,8 @@ class Penawaran extends Admin_Controller
         $data['mode'] = 'approval_manager';
 
         // View form edit
+        $this->template->title("Approval Penawaran Manager");
+        $this->template->page_icon("fa fa-check-square-o");
         $this->template->render('form', $data);
     }
 
@@ -467,7 +473,7 @@ class Penawaran extends Admin_Controller
     public function approval_direksi()
     {
         $this->template->page_icon('fa fa-check-square-o');
-        $this->template->title('Approval Direksi');
+        $this->template->title('Approval Penawaran Direksi');
         $this->template->render('list_approval_direksi');
     }
 
@@ -494,6 +500,8 @@ class Penawaran extends Admin_Controller
         $data['mode'] = 'approval_direksi';
 
         // View form edit
+        $this->template->title("Approval Penawaran Direksi");
+        $this->template->page_icon("fa fa-check-square-o");
         $this->template->render('form', $data);
     }
 
