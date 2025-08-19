@@ -49,6 +49,8 @@ class Sales_order extends Admin_Controller
       'mode'              => 'add',
     ];
 
+    $this->template->title('Create Sales Order');
+    $this->template->page_icon('fa fa-shopping-cart');
     $this->template->render('form', $data);
   }
 
@@ -105,6 +107,8 @@ class Sales_order extends Admin_Controller
       'mode'              => 'edit',
     ];
 
+    $this->template->title('Edit Sales Order');
+    $this->template->page_icon('fa fa-shopping-cart');
     $this->template->render('form', $data);
   }
 
