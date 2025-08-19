@@ -660,7 +660,7 @@ class Incoming_check_model extends BF_Model
             $this->db->update('tr_checked_incoming_detail', ['sts' => '1'], ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id'],  'sts' => '0']);
 
 
-            $ttl_all_checked += (str_replace(',', '', $post['qty_oke_' . $det_inc['id']]) + str_replace(',', '', $post['qty_ng_' . $det_inc['id']]));
+            $ttl_all_checked += (float) str_replace(',', '', (string)($post['qty_oke_' . $det_inc['id']] ?? 0)) + (float) str_replace(',', '', (string)($post['qty_ng_'  . $det_inc['id']] ?? 0));
 
             $id_costbook = generate_no_costbook();
             $hargasatuan = 0;
@@ -784,7 +784,7 @@ class Incoming_check_model extends BF_Model
         $kode_trans   = $post['kode_trans'];
         $no_reff      = $post['kode_trans'];
         $no_po        = $post['no_pox'];
-        $no_surat        = $post['no_surat'];
+        $no_surat     = $post['no_surat'];
 
 
         $det_Jurnaltes1 = array();
@@ -792,7 +792,7 @@ class Incoming_check_model extends BF_Model
         // Jurnal
         $data_po = $this->db->query("SELECT * FROM tr_purchase_order WHERE no_po='$no_po'")->row();
         $datakurs = $this->db->query("SELECT * FROM tr_ros WHERE no_po IN ('$no_surat')")->row();
-        $kurs_ros = $datakurs->kurs_pib;
+        $kurs_ros = (isset($datakurs->kurs_pib) ? $datakurs->kurs_pib : 0);
         if ($kurs_ros > 0) {
             $kurs = $kurs_ros;
             $jenis_jurnal = 'JV005';

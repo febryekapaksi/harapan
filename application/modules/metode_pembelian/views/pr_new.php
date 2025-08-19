@@ -23,7 +23,7 @@ $ENABLE_DELETE  = has_permission('Metode_Pembelian.Delete');
 				<select id='category' name='category' class='form-control input-sm' style='min-width:200px;'>
 					<option value='0'>All Category</option>
 					<option value='product'>Product</option>
-					<option value='asset'>Material</option>
+					<option value='asset'>Asset</option>
 					<option value='stok'>Stok</option>
 					<option value='departemen'>Departemen</option>
 				</select>

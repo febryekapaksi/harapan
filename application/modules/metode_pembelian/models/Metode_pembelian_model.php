@@ -276,139 +276,150 @@ class Metode_pembelian_model extends BF_Model
 
 	public function query_data_json_progress_pr_new($category, $like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
 	{
-
-		$where = "";
-		if ($category <> '0') {
-			$where = " AND a.category='" . $category . "' ";
-		}
+		$kw = $this->db->escape_like_str($like_value);
 
 		if ($category <> '0') {
 			if ($category == 'departemen') {
+				// Rutin/Department – SUDAH punya metode pembelian
 				$sql = "
-					SELECT
-						a.no_pr as no_pr,
-						a.created_date as tgl_pr,
-						b.nama as departemen,
-						'Department' as category,
-						c.nm_lengkap as by_name,
-						a.created_date as tgl_buat
-					FROM
-						rutin_non_planning_header a
-						LEFT JOIN ms_department b ON b.id = a.id_dept
-						LEFT JOIN users c ON c.id_user = a.created_by
-					WHERE
-						a.sts_app = 'Y' AND 
-						a.metode_pembelian IS NULL AND (
-							a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							a.created_date LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							b.nama LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							c.nm_lengkap LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-						)
-				";
+                SELECT DISTINCT
+                    a.no_pr AS no_pr,
+                    a.created_date AS tgl_pr,
+                    b.nama AS departemen,
+                    'Department' AS category,
+                    c.nm_lengkap AS by_name,
+                    a.created_date AS tgl_buat
+                FROM rutin_non_planning_header a
+                LEFT JOIN ms_department b ON b.id = a.id_dept
+                LEFT JOIN users c ON c.id_user = a.created_by
+                WHERE a.sts_app = 'Y'
+                  AND a.metode_pembelian IS NOT NULL
+                  AND TRIM(a.metode_pembelian) <> ''
+                  AND (
+                        a.no_pr        LIKE '%{$kw}%'
+                     OR a.created_date LIKE '%{$kw}%'
+                     OR b.nama        LIKE '%{$kw}%'
+                     OR c.nm_lengkap  LIKE '%{$kw}%'
+                  )
+            ";
 			} else if ($category == 'stok') {
+				// PPIC stok – SUDAH punya metode pembelian
 				$sql = "
-					SELECT
-						a.no_pr as no_pr,
-						a.tgl_so as tgl_pr,
-						'PPIC' as departemen,
-						a.category as category,
-						b.nm_lengkap as by_name,
-						a.created_date as tgl_buat
-					FROM
-						material_planning_base_on_produksi a
-						LEFT JOIN users b ON b.id_user = a.created_by
-						JOIN material_planning_base_on_produksi_detail c ON c.so_number = a.so_number AND c.status_app = 'Y'
-					WHERE
-						a.category IN ('pr stok') AND
-						a.metode_pembelian IS NULL AND (
-							a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							a.tgl_so LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							a.category LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							b.nm_lengkap LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							a.created_date LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-						)
-					GROUP BY a.no_pr
-				";
+                SELECT DISTINCT
+                    a.no_pr AS no_pr,
+                    a.tgl_so AS tgl_pr,
+                    'PPIC' AS departemen,
+                    a.category AS category,
+                    b.nm_lengkap AS by_name,
+                    a.created_date AS tgl_buat
+                FROM material_planning_base_on_produksi a
+                LEFT JOIN users b ON b.id_user = a.created_by
+                WHERE a.category IN ('pr stok')
+                  AND a.metode_pembelian IS NOT NULL
+                  AND TRIM(a.metode_pembelian) <> ''
+                  AND EXISTS (
+                        SELECT 1
+                        FROM material_planning_base_on_produksi_detail c
+                        WHERE c.so_number = a.so_number
+                          AND c.status_app = 'Y'
+                  )
+                  AND (
+                        a.no_pr        LIKE '%{$kw}%'
+                     OR a.tgl_so       LIKE '%{$kw}%'
+                     OR a.category     LIKE '%{$kw}%'
+                     OR b.nm_lengkap   LIKE '%{$kw}%'
+                     OR a.created_date LIKE '%{$kw}%'
+                  )
+            ";
 			} else {
+				// PPIC product – SUDAH punya metode pembelian
 				$sql = "
-					SELECT
-						a.no_pr as no_pr,
-						a.tgl_so as tgl_pr,
-						'PPIC' as departemen,
-						a.category as category,
-						b.nm_lengkap as by_name,
-						a.created_date as tgl_buat
-					FROM
-						material_planning_base_on_produksi a
-						LEFT JOIN users b ON b.id_user = a.created_by
-						JOIN material_planning_base_on_produksi_detail c ON c.so_number = a.so_number AND c.status_app = 'Y'
-					WHERE
-						a.category IN ('pr product') AND
-						a.metode_pembelian IS NULL AND (
-							a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							a.tgl_so LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							a.category LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							b.nm_lengkap LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-							a.created_date LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-						)
-					GROUP BY a.no_pr
-				";
+                SELECT DISTINCT
+                    a.no_pr AS no_pr,
+                    a.tgl_so AS tgl_pr,
+                    'PPIC' AS departemen,
+                    a.category AS category,
+                    b.nm_lengkap AS by_name,
+                    a.created_date AS tgl_buat
+                FROM material_planning_base_on_produksi a
+                LEFT JOIN users b ON b.id_user = a.created_by
+                WHERE a.category IN ('pr product')
+                  AND a.metode_pembelian IS NOT NULL
+                  AND TRIM(a.metode_pembelian) <> ''
+                  AND EXISTS (
+                        SELECT 1
+                        FROM material_planning_base_on_produksi_detail c
+                        WHERE c.so_number = a.so_number
+                          AND c.status_app = 'Y'
+                  )
+                  AND (
+                        a.no_pr        LIKE '%{$kw}%'
+                     OR a.tgl_so       LIKE '%{$kw}%'
+                     OR a.category     LIKE '%{$kw}%'
+                     OR b.nm_lengkap   LIKE '%{$kw}%'
+                     OR a.created_date LIKE '%{$kw}%'
+                  )
+            ";
 			}
 		} else {
+			// Gabungan PPIC (product+stok) + Department – semua SUDAH punya metode pembelian
 			$sql = "
-				SELECT
-					a.no_pr as no_pr,
-					a.tgl_so as tgl_pr,
-					'PPIC' as departemen,
-					a.category as category,
-					b.nm_lengkap as by_name,
-					a.created_date as tgl_buat
-				FROM
-					material_planning_base_on_produksi a
-					LEFT JOIN users b ON b.id_user = a.created_by
-					JOIN material_planning_base_on_produksi_detail c ON c.so_number = a.so_number AND c.status_app = 'Y'
-				WHERE
-					a.category IN ('pr product', 'pr stok') AND
-					a.metode_pembelian IS NULL AND
-					(
-						a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-						a.tgl_so LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-						a.category LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-						b.nm_lengkap LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-						a.created_date LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-					)
-				GROUP BY a.no_pr
+            SELECT * FROM (
+                SELECT DISTINCT
+                    a.no_pr AS no_pr,
+                    a.tgl_so AS tgl_pr,
+                    'PPIC' AS departemen,
+                    a.category AS category,
+                    b.nm_lengkap AS by_name,
+                    a.created_date AS tgl_buat
+                FROM material_planning_base_on_produksi a
+                LEFT JOIN users b ON b.id_user = a.created_by
+                WHERE a.category IN ('pr product','pr stok')
+                  AND a.metode_pembelian IS NOT NULL
+                  AND TRIM(a.metode_pembelian) <> ''
+                  AND EXISTS (
+                        SELECT 1
+                        FROM material_planning_base_on_produksi_detail c
+                        WHERE c.so_number = a.so_number
+                          AND c.status_app = 'Y'
+                  )
+                  AND (
+                        a.no_pr        LIKE '%{$kw}%'
+                     OR a.tgl_so       LIKE '%{$kw}%'
+                     OR a.category     LIKE '%{$kw}%'
+                     OR b.nm_lengkap   LIKE '%{$kw}%'
+                     OR a.created_date LIKE '%{$kw}%'
+                  )
 
-				UNION ALL
+                UNION ALL
 
-				SELECT
-					a.no_pr as no_pr,
-					a.created_date as tgl_pr,
-					b.nama as departemen,
-					'Department' as category,
-					c.nm_lengkap as by_name,
-					a.created_date as tgl_buat
-				FROM
-					rutin_non_planning_header a
-					LEFT JOIN ms_department b ON b.id = a.id_dept
-					LEFT JOIN users c ON c.id_user = a.created_by
-				WHERE
-					a.sts_app = 'Y' AND 
-					a.metode_pembelian IS NULL AND (
-						a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-						a.created_date LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-						b.nama LIKE '%" . $this->db->escape_like_str($like_value) . "%' OR
-						c.nm_lengkap LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-					)
-				GROUP BY a.no_pr
-			";
+                SELECT DISTINCT
+                    a.no_pr AS no_pr,
+                    a.created_date AS tgl_pr,
+                    d.nama AS departemen,
+                    'Department' AS category,
+                    u.nm_lengkap AS by_name,
+                    a.created_date AS tgl_buat
+                FROM rutin_non_planning_header a
+                LEFT JOIN ms_department d ON d.id = a.id_dept
+                LEFT JOIN users u ON u.id_user = a.created_by
+                WHERE a.sts_app = 'Y'
+                  AND a.metode_pembelian IS NOT NULL
+                  AND TRIM(a.metode_pembelian) <> ''
+                  AND (
+                        a.no_pr        LIKE '%{$kw}%'
+                     OR a.created_date LIKE '%{$kw}%'
+                     OR d.nama        LIKE '%{$kw}%'
+                     OR u.nm_lengkap  LIKE '%{$kw}%'
+                  )
+            ) q
+        ";
 		}
 
-		// echo $sql;
-		// exit;
-
-		$data['totalData'] = $this->db->query($sql)->num_rows();
+		// Hitung total & filtered (sederhana)
+		$data['totalData']     = $this->db->query($sql)->num_rows();
 		$data['totalFiltered'] = $this->db->query($sql)->num_rows();
+
 		$columns_order_by = array(
 			0 => 'tgl_buat',
 			1 => 'no_pr',
@@ -422,6 +433,7 @@ class Metode_pembelian_model extends BF_Model
 		$data['query'] = $this->db->query($sql);
 		return $data;
 	}
+
 
 	//==================================================================================================================
 	//=============================================REQUEST FOR QUOTATION================================================
