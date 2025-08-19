@@ -253,6 +253,10 @@
                                     <td colspan="2"><input type="text" class="form-control" name="total_diskon_persen" id="total_diskon_persen" value="<?= isset($penawaran['total_diskon_persen']) ? $penawaran['total_diskon_persen'] : '' ?>" readonly></td>
                                 </tr>
                                 <tr>
+                                    <td colspan="9" class="text-right"><strong>Discount Khusus</strong></td>
+                                    <td colspan="2"><input type="text" class="form-control moneyFormat" name="diskon_khusus" id="diskon_khusus" value="<?= isset($penawaran['diskon_khusus']) ? $penawaran['diskon_khusus'] : '' ?>" readonly></td>
+                                </tr>
+                                <tr>
                                     <td colspan="9" class="text-right"><strong>Total Harga + Freight</strong></td>
                                     <td colspan="2"><input type="text" class="form-control moneyFormat" name="total_harga_freight" id="total_harga_freight" value="<?= isset($penawaran['total_harga_freight']) ? $penawaran['total_harga_freight'] : '' ?>" readonly></td>
                                 </tr>

@@ -153,6 +153,7 @@ class Sales_order extends Admin_Controller
       'tgl_so'                      => date('Y-m-d H:i:s', strtotime($data['tgl_so'])),
       'nilai_so'                    => str_replace(',', '', $data['total_penawaran']),
       'total_diskon_persen'         => $data['total_diskon_persen'],
+      'diskon_khusus'               => str_replace(',', '', $data['diskon_khusus']),
       'total_harga_freight'         => str_replace(',', '', $data['total_harga_freight']),
       'total_harga_freight_exppn'   => str_replace(',', '', $data['total_harga_freight_exppn']),
       'dpp'                         => str_replace(',', '', $data['dpp']),
