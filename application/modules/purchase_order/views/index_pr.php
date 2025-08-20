@@ -102,13 +102,6 @@ $ENABLE_DELETE  = has_permission('Purchase_Order.Delete');
 							}
 						}
 
-						// if ($record->so_number == 'P240300010') {
-						// print_r($no_materil . ' ' . $no_materil_po);
-						// exit;
-						// }
-
-						// print_r($no_materil . ' - ' . $no_materil_po);
-						// exit;
 
 						if (isset($filter_status)) {
 							if ($no_materil > $no_materil_po) {
