@@ -246,6 +246,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 											// print_r($results['getitemso']);
 											// exit;
 											// print_r($value . "<br>");
+											$key = 0;
 											foreach ($results['getitemso'] as $value) {
 
 												$get_trans_po = $this->db->get_where('dt_trans_po', ['idpr' => $value->id])->num_rows();
@@ -254,6 +255,8 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 												$no = $n++;
 												$key++;
+
+												$disabled = '';
 												// $disabled = ($loi == 'Import') ? '' : 'readonly';
 												// $disabled2 = ($loi == 'Import') ? 'readonly' : '';
 												// $idmat = $value->idmaterial;
@@ -275,14 +278,24 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 												if ($get_po->qty == null || $get_po->qty > $value->propose_purchase) {
 													$status = "<div class='badge bg-red'>Outstanding PO</div>";
 												}
+
+												$idpr = (!empty($value->idpr)) ? $value->idpr : '';
+												$no_pr = (!empty($value->no_pr)) ? $value->no_pr : '';
+												$tipe_pr = (!empty($value->tipe_pr)) ? $value->tipe_pr : '';
+												$id_material = (!empty($value->id_material)) ? $value->id_material : '';
+												$nm_material1 = (!empty($value->nm_material1)) ? $value->nm_material1 : '';
+												$description = (!empty($value->description)) ? $value->description : '';
+												$width = (!empty($value->width)) ? $value->width : 0;
+												$length = (!empty($value->length)) ? $value->length : 0;
+												$total_weight = (!empty($value->totalweight)) ? $value->totalweight : 0;
 												echo "
 												<tr>
 												<td>  " . $value->nm_material . $value->nm_material1 . "
 														<input type='hidden' id='dt_id_" . $key . "' name='dt[" . $key . "][id]' value='" . $value->id . "'>
-														  <input type='hidden' class='form-control input-sm' id='dt_idpr_" . $key . "' name='dt[" . $key . "][idpr]' value='" . $value->idpr . "'>
-														  <input type='hidden' class='form-control input-sm' id='dt_no_pr_" . $key . "' name='dt[" . $key . "][no_pr]' value='" . $value->no_pr . "'>
-														  <input type='hidden' class='form-control input-sm' id='dt_tipe_pr_" . $key . "' name='dt[" . $key . "][tipe_pr]' value='" . $value->tipe_pr . "'>
-															<input type='hidden' class='form-control input-sm' id='dt_idmaterial_" . $key . "' name='dt[" . $key . "][idmaterial]' value='" . $value->id_material . "'>
+														  <input type='hidden' class='form-control input-sm' id='dt_idpr_" . $key . "' name='dt[" . $key . "][idpr]' value='" . $idpr . "'>
+														  <input type='hidden' class='form-control input-sm' id='dt_no_pr_" . $key . "' name='dt[" . $key . "][no_pr]' value='" . $no_pr . "'>
+														  <input type='hidden' class='form-control input-sm' id='dt_tipe_pr_" . $key . "' name='dt[" . $key . "][tipe_pr]' value='" . $tipe_pr . "'>
+															<input type='hidden' class='form-control input-sm' id='dt_idmaterial_" . $key . "' name='dt[" . $key . "][idmaterial]' value='" . $id_material . "'>
 															<input type='hidden' class='form-control input-sm' id='dt_namamaterial_" . $key . "' name='dt[" . $key . "][namamaterial]' value='" . $value->nm_material . $value->nm_material1 . "'>
 															<input type='hidden' class='form-control input-sm' id='dt_panjang_" . $key . "' name='dt[" . $key . "][panjang]'>
 															<input type='hidden' class='form-control input-sm' id='dt_lebar_" . $key . "' name='dt[" . $key . "][lebar]'>
@@ -296,13 +309,13 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 											  
 											  <td><input type='text' class='form-control input-sm' name='dt[" . $key . "][kode_barang]' id='dt_kode_barang_" . $key . "' value='" . $value->code . $value->code1 . "' readonly></td>
 											  
-												<td><input type='text' class='form-control input-sm' name='dt[" . $key . "][description]' id='dt_description_" . $key . "' value='" . $value->description . "'></td>
+												<td><input type='text' class='form-control input-sm' name='dt[" . $key . "][description]' id='dt_description_" . $key . "' value='" . $description . "'></td>
 											  
 											  <td><input type='text' class='form-control input-sm' id='dt_pr_" . $key . "' name='dt[" . $key . "][pr]' value='" . $value->propose_purchase  . "' readonly ></td>
 											  
-												<td hidden><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][width]' id='dt_width_" . $key . "'  value='" . $value->width . "'></td>
-												<td hidden><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][length]' id='dt_length_" . $key . "'  value='" . $value->length . "'></td>
-												<td><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][totalweight]' id='dt_totalweight_" . $key . "' value='" . $value->totalweight . "'  onkeyup='HitAmmount(" . $key . ")'>
+												<td hidden><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][width]' id='dt_width_" . $key . "'  value='" . $width . "'></td>
+												<td hidden><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][length]' id='dt_length_" . $key . "'  value='" . $length . "'></td>
+												<td><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][totalweight]' id='dt_totalweight_" . $key . "' value='" . $total_weight . "'  onkeyup='HitAmmount(" . $key . ")'>
 																	<input type='text' class='form-control input-sm' id='dt_qty_" . $key . "' name='dt[" . $key . "][qty]' value='" . $value->qty . "' onkeyup='HitAmmount(" . $key . ")'>
 															
 														</td>
