@@ -182,39 +182,76 @@
   }
 </style>
 
-<!--</head>
+</head>
 
-<body>-->
+<body>
+  <div class="wrapper">
+    <?= form_open($this->uri->uri_string(), ['id' => 'frm_login', 'name' => 'frm_login', 'class' => 'login', 'autocomplete' => 'off']) ?>
 
-<div class="wrapper">
-  <?= form_open($this->uri->uri_string(), ['id' => 'frm_login', 'name' => 'frm_login', 'class' => 'login', 'autocomplete' => 'off']) ?>
+    <span>
+      <img src="<?= base_url('assets/images/harapan_logo.png'); ?>" width="25%" alt="Logo">
+    </span>
 
-  <span>
-    <img src="<?= base_url('assets/images/harapan_logo.png'); ?>" width="25%" alt="Logo">
-  </span>
+    <!-- Username -->
+    <div class="field">
+      <input type="hidden" name="login" value="1">
+      <input type="text" name="username" placeholder="Username" value="<?= set_value('username') ?>" required autofocus>
+      <i class="fa fa-user"></i>
+    </div>
 
-  <!-- Username -->
-  <div class="field">
-    <input type="text" name="username" placeholder="Username" value="<?= set_value('username') ?>" required autofocus>
-    <i class="fa fa-user"></i>
+    <!-- Password -->
+    <div class="field">
+      <input type="password" name="password" placeholder="Password" required>
+      <i class="fa fa-lock"></i>
+    </div>
+
+    <!-- reCAPTCHA v3 token -->
+    <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
+
+    <button type="submit" class="btn" name="login"><i class="fa fa-sign-in"></i>&emsp;Sign In</button>
+
+    <?= form_close() ?>
+
+    <footer>
+      <p style="color:#fff">Copyright &copy; <?= $idt->nm_perusahaan; ?> <?= date('Y'); ?></p>
+    </footer>
   </div>
 
-  <!-- Password -->
-  <div class="field">
-    <input type="password" name="password" placeholder="Password" required>
-    <i class="fa fa-lock"></i>
-  </div>
+  <!-- reCAPTCHA v3 -->
+  <script src="https://www.google.com/recaptcha/api.js?render=<?= isset($recaptcha_site_key) ? $recaptcha_site_key : (defined('RECAPTCHA_SITE_KEY') ? RECAPTCHA_SITE_KEY : '') ?>"></script>
+  <script>
+    (() => {
+      const form = document.getElementById('frm_login');
+      const btn = form.querySelector('button[type="submit"]');
+      const siteKey = "<?= $recaptcha_site_key ?? (defined('RECAPTCHA_SITE_KEY') ? RECAPTCHA_SITE_KEY : '') ?>";
 
-  <button type="submit" class="btn" name="login"><i class="fa fa-sign-in"></i>&emsp;Sign In</button>
+      if (!siteKey) {
+        console.error('SITE KEY kosong');
+      }
 
-  <?= form_close() ?>
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        btn.disabled = true;
 
-  <footer>
-    <p style="color:#fff">Copyright &copy; <?= $idt->nm_perusahaan; ?> <?= date('Y'); ?></p>
-  </footer>
-</div>
+        grecaptcha.ready(() => {
+          grecaptcha.execute(siteKey, {
+              action: 'login'
+            })
+            .then((token) => {
+              document.getElementById('g-recaptcha-response').value = token;
+              form.submit();
+            })
+            .catch((err) => {
+              btn.disabled = false;
+              alert('Gagal memuat reCAPTCHA. Coba lagi.');
+              console.error(err);
+            });
+        });
+      });
+    })();
+  </script>
 
-<script src="<?php echo base_url(); ?>assets/login/js/index.js"></script>
+  <script src="<?= base_url('assets/login/js/index.js'); ?>"></script>
 </body>
 
 </html>
