@@ -119,7 +119,7 @@ $ENABLE_DELETE  = has_permission('Metode_Pembelian.Delete');
 			"destroy": true,
 			"responsive": true,
 			"aaSorting": [
-				[6, "desc"]
+				[2, "asc"]
 			],
 			"columnDefs": [{
 				"targets": 'no-sort',
