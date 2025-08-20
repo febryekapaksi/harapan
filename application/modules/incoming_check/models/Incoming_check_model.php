@@ -801,14 +801,7 @@ class Incoming_check_model extends BF_Model
             $jenis_jurnal = 'JV002';
         }
         $nomor_jurnal = $jenis_jurnal . $no_ros . rand(100, 999);
-        $accdb = $this->load->database('accounting', TRUE); // pastikan group 'accounting' ada di config/database.php
-        $sql   = "SELECT * FROM master_oto_jurnal_detail WHERE kode_master_jurnal = ? ORDER BY parameter_no";
-        $q     = $accdb->query($sql, [$jenis_jurnal]);
-        if (!$q) {
-            $e = $accdb->error();
-            show_error('DB ERROR: ' . $e['message']);
-        }
-        $datajurnal1 = $q->result();
+        $datajurnal1 = $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' order by parameter_no")->result();
         $payment_date = $get_incoming->tanggal;
         $hutang = 0;
         $hutang_kurs = 0;
