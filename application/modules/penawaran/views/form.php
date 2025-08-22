@@ -546,6 +546,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
         // Trigger untuk mengambil data dari select customer
         $('#id_customer').change(function() {
             const $selected = $(this).find(':selected');
+            const idCustomer = $(this).val();
             const idKaryawan = $selected.data('sales');
             const email = $selected.data('email');
             const kategoriToko = $selected.data('toko');
@@ -590,6 +591,36 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                 $('#sales').val('');
                 $('#id_karyawan').val('');
                 $('#email').val('');
+            }
+
+            // --- AMBIL CREDIT LIMIT BERDASARKAN id_customer ---
+            if (idCustomer) {
+                $.ajax({
+                    url: '<?= base_url('penawaran/get_credit_limit') ?>',
+                    type: 'POST',
+                    data: {
+                        id_customer: idCustomer
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.error) {
+                            $('#credit_limit').val('');
+                        } else {
+                            // kalau input kamu punya masker .moneyFormat yang akan mem-format sendiri,
+                            // isi nilai mentah lalu trigger event agar masker jalan:
+                            $('#credit_limit').val(res.kredit_limit).trigger('input');
+
+                            // atau kalau mau langsung string rupiah:
+                            // $('#credit_limit').val(res.kredit_limit_formatted);
+                        }
+                    },
+                    error: function() {
+                        console.warn('Gagal mengambil credit limit');
+                        $('#credit_limit').val('');
+                    }
+                });
+            } else {
+                $('#credit_limit').val('');
             }
         });
 

@@ -646,6 +646,41 @@ class Penawaran extends Admin_Controller
         }
     }
 
+    public function get_credit_limit()
+    {
+        $id_customer = $this->input->post('id_customer', true);
+
+        if (empty($id_customer)) {
+            echo json_encode(['error' => true, 'message' => 'id_customer kosong']);
+            return;
+        }
+
+        // Ambil kredit limit: join child_customer_rate (alias r) ke kelas (alias k)
+        // Ambil 1 baris terbaru jika ada duplikasi
+        $row = $this->db->select('k.kredit_limit')
+            ->from('child_customer_rate r')
+            ->join('kelas k', 'k.kelas = r.kelas')   // pastikan casing nilai 'kelas' sama
+            ->where('r.id_customer', $id_customer)
+            ->order_by('r.id', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row_array();
+
+        if (!$row) {
+            // fallback jika belum ada kelas atau tidak match
+            echo json_encode(['error' => false, 'kredit_limit' => 0, 'kredit_limit_formatted' => number_format(0, 0, ',', '.')]);
+            return;
+        }
+
+        $limit = (float)$row['kredit_limit'];
+        echo json_encode([
+            'error' => false,
+            'kredit_limit' => $limit,                               // angka mentah
+            'kredit_limit_formatted' => number_format($limit, 0, ',', '.') // string rupiah
+        ]);
+    }
+
+
     public function data_side_penawaran()
     {
         $this->penawaran_model->get_json_penawaran();
