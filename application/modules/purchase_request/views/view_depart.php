@@ -49,9 +49,9 @@ $disabled3        = 'readonly';
         </div>
     </div>
 
-    <?php
-    if ($approve == 'approve') {
-    ?>
+    <!-- <?php
+            if ($approve == 'approve') {
+            ?>
         <div class='form-group row'>
             <label class='label-control col-sm-2'><b>Approve <span class='text-red'>*</span></b></label>
             <div class='col-sm-2'>
@@ -72,8 +72,8 @@ $disabled3        = 'readonly';
             </div>
         </div>
     <?php
-    }
-    ?>
+            }
+    ?> -->
     <table class='table table-striped table-bordered table-hover table-condensed' width='100%'>
         <thead>
             <tr class='bg-blue'>

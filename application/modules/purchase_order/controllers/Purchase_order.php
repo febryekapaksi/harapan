@@ -164,14 +164,14 @@ class Purchase_order extends Admin_Controller
 	public function edit($no_po)
 	{
 		$session = $this->session->userdata('app_session');
-		$getparam = explode(";", $_GET['param']);
+		// $getparam = explode(";", $_GET['param']);
 
 		// print_r($no_po);
 		// exit;
 
 		$get_po = $this->db->get_where('tr_purchase_order', ['no_po' => $no_po])->row();
 
-		$getso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi');
+		// $getso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi');
 		// $getitemso = $this->Pr_model->get_where_in('so_number', $getparam, 'material_planning_base_on_produksi_detail');
 
 		// $getitemso = $this->db->select("a.*, (b.qty_stock - b.qty_booking) AS avl_stock, c.code as code, d.id_stock as code1, c.nama as nm_material, d.stock_name as nm_material1, e.propose_purchase");
@@ -325,7 +325,7 @@ class Purchase_order extends Admin_Controller
 			'karyawan' => $karyawan,
 			'mata_uang' => $mata_uang,
 			// 'matauang' => $matauang,
-			'param' => $getparam,
+			// 'param' => $getparam,
 			// 'headerso' => $getso,
 			'get_po' => $get_po,
 			'getitemso' => $getitemso,

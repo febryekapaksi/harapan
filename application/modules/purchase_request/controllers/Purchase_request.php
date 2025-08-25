@@ -455,9 +455,9 @@ class Purchase_request extends Admin_Controller
 		$datacoa 	= $this->db->query("SELECT a.coa,b.nama FROM coa_category a join " . DBACC . ".coa_master b on a.coa=b.no_perkiraan WHERE a.tipe='NONRUTIN' order by a.coa")->result_array();
 		$satuan		= $this->db->get_where('ms_satuan', array('deleted' => 'N'))->result_array();
 		$tanda 		= (!empty($header)) ? 'Edit' : 'Add';
-		if (!empty($approve)) {
-			$tanda 		= ($approve == 'view') ? 'View' : 'Approve';
-		}
+		// if (!empty($approve)) {
+		// 	$tanda 		= ($approve == 'view') ? 'View' : 'Approve';
+		// }
 
 		// print_r($header);
 		// exit;
