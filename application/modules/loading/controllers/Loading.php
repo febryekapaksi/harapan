@@ -309,7 +309,8 @@ class Loading extends Admin_Controller
             p.nama,
             p.weight,
             d.qty_spk,
-            (p.weight * d.qty_spk) AS jumlah_berat
+            d.qty_belum_muat,
+            (p.weight * d.qty_belum_muat) AS jumlah_berat
         ')
             ->from('spk_delivery_detail d')
             ->join('spk_delivery s', 's.no_delivery = d.no_delivery')
@@ -317,7 +318,7 @@ class Loading extends Admin_Controller
             ->join('new_inventory_4 p', 'p.code_lv4 = d.id_product')
             ->join('loading_delivery_detail l', 'l.id_spk_detail = d.id', 'left') // per item, bukan per delivery
             ->where('s.pengiriman', $pengiriman)
-            ->where('l.id_spk_detail IS NULL') // hanya yang belum termuat
+            ->where('d.qty_belum_muat >', 0)
             ->order_by('s.no_delivery')
             ->get()
             ->result();
@@ -354,7 +355,8 @@ class Loading extends Admin_Controller
         $ArrDetail = [];
 
         foreach ($detail as $key => $value) {
-            $no_delivery = $value['no_delivery'];
+            $no_delivery    = $value['no_delivery'];
+
 
             $ArrDetail[$key]['no_loading']      = $no_loading;
             $ArrDetail[$key]['no_delivery']     = $no_delivery;
@@ -363,7 +365,7 @@ class Loading extends Admin_Controller
             $ArrDetail[$key]['customer']        = $value['customer'];
             $ArrDetail[$key]['id_product']      = $value['id_product'];
             $ArrDetail[$key]['product']         = $value['product'];
-            $ArrDetail[$key]['qty_spk']         = $value['qty_spk'];
+            $ArrDetail[$key]['qty_muat']        = $value['qty_muat'];
             $ArrDetail[$key]['jumlah_berat']    = $value['jumlah_berat'];
 
             // Update status SPK
@@ -404,8 +406,8 @@ class Loading extends Admin_Controller
 
     public function save_confirm_qty()
     {
-        $post   = $this->input->post();
-        $detail = $post['detail'];
+        $post      = $this->input->post();
+        $detail    = $post['detail'];
         $no_loading = $post['id_loading'];
 
         $ArrHeader = [
@@ -421,16 +423,17 @@ class Loading extends Admin_Controller
         ];
 
         $ArrDetail = [];
+        $headerStatus = []; // kumpulkan status per no_delivery
 
-        // ======== PENTING: mulai transaksi SEBELUM ada update ========
         $this->db->trans_begin();
 
         foreach ($detail as $key => $value) {
-            $no_delivery   = $value['no_delivery'];
-            $id_spk_detail = $value['id_spk_detail'];
-            $qty_spk       = (int)$value['qty_spk'];
-            $qty_aktual    = (int)$value['qty_aktual'];
+            $no_delivery    = $value['no_delivery'];
+            $id_spk_detail  = (int)$value['id_spk_detail'];
+            $qty_muat_req   = (int)$value['qty_muat'];   // dari UI (opsional)
+            $qty_aktual     = (int)$value['qty_aktual']; // benar2 dimuat
 
+            // simpan histori muatan (detail loading)
             $ArrDetail[$key]['no_loading']   = $no_loading;
             $ArrDetail[$key]['no_delivery']  = $no_delivery;
             $ArrDetail[$key]['id_spk_detail'] = $id_spk_detail;
@@ -438,60 +441,58 @@ class Loading extends Admin_Controller
             $ArrDetail[$key]['customer']     = $value['customer'];
             $ArrDetail[$key]['id_product']   = $value['id_product'];
             $ArrDetail[$key]['product']      = $value['product'];
-            $ArrDetail[$key]['qty_spk']      = $qty_aktual; // yang dimuat aktual
+            $ArrDetail[$key]['qty_muat']     = $qty_aktual;     // muat aktual utk record ini
             $ArrDetail[$key]['jumlah_berat'] = $value['jumlah_berat'];
             $ArrDetail[$key]['keterangan']   = $value['keterangan'];
 
-            if ($qty_aktual < $qty_spk) {
-                // Ambil spk_detail yang lama
-                $spk = $this->db->get_where('spk_delivery_detail', ['id' => $id_spk_detail])->row_array();
-                if (!$spk) {
-                    $this->db->trans_rollback();
-                    show_404();
-                }
-
-                $qty_spk_old = (int)$spk['qty_spk'];
-                $outstanding = max(0, $qty_spk_old - $qty_aktual);
-
-                // Update spk_delivery_detail: qty_spk jadi qty_aktual, dan qty_belum_spk bertambah outstanding
-                $qty_belum_spk_old = (int)$spk['qty_belum_spk'];
-                $qty_belum_spk_new = $qty_belum_spk_old + $outstanding;
-
-                $this->db->update(
-                    'spk_delivery_detail',
-                    ['qty_spk' => $qty_aktual, 'qty_belum_spk' => $qty_belum_spk_new],
-                    ['id' => $id_spk_detail]
-                );
-
-                // ======== SINKRONKAN KE SALES_ORDER_DETAIL ========
-                // Prefer pakai id_so_det (kalau ada di payload/spk_delivery_detail)
-                $id_so_det = !empty($value['id_so_det'])
-                    ? (int)$value['id_so_det']
-                    : (isset($spk['id_so_det']) ? (int)$spk['id_so_det'] : 0);
-
-                if ($id_so_det > 0 && $outstanding > 0) {
-                    // Kurangi qty_spk SO dan tambah qty_belum_spk SO sebesar outstanding
-                    $this->db
-                        ->set('qty_spk',       'GREATEST(qty_spk - ' . $outstanding . ', 0)', false)
-                        ->set('qty_belum_spk', 'qty_belum_spk + ' . $outstanding,           false)
-                        ->where('id', $id_so_det)
-                        ->update('sales_order_detail');
-                }
+            // ambil sisa & rencana dari spk_detail
+            $spk = $this->db->get_where('spk_delivery_detail', ['id' => $id_spk_detail])->row_array();
+            if (!$spk) {
+                $this->db->trans_rollback();
+                show_404();
             }
 
-            // Update status per SO (kalau logikamu butuh)
-            $this->updateStatusSPKByNoSO($value['no_so']);
+            $rencana     = (int)$spk['qty_spk'];          // historis rencana baris
+            $sisa_lama   = (int)$spk['qty_belum_muat'];   // sisa sebelum muat ini
 
-            // Update status SPK header
-            $this->db->update('spk_delivery', ['status' => 'LOADING'], ['no_delivery' => $no_delivery]);
+            // batasi muat aktual agar tidak melebihi sisa
+            $muat = max(0, min($qty_aktual, $sisa_lama));
+
+            // hitung sisa & akumulasi baru
+            $sisa_baru     = max(0, $sisa_lama - $muat);
+            $qty_muat_baru = $rencana - $sisa_baru;       // akumulasi total sudah dimuat
+
+            // update spk_detail (tanpa syarat/if)
+            $this->db->update(
+                'spk_delivery_detail',
+                [
+                    'qty_belum_muat' => $sisa_baru,
+                    'qty_muat'       => $qty_muat_baru
+                ],
+                ['id' => $id_spk_detail]
+            );
+
+            // catat status header untuk no_delivery ini
+            // kalau ada 1 saja yang belum penuh, status jadi PARTIAL LOADING
+            if (!isset($headerStatus[$no_delivery])) {
+                $headerStatus[$no_delivery] = ($qty_muat_baru < $rencana) ? 'PARTIAL LOADING' : 'LOADING';
+            } else {
+                if ($qty_muat_baru < $rencana) {
+                    $headerStatus[$no_delivery] = 'PARTIAL LOADING';
+                }
+            }
         }
 
-        // Header loading_delivery + detailnya
+        // header loading_delivery + detail
         $this->db->update('loading_delivery', $ArrHeader, ['no_loading' => $no_loading]);
-
         $this->db->delete('loading_delivery_detail', ['no_loading' => $no_loading]);
         if (!empty($ArrDetail)) {
             $this->db->insert_batch('loading_delivery_detail', $ArrDetail);
+        }
+
+        // set status header SPK SEKALI SAJA per no_delivery
+        foreach ($headerStatus as $nd => $st) {
+            $this->db->update('spk_delivery', ['status' => $st], ['no_delivery' => $nd]);
         }
 
         if ($this->db->trans_status() === FALSE) {
@@ -535,7 +536,7 @@ class Loading extends Admin_Controller
             $ArrDetail[$key]['customer']        = $value['customer'];
             $ArrDetail[$key]['id_product']      = $value['id_product'];
             $ArrDetail[$key]['product']         = $value['product'];
-            $ArrDetail[$key]['qty_spk']         = $value['qty_spk'];
+            $ArrDetail[$key]['qty_muat']        = $value['qty_muat'];
             $ArrDetail[$key]['jumlah_berat']    = $value['jumlah_berat'];
             $ArrDetail[$key]['keterangan']      = $value['keterangan'];
         }
@@ -606,7 +607,7 @@ class Loading extends Admin_Controller
             $ArrDetail[$key]['customer']        = $value['customer'];
             $ArrDetail[$key]['id_product']      = $value['id_product'];
             $ArrDetail[$key]['product']         = $value['product'];
-            $ArrDetail[$key]['qty_spk']         = $value['qty_spk'];
+            $ArrDetail[$key]['qty_muat']        = $value['qty_muat'];
             $ArrDetail[$key]['jumlah_berat']    = $value['jumlah_berat'];
             // $ArrDetail[$key]['keterangan']      = $value['keterangan'];
         }

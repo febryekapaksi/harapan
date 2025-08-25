@@ -105,7 +105,7 @@ class Surat_jalan extends Admin_Controller
             c.address_office AS alamat,
             p.nama AS product,
             p.weight,
-            (ld.qty_spk * p.weight) AS total_berat
+            (ld.qty_muat * p.weight) AS total_berat
         ')
             ->from('loading_delivery_detail ld')
             ->join('spk_delivery sd', 'ld.no_delivery = sd.no_delivery', 'left')

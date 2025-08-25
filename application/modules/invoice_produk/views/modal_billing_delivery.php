@@ -143,10 +143,10 @@ $tipe_billing = $results['tipe_billing'];
             <td class="text-right" colspan="6">Retensi Proporsional (<?= number_format($results['persen_retensi'], 2) ?>%)</td>
             <td class="text-right"><?= number_format($retensi_proporsional, 2) ?></td>
         </tr> -->
-        <tr>
+        <!-- <tr>
             <td class="text-right" colspan="6">Total</td>
             <td class="text-right"><?= number_format($total, 2) ?></td>
-        </tr>
+        </tr> -->
         <!-- <tr>
             <td class="text-right" colspan="6">Jaminan</td>
             <td class="text-right"><?= number_format($jaminan_proporsional, 2) ?></td>

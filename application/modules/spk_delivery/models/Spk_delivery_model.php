@@ -223,7 +223,7 @@ class Spk_delivery_model extends BF_Model
     if ($column_order !== null && isset($columns_order_by[$column_order])) {
       $this->db->order_by($columns_order_by[$column_order], $column_dir);
     } else {
-      $this->db->order_by('a.no_delivery', 'desc');
+      $this->db->order_by('a.tanggal_spk', 'desc');
     }
 
     // Pagination

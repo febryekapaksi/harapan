@@ -186,16 +186,6 @@ class Spk_delivery extends Admin_Controller
       $so_det = $this->db->get_where('sales_order_detail', ['id' => $id_so_det])->row_array();
       $qty_order = (float)$so_det['qty_order'];
 
-      // // Hitung total qty_spk sebelumnya
-      // $prev = $this->db->select_sum('qty_spk')
-      //   ->get_where('spk_delivery_detail', ['id_so_det' => $id_so_det])
-      //   ->row();
-
-      // $prev_spk = isset($prev->qty_spk) ? $prev->qty_spk : 0;
-
-      // $total_spk = $prev_spk + $qty_spk;
-      // $qty_belum_spk = max(0, $qty_order - $total_spk);
-
       // Hitung total qty_spk dari semua spk_delivery_detail untuk id_so_det
       $spk_sum = $this->db->select_sum('qty_spk')
         ->get_where('spk_delivery_detail', ['id_so_det' => $id_so_det])
@@ -214,7 +204,7 @@ class Spk_delivery extends Admin_Controller
         'qty_so'          => $qty_order,
         'qty_booking'     => $value['qty_booking'],
         'qty_spk'         => $qty_spk,
-        'qty_belum_spk'   => $qty_belum_spk
+        'qty_belum_muat'  => $qty_spk
       ];
 
       // Update qty_spk dan status_planning di sales_order_detail

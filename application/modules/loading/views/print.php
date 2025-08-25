@@ -187,7 +187,7 @@ $ENABLE_DELETE  = has_permission('Loading.Delete');
                         <td><?= $row['no_so'] ?></td>
                         <td hidden><?= $row['customer'] ?></td>
                         <td><?= $row['product'] ?></td>
-                        <td class="text-center"><?= $row['qty_spk'] ?></td>
+                        <td class="text-center"><?= $row['qty_muat'] ?></td>
                         <td class="text-center"><?= $row['jumlah_berat'] ?></td>
                         <td class="text-center"><?= isset($row['qty_aktual']) ? $row['qty_aktual'] : '' ?></td>
                         <td class="text-center"><?= isset($row['keterangan']) ? $row['keterangan'] : '' ?></td>

@@ -226,10 +226,10 @@
             <td class="text-right">PPn (12%)</td>
             <td class="text-right"><?= number_format($vat, 2) ?></td>
         </tr>
-        <tr>
+        <!-- <tr>
             <td class="text-right">Subtotal</td>
             <td class="text-right"><?= number_format($invoice->grand_total, 2) ?></td>
-        </tr>
+        </tr> -->
         <!-- <tr>
             <td colspan="3" class="text-right">Jaminan</td>
             <td class="text-right"><?= number_format($nilai_jaminan, 2) ?></td>

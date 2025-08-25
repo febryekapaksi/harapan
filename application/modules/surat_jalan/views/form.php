@@ -230,7 +230,7 @@
                                 <td>${item.no_so}</td>
                                 <td>${item.customer}</td>
                                 <td>${item.product}</td>
-                                <td>${item.qty_spk}</td>
+                                <td>${item.qty_muat}</td>
                                 <td>${parseFloat(item.jumlah_berat).toFixed(2)}</td>
                                 <td></td>
                                 <td hidden>${item.alamat}</td>
@@ -303,7 +303,7 @@
                                 <input type="text" class="form-control" name="detail[${index}][product]" value="${data.product}" readonly>
                             </td>
                             <td>
-                                <input type="text" class="form-control" name="detail[${index}][qty]" value="${data.qty_spk}" readonly>
+                                <input type="text" class="form-control" name="detail[${index}][qty]" value="${data.qty_muat}" readonly>
                             </td>
                             <td>
                                 <input type="text" class="form-control" name="detail[${index}][total_berat]" value="${parseFloat(data.total_berat).toFixed(2)}" readonly>

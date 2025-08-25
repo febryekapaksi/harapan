@@ -77,7 +77,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                         <th style="min-width: 100px;" class="text-nowrap">No SO</th>
                                         <th style="min-width: 200px;" class="text-nowrap" hidden>Customer</th>
                                         <th style="min-width: 300px;">Produk</th>
-                                        <th style="min-width: 20px;" class="text-center">Qty Muat</th>
+                                        <th style="min-width: 20px;" class="text-center">Qty Belum Muat</th>
                                         <th style="min-width: 20px;" class="text-center">Berat (Kg)</th>
                                         <?php if (isset($mode) && $mode == 'confirm_qty') { ?>
                                             <th style="min-width: 20px;" class="text-center">Qty Aktual</th>
@@ -113,7 +113,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                             <?php foreach ($rows as $row) :
                                                 $key = $row['no_so'] . '|' . $row['no_delivery'];
                                                 $isUsed = in_array($key, $usedKeys);
-                                                $weight = $row['jumlah_berat'] / $row['qty_spk'];
+                                                $weight = $row['jumlah_berat'] / $row['qty_muat'];
                                             ?>
                                                 <tr>
                                                     <td>
@@ -129,7 +129,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                                         <input type="text" class="form-control" name="detail[<?= $i ?>][product]" value="<?= $row['product'] ?>" readonly>
                                                     </td>
                                                     <td>
-                                                        <input type="number" class="form-control text-center qty-spk" name="detail[<?= $i ?>][qty_spk]" value="<?= $row['qty_spk'] ?>" readonly>
+                                                        <input type="number" class="form-control text-center qty-muat" name="detail[<?= $i ?>][qty_muat]" value="<?= $row['qty_muat'] ?>" readonly>
                                                     </td>
                                                     <td>
                                                         <input type="number" class="form-control jumlah-berat text-center" name="detail[<?= $i ?>][jumlah_berat]" value="<?= $row['jumlah_berat'] ?>" readonly>
@@ -214,7 +214,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-                <h4 class="modal-title" id="myModalLabel"><span class="fa fa-archive"></span>&nbsp;Detail Sales Order</h4>
+                <h4 class="modal-title" id="myModalLabel"><span class="fa fa-archive"></span>&nbsp;Detail SPK Delivery</h4>
             </div>
             <div class="modal-body">
                 <div class="form-group text-right">
@@ -233,7 +233,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                 <th>No SO</th>
                                 <th>Customer</th>
                                 <th>Produk</th>
-                                <th>Qty</th>
+                                <th>Qty Belum Muat</th>
                                 <th>Berat (Kg)</th>
                                 <th>Tanggal SPK</th>
                                 <th hidden></th>
@@ -370,7 +370,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                     <td>${item.no_so}</td>
                                     <td>${item.name_customer}</td>
                                     <td>${item.nama}</td>
-                                    <td>${item.qty_spk}</td>
+                                    <td>${item.qty_belum_muat}</td>
                                     <td>${item.jumlah_berat}</td>
                                     <td>${item.tanggal_spk}</td>
                                     <td hidden>${item.id}</td>
@@ -433,7 +433,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                         <input type="text" class="form-control" name="detail[${detailIndex}][product]" value="${data.nama}" readonly>
                     </td>
                     <td>
-                        <input type="number" class="form-control qty-spk" name="detail[${detailIndex}][qty_spk]" value="${data.qty_spk}" readonly>
+                        <input type="number" class="form-control qty-muat" name="detail[${detailIndex}][qty_muat]" value="${data.qty_belum_muat}" readonly>
                     </td>
                     <td>
                         <input type="number" class="form-control jumlah-berat" name="detail[${detailIndex}][jumlah_berat]" value="${data.jumlah_berat}" readonly>
@@ -912,7 +912,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
             const row = $(this).closest('tr');
 
             const qtyAktual = parseFloat($(this).val()) || 0;
-            const qtySpk = parseInt(row.find('.qty-spk').val()) || 0;
+            const qtySpk = parseInt(row.find('.qty-muat').val()) || 0;
 
             if (qtyAktual > qtySpk) {
                 swal({

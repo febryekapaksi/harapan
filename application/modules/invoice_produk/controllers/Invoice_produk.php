@@ -346,27 +346,22 @@ class Invoice_produk extends Admin_Controller
 			// }
 
 			$get_so_detail = $this->db
-				->query("
-					SELECT
-						b.product,
+				->select('
+						COALESCE(s.product, b.product) AS product,
 						b.qty_order,
-						a.qty_delivery,
+						s.qty_terkirim AS qty_delivery,
 						b.harga_beli,
 						b.price_list,
 						b.harga_penawaran,
 						b.diskon_persen,
-						b.diskon_nilai,
-						b.product
-					FROM
-						spk_delivery_detail a
-						LEFT JOIN sales_order_detail b ON b.id = a.id_so_det
-						LEFT JOIN spk_delivery c ON c.no_delivery = a.no_delivery
-					WHERE
-						a.no_so = '" . $no_so . "' AND
-						a.qty_delivery != 0 AND
-						c.no_surat_jalan = '" . $id . "'
-					GROUP BY a.id
-				")
+						b.diskon_nilai
+					')
+				->from('surat_jalan_detail s')
+				->join('sales_order_detail b', 'b.id = s.id_so_det', 'left')
+				->where('b.no_so', $no_so)
+				->where('s.no_surat_jalan', $id)
+				->where('s.qty_terkirim !=', 0)
+				->get()
 				->result();
 
 			// $persen_dp = 0;
@@ -520,20 +515,30 @@ class Invoice_produk extends Admin_Controller
 				'created_on' => date('Y-m-d H:i:s')
 			];
 
-			$insert_invoice = $this->db->insert('tr_invoice_sales', $data_insert);
 
 			$data_insert_detail = [];
 			$get_delivery_details = $this->db
-				->select('b.id_product, b.product, a.qty_delivery, d.code as uom, b.price_list, b.harga_penawaran, b.diskon_persen')
-				->from('spk_delivery_detail a')
-				->join('sales_order_detail b', 'b.no_so = a.no_so AND  b.id_product = a.id_product', 'left')
-				->join('new_inventory_4 c', 'c.code_lv4 = a.id_product', 'left')
+				->select('
+						s.id_product,
+						COALESCE(s.product, b.product) AS product,
+						s.qty_terkirim AS qty_delivery,  
+						d.code AS uom,
+						b.price_list,
+						b.harga_penawaran,
+						b.diskon_persen
+					')
+				->from('surat_jalan_detail s')
+				->join('sales_order_detail b', 'b.id = s.id_so_det', 'left')
+				->join('new_inventory_4 c', 'c.code_lv4 = s.id_product', 'left')
 				->join('ms_satuan d', 'd.id = c.id_unit', 'left')
-				->join('spk_delivery e', 'e.no_delivery = a.no_delivery', 'left')
-				->where('e.no_surat_jalan', $post['id_billing'])
-				->group_by('a.id')
+				->where('s.no_surat_jalan', $post['id_billing'])
 				->get()
 				->result();
+
+			// echo '<pre>';
+			// print_r($this->db->last_query());
+			// echo '</pre>';
+			// die();
 
 			foreach ($get_delivery_details as $item_details) {
 				$nilai_disc = (float) $item_details->diskon_persen;
@@ -557,6 +562,7 @@ class Invoice_produk extends Admin_Controller
 				];
 			}
 
+			$insert_invoice = $this->db->insert('tr_invoice_sales', $data_insert);
 			$insert_invoice_details = $this->db->insert_batch('tr_invoice_sales_detail', $data_insert_detail);
 		}
 
@@ -573,7 +579,7 @@ class Invoice_produk extends Admin_Controller
 	{
 		$tipe = $this->input->post('tipe');
 
-		$hasil = '<table class="table table-bordered datatable">';
+		$hasil = '<table class="table table-bordered datatable" data-ordering="false">';
 
 		$tipe  = $this->input->post('tipe', TRUE);
 		$start = $this->input->post('start_date', TRUE);
@@ -706,14 +712,15 @@ class Invoice_produk extends Admin_Controller
 
 			// Query + filter tanggal
 			$this->db
-				->select('sj.no_surat_jalan, sj.no_delivery, sj.no_so, c.name_customer, i.created_on')
+				->select('sj.no_surat_jalan, sj.no_delivery, sj.no_so, c.name_customer, i.created_on, sj.created_at')
 				->from('surat_jalan sj')
 				->join('tr_invoice_sales i', 'sj.no_surat_jalan = i.id_billing AND i.tipe_billing="delivery"', 'left')
 				->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
 				->join('sales_order b', 'b.no_so = sj.no_so', 'left')
 				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
 				->where('sj.status !=', 'ON DELIVER')
-				->where('sj.status IS NOT NULL');
+				->where('sj.status IS NOT NULL')
+				->order_by('sj.created_at', 'DESC', false);
 
 			// Pakai tanggal invoice jika ada, fallback ke tanggal SJ (ganti sj.created_on ke kolom tanggal SJ-mu jika berbeda)
 			if ($start && $end) {
@@ -780,10 +787,12 @@ class Invoice_produk extends Admin_Controller
 				$ppn = $dpp * 12 / 100;
 				$nominal_invoice = $excludeppn + $ppn;
 
+				$tanggal = (($item->created_on != null) ? date('d/M/Y', strtotime($item->created_on)) : '');
+
 				$hasil .= '<tr>';
 				$hasil .= '<td class="text-center">' . $item->no_surat_jalan . '</td>';
 				$hasil .= '<td class="text-center">' . $item->no_so . '</td>';
-				$hasil .= '<td class="text-center">' . date('d/M/Y', strtotime($item->created_on)) . '</td>';
+				$hasil .= '<td class="text-center">' . $tanggal . '</td>';
 				$hasil .= '<td class="text-left">' . $item->name_customer . '</td>';
 				$hasil .= '<td class="text-right">' . number_format($nominal_invoice, 2) . '</td>';
 
