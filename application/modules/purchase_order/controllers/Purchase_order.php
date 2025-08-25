@@ -2965,6 +2965,7 @@ class Purchase_order extends Admin_Controller
 		$list_supplier = $this->db->get_where('new_supplier', ['deleted_by' => null])->result();
 		$list_department = $this->db->select('id, nama')->get_where('ms_department', ['deleted_by' => null])->result();
 		// $matauang = $this->db->get_where('matauang')->result();
+
 		$data = [
 			// 'supplier' => $supplier,
 			// 'comp' => $comp,

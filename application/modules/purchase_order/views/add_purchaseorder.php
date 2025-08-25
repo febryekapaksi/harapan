@@ -115,17 +115,17 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 							</div>
 						</div>
 						<!-- <div class="col-sm-12">
-			<div class="col-sm-6">
-			<div class="form-group row">
-				<div class="col-md-4">
-					<label for="customer">Expect Date</label>
-				</div>
-				<div class="col-md-8">
-					<input type="date" class="form-control" id="expect_tanggal" required name="expect_tanggal"  >
-				</div>
-			</div>
-			</div>
-			</div> -->
+							<div class="col-sm-6">
+								<div class="form-group row">
+									<div class="col-md-4">
+										<label for="customer">Expect Date</label>
+									</div>
+									<div class="col-md-8">
+										<input type="date" class="form-control" id="expect_tanggal" required name="expect_tanggal"  >
+									</div>
+								</div>
+							</div>
+						</div> -->
 						<div class="col-sm-12">
 							<div class="col-sm-6">
 								<div class="form-group row">
@@ -188,171 +188,162 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 						</div>
 
 						<input type="hidden" class="count_all_prod" value="<?= count($results['getitemso']) ?>">
-						<div class="col-sm-12">
-							<div class="col-sm-12">
-								<div class="form-group row">
-									<div class="table-responsive">
-										<table class='table table-bordered table-striped'>
-											<thead>
-												<tr class='bg-blue'>
-													<th width='5%' class="text-center">
-														<input type="checkbox" id="select_all" checked>
-													</th>
-													<th style="min-width: 150px;">Item</th>
-													<th style="min-width: 100px;">Kode Produk</th>
-													<th>Description</th>
-													<th width='7%' hidden>Width</th>
-													<th width='7%' hidden>Length</th>
-													<th width='7%'>Qty PR</th>
-													<th width='7%'>PO Qty</th>
-													<th width='10%'>Unit Measurement</th>
-													<th width='7%'>Unit Packing</th>
-													<th width='8%' hidden>Rate LME</th>
-													<th width='7%' hidden>Alloy Price</th>
-													<th width='7%' hidden>Fab Cost</th>
-													<th width='7%'>Unit Price <br> Exclude PPN</th>
-													<th width='6%' hidden>Disc %</th>
-													<th width='6%' hidden>Biaya Kirim</th>
-													<th width='10%'>PPN</th>
-													<th width='9%'>Nilai Barang</th>
-													<th width='12%'>Nilai Discount</th>
-													<th width='7%'>Nilai PPN</th>
-													<th width='9%'>Total Barang + PPN</th>
-													<th width='8%'>Note</th>
-												</tr>
-											</thead>
-											<tbody>
-												<?php
-												// if ($results['getitemso']) {
-												$n = 1;
-												// print_r($results['getitemso']);
-												// exit;
-												$key = 0;
+					</div>
 
-												foreach ($results['getitemso'] as $value) {
+					<div class="col-sm-12" style="margin-bottom: 10px;">
+						<div class="table-responsive">
+							<table class='table table-bordered table-striped'>
+								<thead>
+									<tr class='bg-blue'>
+										<th width='5%' class="text-center">
+											<input type="checkbox" id="select_all" checked>
+										</th>
+										<th style="min-width: 200px;">Item</th>
+										<th style="min-width: 150px;">Kode Produk</th>
+										<th style="min-width: 100px;" hidden>Width</th>
+										<th style="min-width: 100px;" hidden>Length</th>
+										<th style="min-width: 100px;">Qty PR</th>
+										<th style="min-width: 100px;">PO Qty</th>
+										<th style="min-width: 100px;">Unit Measurement</th>
+										<th style="min-width: 100px;">Unit Packing</th>
+										<th style="min-width: 100px;" hidden>Rate LME</th>
+										<th style="min-width: 100px;" hidden>Alloy Price</th>
+										<th style="min-width: 100px;" hidden>Fab Cost</th>
+										<th style="min-width: 100px;">Unit Price</th>
+										<th style="min-width: 100px;" hidden>Disc %</th>
+										<th style="min-width: 100px;" hidden>Biaya Kirim</th>
+										<th style="min-width: 100px;">Nilai Barang</th>
+										<th style="min-width: 100px;">Nilai Discount</th>
+										<!-- <th style="min-width: 100px;">Nilai PPN</th> -->
+										<th style="min-width: 150px;">Total Barang</th>
+										<th style="min-width: 100px;">Note</th>
+									</tr>
+								</thead>
+								<tbody>
+									<?php
+									// if ($results['getitemso']) {
+									$n = 1;
+									// print_r($results['getitemso']);
+									// exit;
+									$key = 0;
 
-													$get_trans_po = $this->db->get_where('dt_trans_po', ['idpr' => $value->id])->num_rows();
+									foreach ($results['getitemso'] as $value) {
 
-													$get_qty_all_po = $this->db->query("SELECT IF(SUM(a.qty) IS NOT NULL, SUM(a.qty), 0) AS qty_all_po FROM dt_trans_po a WHERE a.idpr = '" . $value->id . "'")->row();
+										$get_trans_po = $this->db->get_where('dt_trans_po', ['idpr' => $value->id])->num_rows();
 
-													// echo '<tr><td>' . $value->nm_material . '</td></tr>';
+										$get_qty_all_po = $this->db->query("SELECT IF(SUM(a.qty) IS NOT NULL, SUM(a.qty), 0) AS qty_all_po FROM dt_trans_po a WHERE a.idpr = '" . $value->id . "'")->row();
 
-													$no = $n++;
-													$key++;
-													// $disabled = ($loi == 'Import') ? '' : 'readonly';
-													// $disabled2 = ($loi == 'Import') ? 'readonly' : '';
-													// $idmat = $value->idmaterial;
-													// $harga 	= $this->db->query("SELECT * FROM ms_product_pricelist WHERE id_category3 = '$idmat'")->row();
+										// echo '<tr><td>' . $value->nm_material . '</td></tr>';
 
-													// $stock = $this->db->query("SELECT * FROM stock_material WHERE id_category3 = '$idmat'")->row();
+										$no = $n++;
+										$key++;
+										// $disabled = ($loi == 'Import') ? '' : 'readonly';
+										// $disabled2 = ($loi == 'Import') ? 'readonly' : '';
+										// $idmat = $value->idmaterial;
+										// $harga 	= $this->db->query("SELECT * FROM ms_product_pricelist WHERE id_category3 = '$idmat'")->row();
 
-													// $avl 	 =	$stock->qty_free;
-													$disabled = '';
-													$po    = (!empty($value->qty)) ? $value->qty : 0;
+										// $stock = $this->db->query("SELECT * FROM stock_material WHERE id_category3 = '$idmat'")->row();
 
-													$harga_beli = (!empty($harga->harga_beli)) ? $harga->harga_beli : 0;
+										// $avl 	 =	$stock->qty_free;
+										$disabled = '';
+										$po    = (!empty($value->qty)) ? $value->qty : 0;
 
-													$total = $harga_beli * $po;
+										$harga_beli = (!empty($harga->harga_beli)) ? $harga->harga_beli : 0;
+
+										$total = $harga_beli * $po;
 
 
-													// if ($value->status_app !== 'Y') {
+										// if ($value->status_app !== 'Y') {
 
-													// $get_po = $this->db->get_where('dt_trans_po', ['idpr' => $value->id])->row();
-													// // if ($get_po->qty == null || $get_po->qty > $value->propose_purchase) {
-													// $status = "<div class='badge bg-green'>Done PO</div>";
-													// if ($get_po->qty == null || $get_po->qty > $value->propose_purchase) {
-													// 	$status = "<div class='badge bg-red'>Outstanding PO</div>";
-													// }
-													$nm_material1 = (!empty($value->nm_material1)) ? $value->nm_material1 : '';
+										// $get_po = $this->db->get_where('dt_trans_po', ['idpr' => $value->id])->row();
+										// // if ($get_po->qty == null || $get_po->qty > $value->propose_purchase) {
+										// $status = "<div class='badge bg-green'>Done PO</div>";
+										// if ($get_po->qty == null || $get_po->qty > $value->propose_purchase) {
+										// 	$status = "<div class='badge bg-red'>Outstanding PO</div>";
+										// }
+										$nm_material1 = (!empty($value->nm_material1)) ? $value->nm_material1 : '';
 
-													$no_pr = (!empty($value->no_pr)) ? $value->no_pr : '';
-													$id_material = (!empty($value->id_material)) ? $value->id_material : '';
-													$width = (!empty($value->width)) ? $value->width : 0;
-													$length = (!empty($value->length)) ? $value->length : 0;
-													$total_weight = (!empty($value->totalweight)) ? $value->totalweight : 0;
+										$no_pr = (!empty($value->no_pr)) ? $value->no_pr : '';
+										$id_material = (!empty($value->id_material)) ? $value->id_material : '';
+										$width = (!empty($value->width)) ? $value->width : 0;
+										$length = (!empty($value->length)) ? $value->length : 0;
+										$total_weight = (!empty($value->totalweight)) ? $value->totalweight : 0;
 
-													echo "
-													<tr>
-														<td class='text-center'>
-															<input type='checkbox' name='dt[" . $key . "][checked_point]' class='checked_point' data-no='" . $key . "' value='" . $key . "'  checked>
-														</td>
-													<td>  " . $value->nm_material . $nm_material1 . "
-															  <input type='hidden' class='form-control input-sm' id='dt_idpr_" . $key . "' name='dt[" . $key . "][idpr]' value='" . $value->id . "'>
-															  <input type='hidden' id='dt_tipe_pr_" . $key . "' name='dt[" . $key . "][tipe_pr]' value='" . $value->tipe_pr . "'>
-															  <input type='hidden' class='form-control input-sm' id='dt_no_pr_" . $key . "' name='dt[" . $key . "][no_pr]' value='" . $no_pr . "'>
-																<input type='hidden' class='form-control input-sm' id='dt_idmaterial_" . $key . "' name='dt[" . $key . "][idmaterial]' value='" . $id_material . "'>
-																<input type='hidden' class='form-control input-sm' id='dt_namamaterial_" . $key . "' name='dt[" . $key . "][namamaterial]' value='" . $value->nm_material . $nm_material1 . "'>
-																<input type='hidden' class='form-control input-sm' id='dt_panjang_" . $key . "' name='dt[" . $key . "][panjang]'>
-																<input type='hidden' class='form-control input-sm' id='dt_lebar_" . $key . "' name='dt[" . $key . "][lebar]'>
-								
-																<input type='hidden' class='form-control input-sm ch_diskon' id='dt_ch_diskon_" . $key . "'>
-																<input type='hidden' class='form-control input-sm ch_pajak' id='dt_ch_pajak_" . $key . "'>
-																<input type='hidden' class='form-control input-sm ch_jumlah' id='dt_ch_jumlah_" . $key . "'>
-																<input type='hidden' class='form-control input-sm ch_ppn' id='dt_ch_ppn_" . $key . "'>
-								
-															</td>
+										echo "
+												<tr>
+													<td class='text-center'>
+														<input type='checkbox' name='dt[" . $key . "][checked_point]' class='checked_point' data-no='" . $key . "' value='" . $key . "'  checked>
+													</td>
+													
+													<td>  
+													" . $value->nm_material . $nm_material1 . "
+														<input type='hidden' class='form-control input-sm' id='dt_idpr_" . $key . "' name='dt[" . $key . "][idpr]' value='" . $value->id . "'>
+														<input type='hidden' id='dt_tipe_pr_" . $key . "' name='dt[" . $key . "][tipe_pr]' value='" . $value->tipe_pr . "'>
+														<input type='hidden' class='form-control input-sm' id='dt_no_pr_" . $key . "' name='dt[" . $key . "][no_pr]' value='" . $no_pr . "'>
+														<input type='hidden' class='form-control input-sm' id='dt_idmaterial_" . $key . "' name='dt[" . $key . "][idmaterial]' value='" . $id_material . "'>
+														<input type='hidden' class='form-control input-sm' id='dt_namamaterial_" . $key . "' name='dt[" . $key . "][namamaterial]' value='" . $value->nm_material . $nm_material1 . "'>
+														<input type='hidden' class='form-control input-sm' id='dt_panjang_" . $key . "' name='dt[" . $key . "][panjang]'>
+														<input type='hidden' class='form-control input-sm' id='dt_lebar_" . $key . "' name='dt[" . $key . "][lebar]'>
+														<input type='hidden' class='form-control input-sm ch_diskon' id='dt_ch_diskon_" . $key . "'>
+														<input type='hidden' class='form-control input-sm ch_pajak' id='dt_ch_pajak_" . $key . "'>
+														<input type='hidden' class='form-control input-sm ch_jumlah' id='dt_ch_jumlah_" . $key . "'>
+														<input type='hidden' class='form-control input-sm ch_ppn' id='dt_ch_ppn_" . $key . "'>
+													</td>
 												  
-												  <td><input type='text' class='form-control input-sm' name='dt[" . $key . "][kode_barang]' id='dt_kode_barang_" . $key . "' value='" . $value->code . $value->code1 . "' readonly></td>
-												  
-													<td><input type='text' class='form-control input-sm' name='dt[" . $key . "][description]' id='dt_description_" . $key . "' value=''></td>
-												  
-												  <td><input type='text' class='form-control input-sm' id='dt_pr_" . $key . "' name='dt[" . $key . "][pr]' value='" . ($value->propose_purchase - $get_qty_all_po->qty_all_po)  . "' readonly ></td>
-												  
-													<td hidden><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][width]' id='dt_width_" . $key . "'  value='" . $width . "'></td>
+												  	<td><input type='text' class='form-control input-sm' name='dt[" . $key . "][kode_barang]' id='dt_kode_barang_" . $key . "' value='" . $value->code . $value->code1 . "' readonly></td>
+												  	<td><input type='text' class='form-control input-sm' id='dt_pr_" . $key . "' name='dt[" . $key . "][pr]' value='" . ($value->propose_purchase - $get_qty_all_po->qty_all_po)  . "' readonly ></td>
+														
+												  	<td hidden><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][width]' id='dt_width_" . $key . "'  value='" . $width . "'></td>
 													<td hidden><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][length]' id='dt_length_" . $key . "'  value='" . $length . "'></td>
-													<td><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][totalweight]' id='dt_totalweight_" . $key . "' value='" . $total_weight . "'  onkeyup='HitAmmount(" . $key . ")'>
-																		<input type='text' class='form-control input-sm' id='dt_qty_" . $key . "' name='dt[" . $key . "][qty]' value='" . ($value->propose_purchase - $get_qty_all_po->qty_all_po) . "' onkeyup='HitAmmount(" . $key . ")'>
-																
-															</td>
-															<td class='text-center'>" . ucfirst($value->unit_measure) . "</td>
-															<td class='text-center'>" . ucfirst($value->packing_unit) . ucfirst($value->packing_unit2) . "</td>
+													
+													<td>
+														<input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][totalweight]' id='dt_totalweight_" . $key . "' value='" . $total_weight . "'  onkeyup='HitAmmount(" . $key . ")'>
+														<input type='text' class='form-control input-sm auto_num' id='dt_qty_" . $key . "' name='dt[" . $key . "][qty]' value='" . ($value->propose_purchase - $get_qty_all_po->qty_all_po) . "' onkeyup='HitAmmount(" . $key . ")'>
+													</td>
+													<td class='text-center'>" . ucfirst($value->unit_measure) . "</td>
+													<td class='text-center'>" . ucfirst($value->packing_unit) . ucfirst($value->packing_unit2) . "</td>
+													
 													<td hidden>
-																<select class='form-control input-sm' id='dt_ratelme_" . $key . "' name='dt[" . $key . "][ratelme]' onchange='CariPrice(" . $key . ")'>
-																	<option value=''>-Pilih-</option>
-																	<option value='Hari Ini'>Hari ini</option>
-																	<option value='H-10'>H-10</option>
-																	<option value='H-30'>H-30</option>
-																</select>
-															</td>
-													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_alloyprice_" . $key . "' " . $disabled . " data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' name='dt[" . $key . "][alloyprice]' onkeyup='HitAmmount(" . $key . ")'></td>
-													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_fabcost_" . $key . "' " . $disabled . " name='dt[" . $key . "][fabcost]' onkeyup='HitAmmount(" . $key . ")'></td>
-													<td><input type='text' class='form-control input-sm autoNumeric3' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ")' value=''></td>
-												  <td>
-														<select class='form-control input-sm' id='dt_ppn_" . $key . "' name='dt[" . $key . "][ppn]' onchange='CariPPN(" . $key . ")'>
-															<option value=''>SELECT</option>
-															<option value='Y'>Y</option>
-															<option value='N'>N</option>
+														<select class='form-control input-sm' id='dt_ratelme_" . $key . "' name='dt[" . $key . "][ratelme]' onchange='CariPrice(" . $key . ")'>
+															<option value=''>-Pilih-</option>
+															<option value='Hari Ini'>Hari ini</option>
+															<option value='H-10'>H-10</option>
+															<option value='H-30'>H-30</option>
 														</select>
 													</td>
+													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_alloyprice_" . $key . "' " . $disabled . " data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' name='dt[" . $key . "][alloyprice]' onkeyup='HitAmmount(" . $key . ")'></td>
+													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_fabcost_" . $key . "' " . $disabled . " name='dt[" . $key . "][fabcost]' onkeyup='HitAmmount(" . $key . ")'></td>
+													
+													<td><input type='text' class='form-control input-sm auto_num' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ")' value=''></td>
+													
 													<td hidden><input type='text' class='form-control input-sm autoNumeric pajak' id='dt_pajak_" . $key . "' name='dt[" . $key . "][pajak]' onkeyup='HitAmmount(" . $key . ")'></td>
 													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_diskon_" . $key . "' " . $disabled . " name='dt[" . $key . "][diskon]' onkeyup='HitAmmount(" . $key . ")'></td>
 												
-												  <td><input type='text' class='form-control input-sm ch_jumlah_ex' id='dt_jumlahharga_" . $key . "' readonly name='dt[" . $key . "][jumlahharga]' value='" . $total . "'></td>
+												  	<td><input type='text' class='form-control input-sm ch_jumlah_ex' id='dt_jumlahharga_" . $key . "' readonly name='dt[" . $key . "][jumlahharga]' value='" . $total . "'></td>
 													<td>
-														<input type='text' name='dt[" . $key . "][disc_persen]' class='form-control form-control-sm auto_num disc_persen' id='disc_persen_" . $key . "' placeholder='Discount (%)' data-key='" . $key . "'>
-														<br>
-														<input type='text' name='dt[" . $key . "][disc_num]' class='form-control form-control-sm auto_num disc_num' id='disc_num_" . $key . "' data-key='" . $key . "' placeholder='- Discount ($) -'>
+														<div class='input-group input-group-sm' style='margin-bottom:6px;'>
+															<input type='text' name='dt[" . $key . "][disc_persen]' class='form-control input-sm auto_num disc_persen'
+																id='disc_persen_" . $key . "' data-key='" . $key . "'>
+															<span class='input-group-addon'>%</span>
+														</div>
+														<div class='input-group input-group-sm'>
+															<span class='input-group-addon'>$</span>
+															<input type='text' name='dt[" . $key . "][disc_num]' class='form-control input-sm auto_num disc_num'
+																id='disc_num_" . $key . "' data-key='" . $key . "'>
+														</div>
 													</td>
-													<td><input type='text' class='form-control auto_num input-sm ch_ppn cng_nilai_ppn' id='dt_nilai_ppn_" . $key . "' name='dt[" . $key . "][nilai_ppn]' data-key='" . $key . "' placeholder='Nilai PPN' readonly>
-													<input type='text' class='form-control input-sm ch_per_ppn cng_persen_ppn' id='dt_persen_ppn_" . $key . "' name='dt[" . $key . "][persen_ppn]' data-key='" . $key . "' placeholder='Persen PPN' readonly></td>
+													
 													<td><input type='text' class='form-control input-sm ch_jumlah_ex2' id='dt_totalharga_" . $key . "' readonly name='dt[" . $key . "][totalharga]' value='" . $total . "'></td>
 													<td><input type='text' class='form-control input-sm' id='dt_note_" . $key . "' name='dt[" . $key . "][note]'></td>
-											 </tr>
+											 	</tr>
 													";
-													// }
-												}
-												// }
-
-												?>
-											</tbody>
-										</table>
-									</div>
-								</div>
-							</div>
+									}
+									?>
+								</tbody>
+							</table>
 						</div>
-
-
 					</div>
+
 					<div class="col-sm-12" hidden>
 						<div class="col-sm-6">
 							<div class="form-group row">
@@ -423,7 +414,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 									</div>
 									<div class="col-md-8" id="ForTax">
 										<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
-										<input type="text" class="form-control" id="kirim" onblur="cariTotal()" required name="kirim">
+										<input type="text" class="form-control auto_num" id="kirim" onblur="cariTotal()" required name="kirim">
 									</div>
 								</div>
 							</div>
@@ -1605,10 +1596,10 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		var persen_ppn = getNum($("#persenppn").val().split(",").join(""));
 		var ppn = getNum($("#totalppn").val().split(",").join(""));
 
-		// if (persen_disc > 0 && persen_disc !== null) {	
-		// 	var disc = parseFloat(total * persen_disc / 100);
-		// 	$("#totaldisc").val(number_format(disc, 2));
-		// }
+		if (persen_disc > 0 && persen_disc !== null) {
+			var disc = parseFloat(total * persen_disc / 100);
+			$("#totaldisc").val(number_format(disc, 2));
+		}
 
 		if (persen_ppn > 0 && persen_ppn !== null) {
 			var ppn = parseFloat((total - disc) * persen_ppn / 100);
@@ -1725,3 +1716,20 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		});
 	});
 </script>
+
+<!-- html trash -->
+
+<!-- <td><input type='text' class='form-control input-sm' name='dt[" . $key . "][description]' id='dt_description_" . $key . "' value=''></td> -->
+
+<!-- <td>
+	<select class='form-control input-sm' id='dt_ppn_" . $key . "' name='dt[" . $key . "][ppn]' onchange='CariPPN(" . $key . ")'>
+		<option value=''>SELECT</option>
+		<option value='Y'>Y</option>
+		<option value='N'>N</option>
+	</select>
+</td> -->
+
+<!-- <td>
+	<input type='text' class='form-control auto_num input-sm ch_ppn cng_nilai_ppn' id='dt_nilai_ppn_" . $key . "' name='dt[" . $key . "][nilai_ppn]' data-key='" . $key . "' placeholder='Nilai PPN' readonly>
+	<input type='text' class='form-control input-sm ch_per_ppn cng_persen_ppn' id='dt_persen_ppn_" . $key . "' name='dt[" . $key . "][persen_ppn]' data-key='" . $key . "' placeholder='Persen PPN' readonly>
+</td> -->
