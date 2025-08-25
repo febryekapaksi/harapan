@@ -97,11 +97,6 @@ class Purchase_order extends Admin_Controller
 				a.no_po DESC;
 		")->result();
 
-		echo '<pre>';
-		print_r($this->db->last_query());
-		echo '</pre>';
-		die();
-
 		$link_no_incoming = [];
 
 		foreach ($data as $item) {
