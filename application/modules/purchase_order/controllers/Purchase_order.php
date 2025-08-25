@@ -38,30 +38,69 @@ class Purchase_order extends Admin_Controller
 		$session = $this->session->userdata('app_session');
 		$this->template->page_icon('fa fa-users');
 		$data = $this->db->query("
-		SELECT 
-			a.*, 
-			b.nm_lengkap as nm_create, 
-			d.so_number,
-			f.no_pr as no_pr_material,
-			e.no_pr as no_pr_depart,
-			h.nama as nm_supplier,
-			IF(SUM(j.jumlahharga) IS NULL, 0, SUM(j.jumlahharga)) as harga_po
-		FROM 
-			tr_purchase_order as a 
-			LEFT JOIN users b ON b.id_user = a.created_by 
-			LEFT JOIN dt_trans_po c ON c.no_po = a.no_po 
-			LEFT JOIN material_planning_base_on_produksi_detail d ON d.id = c.idpr AND (c.tipe IS NULL OR c.tipe = '')
-			LEFT JOIN material_planning_base_on_produksi f ON f.so_number = d.so_number AND (c.tipe IS NULL OR c.tipe = '')
-			LEFT JOIN rutin_non_planning_detail e ON e.id = c.idpr AND c.tipe = 'pr depart'
-			LEFT JOIN rutin_non_planning_header g ON g.no_pengajuan = e.no_pengajuan
-			LEFT JOIN new_supplier h ON h.kode_supplier = a.id_suplier
-			LEFT JOIN dt_trans_po j ON j.no_po = a.no_po
-		WHERE
-			a.close_po IS NULL AND
-			(SELECT COUNT(aa.id) FROM dt_trans_po aa WHERE aa.no_po = a.no_po) > 0
-		GROUP BY a.no_po
-		ORDER BY a.no_po DESC
-	")->result();
+				SELECT
+				a.*,
+				b.nm_lengkap AS nm_create,
+				d_agg.so_numbers AS so_number,
+				f_agg.no_pr_material AS no_pr_material,
+				e_agg.no_pr_depart AS no_pr_depart,
+				h.nama AS nm_supplier,
+				COALESCE( j.harga_po, 0 ) AS harga_po 
+				FROM
+				tr_purchase_order AS a
+				LEFT JOIN users b ON b.id_user = a.created_by
+				LEFT JOIN new_supplier h ON h.kode_supplier = a.id_suplier 
+				LEFT JOIN ( SELECT no_po, SUM( jumlahharga ) AS harga_po FROM dt_trans_po GROUP BY no_po ) j ON j.no_po = a.no_po 
+				LEFT JOIN (
+					SELECT
+					c.no_po,
+					GROUP_CONCAT( DISTINCT d.so_number ORDER BY d.so_number ) AS so_numbers 
+					FROM
+					dt_trans_po c
+					JOIN material_planning_base_on_produksi_detail d ON d.id = c.idpr 
+					WHERE
+					c.tipe IS NULL 
+					OR c.tipe = '' 
+					GROUP BY
+					c.no_po 
+				) d_agg ON d_agg.no_po = a.no_po 
+				LEFT JOIN (
+					SELECT
+					c.no_po,
+					GROUP_CONCAT( DISTINCT f.no_pr ORDER BY f.no_pr ) AS no_pr_material 
+					FROM
+					dt_trans_po c
+					JOIN material_planning_base_on_produksi_detail d ON d.id = c.idpr
+					JOIN material_planning_base_on_produksi f ON f.so_number = d.so_number 
+					WHERE
+					c.tipe IS NULL 
+					OR c.tipe = '' 
+					GROUP BY
+					c.no_po 
+				) f_agg ON f_agg.no_po = a.no_po 
+				LEFT JOIN (
+					SELECT
+					c.no_po,
+					GROUP_CONCAT( DISTINCT e.no_pr ORDER BY e.no_pr ) AS no_pr_depart 
+					FROM
+					dt_trans_po c
+					JOIN rutin_non_planning_detail e ON e.id = c.idpr 
+					WHERE
+					c.tipe = 'pr depart' 
+					GROUP BY
+					c.no_po 
+				) e_agg ON e_agg.no_po = a.no_po 
+				WHERE
+				a.close_po IS NULL 
+				AND EXISTS ( SELECT 1 FROM dt_trans_po aa WHERE aa.no_po = a.no_po ) 
+				ORDER BY
+				a.no_po DESC;
+		")->result();
+
+		echo '<pre>';
+		print_r($this->db->last_query());
+		echo '</pre>';
+		die();
 
 		$link_no_incoming = [];
 
