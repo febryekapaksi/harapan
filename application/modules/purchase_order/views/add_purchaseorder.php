@@ -209,11 +209,11 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<th style="min-width: 100px;" hidden>Rate LME</th>
 										<th style="min-width: 100px;" hidden>Alloy Price</th>
 										<th style="min-width: 100px;" hidden>Fab Cost</th>
-										<th style="min-width: 100px;">Unit Price</th>
+										<th style="min-width: 150px;">Unit Price</th>
 										<th style="min-width: 100px;" hidden>Disc %</th>
 										<th style="min-width: 100px;" hidden>Biaya Kirim</th>
-										<th style="min-width: 100px;">Nilai Barang</th>
-										<th style="min-width: 100px;">Nilai Discount</th>
+										<th style="min-width: 150px;">Nilai Barang</th>
+										<th style="min-width: 150px;">Nilai Discount</th>
 										<!-- <th style="min-width: 100px;">Nilai PPN</th> -->
 										<th style="min-width: 150px;">Total Barang</th>
 										<th style="min-width: 100px;">Note</th>
@@ -289,6 +289,19 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 														<input type='hidden' class='form-control input-sm ch_jumlah' id='dt_ch_jumlah_" . $key . "'>
 														<input type='hidden' class='form-control input-sm ch_ppn' id='dt_ch_ppn_" . $key . "'>
 													</td>
+
+													<td hidden>
+														<select class='form-control input-sm' id='dt_ppn_" . $key . "' name='dt[" . $key . "][ppn]' onchange='CariPPN(" . $key . ")'>
+															<option value=''>SELECT</option>
+															<option value='Y'>Y</option>
+															<option value='N'>N</option>
+														</select>
+													</td>
+
+													<td hidden>
+														<input type='text' class='form-control auto_num input-sm ch_ppn cng_nilai_ppn' id='dt_nilai_ppn_" . $key . "' name='dt[" . $key . "][nilai_ppn]' data-key='" . $key . "' placeholder='Nilai PPN' readonly>
+														<input type='text' class='form-control input-sm ch_per_ppn cng_persen_ppn' id='dt_persen_ppn_" . $key . "' name='dt[" . $key . "][persen_ppn]' data-key='" . $key . "' placeholder='Persen PPN' readonly>
+													</td>
 												  
 												  	<td><input type='text' class='form-control input-sm' name='dt[" . $key . "][kode_barang]' id='dt_kode_barang_" . $key . "' value='" . $value->code . $value->code1 . "' readonly></td>
 												  	<td><input type='text' class='form-control input-sm' id='dt_pr_" . $key . "' name='dt[" . $key . "][pr]' value='" . ($value->propose_purchase - $get_qty_all_po->qty_all_po)  . "' readonly ></td>
@@ -314,12 +327,12 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_alloyprice_" . $key . "' " . $disabled . " data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' name='dt[" . $key . "][alloyprice]' onkeyup='HitAmmount(" . $key . ")'></td>
 													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_fabcost_" . $key . "' " . $disabled . " name='dt[" . $key . "][fabcost]' onkeyup='HitAmmount(" . $key . ")'></td>
 													
-													<td><input type='text' class='form-control input-sm auto_num' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ")' value=''></td>
+													<td><input type='text' class='form-control input-sm text-right auto_num' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ")' value=''></td>
 													
 													<td hidden><input type='text' class='form-control input-sm autoNumeric pajak' id='dt_pajak_" . $key . "' name='dt[" . $key . "][pajak]' onkeyup='HitAmmount(" . $key . ")'></td>
 													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_diskon_" . $key . "' " . $disabled . " name='dt[" . $key . "][diskon]' onkeyup='HitAmmount(" . $key . ")'></td>
 												
-												  	<td><input type='text' class='form-control input-sm ch_jumlah_ex' id='dt_jumlahharga_" . $key . "' readonly name='dt[" . $key . "][jumlahharga]' value='" . $total . "'></td>
+												  	<td><input type='text' class='form-control input-sm text-right ch_jumlah_ex' id='dt_jumlahharga_" . $key . "' readonly name='dt[" . $key . "][jumlahharga]' value='" . $total . "'></td>
 													<td>
 														<div class='input-group input-group-sm' style='margin-bottom:6px;'>
 															<input type='text' name='dt[" . $key . "][disc_persen]' class='form-control input-sm auto_num disc_persen'
@@ -333,7 +346,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 														</div>
 													</td>
 													
-													<td><input type='text' class='form-control input-sm ch_jumlah_ex2' id='dt_totalharga_" . $key . "' readonly name='dt[" . $key . "][totalharga]' value='" . $total . "'></td>
+													<td><input type='text' class='form-control input-sm text-right ch_jumlah_ex2' id='dt_totalharga_" . $key . "' readonly name='dt[" . $key . "][totalharga]' value='" . $total . "'></td>
 													<td><input type='text' class='form-control input-sm' id='dt_note_" . $key . "' name='dt[" . $key . "][note]'></td>
 											 	</tr>
 													";
@@ -1720,16 +1733,3 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 <!-- html trash -->
 
 <!-- <td><input type='text' class='form-control input-sm' name='dt[" . $key . "][description]' id='dt_description_" . $key . "' value=''></td> -->
-
-<!-- <td>
-	<select class='form-control input-sm' id='dt_ppn_" . $key . "' name='dt[" . $key . "][ppn]' onchange='CariPPN(" . $key . ")'>
-		<option value=''>SELECT</option>
-		<option value='Y'>Y</option>
-		<option value='N'>N</option>
-	</select>
-</td> -->
-
-<!-- <td>
-	<input type='text' class='form-control auto_num input-sm ch_ppn cng_nilai_ppn' id='dt_nilai_ppn_" . $key . "' name='dt[" . $key . "][nilai_ppn]' data-key='" . $key . "' placeholder='Nilai PPN' readonly>
-	<input type='text' class='form-control input-sm ch_per_ppn cng_persen_ppn' id='dt_persen_ppn_" . $key . "' name='dt[" . $key . "][persen_ppn]' data-key='" . $key . "' placeholder='Persen PPN' readonly>
-</td> -->

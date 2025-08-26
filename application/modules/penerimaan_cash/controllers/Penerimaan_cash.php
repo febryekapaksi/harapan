@@ -6,10 +6,10 @@ use Dompdf\Dompdf;
 class Penerimaan_cash extends Admin_Controller
 {
 
-	protected $viewPermission   = 'Penerimaan_Uang.View';
-	protected $addPermission    = 'Penerimaan_Uang.Add';
-	protected $managePermission = 'Penerimaan_Uang.Manage';
-	protected $deletePermission = 'Penerimaan_Uang.Delete';
+	protected $viewPermission   = 'Penerimaan_Uang_Cash.View';
+	protected $addPermission    = 'Penerimaan_Uang_Cash.Add';
+	protected $managePermission = 'Penerimaan_Uang_Cash.Manage';
+	protected $deletePermission = 'Penerimaan_Uang_Cash.Delete';
 
 	public function __construct()
 	{

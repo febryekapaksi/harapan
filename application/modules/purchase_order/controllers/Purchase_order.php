@@ -2856,10 +2856,7 @@ class Purchase_order extends Admin_Controller
 
 
 		$data = $this->Pr_model->cariPurchaserequest($filter_status);
-		// echo '<pre>';
-		// print_r($data);
-		// echo '</pre>';
-		// die();
+
 
 		$this->template->set('results', $data);
 		if ($filter_status !== null) {
