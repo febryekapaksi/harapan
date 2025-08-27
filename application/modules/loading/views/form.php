@@ -12,8 +12,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
             <input type="hidden" name="id_loading" value="<?= isset($loading['no_loading']) ? $loading['no_loading'] : '' ?>">
             <div class="col-md-12">
                 <div class="row">
-                    <div class="col-md-6">
-                        <!-- Pengiriman  -->
+                    <!-- <div class="col-md-6">
                         <div class="form-group row">
                             <div class="col-md-4">
                                 <label>Pengiriman</label>
@@ -25,12 +24,11 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                     <option value="Pabrik" <?= (isset($loading['pengiriman']) && $loading['pengiriman'] == "Pabrik") ? 'selected' : '' ?>>Pabrik</option>
                                 </select>
                                 <?php if ($isConfirm || $isConfirmBerat): ?>
-                                    <!-- Hidden input untuk tetap mengirimkan value saat disabled -->
                                     <input type="hidden" name="pengiriman" value="<?= isset($loading['pengiriman']) ? $loading['pengiriman'] : '' ?>">
                                 <?php endif; ?>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="col-md-6">
                         <!-- Kendaraan -->
                         <div class="form-group row">
@@ -51,7 +49,8 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                 <?php endif; ?>
                             </div>
                         </div>
-
+                    </div>
+                    <div class="col-md-6">
                         <!-- Tanggal Muat -->
                         <div class="form-group row">
                             <div class="col-md-4">
@@ -306,17 +305,18 @@ $isApproval = (isset($mode) && $mode == 'approval');
 
         // Tombol Pilih SPK
         $('#selectSpk').on('click', function() {
-            const pengiriman = $('#pengiriman').val();
+            // const pengiriman = $('#pengiriman').val();
             const kendaraan = $('#selectKendaraan').val();
-            if (!pengiriman) {
+            const tanggal = $('#tanggal_muat').val();
+            if (!tanggal) {
                 swal({
                     title: "Error Message !",
-                    text: 'Silahkan Pilih Opsi Pengiriman terlebih dahulu..',
+                    text: 'Silahkan Tentukan Tanggal Muat terlebih dahulu..',
                     type: "warning",
                     timer: 7000,
                     showCancelButton: false,
                     showConfirmButton: false,
-                    allowOutsideClick: false
+                    allowOutsideClick: true
                 });
                 return;
             }
@@ -328,7 +328,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                     timer: 7000,
                     showCancelButton: false,
                     showConfirmButton: false,
-                    allowOutsideClick: false
+                    allowOutsideClick: true
                 });
                 return;
             }
@@ -344,9 +344,6 @@ $isApproval = (isset($mode) && $mode == 'approval');
             $.ajax({
                 url: siteurl + 'loading/get_spk',
                 type: 'GET',
-                data: {
-                    pengiriman
-                },
                 success: function(res) {
                     const data = JSON.parse(res);
                     let html = '';

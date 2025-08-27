@@ -63,6 +63,7 @@ class Surat_jalan extends Admin_Controller
                 SELECT l.no_loading, l.nopol, l.tanggal_muat
                 FROM loading_delivery l
                 WHERE l.status = 3
+                AND l.pengiriman = 'Gudang'
                 AND EXISTS (
                     SELECT 1
                     FROM loading_delivery_detail ld

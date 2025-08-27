@@ -80,11 +80,11 @@
                                     <tr class="bg-info">
                                         <th colspan="2" class="text-right">TOTAL</th>
                                         <th>
-                                            <input type="text" name="total_invoice" class="form-control moneyFormat text-right" id="totalInvoice" readonly>
+                                            <input type="text" name="total_invoice" class="form-control auto_num text-right" id="totalInvoice" readonly>
                                         </th>
                                         <th></th>
                                         <th>
-                                            <input type="text" name="total_terima" class="form-control moneyFormat text-right" id="totalTerima">
+                                            <input type="text" name="total_terima" class="form-control auto_num text-right" onchange="updateInvoiceTotals()" id="totalTerima">
                                         </th>
                                         <th></th>
                                     </tr>
@@ -173,11 +173,13 @@
     </div>
 </div>
 
-<script src="<?= base_url('assets/plugins/jquery-inputmask/jquery.inputmask.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
+<script src="<?= base_url('assets/js/autoNumeric.js') ?>"></script>
 
 <script>
     $(document).ready(function() {
+        $('.auto_num').autoNumeric('init');
+
         let selectedIds = [];
         let selectedInvoices = [];
         let selectedInvoiceIds = [];
@@ -185,9 +187,6 @@
         $('.select2').select2({
             width: '100%'
         });
-
-        moneyFormat('.moneyFormat');
-
 
         $(document).on('input', 'input[name="total_bayar[]"]', function() {
             updateInvoiceTotals();
@@ -345,13 +344,13 @@
                         <td>${inv.id_invoice}</td>
 
                         <td>
-                            <input type="text" name="detail[${rowIndex}][tagihan]" class="form-control text-right tagihan moneyFormat" value="${nominal}" readonly />
+                            <input type="text" name="detail[${rowIndex}][tagihan]" class="form-control text-right tagihan auto_num" value="${nominal}" readonly />
                         </td>
                         <td>
-                            <input type="text" name="detail[${rowIndex}][sisa_invoice]" class="form-control text-right sisa_invoice moneyFormat" value="${nominal}" readonly/>
+                            <input type="text" name="detail[${rowIndex}][sisa_invoice]" class="form-control text-right sisa_invoice auto_num" value="${nominal}" readonly/>
                         </td>
                         <td>
-                            <input type="text" name="detail[${rowIndex}][total_bayar]" class="form-control text-right total_bayar moneyFormat" value="${nominal}" readonly/>
+                            <input type="text" name="detail[${rowIndex}][total_bayar]" class="form-control text-right total_bayar auto_num" value="${nominal}" readonly/>
                         </td>
                         <td class="text-center">
                             <button class="btn btn-danger btn-sm btn-remove"><i class="fa fa-trash"></i></button>
@@ -363,9 +362,8 @@
                     </tr>
                 `);
             });
-
+            $('.auto_num').autoNumeric('init');
             $('#ModalInv').modal('hide');
-            moneyFormat('.moneyFormat');
             updateInvoiceTotals();
         });
 
@@ -489,10 +487,10 @@
 
         // update total invoice ketika input total terima
         $('#totalTerima').on('input', function() {
+            console.log('input terima');
             updateInvoiceTotals();
         });
-    })
-
+    });
 
     let otpCountdown;
     let otpSeconds = 60;
@@ -530,12 +528,16 @@
 
     function updateInvoiceTotals() {
         let totalInvoice = 0;
-        let sisaBayar = parseFloat($('#totalTerima').val().replace(/,/g, '')) || 0;
+        let sisaBayar = getNum($('#totalTerima').val().split(',').join(''));
 
         $('#tableInv tbody tr').each(function() {
-            const tagihan = parseFloat($(this).find('.tagihan').val().replace(/,/g, '')) || 0;
+            const $tr = $(this);
+
+            // total invoice per baris
+            const tagihan = getNum($tr.find('.tagihan').val().split(',').join(''));
             totalInvoice += tagihan;
 
+            // alokasi pembayaran
             let bayar = 0;
             if (sisaBayar >= tagihan) {
                 bayar = tagihan;
@@ -545,39 +547,46 @@
                 sisaBayar = 0;
             }
 
-            const sisa = tagihan - bayar;
+            const sisa = Math.max(0, tagihan - bayar);
 
-            // Update input Total Bayar
-            $(this).find('.total_bayar').val(bayar.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }));
+            console.log(sisa)
 
-            // Update kolom Sisa Invoice
-            $(this).find('.sisa_invoice').val(sisa.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            }));
+            // tulis kembali dengan number_format (2 desimal)
+            $tr.find('.total_bayar').val(number_format(bayar, 2));
+            $tr.find('.sisa_invoice').val(number_format(sisa, 2));
         });
 
-        $('#totalInvoice').val(totalInvoice.toLocaleString());
+        $('#totalInvoice').val(number_format(totalInvoice, 2));
     }
 
+    function number_format(number, decimals, dec_point, thousands_sep) {
+        // Strip all characters but numerical ones.
+        number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
+        var n = !isFinite(+number) ? 0 : +number,
+            prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+            sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+            dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+            s = '',
+            toFixedFix = function(n, prec) {
+                var k = Math.pow(10, prec);
+                return '' + Math.round(n * k) / k;
+            };
+        // Fix for IE parseFloat(0.55).toFixed(0) = 0;
+        s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+        if (s[0].length > 3) {
+            s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+        }
+        if ((s[1] || '').length < prec) {
+            s[1] = s[1] || '';
+            s[1] += new Array(prec - s[1].length + 1).join('0');
+        }
+        return s.join(dec);
+    }
 
-
-    function moneyFormat(e) {
-        $(e).inputmask({
-            alias: "decimal",
-            digits: 2,
-            radixPoint: ".",
-            autoGroup: true,
-            placeholder: "0",
-            rightAlign: false,
-            allowMinus: false,
-            integerDigits: 13,
-            groupSeparator: ",",
-            digitsOptional: false,
-            showMaskOnHover: true,
-        })
+    function getNum(val) {
+        if (isNaN(val) || val == '') {
+            return 0;
+        }
+        return parseFloat(val);
     }
 </script>

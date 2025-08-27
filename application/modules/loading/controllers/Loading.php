@@ -295,7 +295,7 @@ class Loading extends Admin_Controller
 
     public function get_spk()
     {
-        $pengiriman = $this->input->get('pengiriman', TRUE);
+        // $pengiriman = $this->input->get('pengiriman', TRUE);
 
         $data = $this->db
             ->select('
@@ -317,7 +317,7 @@ class Loading extends Admin_Controller
             ->join('master_customers c', 'c.id_customer = s.id_customer')
             ->join('new_inventory_4 p', 'p.code_lv4 = d.id_product')
             ->join('loading_delivery_detail l', 'l.id_spk_detail = d.id', 'left') // per item, bukan per delivery
-            ->where('s.pengiriman', $pengiriman)
+            ->where('s.pengiriman', "Gudang")
             ->where('d.qty_belum_muat >', 0)
             ->order_by('s.no_delivery')
             ->get()

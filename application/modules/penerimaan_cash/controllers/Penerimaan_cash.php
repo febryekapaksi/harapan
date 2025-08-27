@@ -128,6 +128,7 @@ class Penerimaan_cash extends Admin_Controller
 			'created_on' => date('Y-m-d H:i:s'),
 			'tipe_bayar' => "CASH"
 		];
+
 		$this->db->insert('tr_invoice_payment', $header);
 
 		// Simpan detail
