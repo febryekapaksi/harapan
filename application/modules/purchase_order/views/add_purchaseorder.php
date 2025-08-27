@@ -37,7 +37,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="id_customer">Local / Import</label>
 									</div>
 									<div class="col-md-8" id="ubahloi">
-										<select id="loi" name="loi" class="form-control select" onchange="get_kurs()" required>
+										<select id="loi" name="loi" class="form-control" onchange="get_kurs()" required>
 											<option value="">--Pilih--</option>
 											<option value="Import">Import</option>
 											<option value="Lokal">Lokal</option>
@@ -51,7 +51,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="id_customer">Department</label>
 									</div>
 									<div class="col-md-8" id="ubahloi">
-										<select id="select_department" name="dept[]" class="form-control select2" multiple required>
+										<select id="select_department" name="dept[]" class="form-control " multiple required>
 											<?php
 											foreach ($results['list_department'] as $item) {
 												echo '<option value="' . $item->id . '">' . strtoupper($item->nama) . '</option>';
@@ -80,7 +80,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="customer">Delivery Date</label>
 									</div>
 									<div class="col-md-8">
-										<input type="date" name="delivery_date" id="" class="form-control delivery_date">
+										<input type="text" name="delivery_date" id="" class="form-control datepicker delivery_date">
 									</div>
 								</div>
 							</div>
@@ -102,7 +102,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="id_customer">Currency</label>
 									</div>
 									<div class="col-md-8">
-										<select id="select_curr" name="matauang" class='form-control input-md' required>
+										<select id="select_curr" name="matauang" class="form-control" required>
 											<option value="">- Currency -</option>
 											<?php foreach ($results['mata_uang'] as $mata_uang) {
 												$selected = '';
@@ -143,7 +143,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="id_customer">Supplier</label>
 									</div>
 									<div class="col-md-8">
-										<select id="supplier" name="supplier" class='form-control input-md' required>
+										<select id="supplier" name="supplier" class="form-control" required>
 											<option value="">- Supplier -</option>
 											<?php foreach ($results['list_supplier'] as $supplier) {
 												$selected = '';
@@ -202,20 +202,20 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<th style="min-width: 150px;">Kode Produk</th>
 										<th style="min-width: 100px;" hidden>Width</th>
 										<th style="min-width: 100px;" hidden>Length</th>
-										<th style="min-width: 100px;">Qty PR</th>
-										<th style="min-width: 100px;">PO Qty</th>
+										<th style="min-width: 75px;">Qty PR</th>
+										<th style="min-width: 75px;">PO Qty</th>
 										<th style="min-width: 100px;">Unit Measurement</th>
-										<th style="min-width: 100px;">Unit Packing</th>
+										<th style="min-width: 75px;">Unit Packing</th>
 										<th style="min-width: 100px;" hidden>Rate LME</th>
 										<th style="min-width: 100px;" hidden>Alloy Price</th>
 										<th style="min-width: 100px;" hidden>Fab Cost</th>
-										<th style="min-width: 150px;">Unit Price</th>
+										<th style="min-width: 150px;">Harga Satuan</th>
 										<th style="min-width: 100px;" hidden>Disc %</th>
 										<th style="min-width: 100px;" hidden>Biaya Kirim</th>
-										<th style="min-width: 150px;">Nilai Barang</th>
+										<th style="min-width: 150px;">Total Harga</th>
 										<th style="min-width: 150px;">Nilai Discount</th>
 										<!-- <th style="min-width: 100px;">Nilai PPN</th> -->
-										<th style="min-width: 150px;">Total Barang</th>
+										<th style="min-width: 150px;">Sub Total</th>
 										<th style="min-width: 100px;">Note</th>
 									</tr>
 								</thead>
@@ -297,21 +297,16 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 															<option value='N'>N</option>
 														</select>
 													</td>
-
-													<td hidden>
-														<input type='text' class='form-control auto_num input-sm ch_ppn cng_nilai_ppn' id='dt_nilai_ppn_" . $key . "' name='dt[" . $key . "][nilai_ppn]' data-key='" . $key . "' placeholder='Nilai PPN' readonly>
-														<input type='text' class='form-control input-sm ch_per_ppn cng_persen_ppn' id='dt_persen_ppn_" . $key . "' name='dt[" . $key . "][persen_ppn]' data-key='" . $key . "' placeholder='Persen PPN' readonly>
-													</td>
 												  
 												  	<td><input type='text' class='form-control input-sm' name='dt[" . $key . "][kode_barang]' id='dt_kode_barang_" . $key . "' value='" . $value->code . $value->code1 . "' readonly></td>
-												  	<td><input type='text' class='form-control input-sm' id='dt_pr_" . $key . "' name='dt[" . $key . "][pr]' value='" . ($value->propose_purchase - $get_qty_all_po->qty_all_po)  . "' readonly ></td>
+												  	<td><input type='text' class='form-control input-sm text-center' id='dt_pr_" . $key . "' name='dt[" . $key . "][pr]' value='" . ($value->propose_purchase - $get_qty_all_po->qty_all_po)  . "' readonly ></td>
 														
 												  	<td hidden><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][width]' id='dt_width_" . $key . "'  value='" . $width . "'></td>
 													<td hidden><input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][length]' id='dt_length_" . $key . "'  value='" . $length . "'></td>
 													
 													<td>
 														<input type='hidden' class='form-control input-sm autoNumeric' name='dt[" . $key . "][totalweight]' id='dt_totalweight_" . $key . "' value='" . $total_weight . "'  onkeyup='HitAmmount(" . $key . ")'>
-														<input type='text' class='form-control input-sm auto_num' id='dt_qty_" . $key . "' name='dt[" . $key . "][qty]' value='" . ($value->propose_purchase - $get_qty_all_po->qty_all_po) . "' onkeyup='HitAmmount(" . $key . ")'>
+														<input type='text' class='form-control input-sm text-center' id='dt_qty_" . $key . "' name='dt[" . $key . "][qty]' value='" . ($value->propose_purchase - $get_qty_all_po->qty_all_po) . "' onkeyup='HitAmmount(" . $key . ")'>
 													</td>
 													<td class='text-center'>" . ucfirst($value->unit_measure) . "</td>
 													<td class='text-center'>" . ucfirst($value->packing_unit) . ucfirst($value->packing_unit2) . "</td>
@@ -336,14 +331,19 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 													<td>
 														<div class='input-group input-group-sm' style='margin-bottom:6px;'>
 															<input type='text' name='dt[" . $key . "][disc_persen]' class='form-control input-sm auto_num disc_persen'
-																id='disc_persen_" . $key . "' data-key='" . $key . "'>
+																id='disc_persen_" . $key . "' data-key='" . $key . "' placeholder='Persen Disc (%)'>
 															<span class='input-group-addon'>%</span>
 														</div>
 														<div class='input-group input-group-sm'>
-															<span class='input-group-addon'>$</span>
+															<span class='input-group-addon'>Rp</span>
 															<input type='text' name='dt[" . $key . "][disc_num]' class='form-control input-sm auto_num disc_num'
-																id='disc_num_" . $key . "' data-key='" . $key . "'>
+																id='disc_num_" . $key . "' data-key='" . $key . "' placeholder='Nilai Disc (Rp)'>
 														</div>
+													</td>
+
+													<td hidden>
+														<input type='text' class='form-control auto_num input-sm ch_ppn cng_nilai_ppn' id='dt_nilai_ppn_" . $key . "' name='dt[" . $key . "][nilai_ppn]' data-key='" . $key . "' placeholder='Nilai PPN' readonly>
+														<input type='text' class='form-control input-sm ch_per_ppn cng_persen_ppn' id='dt_persen_ppn_" . $key . "' name='dt[" . $key . "][persen_ppn]' data-key='" . $key . "' placeholder='Persen PPN' readonly>
 													</td>
 													
 													<td><input type='text' class='form-control input-sm text-right ch_jumlah_ex2' id='dt_totalharga_" . $key . "' readonly name='dt[" . $key . "][totalharga]' value='" . $total . "'></td>
@@ -353,6 +353,51 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 									}
 									?>
 								</tbody>
+								<tfoot>
+									<tr>
+										<td class="text-right" colspan="10"><b>Total</b></th>
+										<td colspan="2">
+											<input readonly type="text" class="form-control text-right" id="totalinppn" onkeyup required name="totalinppn">
+										</td>
+									</tr>
+									<tr>
+										<td class="text-right" colspan="10"><b>Diskon Khusus</b></th>
+										<td colspan="2">
+											<input type="text" class="form-control text-right auto_num" id="diskonkhusus" onblur="cariTotal()" name="diskonkhusus">
+										</td>
+									</tr>
+									<tr>
+										<td class="text-right" colspan="10"><b>Total (Exclude PPn)</b></td>
+										<td colspan="2">
+											<input readonly type="text" class="form-control text-right" id="totalexppn" onkeyup required name="totalexppn">
+										</td>
+									</tr>
+									<tr>
+										<td class="text-right" colspan="10"><b>PPn</b></td>
+										<td colspan="2">
+											<input readonly type="text" class="form-control text-right" id="ppn" onkeyup required name="ppn">
+										</td>
+									</tr>
+									<tr>
+										<td class="text-right" colspan="10"><b>Keterangan</b></td>
+										<td colspan="2">
+											<textarea name="note" id="" class="form-control"></textarea>
+										</td>
+									</tr>
+									<tr>
+										<td class="text-right" colspan="10"><b>Biaya Kirim</b></td>
+										<td colspan="2">
+											<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
+											<input type="text" class="form-control auto_num text-right" id="kirim" onblur="cariTotal()" required name="kirim">
+										</td>
+									</tr>
+									<tr>
+										<td class="text-right" colspan="10"><b>Total Order</b></td>
+										<td colspan="2">
+											<input readonly type="text" class="form-control text-right" id="subtotal" onkeyup required name="subtotal">
+										</td>
+									</tr>
+								</tfoot>
 							</table>
 						</div>
 					</div>
@@ -379,12 +424,12 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 							</div>
 						</div>
 					</div>
-					<div class="col-sm-12">
+					<div class="col-sm-12" hidden>
 						<div class="row">
 							<div class="col-sm-6">
 								<div class="form-group row">
 									<div class="col-md-4">
-										<label for="id_customer">Sub Total (Exclude PPN & Disc)</label>
+										<label for="id_customer">Sub Total Harga Satuan</label>
 									</div>
 									<div class="col-md-8" id="ForHarga">
 										<input readonly type="text" class="form-control" id="hargatotal" onkeyup required name="hargatotal">
@@ -397,28 +442,35 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="id_customer">Keterangan</label>
 									</div>
 									<div class="col-md-8" id="ForHarga">
-										<textarea name="note" id="" class="form-control"></textarea>
+										<textarea name="note" id="" class="form-control" disabled></textarea>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-sm-12">
+					<div class="col-sm-12" hidden>
 						<div class="row">
 							<div class="col-sm-6">
 								<div class="form-group row">
 									<div class="col-md-4">
-										<label for="id_customer">Total Discount</label>
+										<label for="persendisc" class="control-label">Total Discount</label>
 									</div>
-									<div class="col-md-1 text-right">
-										<span>(%)</span> <br><br>
-										<span>($)</span>
-									</div>
-									<div class="col-md-7" id="ForHarga">
-										<input type="text" class="form-control auto_num" id="persendisc" onkeyup required name="persendisc" onblur="cariTotal()" placeholder="Persen Disc (%)">
-										<input type="text" class="form-control auto_num" id="totaldisc" onkeyup required name="totaldisc" onblur="cariTotal()" placeholder="Nilai Disc">
+
+									<div class="col-md-8" id="ForHarga">
+										<!-- Persentase -->
+										<div class="input-group" style="margin-bottom:6px;">
+											<input type="text" class="form-control auto_num" id="persendisc" name="persendisc" placeholder="Persen Disc (%)" required onkeyup="cariTotal()" onblur="cariTotal()">
+											<span class="input-group-addon">%</span>
+										</div>
+
+										<!-- Nominal -->
+										<div class="input-group">
+											<span class="input-group-addon">Rp</span> <!-- atau $ -->
+											<input type="text" class="form-control auto_num text-right" id="totaldisc" name="totaldisc" placeholder="Nilai Disc" required onkeyup="cariTotal()" onblur="cariTotal()">
+										</div>
 									</div>
 								</div>
+
 							</div>
 							<div class="col-sm-6">
 								<div class="form-group row">
@@ -427,26 +479,34 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 									</div>
 									<div class="col-md-8" id="ForTax">
 										<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
-										<input type="text" class="form-control auto_num" id="kirim" onblur="cariTotal()" required name="kirim">
+										<input type="text" class="form-control auto_num" id="kirim" onblur="cariTotal()" required name="kirim" disabled>
 									</div>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div class="col-sm-12">
+					<div class="col-sm-12" hidden>
 						<div class="row">
 							<div class="col-sm-6">
 								<div class="form-group row">
 									<div class="col-md-4">
-										<label for="id_customer">Total PPN</label>
+										<label for="persenppn" class="control-label">Total PPN</label>
 									</div>
-									<div class="col-md-1 text-right">
-										<span>(%)</span> <br><br>
-										<span>($)</span>
-									</div>
-									<div class="col-md-7" id="ForHarga">
-										<input type="text" class="form-control auto_num" id="persenppn" onkeyup required name="persenppn" onblur="cariTotal()" placeholder="Persen PPN (%)">
-										<input type="text" class="form-control auto_num" id="totalppn" onkeyup required name="totalppn" onblur="cariTotal()" placeholder="Nilai PPN">
+
+									<div class="col-md-8" id="ForHarga">
+										<!-- Persentase PPN -->
+										<div class="input-group" style="margin-bottom:6px;">
+											<input type="text"
+												class="form-control auto_num" id="persenppn" name="persenppn" placeholder="Persen PPN (%)" required onkeyup="cariTotal()" onblur="cariTotal()">
+											<span class="input-group-addon">%</span>
+										</div>
+
+										<!-- Nilai PPN -->
+										<div class="input-group">
+											<span class="input-group-addon">Rp</span> <!-- atau $ -->
+											<input type="text"
+												class="form-control auto_num" id="totalppn" name="totalppn" placeholder="Nilai PPN" required onkeyup="cariTotal()" onblur="cariTotal()">
+										</div>
 									</div>
 								</div>
 							</div>
@@ -456,7 +516,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="id_customer">Total Order</label>
 									</div>
 									<div class="col-md-8" id="ForSum">
-										<input readonly type="text" class="form-control" id="subtotal" onkeyup required name="subtotal">
+										<input readonly type="text" class="form-control" id="subtotal" onkeyup required name="subtotal" disabled>
 									</div>
 								</div>
 							</div>
@@ -511,7 +571,6 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 </div>
 
 
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js" integrity="sha512-rMGGF4wg1R73ehtnxXBt5mbUfN9JUJwbk21KMlnLZDJh7BkPmeovBuddZCENJddHYYMkCh9hPFnPmS9sspki8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script type="text/javascript">
 	//$('#input-kendaraan').hide();
@@ -519,9 +578,11 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 	var active_controller = '<?php echo ($this->uri->segment(1)); ?>';
 	var num_top = getNum($('.num_top').val());
 	$(document).ready(function() {
-
 		TotalSemua()
 
+		$('.chosen-select').chosen({
+			width: "100%"
+		});
 
 		$('.auto_num').autoNumeric('init');
 
@@ -932,6 +993,23 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 		$("#totaldisc").val(number_format(disc, 2));
 		cariTotal();
+	});
+
+	$(document).on('keyup', '#diskonkhusus', function() {
+		var total = getNum($("#totalinppn").val().split(",").join(""));
+		var nilai = getNum($(this).val().split(",").join(""));
+		var selisih = total - nilai
+
+		var exppn = selisih / 1.11
+		var dpp = (exppn) * 11 / 12
+		var ppn = 12 / 100 * (dpp)
+		var subtotal = exppn + ppn
+
+		$("#totalexppn").val(number_format(exppn, 2));
+		$("#ppn").val(number_format(ppn, 2));
+		$("#subtotal").val(number_format(subtotal, 2));
+
+		cariTotal()
 	});
 
 	$(document).on('keyup', '#totaldisc', function() {
@@ -1470,9 +1548,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		$('#data_request #trmaterial_' + id).remove();
 	}
 
-	function HapusItem(id) {
-
-	}
+	function HapusItem(id) {}
 
 	function HitungHarga2(id) {
 		var dt_qty = $("#dt_qty_" + id).val();
@@ -1550,8 +1626,6 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		var nilai_ppn = parseFloat(((hargasatuan - (hargasatuan * disc_persen / 100)) * qty) * persen_ppn / 100);
 		$("#dt_nilai_ppn_" + id).val(number_format(nilai_ppn, 2));
 
-
-
 		$("#dt_jumlahharga_" + id).val(number_format(jumlah, 2));
 		$("#dt_totalharga_" + id).val(number_format(totalharga, 2));
 
@@ -1591,38 +1665,53 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 			SUM_DISC += Number($(this).val().split(",").join(""));
 		});
 
+		var exppn = SUM_JML / 1.11
+		var dpp = (exppn) * 11 / 12
+		var ppn = 12 / 100 * (dpp)
+		var subtotal = exppn + ppn
+
 		$("#hargatotal").val(number_format(SUM_JMX, 2));
 		$("#totalppn").val(number_format(SUM_PPN, 2));
 		$("#totaldisc").val(number_format(SUM_DISC, 2));
 		$("#diskontotal").val(number_format(SUM_DIS));
 		$("#taxtotal").val(number_format(SUM_PJK));
-		$("#subtotal").val(number_format(SUM_JML, 2));
-
+		// $("#subtotal").val(number_format(subtotal, 2));
+		$("#totalinppn").val(number_format(SUM_JML, 2));
+		$("#totalexppn").val(number_format(exppn, 2));
+		$("#ppn").val(number_format(ppn, 2));
 	}
 
-
 	function cariTotal() {
-		var kirim = getNum($("#kirim").val().split(",").join(""));
+		var diskonKhusus = getNum($("#diskonkhusus").val().split(",").join(""));
 		var total = getNum($("#hargatotal").val().split(",").join(""));
-		var persen_disc = getNum($("#persendisc").val().split(",").join(""));
-		var disc = getNum($("#totaldisc").val().split(",").join(""));
-		var persen_ppn = getNum($("#persenppn").val().split(",").join(""));
-		var ppn = getNum($("#totalppn").val().split(",").join(""));
+		var totalInPPn = getNum($("#totalinppn").val().split(",").join(""));
 
-		if (persen_disc > 0 && persen_disc !== null) {
-			var disc = parseFloat(total * persen_disc / 100);
-			$("#totaldisc").val(number_format(disc, 2));
-		}
+		var kirim = getNum($("#kirim").val().split(",").join(""));
+		// var persen_disc = getNum($("#persendisc").val().split(",").join(""));
+		// var disc = getNum($("#totaldisc").val().split(",").join(""));
+		// var persen_ppn = getNum($("#persenppn").val().split(",").join(""));
+		// var ppn = getNum($("#totalppn").val().split(",").join(""));
 
-		if (persen_ppn > 0 && persen_ppn !== null) {
-			var ppn = parseFloat((total - disc) * persen_ppn / 100);
-			$("#totalppn").val(number_format(ppn, 2));
-		}
+		// if (persen_disc > 0 && persen_disc !== null) {
+		// 	var disc = parseFloat(total * persen_disc / 100);
+		// 	$("#totaldisc").val(number_format(disc, 2));
+		// }
 
-		var grandtotal = kirim + total - disc + ppn;
+		// if (persen_ppn > 0 && persen_ppn !== null) {
+		// 	var ppn = parseFloat((total - disc) * persen_ppn / 100);
+		// 	$("#totalppn").val(number_format(ppn, 2));
+		// }
+
+		var base = Math.max(0, totalInPPn - diskonKhusus)
+
+		var exppn = base / 1.11
+		var dpp = (exppn) * 11 / 12
+		var ppn = 12 / 100 * (dpp)
+		var subtotal = exppn + ppn
+
+		var grandtotal = kirim + subtotal;
 		$("#kirim").val(number_format(kirim, 2));
 		$("#subtotal").val(number_format(grandtotal, 2));
-
 	}
 
 	function SumDel() {
@@ -1677,6 +1766,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		});
 
 		$("#hargatotal").val(number_format(SUM_JMX, 2));
+		$("#totalinppn").val(number_format(SUM_JMX, 2));
 		$("#diskontotal").val(number_format(SUM_DIS, 2));
 		$("#taxtotal").val(number_format(SUM_PJK, 2));
 		$("#subtotal").val(number_format(SUM_JMX, 2));
