@@ -1458,10 +1458,10 @@ class Purchase_order extends Admin_Controller
 	{
 		$this->auth->restrict($this->addPermission);
 		$post = $this->input->post();
-		echo '<pre>';
-		print_r($post);
-		echo '</pre>';
-		die();
+		// echo '<pre>';
+		// print_r($post);
+		// echo '</pre>';
+		// die();
 
 		$tgl  = $post['tanggal'];
 		$code = $this->Pr_model->generate_code($tgl);
@@ -1498,11 +1498,14 @@ class Purchase_order extends Admin_Controller
 				'note'				=> $post['note_ket'],
 				'no_pr'				=> $post['no_pr'],
 				'matauang'			=> $post['matauang'],
+				'total_include_ppn'	=> str_replace(',', '', $post['totalinppn']),
+				'total_exclude_ppn'	=> str_replace(',', '', $post['totalexppn']),
+				'diskon_khusus'		=> str_replace(',', '', $post['diskonkhusus']),
 				'hargatotal'		=> str_replace(',', '', $post['hargatotal']),
 				'diskontotal'		=> str_replace(',', '', $post['diskontotal']),
 				'taxtotal'			=> str_replace(',', '', $post['kirim']),
 				'subtotal'			=> str_replace(',', '', $post['subtotal']),
-				'total_ppn'			=> str_replace(',', '', $post['totalppn']),
+				'total_ppn'			=> str_replace(',', '', $post['ppn']),
 				'total_barang'		=> str_replace(',', '', $post['hargatotal']),
 				'status'			=> '1',
 				'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
@@ -1529,11 +1532,14 @@ class Purchase_order extends Admin_Controller
 				'note'				=> $post['note_ket'],
 				'no_pr'				=> $post['no_pr'],
 				'matauang'			=> $post['matauang'],
+				'total_include_ppn'	=> str_replace(',', '', $post['totalinppn']),
+				'total_exclude_ppn'	=> str_replace(',', '', $post['totalexppn']),
+				'diskon_khusus'		=> str_replace(',', '', $post['diskonkhusus']),
 				'hargatotal'		=> str_replace(',', '', $post['hargatotal']),
 				'diskontotal'		=> str_replace(',', '', $post['diskontotal']),
 				'taxtotal'			=> str_replace(',', '', $post['kirim']),
 				'subtotal'			=> str_replace(',', '', $post['subtotal']),
-				'total_ppn'			=> str_replace(',', '', $post['totalppn']),
+				'total_ppn'			=> str_replace(',', '', $post['ppn']),
 				'total_barang'		=> str_replace(',', '', $post['hargatotal']),
 				'status'			=> '1',
 				'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
@@ -1560,11 +1566,13 @@ class Purchase_order extends Admin_Controller
 				'note'				=> $post['note_ket'],
 				'no_pr'				=> $post['no_pr'],
 				'matauang'			=> $post['matauang'],
-				'hargatotal'		=> str_replace(',', '', $post['hargatotal']),
+				'total_include_ppn'	=> str_replace(',', '', $post['totalinppn']),
+				'total_exclude_ppn'	=> str_replace(',', '', $post['totalexppn']),
+				'diskon_khusus'		=> str_replace(',', '', $post['diskonkhusus']),
 				'diskontotal'		=> str_replace(',', '', $post['diskontotal']),
 				'taxtotal'			=> str_replace(',', '', $post['kirim']),
 				'subtotal'			=> str_replace(',', '', $post['subtotal']),
-				'total_ppn'			=> str_replace(',', '', $post['totalppn']),
+				'total_ppn'			=> str_replace(',', '', $post['ppn']),
 				'total_barang'		=> str_replace(',', '', $post['hargatotal']),
 				'status'			=> '1',
 				'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
