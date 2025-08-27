@@ -77,7 +77,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                         <th style="min-width: 100px;" class="text-nowrap">No SO</th>
                                         <th style="min-width: 200px;" class="text-nowrap" hidden>Customer</th>
                                         <th style="min-width: 300px;">Produk</th>
-                                        <th style="min-width: 20px;" class="text-center">Qty Belum Muat</th>
+                                        <th style="min-width: 20px;" class="text-center">Qty Muat</th>
                                         <th style="min-width: 20px;" class="text-center">Berat (Kg)</th>
                                         <?php if (isset($mode) && $mode == 'confirm_qty') { ?>
                                             <th style="min-width: 20px;" class="text-center">Qty Aktual</th>
