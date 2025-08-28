@@ -7,10 +7,10 @@ class App_pr_product_model extends BF_Model
     {
         parent::__construct();
 
-        $this->ENABLE_ADD     = has_permission('Approval_PR_Material.Add');
-        $this->ENABLE_MANAGE  = has_permission('Approval_PR_Material.Manage');
-        $this->ENABLE_VIEW    = has_permission('Approval_PR_Material.View');
-        $this->ENABLE_DELETE  = has_permission('Approval_PR_Material.Delete');
+        $this->ENABLE_ADD     = has_permission('Approval_PR_Product.Add');
+        $this->ENABLE_MANAGE  = has_permission('Approval_PR_Product.Manage');
+        $this->ENABLE_VIEW    = has_permission('Approval_PR_Product.View');
+        $this->ENABLE_DELETE  = has_permission('Approval_PR_Product.Delete');
     }
 
     public function get_json_data_approval()
