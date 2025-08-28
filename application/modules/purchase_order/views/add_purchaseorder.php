@@ -187,6 +187,29 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 							</div>
 						</div>
 
+						<div class="col-md-12">
+							<div class="col-sm-6">
+								<div class="form-group row">
+									<div class="col-md-4">
+										<label for="id_customer">Keterangan</label>
+									</div>
+									<div class="col-md-8">
+										<textarea name="keterangan" id="" class="form-control"></textarea>
+									</div>
+								</div>
+							</div>
+							<div class="col-sm-6">
+								<div class="form-group row">
+									<div class="col-md-4">
+										<label for="id_customer">Alamat</label>
+									</div>
+									<div class="col-md-8">
+										<textarea name="delivery_address" id="" class="form-control"></textarea>
+									</div>
+								</div>
+							</div>
+						</div>
+
 						<input type="hidden" class="count_all_prod" value="<?= count($results['getitemso']) ?>">
 					</div>
 
@@ -374,17 +397,23 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										</td>
 									</tr>
 									<tr>
+										<td class="text-right" colspan="10"><b>DPP</b></td>
+										<td colspan="2">
+											<input readonly type="text" class="form-control text-right" id="dpp" onkeyup required name="dpp">
+										</td>
+									</tr>
+									<tr>
 										<td class="text-right" colspan="10"><b>PPn</b></td>
 										<td colspan="2">
 											<input readonly type="text" class="form-control text-right" id="ppn" onkeyup required name="ppn">
 										</td>
 									</tr>
-									<tr>
+									<!-- <tr>
 										<td class="text-right" colspan="10"><b>Keterangan</b></td>
 										<td colspan="2">
 											<textarea name="note" id="" class="form-control"></textarea>
 										</td>
-									</tr>
+									</tr> -->
 									<tr>
 										<td class="text-right" colspan="10"><b>Biaya Kirim</b></td>
 										<td colspan="2">
@@ -1677,6 +1706,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		// $("#subtotal").val(number_format(subtotal, 2));
 		$("#totalinppn").val(number_format(SUM_JML, 2));
 		$("#totalexppn").val(number_format(exppn, 2));
+		$("#dpp").val(number_format(dpp, 2));
 		$("#ppn").val(number_format(ppn, 2));
 	}
 

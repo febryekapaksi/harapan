@@ -101,8 +101,8 @@
 						<th class="text-center">Konversi</th>
 						<th class="text-center">Qty Pack</th>
 						<th class="text-center">Packing</th>
-						<th class="text-center" style="min-width: 50px;">Qty NG</th>
-						<th class="text-center" style="min-width: 50px;">Qty Oke</th>
+						<th class="text-center" style="min-width: 50px;">Qty KW 2</th>
+						<th class="text-center" style="min-width: 50px;">Qty OK</th>
 						<th class="text-center" style="min-width: 50px;">Qty Pack</th>
 						<th class="text-center">Expired Date</th>
 						<th class="text-center">Document</th>
@@ -205,7 +205,7 @@
 						<th class="text-center">No.</th>
 						<th class="text-center">Material</th>
 						<th class="text-center">Qty Incoming</th>
-						<th class="text-center">Qty NG</th>
+						<th class="text-center">Qty KW 2</th>
 						<th class="text-center">Qty OK</th>
 					</tr>
 				</thead>

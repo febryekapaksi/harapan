@@ -181,16 +181,16 @@ $ENABLE_DELETE  = has_permission('List_Outstanding_PR.Delete');
 									';
 
 							if ($record->pr_non_depart == '1') {
-								echo '<td class="text-center">' . strtoupper('PR MATERIAL ' . $record->no_pr) . '</td>';
+								echo '<td>' . strtoupper('PR PRODUCT / ' . $record->no_pr) . '</td>';
 							} else if ($record->pr_asset == '1') {
-								echo '<td class="text-center">' . strtoupper('PR ASSET ' . $record->no_pr) . '</td>';
+								echo '<td>' . strtoupper('PR ASSET / ' . $record->no_pr) . '</td>';
 							} else {
-								echo '<td class="text-center">' . strtoupper('PR DEPARTMENT ' . $record->no_pr) . '</td>';
+								echo '<td>' . strtoupper('PR DEPARTMENT / ' . $record->no_pr) . '</td>';
 							}
 
 							echo '
 									<td class="text-center">' . strtoupper($record->no_pr) . '</td>
-									<td class="text-center">' . strtoupper($record->project) . '</td>
+									<td>' . strtoupper($record->project) . '</td>
 									<td class="text-center">' . ucwords(strtolower($nama_user)) . ucwords(strtolower($record->booking_by_name)) . '</td>
 									<td class="text-center">' . date('d-M-Y', strtotime($record->booking_date)) . '</td>
 									<td class="text-center">' . $status . '</td>
@@ -222,16 +222,16 @@ $ENABLE_DELETE  = has_permission('List_Outstanding_PR.Delete');
 								';
 
 						if ($record->pr_non_depart == '1') {
-							echo '<td class="text-center">' . strtoupper('PR MATERIAL ' . $record->no_pr) . '</td>';
+							echo '<td>' . strtoupper('PR PRODUCT / ' . $record->no_pr) . '</td>';
 						} else if ($record->pr_asset == '1') {
-							echo '<td class="text-center">' . strtoupper('PR ASSET ' . $record->no_pr) . '</td>';
+							echo '<td>' . strtoupper('PR ASSET / ' . $record->no_pr) . '</td>';
 						} else {
-							echo '<td class="text-center">' . strtoupper('PR DEPARTMENT ' . $record->no_pr) . '</td>';
+							echo '<td>' . strtoupper('PR DEPARTMENT / ' . $record->no_pr) . '</td>';
 						}
 
 						echo '
 								<td class="text-center">' . strtoupper($record->no_pr) . '</td>
-								<td class="text-center">' . strtoupper($record->project) . '</td>
+								<td>' . strtoupper($record->project) . '</td>
 								<td class="text-center">' . ucwords(strtolower($nama_user)) . ucwords(strtolower($record->booking_by_name)) . '</td>
 								<td class="text-center">' . date('d-M-Y', strtotime($record->booking_date)) . '</td>
 								<td class="text-center">' . $status . '</td>

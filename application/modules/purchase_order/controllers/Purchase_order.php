@@ -1512,6 +1512,7 @@ class Purchase_order extends Admin_Controller
 				'persen_disc' 		=> str_replace(',', '', $post['persendisc']),
 				'nilai_disc' 		=> str_replace(',', '', $post['totaldisc']),
 				'note' 				=> $post['note'],
+				'delivery_address' 	=> $post['delivery_address'],
 				'delivery_date' 	=> $post['delivery_date'],
 				'id_dept' 			=> $id_dept,
 				'created_on'		=> date('Y-m-d H:i:s'),
@@ -1547,6 +1548,7 @@ class Purchase_order extends Admin_Controller
 				'nilai_disc' 		=> str_replace(',', '', $post['totaldisc']),
 				'note' 				=> $post['note'],
 				'delivery_date' 	=> $post['delivery_date'],
+				'delivery_address' 	=> $post['delivery_address'],
 				'id_dept' 			=> $id_dept,
 				'created_on'		=> date('Y-m-d H:i:s'),
 				'created_by'		=> $this->auth->user_id(),
@@ -1580,6 +1582,7 @@ class Purchase_order extends Admin_Controller
 				'nilai_disc' 		=> str_replace(',', '', $post['totaldisc']),
 				'note' 				=> $post['note'],
 				'delivery_date' 	=> $post['delivery_date'],
+				'delivery_address' 	=> $post['delivery_address'],
 				'id_dept' 			=> $id_dept,
 				'created_on'		=> date('Y-m-d H:i:s'),
 				'created_by'		=> $this->auth->user_id()

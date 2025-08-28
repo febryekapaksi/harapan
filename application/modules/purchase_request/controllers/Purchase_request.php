@@ -190,7 +190,7 @@ class Purchase_request extends Admin_Controller
 				a.booking_date IS NOT NULL AND a.reject_status = 0 AND
 				(SELECT COUNT(aa.id) FROM material_planning_base_on_produksi_detail aa WHERE aa.so_number = a.so_number) > 0 AND
 				(SELECT COUNT(aa.id) FROM material_planning_base_on_produksi_detail aa WHERE aa.so_number = a.so_number AND aa.status_app = "Y") > 0 AND
-				a.category IN ("pr material", "pr stok") AND
+				a.category IN ("pr product", "pr stok") AND
 				a.metode_pembelian = "1" AND
 				a.close_pr IS NULL
 
