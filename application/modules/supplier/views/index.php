@@ -66,130 +66,142 @@ $ENABLE_DELETE  = has_permission('Master_Supplier.Delete');
 <!-- DataTables -->
 <script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
 
 <!-- page script -->
 <script type="text/javascript">
-	$(document).on('click', '.detail', function() {
-		var no_bom = $(this).data('no_bom');
-		// alert(id);
-		$("#head_title").html("<i class='fa fa-list-alt'></i><b>Detail Bill Of Material</b>");
-		$.ajax({
-			type: 'POST',
-			url: base_url + active_controller + 'detail/' + no_bom,
-			data: {
-				'no_bom': no_bom
-			},
-			success: function(data) {
-				$("#dialog-popup").modal();
-				$("#ModalView").html(data);
-
-			}
-		})
-	});
-	$(document).on('click', '.add', function() {
-		$("#head_title").html("<i class='fa fa-list-alt'></i><b>Tambah Inventory</b>");
-		$.ajax({
-			type: 'POST',
-			url: siteurl + 'inventory_1/addInventory',
-			success: function(data) {
-				$("#dialog-popup").modal();
-				$("#ModalView").html(data);
-
-			}
-		})
-	});
-
-	// FORM MODAL ADD SUPPLIER
-	$(document).on('click', '.add_supplier', function() {
-		$("#head_title").html("<i class='fa fa-list-alt'></i><b>Tambah Data</b>");
-		$.ajax({
-			type: 'POST',
-			url: siteurl + 'supplier/add',
-			success: function(data) {
-				$("#dialog-popup").modal();
-				$("#ModalView").html(data);
-			}
-		})
-	});
-
-	//FORM MODAL EDIT SUPPLIER
-	$(document).on('click', '.edit_supplier', function() {
-		const id = $(this).data('id');
-
-		$("#head_title").html("<i class='fa fa-edit'></i><b>Edit Data</b>");
-		$.ajax({
-			type: 'POST',
-			url: siteurl + 'supplier/edit',
-			data: {
-				id: id
-			}, // Kirim sebagai POST
-			success: function(data) {
-				$("#dialog-popup").modal();
-				$("#ModalView").html(data);
-			}
+	$(document).ready(function() {
+		DataTables();
+		$('.select2').select2({
+			width: '100%'
 		});
-	});
 
+		$(document).on('click', '.detail', function() {
+			var no_bom = $(this).data('no_bom');
+			// alert(id);
+			$("#head_title").html("<i class='fa fa-list-alt'></i><b>Detail Bill Of Material</b>");
+			$.ajax({
+				type: 'POST',
+				url: base_url + active_controller + 'detail/' + no_bom,
+				data: {
+					'no_bom': no_bom
+				},
+				success: function(data) {
+					$("#dialog-popup").modal();
+					$("#ModalView").html(data);
 
+				}
+			})
+		});
 
-	// DELETE DATA
-	$(document).on('click', '.delete', function(e) {
-		e.preventDefault()
-		var id = $(this).data('id');
-		// alert(id);
-		swal({
-				title: "Anda Yakin?",
-				text: "Data BOM akan di hapus !",
-				type: "warning",
-				showCancelButton: true,
-				confirmButtonClass: "btn-info",
-				confirmButtonText: "Ya, Hapus!",
-				cancelButtonText: "Batal",
-				closeOnConfirm: false
-			},
-			function() {
-				$.ajax({
-					type: 'POST',
-					url: base_url + active_controller + '/hapus',
-					dataType: "json",
-					data: {
-						'id': id
-					},
-					success: function(result) {
-						if (result.status == '1') {
-							swal({
-									title: "Sukses",
-									text: "Data berhasil dihapus.",
-									type: "success"
-								},
-								function() {
-									window.location.reload(true);
+		$(document).on('click', '.add', function() {
+			$("#head_title").html("<i class='fa fa-list-alt'></i><b>Tambah Inventory</b>");
+			$.ajax({
+				type: 'POST',
+				url: siteurl + 'inventory_1/addInventory',
+				success: function(data) {
+					$("#dialog-popup").modal();
+					$("#ModalView").html(data);
+
+				}
+			})
+		});
+
+		// FORM MODAL ADD SUPPLIER
+		$(document).on('click', '.add_supplier', function() {
+			$("#head_title").html("<i class='fa fa-list-alt'></i><b>Tambah Data</b>");
+			$.ajax({
+				type: 'POST',
+				url: siteurl + 'supplier/add',
+				success: function(data) {
+					$("#dialog-popup").modal();
+					$("#ModalView").html(data);
+					// INIT select2 di dalam modal yang baru muncul
+					$('#dialog-popup .select2').select2({
+						width: '100%',
+						dropdownParent: $('#dialog-popup')
+					});
+				}
+			})
+		});
+
+		//FORM MODAL EDIT SUPPLIER
+		$(document).on('click', '.edit_supplier', function() {
+			const id = $(this).data('id');
+
+			$("#head_title").html("<i class='fa fa-edit'></i><b>Edit Data</b>");
+			$.ajax({
+				type: 'POST',
+				url: siteurl + 'supplier/edit',
+				data: {
+					id: id
+				}, // Kirim sebagai POST
+				success: function(data) {
+					$("#dialog-popup").modal();
+					$("#ModalView").html(data);
+					// INIT select2 di dalam modal yang baru muncul
+					$('#dialog-popup .select2').select2({
+						width: '100%',
+						dropdownParent: $('#dialog-popup')
+					});
+				}
+			});
+		});
+
+		// DELETE DATA
+		$(document).on('click', '.delete', function(e) {
+			e.preventDefault()
+			var id = $(this).data('id');
+			// alert(id);
+			swal({
+					title: "Anda Yakin?",
+					text: "Data BOM akan di hapus !",
+					type: "warning",
+					showCancelButton: true,
+					confirmButtonClass: "btn-info",
+					confirmButtonText: "Ya, Hapus!",
+					cancelButtonText: "Batal",
+					closeOnConfirm: false
+				},
+				function() {
+					$.ajax({
+						type: 'POST',
+						url: base_url + active_controller + '/hapus',
+						dataType: "json",
+						data: {
+							'id': id
+						},
+						success: function(result) {
+							if (result.status == '1') {
+								swal({
+										title: "Sukses",
+										text: "Data berhasil dihapus.",
+										type: "success"
+									},
+									function() {
+										window.location.reload(true);
+									})
+							} else {
+								swal({
+									title: "Error",
+									text: "Data error. Gagal hapus data",
+									type: "error"
 								})
-						} else {
+
+							}
+						},
+						error: function() {
 							swal({
 								title: "Error",
-								text: "Data error. Gagal hapus data",
+								text: "Data error. Gagal request Ajax",
 								type: "error"
 							})
-
 						}
-					},
-					error: function() {
-						swal({
-							title: "Error",
-							text: "Data error. Gagal request Ajax",
-							type: "error"
-						})
-					}
-				})
-			});
+					})
+				});
 
+		});
 	});
-
-	$(function() {
-		DataTables();
-	});
-
 
 	function DataTables() {
 		var dataTable = $('#example1').DataTable({

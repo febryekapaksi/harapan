@@ -46,7 +46,7 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 						<label for="customer">Country</label>
 					</div>
 					<div class="col-md-8">
-						<select id="id_country" name="id_country" class="form-control select">
+						<select id="id_country" name="id_country" class="form-control select2">
 							<?php foreach ($country as $val => $value) {
 								$sel = ($value['iso3'] == $id_country) ? 'selected' : '';
 							?>
@@ -63,7 +63,7 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 						<label>Provinsi <span class="text-red">*</span></label>
 					</div>
 					<div class="col-md-8">
-						<select id="id_prov" name="id_prov" class="form-control select" onchange="get_kota()" required <?= $disabled ?>>
+						<select id="id_prov" name="id_prov" class="form-control select2" onchange="get_kota()" required <?= $disabled ?>>
 							<option value="">--Pilih--</option>
 							<?php foreach ($prov as $prov) {
 								$selected = ($id_prov == $prov->id_prov) ? 'selected' : '';
@@ -80,7 +80,7 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 						<label>Kabupaten/Kota <span class="text-red">*</span></label>
 					</div>
 					<div class="col-md-8">
-						<select id="id_kabkot" name="id_kabkot" class="form-control select" onchange="get_kec()" required <?= $disabled ?>>
+						<select id="id_kabkot" name="id_kabkot" class="form-control select2" onchange="get_kec()" required <?= $disabled ?>>
 							<option value="">--Pilih--</option>
 							<?php foreach ($kabkot as $kabkot) {
 								$selected = ($id_kabkot == $kabkot->id_kabkot) ? 'selected' : '';
@@ -97,7 +97,7 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 						<label>Kecamatan <span class="text-red">*</span></label>
 					</div>
 					<div class="col-md-8">
-						<select id="id_kec" name="id_kec" class="form-control select" required <?= $disabled ?>>
+						<select id="id_kec" name="id_kec" class="form-control select2" required <?= $disabled ?>>
 							<option value="">--Pilih--</option>
 							<?php foreach ($kec as $kec) {
 								$selected = ($id_kec == $kec->id_kec) ? 'selected' : '';
@@ -196,7 +196,7 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 						<label for="customer">Currency</label>
 					</div>
 					<div class="col-md-8">
-						<select id="id_currency" name="id_currency" class="form-control input-md chosen-select">
+						<select id="id_currency" name="id_currency" class="form-control select2">
 							<!-- <option value="0">Select Currency</option> -->
 							<?php foreach ($currency as $val => $value) {
 								$sel = ($value['kode'] == $id_currency) ? 'selected' : '';
@@ -249,7 +249,7 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 	</div>
 </form>
 
-
+<!-- <script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script> -->
 <script src="<?= base_url('assets/js/autoNumeric.js') ?>"></script>
 <style media="screen">
 	.datepicker {
@@ -263,9 +263,10 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 	var active_controller = '<?php echo ($this->uri->segment(1)); ?>';
 
 	$(document).ready(function() {
-		$('.select').select2({
-			width: '100%'
-		});
+		// $('.select2').select2({
+		// 	width: '100%'
+		// });
+
 		$(".datepicker").datepicker();
 		$(".autoNumeric4").autoNumeric('init', {
 			mDec: '4',
@@ -432,6 +433,9 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 			success: function(html) {
 				$("#id_kabkot").html(html);
 				$("#id_kec").html("<option value=''>--Pilih--</option>");
+				$('.select2').select2({
+					width: '100%'
+				});
 			}
 		});
 	}
@@ -447,6 +451,9 @@ $bank_account   = (!empty($header[0]->bank_account)) ? $header[0]->bank_account 
 			},
 			success: function(html) {
 				$("#id_kec").html(html);
+				$('.select2').select2({
+					width: '100%'
+				});
 			}
 		});
 	}
