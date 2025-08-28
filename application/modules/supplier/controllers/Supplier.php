@@ -54,7 +54,9 @@ class Supplier extends Admin_Controller
 			$kode_supplier    	= $data['kode_supplier'];
 			$nama    			= $data['nama'];
 			$id_country    		= $data['id_country'];
-			$id_provinsi    	= $data['id_provinsi'];
+			$id_prov    		= $data['id_prov'];
+			$id_kabkot    		= $data['id_kabkot'];
+			$id_kec    			= $data['id_kec'];
 			$id_currency    	= $data['id_currency'];
 			$telp    			= $data['telp'];
 			$telp2    			= $data['telp2'];
@@ -95,7 +97,6 @@ class Supplier extends Admin_Controller
 				'kode_supplier'		=> $kode_supplier,
 				'nama'			    => $nama,
 				'id_country'		=> $id_country,
-				'id_provinsi'		=> $id_provinsi,
 				'id_currency'		=> $id_currency,
 				'telp'			    => $telp,
 				'telp2'			    => $telp2,
@@ -106,9 +107,9 @@ class Supplier extends Admin_Controller
 				'contact'			=> $contact,
 				'contact_person'	=> $contact_person,
 				'tax_number'		=> $tax_number,
-				'id_prov' 			=> $data['id_prov'],
-				'id_kabkot' 		=> $data['id_kabkot'],
-				'id_kec' 			=> $data['id_kec'],
+				'id_prov' 			=> $id_prov,
+				'id_kabkot' 		=> $id_kabkot,
+				'id_kec' 			=> $id_kec,
 				'address'			=> $address,
 				'tax_address'		=> $tax_address,
 				'note'			    => $note,

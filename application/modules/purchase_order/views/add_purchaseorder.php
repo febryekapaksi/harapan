@@ -1034,7 +1034,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 				var Rows = '<tr class="top_' + num_top + '">';
 
 				Rows += '<td class="">';
-				Rows += '<select class="form-control chosen-select" name="group_top_' + num_top + '">';
+				Rows += '<select class="form-control" name="group_top_' + num_top + '">';
 				Rows += result.list_top_group;
 				Rows += '</select>';
 				Rows += '</td>';
@@ -1057,8 +1057,6 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 				Rows += '</td>';
 
 				Rows += '</tr>';
-
-
 
 
 				$('.num_top').val(num_top);
