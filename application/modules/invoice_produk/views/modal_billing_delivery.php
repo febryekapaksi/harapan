@@ -277,8 +277,8 @@ $tipe_billing = $results['tipe_billing'];
             <td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan+$grand_total_beli ?>" class="form-control" readonly />
                 <input type="text" id="total31" name="total3" value="<?= $total_tagihan+$grand_total_beli  ?>" class="form-control" readonly />
             </td>
-            <td align="right"><input type="hidden" id="total2" name="total2" value="<?= $nilai_ppn+$dpp+$grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="total41" name="total4" value="<?= $nilai_ppn+$dpp+$grand_total_beli ?>" class="form-control" readonly />
+            <td align="right"><input type="hidden" id="total2" name="total2" value="<?= $nilai_ppn+$excludeppn+$grand_total_beli ?>" class="form-control" readonly />
+                <input type="text" id="total41" name="total4" value="<?= $nilai_ppn+$excludeppn+$grand_total_beli ?>" class="form-control" readonly />
             </td>
 
         </tr>
