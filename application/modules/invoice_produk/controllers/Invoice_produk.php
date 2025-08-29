@@ -110,6 +110,7 @@ class Invoice_produk extends Admin_Controller
 					SELECT
 						sod.product,
 						sod.qty_order,
+						sod.harga_beli,
 						sjd.qty_terkirim AS qty_delivery,
 						pd.harga_penawaran,
 						pd.price_list,
@@ -502,6 +503,7 @@ class Invoice_produk extends Admin_Controller
 				'id_penawaran' => $post['id_penawaran'],
 				'id_customer' => $post['id_customer'],
 				'id_billing' => $post['id_billing'],
+				'total_harga_beli' => $post['total_harga_beli'],
 				'tipe_billing' => $post['tipe_billing'],
 				'nilai_dpp' => $post['nilai_dpp'],
 				'nilai_asli' => $post['nilai_asli'],

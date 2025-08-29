@@ -73,6 +73,7 @@ $tipe_billing = $results['tipe_billing'];
         <?php
         $no = 1;
         $subtotal = 0;
+        $grand_total_beli = 0;
         foreach ($results['list_so_detail'] as $item_detail) {
 
             $nilai_disc = (float) $item_detail->diskon_persen;
@@ -88,8 +89,9 @@ $tipe_billing = $results['tipe_billing'];
             echo '<td class="text-right">' . 0 . '</td>';
             echo '<td class="text-right">' . number_format($total_harga, 2) . '</td>';
             echo '</tr>';
-
+            $total_harga_beli = $item_detail->harga_beli * $item_detail->qty_delivery;
             $subtotal += $total_harga;
+            $grand_total_beli += $total_harga_beli;
             $no++;
         }
         ?>
@@ -157,6 +159,7 @@ $tipe_billing = $results['tipe_billing'];
         </tr>
     </tbody>
 </table>
+<input type="hidden" class="total_harga_beli" name="total_harga_beli" value="<?= $grand_total_beli ?>">
 <input type="hidden" class="tipe_billing" name="tipe_billing" value="<?= $tipe_billing ?>">
 <input type="hidden" class="no_so" name="no_so" value="<?= $id_so ?>">
 <input type="hidden" class="id_billing" name="id_billing" value="<?= $id_billing ?>">
@@ -176,47 +179,47 @@ $tipe_billing = $results['tipe_billing'];
 <input type="hidden" name="persen_jaminan" class="persen_jaminan" value="<?= $results['persen_jaminan'] ?>">
 <input type="hidden" name="nilai_jaminan" class="nilai_jaminan" value="<?= $jaminan_proporsional ?>"> -->
 <table class="table table-bordered table-hover">
-								<thead>
-									<tr bgcolor='#9acfea'>
-										<th>
-											<center>Tanggal</center>
-										</th>
-										<th>
-											<center>Tipe</center>
-										</th>
-										<th>
-											<center>No. COA</center>
-										</th>
-										<th>
-											<center>Debit</center>
-										</th>
-										<th>
-											<center>Kredit</center>
-										</th>
-									</tr>
-								</thead>
-								<tbody>
-									    		<tr bgcolor='#DCDCDC'>
-													<td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
-													<td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>													
-													<td><input type="text" id="no_coa1" name="no_coa[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
-													<td><input type="hidden" id="debet1" name="debet[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
-													<input type="text" id="debet21" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
-													</td>
-													<td><input type="hidden" id="kredit1" name="kredit[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
-														<input type="text" id="kredit21" name="kredit2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
-													</td>
-													
-												</tr>
-									
-									<tr bgcolor='#DCDCDC'>
-										<td colspan="3" align="right"><b>TOTAL</b></td>
-										<td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan ?>" class="form-control" readonly />
-											<input type="text" id="total31" name="total3" value="<?= $total_tagihan  ?>" class="form-control" readonly />
-										</td>
-										<td align="right"><input type="hidden" id="total2" name="total2" value="<?= $total_tagihan ?>" class="form-control" readonly />
-											<input type="text" id="total41" name="total4" value="<?= $total_tagihan ?>" class="form-control" readonly />
-										</td>
+    <thead>
+        <tr bgcolor='#9acfea'>
+            <th>
+                <center>Tanggal</center>
+            </th>
+            <th>
+                <center>Tipe</center>
+            </th>
+            <th>
+                <center>No. COA</center>
+            </th>
+            <th>
+                <center>Debit</center>
+            </th>
+            <th>
+                <center>Kredit</center>
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr bgcolor='#DCDCDC'>
+            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+            <td><input type="text" id="no_coa1" name="no_coa[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
+            <td><input type="hidden" id="debet1" name="debet[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+                <input type="text" id="debet21" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+            </td>
+            <td><input type="hidden" id="kredit1" name="kredit[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+                <input type="text" id="kredit21" name="kredit2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+            </td>
 
-									</tr>
-                                </table> 
+        </tr>
+
+        <tr bgcolor='#DCDCDC'>
+            <td colspan="3" align="right"><b>TOTAL</b></td>
+            <td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan ?>" class="form-control" readonly />
+                <input type="text" id="total31" name="total3" value="<?= $total_tagihan  ?>" class="form-control" readonly />
+            </td>
+            <td align="right"><input type="hidden" id="total2" name="total2" value="<?= $total_tagihan ?>" class="form-control" readonly />
+                <input type="text" id="total41" name="total4" value="<?= $total_tagihan ?>" class="form-control" readonly />
+            </td>
+
+        </tr>
+</table>
