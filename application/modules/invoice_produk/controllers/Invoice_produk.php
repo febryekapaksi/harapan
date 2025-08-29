@@ -628,9 +628,11 @@ class Invoice_produk extends Admin_Controller
 				'tanggal'         => $this->input->post('tgl_jurnal')[$i],
 				'no_perkiraan'    => $this->input->post('no_coa')[$i],
 				'keterangan'      =>  $keterangan,
-				'no_reff'           => $id_invoice,
-				'debet'            => round($this->input->post('debet')[$i]),
-				'kredit'          => round($this->input->post('kredit')[$i])
+				'no_reff'        => $id_invoice,
+				'debet'          => round($this->input->post('debet')[$i]),
+				'kredit'         => round($this->input->post('kredit')[$i]),
+				'created_by' 	 => $this->auth->user_id(),
+				'created_on' 	 => date('Y-m-d H:i:s')
 			);
 			$this->db->insert(DBACC . '.jurnal', $datadetail);
 		}
