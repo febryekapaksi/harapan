@@ -337,7 +337,7 @@ class Loading extends Admin_Controller
 
         $ArrHeader = [
             'no_loading'    => $no_loading,
-            'pengiriman'    => $post['pengiriman'],
+            'pengiriman'    => "Gudang",
             'nopol'         => $post['kendaraan'],
             'kapasitas'     => str_replace(',', '', $post['kapasitas']),
             'total_berat'   => str_replace(',', '', $post['total_berat']),

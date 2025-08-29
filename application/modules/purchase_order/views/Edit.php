@@ -567,7 +567,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 											echo '<tr class="top_' . $no . '">';
 
 											echo '<td>';
-											echo '<select name="group_top_' . $no . '">';
+											echo '<select name="group_top_' . $no . '" class="form-control form-control-sm">';
 											foreach ($results['list_group_top'] as $item_group_top) {
 												$selected = '';
 												if ($item_group_top->id == $item_top->group_top) {
