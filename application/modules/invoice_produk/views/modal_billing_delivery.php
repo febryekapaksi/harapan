@@ -242,8 +242,8 @@ $tipe_billing = $results['tipe_billing'];
             <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
             <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
             </td>
-            <td><input type="hidden" id="kredit1" name="kredit[]" value="<?= $dpp ?>" class="form-control" readonly />
-                <input type="text" id="kredit21" name="kredit2[]" value="<?= $dpp ?>" class="form-control" readonly />
+            <td><input type="hidden" id="kredit1" name="kredit[]" value="<?=  $excludeppn ?>" class="form-control" readonly />
+                <input type="text" id="kredit21" name="kredit2[]" value="<?=  $excludeppn ?>" class="form-control" readonly />
             </td>
             
         </tr>
