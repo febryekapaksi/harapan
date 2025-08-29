@@ -209,8 +209,8 @@ $tipe_billing = $results['tipe_billing'];
 														<select id="no_coa1" name="no_coa[]" class="form-control input-sm" readonly style="width: 100%;" readonly='readonly'>
 														<td><input type="text" id="no_coa1" name="no_coa[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
 													</td>
-													<td width='350px'><textarea class="form-control" id="keterangan1" name="keterangan[]" placeholder="Keterangan"><?= $row->keterangan ?></textarea></td>
-													<td><input type="text" id="reff1" name="reff[]" value="<?= $row->no_reff ?>" class="form-control" readonly /></td>
+													<td width='350px'><textarea class="form-control" id="keterangan1" name="keterangan[]" placeholder="Keterangan"><?= $total_tagihan ?></textarea></td>
+													<td><input type="text" id="reff1" name="reff[]" value="<?=$total_tagihan ?>" class="form-control" readonly /></td>
 													<td><input type="hidden" id="debet1" name="debet[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
 														<input type="text" id="debet21" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
 													</td>
