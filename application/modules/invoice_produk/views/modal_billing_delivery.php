@@ -127,7 +127,7 @@ $tipe_billing = $results['tipe_billing'];
         </tr>
         <tr>
             <td class="text-right" colspan="6">DPP</td>
-            <td class="text-right"><?= number_format($dpp, 2) ?></td>
+            <td class="text-right"><?= number_format($excludeppn, 2) ?></td>
         </tr>
         <!-- <tr>
             <td class="text-right" colspan="6">Other Cost</td>
@@ -200,85 +200,85 @@ $tipe_billing = $results['tipe_billing'];
     </thead>
     <tbody>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
-            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>													
+            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa1" name="no_coa[]" value="1102-01-01" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet1" name="debet[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
-            <input type="text" id="debet21" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+                <input type="text" id="debet21" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
             </td>
             <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
                 <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
             </td>
-            
+
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
-            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>													
+            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa1" name="no_coa[]" value="2102-01-01" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
-            <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
+                <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
             </td>
             <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
                 <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
             </td>
-            
+
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
-            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>													
+            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa1" name="no_coa[]" value="2103-01-01" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
-            <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
+                <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
             </td>
             <td><input type="hidden" id="kredit1" name="kredit[]" value="<?= $nilai_ppn ?>" class="form-control" readonly />
                 <input type="text" id="kredit21" name="kredit2[]" value="<?= $nilai_ppn ?>" class="form-control" readonly />
             </td>
-            
+
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
-            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>													
+            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa1" name="no_coa[]" value="4101-01-01" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
-            <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
+                <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
             </td>
-            <td><input type="hidden" id="kredit1" name="kredit[]" value="<?=  $excludeppn ?>" class="form-control" readonly />
-                <input type="text" id="kredit21" name="kredit2[]" value="<?=  $excludeppn ?>" class="form-control" readonly />
+            <td><input type="hidden" id="kredit1" name="kredit[]" value="<?= $excludeppn ?>" class="form-control" readonly />
+                <input type="text" id="kredit21" name="kredit2[]" value="<?= $excludeppn ?>" class="form-control" readonly />
             </td>
-            
+
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
-            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>													
+            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa1" name="no_coa[]" value="5101-01-01" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet1" name="debet[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
-            <input type="text" id="debet21" name="debet2[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
+                <input type="text" id="debet21" name="debet2[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
             </td>
             <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
                 <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
             </td>
-            
+
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
-            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>													
+            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-03" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
-            <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
+                <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
             </td>
             <td><input type="hidden" id="kredit1" name="kredit[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
                 <input type="text" id="kredit21" name="kredit2[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
             </td>
-            
+
         </tr>
 
         <tr bgcolor='#DCDCDC'>
             <td colspan="3" align="right"><b>TOTAL</b></td>
-            <td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan+$grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="total31" name="total3" value="<?= $total_tagihan+$grand_total_beli  ?>" class="form-control" readonly />
+            <td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan + $grand_total_beli ?>" class="form-control" readonly />
+                <input type="text" id="total31" name="total3" value="<?= $total_tagihan + $grand_total_beli  ?>" class="form-control" readonly />
             </td>
-            <td align="right"><input type="hidden" id="total2" name="total2" value="<?= $nilai_ppn+$dpp+$grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="total41" name="total4" value="<?= $nilai_ppn+$dpp+$grand_total_beli ?>" class="form-control" readonly />
+            <td align="right"><input type="hidden" id="total2" name="total2" value="<?= $nilai_ppn + $dpp + $grand_total_beli ?>" class="form-control" readonly />
+                <input type="text" id="total41" name="total4" value="<?= $nilai_ppn + $dpp + $grand_total_beli ?>" class="form-control" readonly />
             </td>
 
         </tr>
