@@ -203,22 +203,22 @@ $tipe_billing = $results['tipe_billing'];
 								</thead>
 								<tbody>
 									    		<tr bgcolor='#DCDCDC'>
-													<td><input type="date" id="tgl_jurnal'.$no.'" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
-													<td><input type="text" id="type'.$no.'" name="type[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
+													<td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
+													<td><input type="text" id="type1" name="type[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
 													<td>
-														<select id="no_coa'.$no.'" name="no_coa[]" class="form-control input-sm" readonly style="width: 100%;" readonly='readonly'>
-														<td><input type="text" id="no_coa'.$no.'" name="no_coa[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
+														<select id="no_coa1" name="no_coa[]" class="form-control input-sm" readonly style="width: 100%;" readonly='readonly'>
+														<td><input type="text" id="no_coa1" name="no_coa[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
 													</td>
-													<td width='350px'><textarea class="form-control" id="keterangan'.$no.'" name="keterangan[]" placeholder="Keterangan"><?= $row->keterangan ?></textarea></td>
-													<td><input type="text" id="reff'.$no.'" name="reff[]" value="<?= $row->no_reff ?>" class="form-control" readonly /></td>
-													<td><input type="hidden" id="debet'.$no.'" name="debet[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
-														<input type="text" id="debet2'.$no.'" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+													<td width='350px'><textarea class="form-control" id="keterangan1" name="keterangan[]" placeholder="Keterangan"><?= $row->keterangan ?></textarea></td>
+													<td><input type="text" id="reff1" name="reff[]" value="<?= $row->no_reff ?>" class="form-control" readonly /></td>
+													<td><input type="hidden" id="debet1" name="debet[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+														<input type="text" id="debet21" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
 													</td>
-													<td><input type="hidden" id="kredit'.$no.'" name="kredit[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
-														<input type="text" id="kredit2'.$no.'" name="kredit2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+													<td><input type="hidden" id="kredit1" name="kredit[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+														<input type="text" id="kredit21" name="kredit2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
 													</td>
-													<input type="hidden" id="jenisjurnal'.$no.'" name="jenisjurnal[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
-													<input type="hidden" id="no_request'.$no.'" name="no_request[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
+													<input type="hidden" id="jenisjurnal1" name="jenisjurnal[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
+													<input type="hidden" id="no_request1" name="no_request[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
 
 
 
@@ -227,10 +227,10 @@ $tipe_billing = $results['tipe_billing'];
 									<tr bgcolor='#DCDCDC'>
 										<td colspan="5" align="right"><b>TOTAL</b></td>
 										<td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan ?>" class="form-control" readonly />
-											<input type="text" id="total3'.$no.'" name="total3" value="<?= $total_tagihan  ?>" class="form-control" readonly />
+											<input type="text" id="total31" name="total3" value="<?= $total_tagihan  ?>" class="form-control" readonly />
 										</td>
 										<td align="right"><input type="hidden" id="total2" name="total2" value="<?= $total_tagihan ?>" class="form-control" readonly />
-											<input type="text" id="total4'.$no.'" name="total4" value="<?= $total_tagihan ?>" class="form-control" readonly />
+											<input type="text" id="total41" name="total4" value="<?= $total_tagihan ?>" class="form-control" readonly />
 										</td>
 
 									</tr>
