@@ -37,7 +37,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="id_customer">Local / Import</label>
 									</div>
 									<div class="col-md-8" id="ubahloi">
-										<select id="loi" name="loi" class="form-control" onchange="get_kurs()" required>
+										<select id="loi" name="loi" class="form-control select" onchange="get_kurs()" required>
 											<option value="">--Pilih--</option>
 											<option value="Import">Import</option>
 											<option value="Lokal">Lokal</option>
@@ -133,7 +133,15 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="customer">Payment Term</label>
 									</div>
 									<div class="col-md-8">
-										<input type="text" class="form-control" id="term" onkeyup required name="term">
+										<select id="term" name="term" class="form-control select" required>
+											<option value="">-- Pilih --</option>
+											<?php foreach ($results['term'] as $term): ?>
+												<option value="<?= htmlspecialchars($term->id) ?>">
+													<?= htmlspecialchars($term->name) ?>
+												</option>
+											<?php endforeach; ?>
+										</select>
+										<!-- <input type="text" class="form-control" id="term" onkeyup required name="term"> -->
 									</div>
 								</div>
 							</div>
@@ -1090,10 +1098,6 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 				$('.num_top').val(num_top);
 				$('.list_tbody_top').append(Rows);
-
-				$('.chosen-select').chosen({
-					width: "100%"
-				});
 			},
 			error: function(result) {
 				swal({
