@@ -202,81 +202,35 @@ $tipe_billing = $results['tipe_billing'];
 									</tr>
 								</thead>
 								<tbody>
-									<?php
-									$i = 0;
-									$sum_debet = 0;
-									$sum_kredit = 0;
-									if ($list_data > 0) {
-										$no = 0;
-										foreach ($list_data as $row) {
-											$no++;
-
-											$debet  = $row->debet;
-											$kredit = $row->kredit;
-											$sum_debet	+= $row->debet;
-											$sum_kredit	+= $row->kredit;
-
-											$format_debet = number_format($row->debet, 0, ',', '.');
-											$format_kredit = number_format($row->kredit, 0, ',', '.');
-
-											$format_sumdebet = number_format($sum_debet, 0, ',', '.');
-											$format_sumkredit = number_format($sum_kredit, 0, ',', '.');
-
-											if ($debet == 0 and $kredit == 0) {
-									?>
-
-											<?php
-											} else { ?>
-
-												<tr bgcolor='#DCDCDC'>
-													<td><input type="date" id="tgl_jurnal'.$no.'" name="tgl_jurnal[]" value="<?= $row->tanggal ?>" class="form-control" /></td>
-													<td><input type="text" id="type'.$no.'" name="type[]" value="<?= $row->tipe ?>" class="form-control" readonly /></td>
+									    		<tr bgcolor='#DCDCDC'>
+													<td><input type="date" id="tgl_jurnal'.$no.'" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly/></td>
+													<td><input type="text" id="type'.$no.'" name="type[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
 													<td>
 														<select id="no_coa'.$no.'" name="no_coa[]" class="form-control input-sm" readonly style="width: 100%;" readonly='readonly'>
-															<?php
-															$No_Coa = $row->no_perkiraan;
-															foreach ($Arr_Coa as $key => $row2) {
-																$coa_pisah	= explode('^', $key);
-																$nokir		= $coa_pisah[0];
-
-																if ($nokir == $No_Coa) {
-																	echo "<option value='" . $nokir . "' selected>" . $row2 . "</option>";
-																} else {
-																	echo "<option value='" . $nokir . "'>" . $row2 . "</option>";
-																}
-															}
-															?>
-														</select>
+														<td><input type="text" id="no_coa'.$no.'" name="no_coa[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
 													</td>
 													<td width='350px'><textarea class="form-control" id="keterangan'.$no.'" name="keterangan[]" placeholder="Keterangan"><?= $row->keterangan ?></textarea></td>
 													<td><input type="text" id="reff'.$no.'" name="reff[]" value="<?= $row->no_reff ?>" class="form-control" readonly /></td>
-													<td><input type="hidden" id="debet'.$no.'" name="debet[]" value="<?= $row->debet ?>" class="form-control" readonly />
-														<input type="text" id="debet2'.$no.'" name="debet2[]" value="<?= $format_debet ?>" class="form-control" readonly />
+													<td><input type="hidden" id="debet'.$no.'" name="debet[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+														<input type="text" id="debet2'.$no.'" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
 													</td>
-													<td><input type="hidden" id="kredit'.$no.'" name="kredit[]" value="<?= $row->kredit ?>" class="form-control" readonly />
-														<input type="text" id="kredit2'.$no.'" name="kredit2[]" value="<?= $format_kredit ?>" class="form-control" readonly />
+													<td><input type="hidden" id="kredit'.$no.'" name="kredit[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+														<input type="text" id="kredit2'.$no.'" name="kredit2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
 													</td>
-													<input type="hidden" id="jenisjurnal'.$no.'" name="jenisjurnal[]" value="<?= $row->jenis_jurnal ?>" class="form-control" readonly /></td>
-													<input type="hidden" id="no_request'.$no.'" name="no_request[]" value="<?= $row->no_request ?>" class="form-control" readonly /></td>
+													<input type="hidden" id="jenisjurnal'.$no.'" name="jenisjurnal[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
+													<input type="hidden" id="no_request'.$no.'" name="no_request[]" value="<?= $total_tagihan ?>" class="form-control" readonly /></td>
 
 
 
 												</tr>
-
-									<?php		}
-										}
-									} else {
-										$format_sumdebet = 0;
-										$format_sumkredit = 0;
-									}
-									?>
+									
 									<tr bgcolor='#DCDCDC'>
 										<td colspan="5" align="right"><b>TOTAL</b></td>
-										<td align="right"><input type="hidden" id="total" name="total" value="<?= $sum_debet ?>" class="form-control" readonly />
-											<input type="text" id="total3'.$no.'" name="total3" value="<?= $format_sumdebet  ?>" class="form-control" readonly />
+										<td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan ?>" class="form-control" readonly />
+											<input type="text" id="total3'.$no.'" name="total3" value="<?= $total_tagihan  ?>" class="form-control" readonly />
 										</td>
-										<td align="right"><input type="hidden" id="total2" name="total2" value="<?= $sum_kredit ?>" class="form-control" readonly />
-											<input type="text" id="total4'.$no.'" name="total4" value="<?= $format_sumkredit ?>" class="form-control" readonly />
+										<td align="right"><input type="hidden" id="total2" name="total2" value="<?= $total_tagihan ?>" class="form-control" readonly />
+											<input type="text" id="total4'.$no.'" name="total4" value="<?= $total_tagihan ?>" class="form-control" readonly />
 										</td>
 
 									</tr>
