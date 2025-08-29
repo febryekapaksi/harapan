@@ -165,9 +165,10 @@ class Invoice_produk extends Admin_Controller
 			// }
 
 			$get_penawaran = $this->db
-				->select('b.*')
+				->select('b.*, c.name_customer')
 				->from('sales_order a')
 				->join('penawaran b', 'b.id_penawaran = a.id_penawaran', 'left')
+				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
 				->where('a.no_so', $no_so)
 				->get()
 				->row();
@@ -572,92 +573,92 @@ class Invoice_produk extends Admin_Controller
 		//SYAMSUDIN 29-08-2025
 
 		$tgl_inv  = $this->input->post('tgl_jurnal[0]');
-        $keterangan  = "Penjualan atas invoice nomor ".$id_invoice;
-        $type        = $this->input->post('type[0]');
-        $reff        = $id_invoice;
-        $no_req      = $this->input->post('no_request[0]');
-        $total       = round($this->input->post('total'));
-        $jenis       = $this->input->post('jenis');
-        $tipe_jurnal       = $this->input->post('tipe');
-        $jenis_jurnal       = $this->input->post('jenis_jurnal');
+		$keterangan  = "Penjualan atas invoice nomor " . $id_invoice;
+		$type        = $this->input->post('type[0]');
+		$reff        = $id_invoice;
+		$no_req      = $this->input->post('no_request[0]');
+		$total       = round($this->input->post('total'));
+		$jenis       = $this->input->post('jenis');
+		$tipe_jurnal       = $this->input->post('tipe');
+		$jenis_jurnal       = $this->input->post('jenis_jurnal');
 
-        $total_po           = $this->input->post('total_po');
-        $id_vendor          = $this->input->post('vendor_id');
-        $nama_vendor        = $this->input->post('vendor_nm');
+		$total_po           = $this->input->post('total_po');
+		$id_vendor          = $this->input->post('vendor_id');
+		$nama_vendor        = $this->input->post('vendor_nm');
 
-        $this->db->trans_begin();
+		$this->db->trans_begin();
 
-        $Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
-
-
-        $Bln             = substr($tgl_inv, 5, 2);
-        $Thn             = substr($tgl_inv, 0, 4);
+		$Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
 
-        $dataJVhead = array(
-            'nomor'             => $Nomor_JV,
-            'tgl'                 => $tgl_inv,
-            'jml'                => $total,
-            'koreksi_no'        => '-',
-            'kdcab'                => '101',
-            'jenis'                => 'JV',
-            'keterangan'         => $keterangan,
-            'bulan'                => $Bln,
-            'tahun'                => $Thn,
-            'user_id'            => $this->auth->user_id(),
-            'memo'                => '',
-            'tgl_jvkoreksi'        => $tgl_inv,
-            'ho_valid'            => ''
-        );
+		$Bln             = substr($tgl_inv, 5, 2);
+		$Thn             = substr($tgl_inv, 0, 4);
 
 
-        $this->db->insert(DBACC . '.javh', $dataJVhead);
+		$dataJVhead = array(
+			'nomor'             => $Nomor_JV,
+			'tgl'                 => $tgl_inv,
+			'jml'                => $total,
+			'koreksi_no'        => '-',
+			'kdcab'                => '101',
+			'jenis'                => 'JV',
+			'keterangan'         => $keterangan,
+			'bulan'                => $Bln,
+			'tahun'                => $Thn,
+			'user_id'            => $this->auth->user_id(),
+			'memo'                => '',
+			'tgl_jvkoreksi'        => $tgl_inv,
+			'ho_valid'            => ''
+		);
+
+
+		$this->db->insert(DBACC . '.javh', $dataJVhead);
 
 
 
-        for ($i = 0; $i < count($this->input->post('type')); $i++) {
-            $tipe = $this->input->post('type')[$i];
-            $perkiraan = $this->input->post('no_coa')[$i];
-            $noreff = $id_invoice;
-            $jenisjurnal = $this->input->post('jenisjurnal')[$i];
+		for ($i = 0; $i < count($this->input->post('type')); $i++) {
+			$tipe = $this->input->post('type')[$i];
+			$perkiraan = $this->input->post('no_coa')[$i];
+			$noreff = $id_invoice;
+			$jenisjurnal = $this->input->post('jenisjurnal')[$i];
 
-            $datadetail = array(
-                'tipe'            => $this->input->post('type')[$i],
-                'nomor'           => $Nomor_JV,
-                'tanggal'         => $this->input->post('tgl_jurnal')[$i],
-                'no_perkiraan'    => $this->input->post('no_coa')[$i],
-                'keterangan'      =>  $keterangan,
-                'no_reff'           =>$id_invoice,
-                'debet'            => round($this->input->post('debet')[$i]),
-                'kredit'          => round($this->input->post('kredit')[$i])
-            );
-            $this->db->insert(DBACC . '.jurnal', $datadetail);
-        }
+			$datadetail = array(
+				'tipe'            => $this->input->post('type')[$i],
+				'nomor'           => $Nomor_JV,
+				'tanggal'         => $this->input->post('tgl_jurnal')[$i],
+				'no_perkiraan'    => $this->input->post('no_coa')[$i],
+				'keterangan'      =>  $keterangan,
+				'no_reff'           => $id_invoice,
+				'debet'            => round($this->input->post('debet')[$i]),
+				'kredit'          => round($this->input->post('kredit')[$i])
+			);
+			$this->db->insert(DBACC . '.jurnal', $datadetail);
+		}
 
-        $Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
-        $this->db->query($Qry_Update_Cabang_acc);
-
-     
-
-        $id_cust  = $post['id_customer'];
-        $nama     = $post['nm_customer'];
-        $No_Inv   = $id_invoice;
+		$Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
+		$this->db->query($Qry_Update_Cabang_acc);
 
 
-        $datapiutang = array(
-            'tipe'            => 'JV',
-            'nomor'            => $Nomor_JV,
-            'tanggal'        => $tgl_inv,
-            'no_perkiraan'  => '1102-01-01',
-            'keterangan'    => $keterangan,
-            'no_reff'       => $No_Inv,
-            'debet'         => $total,
-            'kredit'         =>  0,
-            'id_supplier'     => $id_cust,
-            'nama_supplier'   => $nama,
 
-        );
-        $this->db->insert('tr_kartu_piutang', $datapiutang);
+		$id_cust  = $post['id_customer'];
+		$nama     = $post['nm_customer'];
+		$No_Inv   = $id_invoice;
+
+
+		$datapiutang = array(
+			'tipe'            => 'JV',
+			'nomor'            => $Nomor_JV,
+			'tanggal'        => $tgl_inv,
+			'no_perkiraan'  => '1102-01-01',
+			'keterangan'    => $keterangan,
+			'no_reff'       => $No_Inv,
+			'debet'         => $total,
+			'kredit'         =>  0,
+			'id_supplier'     => $id_cust,
+			'nama_supplier'   => $nama,
+
+		);
+		$this->db->insert('tr_kartu_piutang', $datapiutang);
 
 
 		if ($this->db->trans_status() === FALSE) {

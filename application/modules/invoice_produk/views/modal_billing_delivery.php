@@ -159,6 +159,7 @@ $tipe_billing = $results['tipe_billing'];
         </tr>
     </tbody>
 </table>
+<input type="hidden" class="nm_customer" name="nm_customer" value="<?= $results['data_penawaran']->name_customer ?>">
 <input type="hidden" class="total_harga_beli" name="total_harga_beli" value="<?= $grand_total_beli ?>">
 <input type="hidden" class="tipe_billing" name="tipe_billing" value="<?= $tipe_billing ?>">
 <input type="hidden" class="no_so" name="no_so" value="<?= $id_so ?>">
@@ -230,8 +231,8 @@ $tipe_billing = $results['tipe_billing'];
             <td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
                 <input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
             </td>
-            <td><input type="hidden" id="kredit3" name="kredit[]" value="<?= round($nilai_ppn,0) ?>" class="form-control" readonly />
-                <input type="text" id="kredit23" name="kredit2[]" value="<?= round($nilai_ppn,0) ?>" class="form-control" readonly />
+            <td><input type="hidden" id="kredit3" name="kredit[]" value="<?= round($nilai_ppn, 0) ?>" class="form-control" readonly />
+                <input type="text" id="kredit23" name="kredit2[]" value="<?= round($nilai_ppn, 0) ?>" class="form-control" readonly />
             </td>
 
         </tr>
@@ -242,8 +243,8 @@ $tipe_billing = $results['tipe_billing'];
             <td><input type="hidden" id="debet4" name="debet[]" value="0" class="form-control" readonly />
                 <input type="text" id="debet24" name="debet2[]" value="0" class="form-control" readonly />
             </td>
-            <td><input type="hidden" id="kredit4" name="kredit[]" value="<?= round($excludeppn,0) ?>" class="form-control" readonly />
-                <input type="text" id="kredit24" name="kredit2[]" value="<?= round($excludeppn,0) ?>" class="form-control" readonly />
+            <td><input type="hidden" id="kredit4" name="kredit[]" value="<?= round($excludeppn, 0) ?>" class="form-control" readonly />
+                <input type="text" id="kredit24" name="kredit2[]" value="<?= round($excludeppn, 0) ?>" class="form-control" readonly />
             </td>
 
         </tr>
@@ -255,7 +256,7 @@ $tipe_billing = $results['tipe_billing'];
                 <input type="text" id="debet25" name="debet2[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
             </td>
             <td><input type="hidden" id="kredit5" name="kredit[]" value="0" class="form-control" readonly />
-                <input type="text" id="kredit25" name="kredit2[]" value="0" class="form-control" readonly /> 
+                <input type="text" id="kredit25" name="kredit2[]" value="0" class="form-control" readonly />
             </td>
 
         </tr>
@@ -273,12 +274,12 @@ $tipe_billing = $results['tipe_billing'];
         </tr>
 
         <tr bgcolor='#DCDCDC'>
-            <td colspan="3" align="right"><b>TOTAL</b></td> 
+            <td colspan="3" align="right"><b>TOTAL</b></td>
             <td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan + $grand_total_beli ?>" class="form-control" readonly />
                 <input type="text" id="total31" name="total3" value="<?= $total_tagihan + $grand_total_beli  ?>" class="form-control" readonly />
             </td>
-            <td align="right"><input type="hidden" id="total2" name="total2" value="<?=  round($nilai_ppn,0)+ round($excludeppn,0)+$grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="total41" name="total4" value="<?= round($nilai_ppn,0)+ round($excludeppn,0)+$grand_total_beli ?>" class="form-control" readonly />
+            <td align="right"><input type="hidden" id="total2" name="total2" value="<?= round($nilai_ppn, 0) + round($excludeppn, 0) + $grand_total_beli ?>" class="form-control" readonly />
+                <input type="text" id="total41" name="total4" value="<?= round($nilai_ppn, 0) + round($excludeppn, 0) + $grand_total_beli ?>" class="form-control" readonly />
             </td>
 
         </tr>
