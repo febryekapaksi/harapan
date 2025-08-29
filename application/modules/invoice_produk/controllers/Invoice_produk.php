@@ -620,7 +620,6 @@ class Invoice_produk extends Admin_Controller
 			$tipe = $this->input->post('type')[$i];
 			$perkiraan = $this->input->post('no_coa')[$i];
 			$noreff = $id_invoice;
-			$jenisjurnal = $this->input->post('jenisjurnal')[$i];
 
 			$datadetail = array(
 				'tipe'            => $this->input->post('type')[$i],
