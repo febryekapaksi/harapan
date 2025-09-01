@@ -263,7 +263,7 @@
         $('.select2').select2({
             width: '100%'
         });
-
+        $('#no_coa1').val('#bank')
         $('.moneyFormat').each(function() {
             let val = parseFloat($(this).val().replace(/,/g, '')) || 0;
             $(this).val(number_format(val, 2));
