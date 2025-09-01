@@ -234,7 +234,7 @@
                     <thead>
                         <tr>
                             <th>No</th>
-                            <th>Tanggal Invoice</th>
+                            <th>Tanggal Invoice</th> 
                             <th>No Invoice</th>
                             <th>Tanggal SO</th>
                             <th>No SO</th>
