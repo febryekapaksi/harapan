@@ -289,19 +289,46 @@ $isApproval = (isset($mode) && $mode == 'approval');
 
         // Filter manual untuk tabel modal
         $('#searchSpk').on('keyup', function() {
-            const keyword = $(this).val().toLowerCase();
+            const kw = $(this).val().toLowerCase().trim();
+            const $rows = $('#tableModalSpk tbody tr');
 
-            $('#tableModalSpk tbody tr').each(function() {
-                const text = $(this).text().toLowerCase();
+            let $currentHeader = null;
+            let groupHasMatch = false;
 
-                // Tetap tampilkan baris header grouping (No SPK)
-                if ($(this).css('font-weight') === '700' || $(this).css('font-weight') === 'bold') {
-                    $(this).show();
-                } else {
-                    $(this).toggle(text.includes(keyword));
+            $rows.each(function() {
+                const $tr = $(this);
+                const isHeader = $tr.hasClass('spk-header');
+
+                if (isHeader) {
+                    // Tutup grup sebelumnya: tampilkan/hilangkan header sesuai hasil
+                    if ($currentHeader) $currentHeader.toggle(groupHasMatch);
+
+                    // Mulai grup baru
+                    $currentHeader = $tr;
+                    groupHasMatch = false;
+
+                    // Sembunyikan dulu header; akan ditampilkan bila ada detail yang match
+                    $tr.hide();
+                    return;
                 }
+
+                // Baris detail: cek kolom Customer (index 1)
+                const customer = $tr.children('td').eq(1).text().toLowerCase();
+                const match = kw === '' || customer.includes(kw);
+
+                $tr.toggle(match);
+                if (match) groupHasMatch = true;
             });
+
+            // Finalisasi grup terakhir
+            if ($currentHeader) $currentHeader.toggle(groupHasMatch);
+
+            // Jika input kosong, tampilkan semua header lagi
+            if (kw === '') {
+                $('#tableModalSpk tbody tr.spk-header').show();
+            }
         });
+
 
         // Tombol Pilih SPK
         $('#selectSpk').on('click', function() {
@@ -355,7 +382,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
 
                         if (item.no_delivery !== currentSpk) {
                             html += `
-                                    <tr style="background-color:#f0f0f0; font-weight:bold;">
+                                    <tr class="spk-header" data-spk="${item.no_delivery}" style="background-color:#f0f0f0; font-weight:bold;">
                                         <td colspan="8">No SPK : ${item.no_delivery}</td>
                                     </tr>
                                 `;

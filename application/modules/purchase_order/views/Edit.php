@@ -152,7 +152,15 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="customer">Payment Term</label>
 									</div>
 									<div class="col-md-8">
-										<input type="text" class="form-control" id="term" onkeyup required name="term" value="<?= $results['get_po']->term ?>">
+										<select id="term" name="term" class="form-control select" required>
+											<option value="">-- Pilih --</option>
+											<?php foreach ($results['term'] as $term): ?>
+												<option value="<?= htmlspecialchars($term->id) ?>" <?= ($results['get_po']->term == ($term->id)) ? 'selected' : '' ?>>
+													<?= htmlspecialchars($term->name) ?>
+												</option>
+											<?php endforeach; ?>
+										</select>
+										<!-- <input type="text" class="form-control" id="term" onkeyup required name="term" value="<?= $results['get_po']->term ?>"> -->
 									</div>
 								</div>
 							</div>

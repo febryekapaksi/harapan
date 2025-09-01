@@ -314,9 +314,10 @@ class Purchase_order extends Admin_Controller
 		$list_department = $this->db->select('id, nama')->get_where('ms_department', ['deleted_by' => null])->result();
 		// $matauang = $this->db->get_where('matauang')->result();
 		$list_group_top = $this->db->get_where('list_help', ['group_by' => 'top', 'sts' => 'Y'])->result();
+		$term = $this->db->get_where('list_help', ['group_by' => 'top invoice', 'sts' => 'Y'])->result();
+
 		$list_top = $this->db->get_where('tr_top_po', ['no_po' => $no_po])->result();
 		$num_top = count($list_top);
-
 
 		$data = [
 			// 'supplier' => $supplier,
@@ -333,7 +334,8 @@ class Purchase_order extends Admin_Controller
 			'list_department' => $list_department,
 			'list_top' => $list_top,
 			'list_group_top' => $list_group_top,
-			'num_po' => $num_top
+			'num_po' => $num_top,
+			'term' => $term
 		];
 
 		$this->template->set('results', $data);
@@ -2961,11 +2963,6 @@ class Purchase_order extends Admin_Controller
 				a.code_plan IN ('" . str_replace(",", "','", implode(',', $getparam)) . "')
 		")->result();
 
-		// echo '<pre>';
-		// print_r($getitemso);
-		// echo '</pre>';
-		// die();
-
 		$aktif = 'active';
 		$deleted = '0';
 		// $supplier = $data = $this->db->query("SELECT a.* FROM new_supplier as a INNER JOIN dt_trans_pr as b on b.suplier = a.id_suplier INNER JOIN tr_purchase_request as c on b.no_pr = c.no_pr WHERE c.status = '2' GROUP BY b.suplier ")->result();
@@ -2976,6 +2973,7 @@ class Purchase_order extends Admin_Controller
 		$mata_uang = $this->db->get_where('mata_uang', ['deleted' => null])->result();
 		$list_supplier = $this->db->get_where('new_supplier', ['deleted_by' => null])->result();
 		$list_department = $this->db->select('id, nama')->get_where('ms_department', ['deleted_by' => null])->result();
+		$term = $this->db->get_where('list_help', ['group_by' => 'top invoice', 'sts' => 'Y'])->result();
 		// $matauang = $this->db->get_where('matauang')->result();
 
 		$data = [
@@ -2989,7 +2987,8 @@ class Purchase_order extends Admin_Controller
 			// 'headerso' => $getso,
 			'getitemso' => $getitemso,
 			'list_supplier' => $list_supplier,
-			'list_department' => $list_department
+			'list_department' => $list_department,
+			'term' => $term,
 		];
 
 		$this->template->set('results', $data);
