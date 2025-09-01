@@ -369,7 +369,7 @@ class Penerimaan extends Admin_Controller
 				'tipe'       	 => 'BUM',
 				'nomor'       	 => $Nomor_BUM,
 				'tanggal'        => $Tgl_Inv,
-				'no_perkiraan'  => '1103-01-01',
+				'no_perkiraan'  => '1102-01-01',
 				'keterangan'    => $Ket_INV,
 				'no_reff'       => $inv,
 				'debet'         => 0,
