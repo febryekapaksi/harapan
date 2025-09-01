@@ -168,6 +168,9 @@ class Penerimaan_cash extends Admin_Controller
 			}
 		}
 
+		$kd_bayar  = $kd_pembayaran;
+        $this->appr_jurnal($kd_bayar);
+
 		echo json_encode([
 			'status' => 1,
 			'message' => 'Pembayaran berhasil disimpan.',
@@ -481,6 +484,145 @@ class Penerimaan_cash extends Admin_Controller
 		$dompdf->render();
 		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => false]);
 	}
+
+
+	function appr_jurnal($kd_bayar)
+	{
+
+
+		$session = $this->session->userdata('app_session');
+
+		$data_bayar =  $this->db->query("SELECT * FROM tr_invoice_payment WHERE kd_pembayaran = '$kd_bayar' ")->row();
+
+		$tgl_byr 	= $data_bayar->tgl_pembayaran;
+		$kd_invoice    	= $data_bayar->no_invoice;
+		$kd_bank 	= $data_bayar->kd_bank;
+		$jenis_pph 	= $data_bayar->jenis_pph;
+		$nama	= html_escape($data_bayar->nm_customer);
+		$jmlpph   = 0;
+		$idcust  = $data_bayar->id_customer;
+
+
+
+		$No_Inv  = $kd_bayar;
+		$Tgl_Inv = $tgl_byr;
+		$Bln 			= substr($Tgl_Inv, 6, 2);
+		$Thn 			= substr($Tgl_Inv, 0, 4);
+		$bulan_bayar = date("n", strtotime($Tgl_Inv));
+		$tahun_bayar = date("Y", strtotime($Tgl_Inv));
+		$keterangan_byr  = $data_bayar->keterangan;
+		$jumlah_total    = $data_bayar->jumlah_pembayaran_idr;
+		$jumlah_terima   = $data_bayar->jumlah_bank_idr;
+		$biaya_admin     = $data_bayar->biaya_admin_idr;
+		$biaya_lain     = $data_bayar->biaya_pph_idr;
+		$deposit         = $data_bayar->lebih_bayar;
+		$jenis_reff      = $kd_bayar;
+		$no_reff         = $kd_bayar;
+		## NOMOR JV ##
+		$Nomor_BUM				= $this->Jurnal_model->get_Nomor_Jurnal_BUM('101', $Tgl_Inv);
+
+		//print_r($Nomor_BUM);
+		//exit;
+
+
+		//$Keterangan_INV		    = 'PENERIMAAN MULTI INVOICE A/N '.$nama.' INV NO. '.$No_Inv.
+		//' Keterangan :'.$ket_invoice.', Catatan :'.$notes.', No Reff:'.$noreff.', No Pembayaran:'.$kd_pn;
+
+		$Keterangan_INV		    = 'PENERIMAAN SALES INVOICE A/N ' . $nama . ' INV NO. ' . $No_Inv . ' Keterangan :' . $keterangan_byr;
+
+		$dataJARH = array(
+			'nomor' 	    	=> $Nomor_BUM,
+			'kd_pembayaran'    	=> $kd_pembayaran,
+			'tgl'	         	=> $Tgl_Inv,
+			'jml'	            => $jumlah_total,
+			'kdcab'				=> '101',
+			'jenis_reff'		=> $jenis_reff,
+			'no_reff'		    => $no_reff,
+			'customer'		    => $nama,
+			'terima_dari'		=> '-',
+			'jenis_ar'		    => 'V',
+			'note'				=> $Keterangan_INV,
+			'valid'				=> $session['id_user'],
+			'tgl_valid'			=> $Tgl_Inv,
+			'user_id'			=> $session['id_user'],
+			'tgl_invoice'	    => $Tgl_Inv,
+			'ho_valid'			=> '',
+			'batal'			    => '0'
+		);
+
+		$det_Jurnal				= array();
+		$det_Jurnal[]			= array(
+			'nomor'         => $Nomor_BUM,
+			'tanggal'       => $Tgl_Inv,
+			'tipe'          => 'BUM',
+			'no_perkiraan'  => '1102-01-04',
+			'keterangan'    => $Keterangan_INV,
+			'no_reff'       => $No_Inv,
+			'debet'         => $jumlah_terima,
+			'kredit'        => 0
+
+		);
+
+		
+		$data_jurnal = $this->db->query("SELECT * FROM tr_invoice_payment_detail WHERE kd_pembayaran = '$kd_bayar' ")->result();
+
+		foreach ($data_jurnal as $jr) {
+			$jmlbayar   = $jr->total_bayar_idr;
+			$invoice2    = $jr->no_invoice;
+
+			$det_Jurnal[]			  = array(
+				'nomor'         => $Nomor_BUM,
+				'tanggal'       => $Tgl_Inv,
+				'tipe'          => 'BUM',
+				'no_perkiraan'  => '1102-01-01',
+				'keterangan'    => $Keterangan_INV,
+				'no_reff'       => $invoice2,
+				'debet'         => 0,
+				'kredit'        => $jmlbayar,
+			);
+		}
+
+
+		## INSERT JURNAL ##
+		$this->db->insert(DBACC . '.JARH', $dataJARH);
+		$this->db->insert_batch(DBACC . '.jurnal', $det_Jurnal);
+
+		$Qry_Update_Cabang_acc	 = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum=nobum + 1 WHERE nocab='101'";
+		$this->db->query($Qry_Update_Cabang_acc);
+
+		//PROSES JURNAL
+
+		$data_jr = $this->db->query("SELECT * FROM tr_invoice_payment_detail WHERE kd_pembayaran = '$kd_bayar' ")->result();
+
+		foreach ($data_jr as $val) {
+			$jml   = $val->total_bayar_idr;
+			$inv   = $val->no_invoice;
+
+			$Ket_INV		    = 'PENERIMAAN SALES INVOICE A/N ' . $nama . ' INV NO. ' . $inv . ' Keterangan :' . $keterangan_byr;
+
+
+			$datapiutang = array(
+				'tipe'       	 => 'BUM',
+				'nomor'       	 => $Nomor_BUM,
+				'tanggal'        => $Tgl_Inv,
+				'no_perkiraan'  => '1102-01-01',
+				'keterangan'    => $Ket_INV,
+				'no_reff'       => $inv,
+				'debet'         => 0,
+				'kredit'         => $jml,
+				'id_supplier'     => $idcust,
+				'nama_supplier'   => $nama,
+
+			);
+
+
+
+			$idso = $this->db->insert('tr_kartu_piutang', $datapiutang); 
+		}
+
+		
+	}
+
 }
 
 
