@@ -201,7 +201,7 @@ class Penerimaan extends Admin_Controller
 		$kd_bank 	= $data_bayar->kd_bank;
 		$jenis_pph 	= $data_bayar->jenis_pph;
 		$nama	= html_escape($data_bayar->nm_customer);
-		$jmlpph   = $data_bayar->total_pph_idr;
+		$jmlpph   = 0;
 
 		$id_cust =  $this->db->query("SELECT * FROM master_customer WHERE name_customer = '$nama'")->row();
 		$idcust  = $data_bayar->id_customer;
