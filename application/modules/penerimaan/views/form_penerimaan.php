@@ -197,11 +197,11 @@
 
          <tr bgcolor='#DCDCDC'>
             <td colspan="3" align="right"><b>TOTAL</b></td>
-            <td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan + $grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="total31" name="total3" value="<?= $total_tagihan + $grand_total_beli  ?>" class="form-control" readonly />
+            <td align="right"><input type="hidden" id="total" name="total" value="0" class="form-control" readonly />
+                <input type="text" id="total31" name="total3" value="0" class="form-control" readonly />
             </td>
-            <td align="right"><input type="hidden" id="total2" name="total2" value="<?= round($nilai_ppn, 0) + round($excludeppn, 0) + $grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="total41" name="total4" value="<?= round($nilai_ppn, 0) + round($excludeppn, 0) + $grand_total_beli ?>" class="form-control" readonly />
+            <td align="right"><input type="hidden" id="total2" name="total2" value="0" class="form-control" readonly />
+                <input type="text" id="total41" name="total4" value="0" class="form-control" readonly />
             </td>
 
         </tr>
@@ -263,7 +263,7 @@
         $('.select2').select2({
             width: '100%'
         });
-        $('#no_coa1').val('#bank')
+        
         $('.moneyFormat').each(function() {
             let val = parseFloat($(this).val().replace(/,/g, '')) || 0;
             $(this).val(number_format(val, 2));
@@ -502,6 +502,7 @@
         let totalBayarInvoice = 0;
         let totalBank = parseFloat($('#totalBank').val().replace(/,/g, '')) || 0;
         let sisaBank = totalBank;
+        let bank   = $('#bank').val();
 
         // Loop per baris invoice
         $('#tableInv tbody tr').each(function() {
@@ -530,6 +531,8 @@
 
         $('#totalInvoice').val(number_format(totalInvoice, 2));
         $('#totalBayarInvoice').val(number_format(totalBayarInvoice, 2));
+
+        $('#no_coa1').val(bank)
 
          $('#debet1').val(totalBank);
          $('#debet21').val(number_format(totalBank, 2));
