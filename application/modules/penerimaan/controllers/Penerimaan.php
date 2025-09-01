@@ -177,7 +177,7 @@ class Penerimaan extends Admin_Controller
         }
 
         $kd_bayar  = $kd_pembayaran;
-        $this->appr_jurnal($kd_bayar)
+        $this->appr_jurnal($kd_bayar);
 
 
         echo json_encode([
