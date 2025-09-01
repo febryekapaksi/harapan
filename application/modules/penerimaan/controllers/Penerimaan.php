@@ -381,7 +381,7 @@ class Penerimaan extends Admin_Controller
 
 
 
-			$idso = $this->db->insert('tr_kartu_piutang', $datapiutang);
+			$idso = $this->db->insert('tr_kartu_piutang', $datapiutang); 
 		}
 
 		
