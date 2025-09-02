@@ -532,7 +532,7 @@ class Penerimaan_cash extends Admin_Controller
 
 		$dataJARH = array(
 			'nomor' 	    	=> $Nomor_BUM,
-			'kd_pembayaran'    	=> $kd_pembayaran,
+			'kd_pembayaran'    	=> $kd_bayar,
 			'tgl'	         	=> $Tgl_Inv,
 			'jml'	            => $jumlah_total,
 			'kdcab'				=> '101',
