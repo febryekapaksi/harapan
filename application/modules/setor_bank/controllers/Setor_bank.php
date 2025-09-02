@@ -17,8 +17,8 @@ class Setor_bank extends Admin_Controller
         $this->load->model(array(
             'Setor_bank/setor_bank_model',
             'Penerimaan_cash/All_model',
-			'Penerimaan_cash/Jurnal_model',
-			'Penerimaan_cash/Acc_model'
+            'Penerimaan_cash/Jurnal_model',
+            'Penerimaan_cash/Acc_model'
         ));
 
         date_default_timezone_set('Asia/Bangkok');
@@ -57,66 +57,71 @@ class Setor_bank extends Admin_Controller
 
     public function save()
     {
-        $post = $this->input->post();
+        try {
+            $post = $this->input->post();
 
-        $tgl_setor = $post['tgl_setor'];
-        $bank = $post['bank'];
-        //$norek = $post['norek'];
-        $nilai_setor = str_replace(",", "", $post['nilai_setor']);
-        $total_penerimaan = str_replace(",", "", $post['total_penerimaan']);
-        $sisa_piutang = str_replace(",", "", $post['sisa_piutang_sesudah']);
+            $tgl_setor = $post['tgl_setor'];
+            $bank = $post['bank'];
+            //$norek = $post['norek'];
+            $nilai_setor = str_replace(",", "", $post['nilai_setor']);
+            $total_penerimaan = str_replace(",", "", $post['total_penerimaan']);
+            $sisa_piutang = str_replace(",", "", $post['sisa_piutang_sesudah']);
 
-        $id_setoran = $this->setor_bank_model->generateKodeSetoran($tgl_setor);
+            $id_setoran = $this->setor_bank_model->generateKodeSetoran($tgl_setor);
 
-        $header = [
-            'id'                => $id_setoran,
-            'tgl_setor'         => $tgl_setor,
-            'bank_id'           => $bank,
-            // 'norek'             => $norek,
-            'total_penerimaan'  => $total_penerimaan,
-            'total_setoran'     => $nilai_setor,
-            'sisa_piutang'      => $sisa_piutang,
-            'created_by'        => $this->auth->user_id(),
-            'created_at'        => date('Y-m-d H:i:s'),
-            'tipe_setor'        => "LANGSUNG",
+            $header = [
+                'id'                => $id_setoran,
+                'tgl_setor'         => $tgl_setor,
+                'bank_id'           => $bank,
+                // 'norek'             => $norek,
+                'total_penerimaan'  => $total_penerimaan,
+                'total_setoran'     => $nilai_setor,
+                'sisa_piutang'      => $sisa_piutang,
+                'created_by'        => $this->auth->user_id(),
+                'created_at'        => date('Y-m-d H:i:s'),
+                'tipe_setor'        => "LANGSUNG",
 
-        ];
-
-        if (empty($post['detail'])) {
-            echo json_encode(['status' => false, 'message' => 'Data penerimaan tidak boleh kosong.']);
-            return;
-        }
-
-        $this->db->trans_begin();
-
-        $this->db->insert('tr_setor_bank', $header);
-
-        foreach ($post['detail'] as $kd_penerimaan => $item) {
-            $detail = [
-                'id_setor_bank'     => $id_setoran,
-                'kd_pembayaran'     => $item['kd_pembayaran'],
-                'id_customer'       => $item['id_customer'],
-                'name_customer'     => $item['name_customer'],
-                'no_invoice'        => $item['no_invoice'],
-                'total_invoice'     => str_replace(",", "", $item['total_invoice']),
-                'total_penerimaan'  => str_replace(",", "", $item['total_invoiced']),
             ];
 
-            $this->db->insert('tr_setor_bank_detail', $detail);
+            if (empty($post['detail'])) {
+                echo json_encode(['status' => false, 'message' => 'Data penerimaan tidak boleh kosong.']);
+                return;
+            }
 
-            $this->db->where('kd_pembayaran', $item['kd_pembayaran'])
-                ->update('tr_invoice_payment', ['status_setor' => 1]);
-        }
+            $this->db->trans_begin();
 
-        $kd_bayar  = $id_setoran;
-        $this->appr_jurnal($kd_bayar);
+            $this->db->insert('tr_setor_bank', $header);
 
-        if ($this->db->trans_status() === FALSE) {
+            foreach ($post['detail'] as $kd_penerimaan => $item) {
+                $detail = [
+                    'id_setor_bank'     => $id_setoran,
+                    'kd_pembayaran'     => $item['kd_pembayaran'],
+                    'id_customer'       => $item['id_customer'],
+                    'name_customer'     => $item['name_customer'],
+                    'no_invoice'        => $item['no_invoice'],
+                    'total_invoice'     => str_replace(",", "", $item['total_invoice']),
+                    'total_penerimaan'  => str_replace(",", "", $item['total_invoiced']),
+                ];
+
+                $this->db->insert('tr_setor_bank_detail', $detail);
+
+                $this->db->where('kd_pembayaran', $item['kd_pembayaran'])
+                    ->update('tr_invoice_payment', ['status_setor' => 1]);
+            }
+
+            $kd_bayar  = $id_setoran;
+            $this->appr_jurnal($kd_bayar);
+
+            if ($this->db->trans_status() === FALSE) {
+                $this->db->trans_rollback();
+                echo json_encode(['status' => false, 'message' => 'Gagal menyimpan data setoran.']);
+            } else {
+                $this->db->trans_commit();
+                echo json_encode(['status' => true, 'message' => 'Data setoran berhasil disimpan.']);
+            }
+        } catch (\Throwable $th) {
             $this->db->trans_rollback();
-            echo json_encode(['status' => false, 'message' => 'Gagal menyimpan data setoran.']);
-        } else {
-            $this->db->trans_commit();
-            echo json_encode(['status' => true, 'message' => 'Data setoran berhasil disimpan.']);
+            echo json_encode(['status' => false, 'message' => 'Proses Gagal.' . $th->getMessage()]);
         }
     }
 
