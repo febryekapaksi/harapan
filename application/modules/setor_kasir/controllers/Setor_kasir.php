@@ -105,16 +105,15 @@ class Setor_kasir extends Admin_Controller
             $this->db->where('kd_pembayaran', $item['kd_pembayaran'])
                 ->update('tr_invoice_payment', ['status_setor' => 1]);
         }
-
+           
+             $kd_bayar  = $id_setoran;
+             $this->appr_jurnal($kd_bayar);
+             
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
             echo json_encode(['status' => false, 'message' => 'Gagal menyimpan data setoran.']);
         } else {
             $this->db->trans_commit();
-
-             $kd_bayar  = $id_setoran;
-             $this->appr_jurnal($kd_bayar);
-
             echo json_encode(['status' => true, 'message' => 'Data setoran berhasil disimpan.']);
         }
     }
@@ -302,7 +301,7 @@ class Setor_kasir extends Admin_Controller
 
 		$session = $this->session->userdata('app_session');
 
-		$data_bayar =  $this->db->query("SELECT * FROM tr_setor_bank WHERE id = '$kd_bayar' ")->row();
+		$data_bayar =  $this->db->query("SELECT * FROM tr_setor_kasir WHERE id = '$kd_bayar' ")->row();
 
 		$tgl_byr 	= $data_bayar->tgl_setor;
 		$kd_invoice    	= $data_bayar->id;
