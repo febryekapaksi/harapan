@@ -108,7 +108,7 @@ class Setor_kasir extends Admin_Controller
            
              $kd_bayar  = $id_setoran;
              $this->appr_jurnal($kd_bayar);
-             
+
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
             echo json_encode(['status' => false, 'message' => 'Gagal menyimpan data setoran.']);
@@ -305,7 +305,7 @@ class Setor_kasir extends Admin_Controller
 
 		$tgl_byr 	= $data_bayar->tgl_setor;
 		$kd_invoice    	= $data_bayar->id;
-		$kd_bank 	= $data_bayar->bank_id;
+		//$kd_bank 	= $data_bayar->bank_id;
 		//$jenis_pph 	= $data_bayar->jenis_pph;
 		$nama	= $session['id_user'];
 		$jmlpph   = 0;
@@ -321,7 +321,7 @@ class Setor_kasir extends Admin_Controller
 		$Thn 			= substr($Tgl_Inv, 0, 4);
 		$bulan_bayar = date("n", strtotime($Tgl_Inv));
 		$tahun_bayar = date("Y", strtotime($Tgl_Inv));
-		$keterangan_byr  = $data_bayar->norek;
+		$keterangan_byr  = $kd_bayar;
 		$jumlah_total    = $data_bayar->total_setoran;
 		$jumlah_terima   = $data_bayar->total_setoran;
 		$biaya_admin     = 0;
