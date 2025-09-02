@@ -597,6 +597,7 @@
     function updateInvoiceTotals() {
         let totalInvoice = 0;
         let sisaBayar = getNum($('#totalTerima').val().split(',').join(''));
+        let nilaiBayar = getNum($('#totalTerima').val().split(',').join(''));
 
         $('#tableInv tbody tr').each(function() {
             const $tr = $(this);
@@ -626,16 +627,18 @@
 
         $('#totalInvoice').val(number_format(totalInvoice, 2));
 
-        $('#debet1').val(sisaBayar);
-        $('#debet21').val(number_format(sisaBayar, 2));
+        
 
-        $('#kredit2').val(sisaBayar);
-        $('#kredit22').val(number_format(sisaBayar, 2));
+        $('#debet1').val(nilaiBayar);
+        $('#debet21').val(number_format(nilaiBayar, 2));
 
-        $('#total').val(sisaBayar);
-        $('#total31').val(number_format(sisaBayar, 2)); 
-        $('#total2').val(sisaBayar);
-        $('#total41').val(number_format(sisaBayar, 2));
+        $('#kredit2').val(nilaiBayar);
+        $('#kredit22').val(number_format(nilaiBayar, 2));
+
+        $('#total').val(nilaiBayar);
+        $('#total31').val(number_format(nilaiBayar, 2)); 
+        $('#total2').val(nilaiBayar);
+        $('#total41').val(number_format(nilaiBayar, 2));
 
 
     }
