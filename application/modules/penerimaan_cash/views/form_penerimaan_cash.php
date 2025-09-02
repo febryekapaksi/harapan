@@ -633,7 +633,7 @@
         $('#kredit22').val(number_format(sisaBayar, 2));
 
         $('#total').val(sisaBayar);
-        $('#total31').val(number_format(sisaBayar, 2));
+        $('#total31').val(number_format(sisaBayar, 2)); 
         $('#total2').val(sisaBayar);
         $('#total41').val(number_format(sisaBayar, 2));
 
