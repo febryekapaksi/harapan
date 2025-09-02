@@ -144,7 +144,64 @@
                             </div>
                         </div>
                     </div>
+     <table class="table table-bordered table-hover">    
+        <thead>
+            <tr bgcolor='#9acfea'>
+                <th>
+                    <center>Tanggal</center>
+                </th>
+                <th>
+                    <center>Tipe</center>
+                </th>
+                <th>
+                    <center>No. COA</center>
+                </th>
+                <th>
+                    <center>Debit</center>
+                </th>
+                <th>
+                    <center>Kredit</center>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr bgcolor='#DCDCDC'>
+                <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+                <td><input type="text" id="no_coa1" name="no_coa[]" value="1101-02-01" class="form-control" readonly /></td>
+                <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
+                    <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
+                </td>
+                <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
+                    <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+                </td>
 
+            </tr>
+            <tr bgcolor='#DCDCDC'>
+                <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+                <td><input type="text" id="no_coa2" name="no_coa[]" value="1102-01-04" class="form-control" readonly /></td>
+                <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+                    <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+                </td>
+                <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
+                    <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+                </td>
+
+            </tr>
+
+            <tr bgcolor='#DCDCDC'>
+                <td colspan="3" align="right"><b>TOTAL</b></td>
+                <td align="right"><input type="hidden" id="total" name="total" value="0" class="form-control" readonly />
+                    <input type="text" id="total31" name="total3" value="0" class="form-control" readonly />
+                </td>
+                <td align="right"><input type="hidden" id="total2" name="total2" value="0" class="form-control" readonly />
+                    <input type="text" id="total41" name="total4" value="0" class="form-control" readonly />
+                </td>
+
+            </tr>
+
+        </table>
                     <div class="form-group row">
                         <div class="col-md-12 text-center">
                             <button type="submit" class="btn btn-success" id="submitBtn"><i class="fa fa-save"></i> Save</button>
@@ -178,6 +235,21 @@
             const nilaiSetor = parseFloat($(this).val().replace(/[^0-9.-]+/g, "")) || 0;
             const totalPiutangSales = parseFloat($('#totalPiutangSales').val().replace(/[^0-9.-]+/g, "")) || 0;
             const sisa = totalPiutangSales - nilaiSetor;
+
+            const bank = $('#bank').val();
+            $('#no_coa1').val(bank)
+
+            $('#debet1').val(nilaiSetor);
+            $('#debet21').val(number_format(nilaiSetor, 2));
+
+            $('#kredit2').val(nilaiSetor);
+            $('#kredit22').val(number_format(nilaiSetor, 2));
+
+            $('#total').val(nilaiSetor);
+            $('#total31').val(number_format(nilaiSetor, 2));
+            $('#total2').val(nilaiSetor);
+            $('#total41').val(number_format(nilaiSetor, 2));
+
             $('#sisaPiutangSesudah').val(sisa.toLocaleString());
         });
 
@@ -284,4 +356,36 @@
             showMaskOnHover: true,
         })
     }
+
+    function number_format(number, decimals, dec_point, thousands_sep) {
+        // Strip all characters but numerical ones.
+        number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
+        var n = !isFinite(+number) ? 0 : +number,
+            prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+            sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+            dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+            s = '',
+            toFixedFix = function(n, prec) {
+                var k = Math.pow(10, prec);
+                return '' + Math.round(n * k) / k;
+            };
+        // Fix for IE parseFloat(0.55).toFixed(0) = 0;
+        s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+        if (s[0].length > 3) {
+            s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+        }
+        if ((s[1] || '').length < prec) {
+            s[1] = s[1] || '';
+            s[1] += new Array(prec - s[1].length + 1).join('0');
+        }
+        return s.join(dec);
+    }
+
+    function getNum(val) {
+        if (isNaN(val) || val == '') {
+            return 0;
+        }
+        return parseFloat(val);
+    }
+
 </script>
