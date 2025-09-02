@@ -123,7 +123,10 @@ class Setor_kasir extends Admin_Controller
         $ids = $this->input->get('ids');
         $ids_array = explode(',', $ids);
 
-        $data['bank'] = $this->db->get('master_bank')->result();
+        $this->db->from(DBACC . '.coa_master a')
+            ->where('a.no_perkiraan LIKE', '%1101-02%')
+            ->where('a.level', 5);
+        $data['bank']  = $this->db->get()->result();
 
         $data['setor_kasir'] = $this->db
             ->where_in('id', $ids_array)

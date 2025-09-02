@@ -30,7 +30,7 @@
                                 <select class="form-control select2" name="bank" id="bank">
                                     <option value="">Pilih</option>
                                     <?php foreach ($bank as $b) : ?>
-                                        <option value="<?= $b->id ?>" data-rekening="<?= $b->no_rekening ?>"><?= $b->nama . " - " . $b->no_rekening ?></option>
+                                        <option value="<?= $b->no_perkiraan ?>" data-rekening="<?= $b->no_perkiraan ?>"><?= $b->nama . " - " . $b->no_perkiraan ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -144,64 +144,64 @@
                             </div>
                         </div>
                     </div>
-     <table class="table table-bordered table-hover">    
-        <thead>
-            <tr bgcolor='#9acfea'>
-                <th>
-                    <center>Tanggal</center>
-                </th>
-                <th>
-                    <center>Tipe</center>
-                </th>
-                <th>
-                    <center>No. COA</center>
-                </th>
-                <th>
-                    <center>Debit</center>
-                </th>
-                <th>
-                    <center>Kredit</center>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr bgcolor='#DCDCDC'>
-                <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-                <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
-                <td><input type="text" id="no_coa1" name="no_coa[]" value="1101-02-01" class="form-control" readonly /></td>
-                <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
-                    <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
-                </td>
-                <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
-                    <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
-                </td>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr bgcolor='#9acfea'>
+                                <th>
+                                    <center>Tanggal</center>
+                                </th>
+                                <th>
+                                    <center>Tipe</center>
+                                </th>
+                                <th>
+                                    <center>No. COA</center>
+                                </th>
+                                <th>
+                                    <center>Debit</center>
+                                </th>
+                                <th>
+                                    <center>Kredit</center>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr bgcolor='#DCDCDC'>
+                                <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+                                <td><input type="text" id="no_coa1" name="no_coa[]" value="1101-02-01" class="form-control" readonly /></td>
+                                <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
+                                    <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
+                                </td>
+                                <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
+                                    <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+                                </td>
 
-            </tr>
-            <tr bgcolor='#DCDCDC'>
-                <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-                <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
-                <td><input type="text" id="no_coa2" name="no_coa[]" value="1102-01-04" class="form-control" readonly /></td>
-                <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
-                    <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
-                </td>
-                <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
-                    <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
-                </td>
+                            </tr>
+                            <tr bgcolor='#DCDCDC'>
+                                <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+                                <td><input type="text" id="no_coa2" name="no_coa[]" value="1102-01-04" class="form-control" readonly /></td>
+                                <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+                                    <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+                                </td>
+                                <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
+                                    <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+                                </td>
 
-            </tr>
+                            </tr>
 
-            <tr bgcolor='#DCDCDC'>
-                <td colspan="3" align="right"><b>TOTAL</b></td>
-                <td align="right"><input type="hidden" id="total" name="total" value="0" class="form-control" readonly />
-                    <input type="text" id="total31" name="total3" value="0" class="form-control" readonly />
-                </td>
-                <td align="right"><input type="hidden" id="total2" name="total2" value="0" class="form-control" readonly />
-                    <input type="text" id="total41" name="total4" value="0" class="form-control" readonly />
-                </td>
+                            <tr bgcolor='#DCDCDC'>
+                                <td colspan="3" align="right"><b>TOTAL</b></td>
+                                <td align="right"><input type="hidden" id="total" name="total" value="0" class="form-control" readonly />
+                                    <input type="text" id="total31" name="total3" value="0" class="form-control" readonly />
+                                </td>
+                                <td align="right"><input type="hidden" id="total2" name="total2" value="0" class="form-control" readonly />
+                                    <input type="text" id="total41" name="total4" value="0" class="form-control" readonly />
+                                </td>
 
-            </tr>
+                            </tr>
 
-        </table>
+                    </table>
                     <div class="form-group row">
                         <div class="col-md-12 text-center">
                             <button type="submit" class="btn btn-success" id="submitBtn"><i class="fa fa-save"></i> Save</button>
@@ -387,5 +387,4 @@
         }
         return parseFloat(val);
     }
-
 </script>
