@@ -626,16 +626,16 @@
 
         $('#totalInvoice').val(number_format(totalInvoice, 2));
 
-        $('#debet1').val(sisaBayar);
-        $('#debet21').val(number_format(sisaBayar, 2));
+        $('#debet1').val(bayar);
+        $('#debet21').val(number_format(bayar, 2));
 
-        $('#kredit2').val(sisaBayar);
-        $('#kredit22').val(number_format(sisaBayar, 2));
+        $('#kredit2').val(bayar);
+        $('#kredit22').val(number_format(bayar, 2));
 
-        $('#total').val(sisaBayar);
-        $('#total31').val(number_format(sisaBayar, 2));
-        $('#total2').val(sisaBayar);
-        $('#total41').val(number_format(sisaBayar, 2));
+        $('#total').val(bayar);
+        $('#total31').val(number_format(bayar, 2));
+        $('#total2').val(bayar);
+        $('#total41').val(number_format(bayar, 2));
 
 
     }
