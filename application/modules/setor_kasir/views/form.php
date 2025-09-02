@@ -324,8 +324,6 @@
             const totalPiutangSales = parseFloat($('#totalPiutangSales').val().replace(/[^0-9.-]+/g, "")) || 0;
             const sisa = totalPiutangSales - nilaiSetor;
 
-             $('#no_coa1').val(bank)
-
          $('#debet1').val(nilaiSetor);
          $('#debet21').val(number_format(nilaiSetor, 2));
 
