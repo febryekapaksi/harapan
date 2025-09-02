@@ -558,7 +558,7 @@ class Penerimaan_cash extends Admin_Controller
 			'no_perkiraan'  => '1102-01-04',
 			'keterangan'    => $Keterangan_INV,
 			'no_reff'       => $No_Inv,
-			'debet'         => $jumlah_terima,
+			'debet'         => $jumlah_total,
 			'kredit'        => 0
 
 		);
