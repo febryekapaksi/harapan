@@ -15,7 +15,10 @@ class Setor_bank extends Admin_Controller
 
         $this->load->library(array('upload', 'Image_lib'));
         $this->load->model(array(
-            'Setor_bank/setor_bank_model'
+            'Setor_bank/setor_bank_model',
+            'Penerimaan_cash/All_model',
+			'Penerimaan_cash/Jurnal_model',
+			'Penerimaan_cash/Acc_model'
         ));
 
         date_default_timezone_set('Asia/Bangkok');
@@ -58,7 +61,7 @@ class Setor_bank extends Admin_Controller
 
         $tgl_setor = $post['tgl_setor'];
         $bank = $post['bank'];
-        $norek = $post['norek'];
+        //$norek = $post['norek'];
         $nilai_setor = str_replace(",", "", $post['nilai_setor']);
         $total_penerimaan = str_replace(",", "", $post['total_penerimaan']);
         $sisa_piutang = str_replace(",", "", $post['sisa_piutang_sesudah']);
