@@ -153,6 +153,8 @@
 
         </tr>
 
+        </table>
+
                 <div class="form-group row">
                     <div class="col-md-12 text-center">
                         <button type="submit" class="btn btn-success" id="submitBtn"><i class="fa fa-save"></i> Save</button>
