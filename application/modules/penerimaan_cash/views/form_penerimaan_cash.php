@@ -627,8 +627,14 @@
 
         $('#totalInvoice').val(number_format(totalInvoice, 2));
 
-        
+        isiJurnal();
 
+    }
+
+     function isiJurnal() {
+        let totalInvoice = 0;
+        let nilaiBayar = $('#totalTerima').val().split(',').join('');
+        
         $('#debet1').val(nilaiBayar);
         $('#debet21').val(number_format(nilaiBayar, 2));
 
@@ -640,8 +646,7 @@
         $('#total2').val(nilaiBayar);
         $('#total41').val(number_format(nilaiBayar, 2));
 
-
-    }
+     }
 
     function number_format(number, decimals, dec_point, thousands_sep) {
         // Strip all characters but numerical ones.
