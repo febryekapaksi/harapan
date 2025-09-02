@@ -377,7 +377,7 @@ class Setor_kasir extends Admin_Controller
 
 		);
 
-		$data_jurnal = $this->db->query("SELECT * FROM tr_setor_bank_detail WHERE id_setor_bank = '$kd_bayar' ")->result();
+		$data_jurnal = $this->db->query("SELECT * FROM tr_setor_kasir_detail WHERE id_setor_kasir = '$kd_bayar' ")->result();
 
 		foreach ($data_jurnal as $jr) {
 			$jmlbayar   = $jr->total_penerimaan;
@@ -405,7 +405,7 @@ class Setor_kasir extends Admin_Controller
 
 		//PROSES JURNAL
 
-		$data_jr = $this->db->query("SELECT * FROM tr_setor_bank_detail WHERE id_setor_bank = '$kd_bayar' ")->result();
+		$data_jr = $this->db->query("SELECT * FROM tr_setor_kasir_detail WHERE id_setor_kasir = '$kd_bayar' ")->result();
 
 		foreach ($data_jr as $val) {
 			$jml   = $val->total_penerimaan;
