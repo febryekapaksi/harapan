@@ -179,6 +179,8 @@ $tipe_billing = $results['tipe_billing'];
 <input type="hidden" name="nilai_retensi" class="nilai_retensi" value="<?= $retensi_proporsional ?>">
 <input type="hidden" name="persen_jaminan" class="persen_jaminan" value="<?= $results['persen_jaminan'] ?>">
 <input type="hidden" name="nilai_jaminan" class="nilai_jaminan" value="<?= $jaminan_proporsional ?>"> -->
+
+<h5>Informasi Jurnal</h5>
 <table class="table table-bordered table-hover">
     <thead>
         <tr bgcolor='#9acfea'>
