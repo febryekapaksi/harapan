@@ -273,7 +273,7 @@
                     loadSisaPiutangSebelumnya();
                 },
                 error: function() {
-                    swal("Error", "Gagal mengambil data penerimaan.", "error");
+                    swal("Error", "Gagal mengambil data penerimaan.", "error"); 
                 }
             });
         });
