@@ -8,6 +8,19 @@ $ENABLE_DELETE  = has_permission('Master_Kelas.Delete');
 <div class="box-body">
     <form id="data_form" autocomplete="off">
         <div class="form-group row">
+            <div class="col-md-12">
+                <div class="col-md-6">
+                    <div class="checkbox">
+
+                        <label class="form-check-label" for="is_zonk">
+                            <input class="form-check-input" type="checkbox" name="is_zonk" id="is_zonk" value="1" <?= !empty($is_zonk) ? 'checked' : '' ?>>
+                            <b>Flag Zonk</b>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="form-group row">
             <div class="col-md-6">
                 <div class="col-md-3">
                     <label>Nama</label>
@@ -56,3 +69,16 @@ $ENABLE_DELETE  = has_permission('Master_Kelas.Delete');
         </div>
     </form>
 </div>
+
+<script>
+    $(document).ready(function() {
+        $('#is_zonk').on('change', function() {
+            const $n = $('#name');
+            if (this.checked) {
+                $n.val('ANDA KURANG BERUNTUNG').prop('readonly', true).addClass('bg-light');
+            } else {
+                $n.val('').prop('readonly', false).removeClass('bg-light').focus();
+            }
+        }).trigger('change'); // inisialisasi saat halaman load
+    });
+</script>
