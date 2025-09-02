@@ -214,7 +214,7 @@ class Setor_kasir extends Admin_Controller
         }
 
          $kd_bayar  = $id_setoran;
-         $this->appr_jurnal($kd_bayar);
+         $this->appr_jurnal_bank($kd_bayar);
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
