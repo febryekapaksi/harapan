@@ -171,13 +171,16 @@ class Penerimaan extends Admin_Controller
             $this->db->insert('tr_invoice_payment_detail', $data_detail);
 
 
-            // Update status invoice
-            $invoice_lunas = ($sisa_invoice <= 0);
-            $this->db->where('id_invoice', $invoice->id_invoice)
-                ->update('tr_invoice_sales', [
-                    'sts' => $invoice_lunas ? 0 : 1,
-                    'total_bayar' => $total_bayar
-                ]);
+            // Rekap ulang total_bayar dari detail (sumber kebenaran)
+            $sum = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
+                ->from('tr_invoice_payment_detail')
+                ->where('no_invoice', $row['id_invoice'])
+                ->get()->row()->total;
+
+            // Update tr_invoice_sales pakai hasil SUM
+            $this->db->set('total_bayar', $sum, false);
+            $this->db->set('sts', "CASE WHEN {$sum} >= grand_total THEN 0 ELSE 1 END", false);
+            $this->db->where('id_invoice', $invoice->id_invoice)->update('tr_invoice_sales');
         }
 
         $kd_bayar  = $kd_pembayaran;

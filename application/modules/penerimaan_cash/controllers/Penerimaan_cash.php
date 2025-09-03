@@ -83,7 +83,6 @@ class Penerimaan_cash extends Admin_Controller
             c.name_customer
         ')
 			->from('tr_invoice_sales i')
-			// ->join('sales_order so', 'so.no_so = i.id_so', 'left')
 			->join('master_customers c', 'c.id_customer = i.id_customer', 'left')
 			->where('i.id_customer', $id_customer)
 			->where('i.sts', 1)
@@ -158,13 +157,16 @@ class Penerimaan_cash extends Admin_Controller
 
 				$this->db->insert('tr_invoice_payment_detail', $data_detail);
 
-				// Update tr_invoice_sales
-				$invoice_lunas = ($sisa_invoice <= 0);
-				$this->db->where('id_invoice', $inv->id_invoice)
-					->update('tr_invoice_sales', [
-						'sts' => $invoice_lunas ? 0 : 1,
-						'total_bayar' => $total_bayar
-					]);
+				// Rekap ulang total_bayar dari detail (sumber kebenaran)
+				$sum = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
+					->from('tr_invoice_payment_detail')
+					->where('no_invoice', $row['id_invoice'])
+					->get()->row()->total;
+
+				// Update tr_invoice_sales pakai hasil SUM
+				$this->db->set('total_bayar', $sum, false);
+				$this->db->set('sts', "CASE WHEN {$sum} >= grand_total THEN 0 ELSE 1 END", false);
+				$this->db->where('id_invoice', $inv->id_invoice)->update('tr_invoice_sales');
 			}
 		}
 
@@ -306,13 +308,16 @@ class Penerimaan_cash extends Admin_Controller
 
 				$this->db->insert('tr_invoice_payment_detail', $data_detail);
 
-				//update ke tabel tr_invoice_sales
-				$invoice_lunas = ($sisa_invoice <= 0);
-				$this->db->where('id_invoice', $inv->id_invoice)
-					->update('tr_invoice_sales', [
-						'sts' => $invoice_lunas ? 0 : 1,
-						'total_bayar' => $total_bayar
-					]);
+				// Rekap ulang total_bayar dari detail (sumber kebenaran)
+				$sum = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
+					->from('tr_invoice_payment_detail')
+					->where('no_invoice', $row['id_invoice'])
+					->get()->row()->total;
+
+				// Update tr_invoice_sales pakai hasil SUM
+				$this->db->set('total_bayar', $sum, false);
+				$this->db->set('sts', "CASE WHEN {$sum} >= grand_total THEN 0 ELSE 1 END", false);
+				$this->db->where('id_invoice', $inv->id_invoice)->update('tr_invoice_sales');
 			}
 		}
 
