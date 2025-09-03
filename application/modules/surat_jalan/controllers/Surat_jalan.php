@@ -111,7 +111,8 @@ class Surat_jalan extends Admin_Controller
             ->from('loading_delivery_detail ld')
             ->join('spk_delivery sd', 'ld.no_delivery = sd.no_delivery', 'left')
             ->join('sales_order so', 'ld.no_so = so.no_so', 'left')
-            ->join('sales_order_detail sod', 'sod.no_so = ld.no_so AND sod.id_product = ld.id_product', 'left')
+            // ->join('sales_order_detail sod', 'sod.no_so = ld.no_so AND sod.id_product = ld.id_product', 'left')
+            ->join('sales_order_detail sod', 'sod.id = ld.id_spk_detail', 'left')
             ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
             ->join('new_inventory_4 p', 'ld.id_product = p.code_lv4', 'left')
             ->where('ld.no_loading', $no_loading)
@@ -122,6 +123,11 @@ class Surat_jalan extends Admin_Controller
                     )")
             ->get()
             ->result_array();
+
+        // echo '<pre>';
+        // print_r($this->db->last_query());
+        // echo '</pre>';
+        // die();
 
         echo json_encode([
             'header' => $header,
