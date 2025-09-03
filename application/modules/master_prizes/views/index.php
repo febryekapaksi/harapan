@@ -19,12 +19,12 @@ $ENABLE_DELETE  = has_permission('Master_Prizes.Delete');
             <table class="table table-bordered" id="example1">
                 <thead>
                     <tr class="bg-blue">
-                        <th>#</th>
+                        <th class="text-center">#</th>
                         <th style="min-width: 200px;">Nama</th>
-                        <th>Stock Total</th>
-                        <th>Stock Claim</th>
-                        <th>Status</th>
-                        <th>Action</th>
+                        <th class="text-center">Stock Total</th>
+                        <th class="text-center">Stock Claim</th>
+                        <th class="text-center">Status</th>
+                        <th class="text-center">Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -34,14 +34,23 @@ $ENABLE_DELETE  = has_permission('Master_Prizes.Delete');
                         foreach ($results as $record) {
                             $numb++; ?>
                             <tr>
-                                <td><?= $numb; ?></td>
+                                <td class="text-center"><?= $numb; ?></td>
                                 <td><?= $record->name ?></td>
-                                <td><?= $record->stock_total ?></td>
-                                <td><?= $record->stock_claimed ?></td>
-                                <td><?= $record->status ?></td>
-                                <td>
+                                <td class="text-center"><?= $record->stock_total ?></td>
+                                <td class="text-center"><?= $record->stock_claimed ?></td>
+                                <td class="text-center">
+                                    <?php if ($record->status == 1) { ?>
+                                        <span class="badge badge-pill bg-blue">Aktif</span>
+                                    <?php } else { ?>
+                                        <span class="badge badge-pill bg-gray">Non Aktif</span>
+                                    <?php } ?>
+                                </td>
+                                <td class="text-center">
                                     <?php if ($ENABLE_MANAGE) : ?>
                                         <a class="btn btn-success btn-sm add" href="javascript:void(0)" title="Edit" data-id="<?= $record->id ?>"><i class="fa fa-edit"></i>
+                                        </a>
+                                        <a target="_blank" href="<?= site_url('master_prizes/download_qr/' . $record->id) ?>" title="Download QR" class="btn btn-sm btn-info">
+                                            <i class="fa fa-download"></i>
                                         </a>
                                     <?php endif; ?>
 
@@ -49,6 +58,8 @@ $ENABLE_DELETE  = has_permission('Master_Prizes.Delete');
                                         <a class="btn btn-danger btn-sm delete" href="javascript:void(0)" title="Delete" data-id="<?= $record->id ?>"><i class="fa fa-trash"></i>
                                         </a>
                                     <?php endif; ?>
+
+                                    <a href="<?= site_url('master_prizes/list_guest/' . $record->id) ?>" title="Daftar Pemenang" class="btn btn-sm btn-warning"><i class="fa fa-list-ol"></i> Daftar Pemenang</a>
                                 </td>
                             </tr>
                     <?php }

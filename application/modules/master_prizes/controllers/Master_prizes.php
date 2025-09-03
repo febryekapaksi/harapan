@@ -142,6 +142,56 @@ class Master_prizes extends Admin_Controller
         echo json_encode($Arr_Data);
     }
 
+    public function download_qr($prizeId)
+    {
+        // cari salah satu voucher hadiah ini untuk baca qr_directory
+        $v = $this->db->select('qr_directory')
+            ->from('vouchers')
+            ->where('prize_id', (int)$prizeId)
+            ->limit(1)->get()->row_array();
+
+        if (!$v || empty($v['qr_directory'])) {
+            show_error('QR belum digenerate untuk hadiah ini.', 404);
+            return;
+        }
+
+        $dir = FCPATH . rtrim($v['qr_directory'], '/') . '/';
+        if (!is_dir($dir)) {
+            show_error('Folder QR tidak ditemukan.', 404);
+            return;
+        }
+
+        // nama file zip
+        $prize = $this->db->get_where('master_prizes', ['id' => $prizeId])->row_array();
+        $zipName = 'QR_' . ($prize['code'] ?? 'P' . $prizeId) . '_' . date('Ymd_His') . '.zip';
+
+        // zip pakai CI Zip library
+        $this->load->library('zip');
+        $this->zip->read_dir($dir, false); // false: tanpa folder parent
+        $this->zip->download($zipName);    // langsung kirim ke browser
+    }
+
+    public function list_guest($id)
+    {
+
+        $claims = $this->db
+            ->select('c.*, v.code, v.qr_directory, v.token')
+            ->from('claims c')
+            ->join('vouchers v', 'v.id = c.voucher_id', 'left')
+            ->where('c.prize_id', (int)$id)
+            ->order_by('c.created_at', 'DESC')
+            ->get()
+            ->result_array();
+
+        $data = [
+            'claims'  => $claims
+        ];
+
+        $this->template->page_icon('fa fa-users');
+        $this->template->title('Daftar Pemenang');
+        $this->template->render('list_guest', $data);
+    }
+
     // Private Function Section 
 
     private function _generateCode()
@@ -160,37 +210,49 @@ class Master_prizes extends Admin_Controller
     {
         if ($qty <= 0) return [true, '', 0];
 
-        // baca master untuk tahu zonk atau tidak
-        $prizeRow   = $this->db->get_where('master_prizes', ['id' => $prizeId])->row_array();
+        // baca master untuk tahu zonk & dapat code hadiah
+        $prizeRow    = $this->db->get_where('master_prizes', ['id' => $prizeId])->row_array();
         $isZonkPrize = $prizeRow && !empty($prizeRow['is_zonk']);
+        $prizeCode   = $prizeRow['code'] ?? ('P' . $prizeId);
 
-        // prefix default beda biar gampang dibedakan saat cetak (opsional)
+        // prefix kode voucher (optional)
         $prefix = $prefix ?: (($isZonkPrize ? 'ZNK' : 'VC') . date('ymd'));
 
-        $now = date('Y-m-d H:i:s');
+        // ====== tentukan folder simpan PNG per hadiah ======
+        $folderSlug = $prizeCode;                                   // mis. HP25090123
+        $targetDir  = rtrim($this->qrDir, '/') . '/' . $folderSlug . '/'; // uploads/qrvouchers/HP25090123/
+        if (!is_dir($targetDir)) @mkdir($targetDir, 0775, true);
+
+        $now  = date('Y-m-d H:i:s');
         $made = 0;
 
         $this->db->trans_begin();
         for ($i = 0; $i < $qty; $i++) {
+            // token unik
             $token = bin2hex(random_bytes(16));
             while ($this->vouchers_model->token_exists($token)) {
                 $token = bin2hex(random_bytes(16));
             }
+            // kode voucher berurutan
             $code = $this->vouchers_model->next_code($prefix);
 
-            // Simpan prize_id apapun (termasuk zonk) supaya laporan bisa mengelompok,
-            // tapi penentuan "zonk" saat scan akan melihat flag is_zonk.
+            // URL untuk discan
+            $scanUrl = site_url('master_prizes/public_scan/resolve/' . $token);
+
+            // simpan PNG ke folder hadiah; dapatkan path absolut & url publik (kalau perlu)
+            list($absPath, $publicUrl) = $this->_saveQrPng($scanUrl, $code, $targetDir);
+
+            // simpan row voucher
             $this->vouchers_model->insert([
-                'prize_id'   => (int)$prizeId,
-                'code'       => $code,
-                'token'      => $token,
-                'status'     => 'UNSCANNED',
-                'created_at' => $now,
-                'updated_at' => $now
+                'prize_id'     => (int)$prizeId,
+                'code'         => $code,
+                'token'        => $token,
+                'status'       => 'UNSCANNED',
+                'qr_directory' => str_replace(FCPATH, '', $targetDir),
+                'created_at'   => $now,
+                'updated_at'   => $now
             ]);
 
-            $scanUrl = site_url('master_prizes/public_scan/resolve/' . $token);
-            $this->_saveQrPng($scanUrl, $code);
             $made++;
         }
 
@@ -202,14 +264,26 @@ class Master_prizes extends Admin_Controller
         return [true, '', $made];
     }
 
-
-    private function _saveQrPng($data, $code)
+    private function _saveQrPng($data, $code, $targetDir = null)
     {
-        require_once APPPATH . 'libraries/phpqrcode/qrlib.php';
-        $dir = $this->qrDir . date('Ymd') . '/';
-        if (!is_dir($dir)) @mkdir($dir, 0775, true);
+        // pastikan lib ada
+        if (!class_exists('QRcode')) {
+            require_once APPPATH . 'libraries/phpqrcode/qrlib.php';
+        }
+
+        // jika $targetDir diisi → pakai; kalau tidak, fallback ke folder tanggal (behaviour lama)
+        $dir = $targetDir ?: ($this->qrDir . date('Ymd') . DIRECTORY_SEPARATOR);
+        $dir = rtrim($dir, "/\\") . DIRECTORY_SEPARATOR;
+
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+
         $path = $dir . $code . '.png';
-        QRcode::png($data, $path, QR_ECLEVEL_M, 5, 2);     // size=5, margin=2
-        return $path;
+
+        // tulis PNG ke file (bukan output)
+        QRcode::png($data, $path, QR_ECLEVEL_M, 5, 2);
+
+        return $path; // kalau mau, bisa diubah return [$path, base_url(str_replace(FCPATH,'',$path))]
     }
 }

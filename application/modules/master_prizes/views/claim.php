@@ -171,6 +171,11 @@ $token      = isset($token) ? $token : '';
                         <input type="hidden" name="confirm_ok" id="confirm_ok" value="">
 
                         <div class="mb-3">
+                            <label class="form-label">Nama Toko</label>
+                            <input type="text" class="form-control form-control-lg" name="guest_toko" required>
+                        </div>
+
+                        <div class="mb-3">
                             <label class="form-label">Nama Lengkap</label>
                             <input type="text" class="form-control form-control-lg" name="guest_name" required>
                         </div>

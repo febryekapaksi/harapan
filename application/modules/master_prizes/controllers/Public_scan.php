@@ -116,6 +116,7 @@ class Public_scan extends MX_Controller
             return;
         }
 
+        $toko  = trim($this->input->post('guest_toko', true));
         $name  = trim($this->input->post('guest_name', true));
         $phone = trim($this->input->post('guest_phone', true));
         $email = trim($this->input->post('guest_email', true));
@@ -157,6 +158,7 @@ class Public_scan extends MX_Controller
         $this->db->insert('claims', [
             'voucher_id'  => $v['id'],
             'prize_id'    => $v['prize_id'],
+            'guest_toko'  => $toko,
             'guest_name'  => $name,
             'guest_phone' => $phone,
             'guest_email' => $email,
