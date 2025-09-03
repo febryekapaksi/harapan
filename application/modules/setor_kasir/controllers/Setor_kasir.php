@@ -401,7 +401,7 @@ class Setor_kasir extends Admin_Controller
 
 
         ## INSERT JURNAL ##
-        $this->db->insert(DBACC . '.JARH', $dataJARH);
+        $this->db->insert(DBACC . '.jarh', $dataJARH);
         $this->db->insert_batch(DBACC . '.jurnal', $det_Jurnal);
 
         $Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum=nobum + 1 WHERE nocab='101'";
@@ -538,7 +538,7 @@ class Setor_kasir extends Admin_Controller
 
 
         ## INSERT JURNAL ##
-        $this->db->insert(DBACC . '.JARH', $dataJARH);
+        $this->db->insert(DBACC . '.jarh', $dataJARH);
         $this->db->insert_batch(DBACC . '.jurnal', $det_Jurnal);
 
         $Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum=nobum + 1 WHERE nocab='101'";

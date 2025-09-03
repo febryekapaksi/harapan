@@ -169,7 +169,7 @@ class Penerimaan_cash extends Admin_Controller
 		}
 
 		$kd_bayar  = $kd_pembayaran;
-        $this->appr_jurnal($kd_bayar);
+		$this->appr_jurnal($kd_bayar);
 
 		echo json_encode([
 			'status' => 1,
@@ -563,7 +563,7 @@ class Penerimaan_cash extends Admin_Controller
 
 		);
 
-		
+
 		$data_jurnal = $this->db->query("SELECT * FROM tr_invoice_payment_detail WHERE kd_pembayaran = '$kd_bayar' ")->result();
 
 		foreach ($data_jurnal as $jr) {
@@ -584,7 +584,7 @@ class Penerimaan_cash extends Admin_Controller
 
 
 		## INSERT JURNAL ##
-		$this->db->insert(DBACC . '.JARH', $dataJARH);
+		$this->db->insert(DBACC . '.jarh', $dataJARH);
 		$this->db->insert_batch(DBACC . '.jurnal', $det_Jurnal);
 
 		$Qry_Update_Cabang_acc	 = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum=nobum + 1 WHERE nocab='101'";
@@ -617,12 +617,9 @@ class Penerimaan_cash extends Admin_Controller
 
 
 
-			$idso = $this->db->insert('tr_kartu_piutang', $datapiutang); 
+			$idso = $this->db->insert('tr_kartu_piutang', $datapiutang);
 		}
-
-		
 	}
-
 }
 
 
