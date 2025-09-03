@@ -110,13 +110,13 @@ class Setor_bank extends Admin_Controller
             }
 
             $kd_bayar  = $id_setoran;
+            $this->appr_jurnal($kd_bayar);
 
             if ($this->db->trans_status() === FALSE) {
                 $this->db->trans_rollback();
                 echo json_encode(['status' => false, 'message' => 'Gagal menyimpan data setoran.']);
             } else {
                 $this->db->trans_commit();
-                $this->appr_jurnal($kd_bayar);
                 echo json_encode(['status' => true, 'message' => 'Data setoran berhasil disimpan.']);
             }
         } catch (\Throwable $th) {
