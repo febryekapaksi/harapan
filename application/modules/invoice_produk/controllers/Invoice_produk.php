@@ -106,24 +106,22 @@ class Invoice_produk extends Admin_Controller
 			// 	->get()
 			// 	->result();
 
-			$get_so_detail = $this->db
-				->query("
+			$sql = "
 					SELECT
-						sod.product,
-						sod.qty_order,
-						sod.harga_beli,
-						sjd.qty_terkirim AS qty_delivery,
-						pd.harga_penawaran,
-						pd.price_list,
-						pd.diskon AS diskon_persen,
-						pd.diskon_nilai
-					FROM
-						surat_jalan_detail sjd
-					LEFT JOIN sales_order_detail sod ON sod.id = sjd.id_so_det
-					LEFT JOIN penawaran_detail pd ON pd.id_penawaran = sod.id_penawaran AND pd.id_product = sod.id_product
-					LEFT JOIN penawaran p ON p.id_penawaran = pd.id_penawaran
-					WHERE sjd.no_surat_jalan = '" . $id . "'
-				")->result();
+					sod.product,
+					sod.qty_order,
+					sjd.qty_terkirim AS qty_delivery,
+					sod.harga_penawaran,
+					sod.harga_beli,
+					sod.price_list,
+					sod.diskon_persen,
+					sod.diskon_nilai
+					FROM surat_jalan_detail sjd
+					LEFT JOIN sales_order_detail sod
+						ON sod.id = sjd.id_so_det
+					WHERE sjd.no_surat_jalan = ?";
+
+			$get_so_detail = $this->db->query($sql, [$id])->result();
 
 			// $persen_dp = 0;
 			// $get_persen_dp = $this->db->select('a.persen_billing_plan')->get_where('tr_billing_plan a', ['a.no_so' => $no_so, 'a.tipe_billing_plan' => 1])->result();
@@ -618,10 +616,7 @@ class Invoice_produk extends Admin_Controller
 				'ho_valid'            => ''
 			);
 
-
 			$this->db->insert(DBACC . '.javh', $dataJVhead);
-
-
 
 			for ($i = 0; $i < count($this->input->post('type')); $i++) {
 				$tipe = $this->input->post('type')[$i];
@@ -646,12 +641,9 @@ class Invoice_produk extends Admin_Controller
 			$Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
 			$this->db->query($Qry_Update_Cabang_acc);
 
-
-
 			$id_cust  = $post['id_customer'];
 			$nama     = $post['nm_customer'];
 			$No_Inv   = $id_invoice;
-
 
 			$datapiutang = array(
 				'tipe'            => 'JV',
@@ -670,10 +662,8 @@ class Invoice_produk extends Admin_Controller
 
 			$Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
-
 			$Bln             = substr($tgl_inv, 5, 2);
 			$Thn             = substr($tgl_inv, 0, 4);
-
 
 			$dataJVhead = array(
 				'nomor'             => $Nomor_JV,
@@ -716,12 +706,9 @@ class Invoice_produk extends Admin_Controller
 			$Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
 			$this->db->query($Qry_Update_Cabang_acc);
 
-
-
 			$id_cust  = $post['id_customer'];
 			$nama     = $post['nm_customer'];
 			$No_Inv   = $id_invoice;
-
 
 			$datapiutang = array(
 				'tipe'            => 'JV',
@@ -914,15 +901,13 @@ class Invoice_produk extends Admin_Controller
 						sod.product,
 						sod.qty_order,
 						sjd.qty_terkirim AS qty,
-						pd.harga_penawaran,
-						pd.price_list,
-						pd.diskon,
-						pd.diskon_nilai
+						sod.harga_penawaran,
+						sod.price_list,
+						sod.diskon_persen AS diskon,
+						sod.diskon_nilai
 					FROM
 						surat_jalan_detail sjd
 					LEFT JOIN sales_order_detail sod ON sod.id = sjd.id_so_det
-					LEFT JOIN penawaran_detail pd ON pd.id_penawaran = sod.id_penawaran AND pd.id_product = sod.id_product
-					LEFT JOIN penawaran p ON p.id_penawaran = pd.id_penawaran
 					WHERE sjd.no_surat_jalan = '" . $item->no_surat_jalan . "'
 				")->result();
 
