@@ -144,32 +144,90 @@ class Master_prizes extends Admin_Controller
 
     public function download_qr($prizeId)
     {
-        // cari salah satu voucher hadiah ini untuk baca qr_directory
-        $v = $this->db->select('qr_directory')
+        // 1) Dapatkan folder QR
+        $row = $this->db->select('qr_directory')
             ->from('vouchers')
             ->where('prize_id', (int)$prizeId)
-            ->limit(1)->get()->row_array();
+            ->limit(1)
+            ->get()
+            ->row_array();
 
-        if (!$v || empty($v['qr_directory'])) {
+        if (!$row || empty($row['qr_directory'])) {
             show_error('QR belum digenerate untuk hadiah ini.', 404);
             return;
         }
 
-        $dir = FCPATH . rtrim($v['qr_directory'], '/') . '/';
+        $dir = FCPATH . rtrim($row['qr_directory'], '/\\') . '/';
         if (!is_dir($dir)) {
             show_error('Folder QR tidak ditemukan.', 404);
             return;
         }
 
-        // nama file zip
-        $prize = $this->db->get_where('master_prizes', ['id' => $prizeId])->row_array();
-        $zipName = 'QR_' . ($prize['code'] ?? 'P' . $prizeId) . '_' . date('Ymd_His') . '.zip';
+        // 2) Kumpulkan file PNG
+        $files = glob($dir . '*.png');
+        natsort($files);
+        $files = array_values($files);
 
-        // zip pakai CI Zip library
-        $this->load->library('zip');
-        $this->zip->read_dir($dir, false); // false: tanpa folder parent
-        $this->zip->download($zipName);    // langsung kirim ke browser
+        if (empty($files)) {
+            show_error('Tidak ada file QR di folder ini.', 404);
+            return;
+        }
+
+        // 3) Info hadiah untuk nama file PDF
+        $prize     = $this->db->get_where('master_prizes', ['id' => (int)$prizeId])->row_array();
+        $prizeCode = $prize['code'] ?? ('P' . $prizeId);
+
+        // 4) Build HTML (2 QR per halaman)
+        $items = [];
+        foreach ($files as $f) {
+            $code  = pathinfo($f, PATHINFO_FILENAME);
+            $img64 = base64_encode(@file_get_contents($f));
+            if ($img64 === false) continue; // skip yang gagal dibaca
+            $items[] = ['code' => $code, 'src' => 'data:image/png;base64,' . $img64];
+        }
+
+        if (empty($items)) {
+            show_error('Gagal membaca file QR.', 500);
+            return;
+        }
+
+        $html = '<html><head><meta charset="utf-8">
+        <style>
+            @page { size: A4; margin: 10mm; }
+            body { font-family: DejaVu Sans, Arial, sans-serif; font-size: 12px; }
+            .item { text-align:center; page-break-inside: avoid; margin: 8mm 0; }
+            .qr   { width: 80mm; height: auto; }
+            .code { margin-top: 4mm; font-weight: bold; }
+            .pb   { page-break-after: always; }
+        </style>
+    </head><body>';
+
+        $n = count($items);
+        for ($i = 0; $i < $n; $i++) {
+            $it = $items[$i];
+            $html .= '<div class="item">
+                    <img class="qr" src="' . $it['src'] . '" alt="' . $it['code'] . '">
+                    <div class="code">' . $it['code'] . '</div>
+                  </div>';
+
+            // page break setelah setiap 2 item, kecuali terakhir
+            if (($i % 2) === 1 && $i !== $n - 1) {
+                $html .= '<div class="pb"></div>';
+            }
+        }
+
+        $html .= '</body></html>';
+
+        // 5) Render PDF dengan Dompdf
+        $dompdf = new \Dompdf\Dompdf(['isRemoteEnabled' => true]);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = 'QR_' . $prizeCode . '_' . date('Ymd_His') . '.pdf';
+        $dompdf->stream($filename, ['Attachment' => 1]); // download
     }
+
 
     public function list_guest($id)
     {
@@ -223,6 +281,8 @@ class Master_prizes extends Admin_Controller
         $targetDir  = rtrim($this->qrDir, '/') . '/' . $folderSlug . '/'; // uploads/qrvouchers/HP25090123/
         if (!is_dir($targetDir)) @mkdir($targetDir, 0775, true);
 
+        $logoPath = FCPATH . 'assets/images/logo_sbf.png';
+
         $now  = date('Y-m-d H:i:s');
         $made = 0;
 
@@ -240,7 +300,7 @@ class Master_prizes extends Admin_Controller
             $scanUrl = site_url('master_prizes/public_scan/resolve/' . $token);
 
             // simpan PNG ke folder hadiah; dapatkan path absolut & url publik (kalau perlu)
-            list($absPath, $publicUrl) = $this->_saveQrPng($scanUrl, $code, $targetDir);
+            $absPath = $this->_saveQrPng($scanUrl, $code, $targetDir, $logoPath);
 
             // simpan row voucher
             $this->vouchers_model->insert([
@@ -264,26 +324,89 @@ class Master_prizes extends Admin_Controller
         return [true, '', $made];
     }
 
-    private function _saveQrPng($data, $code, $targetDir = null)
+    private function _saveQrPng($data, $code, $targetDir = null, $logoPath = null)
     {
-        // pastikan lib ada
+        // pastikan lib QR & GD siap
         if (!class_exists('QRcode')) {
             require_once APPPATH . 'libraries/phpqrcode/qrlib.php';
         }
 
-        // jika $targetDir diisi → pakai; kalau tidak, fallback ke folder tanggal (behaviour lama)
         $dir = $targetDir ?: ($this->qrDir . date('Ymd') . DIRECTORY_SEPARATOR);
         $dir = rtrim($dir, "/\\") . DIRECTORY_SEPARATOR;
-
-        if (!is_dir($dir)) {
-            @mkdir($dir, 0775, true);
-        }
+        if (!is_dir($dir)) @mkdir($dir, 0775, true);
 
         $path = $dir . $code . '.png';
 
-        // tulis PNG ke file (bukan output)
-        QRcode::png($data, $path, QR_ECLEVEL_M, 5, 2);
+        // 1) Generate QR dasar (pakai ECC H agar kuat ditempeli logo)
+        //    QRcode::png($text, $outfile, $level, $size, $margin)
+        QRcode::png($data, $path, QR_ECLEVEL_H, 7, 2); // size 7 biar resolusi cukup
 
-        return $path; // kalau mau, bisa diubah return [$path, base_url(str_replace(FCPATH,'',$path))]
+        // 2) Jika tidak ada logo atau GD tidak tersedia → selesai
+        if (empty($logoPath) || !is_file($logoPath) || !extension_loaded('gd')) {
+            return $path;
+        }
+
+        // 3) Buka gambar QR & logo
+        $qr = @imagecreatefrompng($path);
+        if (!$qr) return $path;
+
+        // dukung logo png/jpg
+        $ext = strtolower(pathinfo($logoPath, PATHINFO_EXTENSION));
+        if ($ext === 'png')      $logo = @imagecreatefrompng($logoPath);
+        elseif ($ext === 'jpg' || $ext === 'jpeg') $logo = @imagecreatefromjpeg($logoPath);
+        else $logo = @imagecreatefrompng($logoPath); // default coba png
+
+        if (!$logo) {
+            imagedestroy($qr);
+            return $path;
+        }
+
+        // 4) Hitung ukuran target logo (±22% lebar QR)
+        $qrW = imagesx($qr);
+        $qrH = imagesy($qr);
+        $lgW = imagesx($logo);
+        $lgH = imagesy($logo);
+
+        $targetLogoW = (int) round($qrW * 0.22);
+        $targetLogoH = (int) round($lgH * ($targetLogoW / max(1, $lgW)));
+
+        // 5) Resize logo ke truecolor with alpha
+        $logoRes = imagecreatetruecolor($targetLogoW, $targetLogoH);
+        imagealphablending($logoRes, false);
+        imagesavealpha($logoRes, true);
+        imagecopyresampled($logoRes, $logo, 0, 0, 0, 0, $targetLogoW, $targetLogoH, $lgW, $lgH);
+
+        // 6) Koordinat tengah & bantalan putih (quiet zone di belakang logo)
+        $x = (int) round(($qrW - $targetLogoW) / 2);
+        $y = (int) round(($qrH - $targetLogoH) / 2);
+        $pad = (int) round($qrW * 0.02); // 2% dari lebar
+
+        // aktifkan alpha di QR
+        imagealphablending($qr, true);
+        imagesavealpha($qr, true);
+
+        // gambar kotak putih di belakang logo (tanpa alpha agar kontras)
+        $white = imagecolorallocate($qr, 255, 255, 255);
+        imagefilledrectangle(
+            $qr,
+            max(0, $x - $pad),
+            max(0, $y - $pad),
+            min($qrW - 1, $x + $targetLogoW + $pad),
+            min($qrH - 1, $y + $targetLogoH + $pad),
+            $white
+        );
+
+        // 7) Tempel logo
+        imagecopy($qr, $logoRes, $x, $y, 0, 0, $targetLogoW, $targetLogoH);
+
+        // 8) Simpan kembali PNG
+        imagepng($qr, $path, 6);
+
+        // 9) Bersih-bersih
+        imagedestroy($logoRes);
+        imagedestroy($logo);
+        imagedestroy($qr);
+
+        return $path;
     }
 }
