@@ -174,12 +174,17 @@ class Invoice_produk extends Admin_Controller
 			$get_so = $this->db->get_where('sales_order', ['no_so' => $no_so])->row();
 			// $get_penawaran = $this->db->get_where('tr_penawaran', ['no_penawaran' => $get_so->no_penawaran])->row();
 
-			$spk_pertama = $this->db
-				->order_by('no_delivery', 'ASC')
-				->get_where('spk_delivery', ['no_so' => $no_so])
+			$get_sj_pertama = $this->db
+				->select('no_surat_jalan')
+				->from('surat_jalan')
+				->where('no_so', $no_so)
+				->order_by('delivery_date', 'ASC')   // pakai tanggal kirim
+				->order_by('id', 'ASC')              // fallback kalau tanggal sama
+				->limit(1)
+				->get()
 				->row();
 
-			$is_spk_pertama = ($spk_pertama && $spk_pertama->no_surat_jalan == $id);
+			$is_sj_pertama = ($get_sj_pertama && $get_sj_pertama->no_surat_jalan === $id);
 
 			$data = [
 				'tipe_billing' => $tipe_billing,
@@ -194,7 +199,7 @@ class Invoice_produk extends Admin_Controller
 				// 'persen_ppn' => $get_penawaran->ppn,
 				'data_so' => $get_so,
 				'data_penawaran' => $get_penawaran,
-				'is_spk_pertama' => $is_spk_pertama,
+				'is_sj_pertama' => $is_sj_pertama,
 			];
 
 			$this->template->set('results', $data);
@@ -395,12 +400,17 @@ class Invoice_produk extends Admin_Controller
 			$get_so = $this->db->get_where('sales_order', ['no_so' => $no_so])->row();
 			// $get_penawaran = $this->db->get_where('penawaran', ['no_penawaran' => $get_so->no_penawaran])->row();
 
-			$spk_pertama = $this->db
-				->order_by('no_delivery', 'ASC')
-				->get_where('spk_delivery', ['no_so' => $no_so])
+			$get_sj_pertama = $this->db
+				->select('no_surat_jalan')
+				->from('surat_jalan')
+				->where('no_so', $no_so)
+				->order_by('delivery_date', 'ASC')   // pakai tanggal kirim
+				->order_by('id', 'ASC')              // fallback kalau tanggal sama
+				->limit(1)
+				->get()
 				->row();
 
-			$is_spk_pertama = ($spk_pertama && $spk_pertama->no_surat_jalan == $id);
+			$is_sj_pertama = ($get_sj_pertama && $get_sj_pertama->no_surat_jalan === $id);
 
 			$data = [
 				'tipe_billing' => $tipe_billing,
@@ -416,7 +426,7 @@ class Invoice_produk extends Admin_Controller
 				'data_so' => $get_so,
 				'data_penawaran' => $get_penawaran,
 				'view' => 1,
-				'is_spk_pertama' => $is_spk_pertama,
+				'is_sj_pertama' => $is_sj_pertama,
 			];
 
 			$this->template->set('results', $data);
@@ -508,6 +518,7 @@ class Invoice_produk extends Admin_Controller
 				'nilai_dpp' => $post['nilai_dpp'],
 				'nilai_asli' => $post['nilai_asli'],
 				'nilai_invoice' => $post['nilai_invoice'],
+				'diskon_khusus'	=> $post['diskon_khusus'],
 				// 'ppn' => $post['ppn'],
 				'nilai_ppn' => $post['nilai_ppn'],
 				'grand_total' => $post['grand_total'],
@@ -911,18 +922,24 @@ class Invoice_produk extends Admin_Controller
 					WHERE sjd.no_surat_jalan = '" . $item->no_surat_jalan . "'
 				")->result();
 
-				$get_spk_pertama = $this->db
-					->order_by('no_delivery', 'ASC')
-					->get_where('spk_delivery', ['no_so' => $item->no_so])
+				$get_sj_pertama = $this->db
+					->select('no_surat_jalan')
+					->from('surat_jalan')
+					->where('no_so', $item->no_so)
+					->order_by('delivery_date', 'ASC')   // pakai tanggal kirim
+					->order_by('id', 'ASC')              // fallback kalau tanggal sama
+					->limit(1)
+					->get()
 					->row();
 
-				$is_spk_pertama = ($get_spk_pertama && $get_spk_pertama->no_surat_jalan == $item->no_surat_jalan);
+				$is_sj_pertama = ($get_sj_pertama && $get_sj_pertama->no_surat_jalan === $item->no_surat_jalan);
 
-				// Hitung freight jika SPK pertama
+				// Hitung freight jika SJ pertama
 				$freight = 0;
-				if ($is_spk_pertama) {
+				$diskon_khusus = 0;
+				if ($is_sj_pertama) {
 					$freight_data = $this->db
-						->select('b.freight')
+						->select('b.freight, b.diskon_khusus')
 						->from('sales_order a')
 						->join('penawaran b', 'b.id_penawaran = a.id_penawaran')
 						->where('a.no_so', $item->no_so)
@@ -930,6 +947,7 @@ class Invoice_produk extends Admin_Controller
 						->row();
 
 					$freight = $freight_data ? $freight_data->freight : 0;
+					$diskon_khusus = $freight_data ? $freight_data->diskon_khusus : 0;
 				}
 
 				// Hitung nominal
@@ -940,10 +958,11 @@ class Invoice_produk extends Admin_Controller
 					$subtotal += $total_harga;
 				}
 
-				$excludeppn = ($subtotal + $freight) / 1.11;
+				$includeppn = $subtotal -  $diskon_khusus;
+				$excludeppn = ($includeppn + $freight) / 1.11;
 				$dpp = $excludeppn * 11 / 12;
 				$ppn = $dpp * 12 / 100;
-				$nominal_invoice = $excludeppn + $ppn;
+				$nominal_invoice = ($excludeppn + $ppn);
 
 				$tanggal = (($item->created_on != null) ? date('d/M/Y', strtotime($item->created_on)) : '');
 

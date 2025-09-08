@@ -100,11 +100,14 @@ $tipe_billing = $results['tipe_billing'];
         <?php
 
         $freight = $results['data_penawaran']->freight;
-        $is_spk_pertama = $results['is_spk_pertama'];
+        $diskon_khusus = $results['data_penawaran']->diskon_khusus;
+        $is_sj_pertama = $results['is_sj_pertama'];
 
-        $freight_dipakai = $is_spk_pertama ? $freight : 0;
-        $excludeppn = ($subtotal + $freight_dipakai) / 1.11;
+        $freight_dipakai = $is_sj_pertama ? $freight : 0;
+        $diskon_khusus_dipakai = $is_sj_pertama ? $diskon_khusus : 0;
 
+        $includeppn = $subtotal -  $diskon_khusus_dipakai;
+        $excludeppn = ($includeppn + $freight_dipakai) / 1.11;
         $dpp = ($excludeppn * 11) / 12;
         $nilai_ppn = (($dpp * 12)  / 100);
         $total_all = ($excludeppn + $nilai_ppn);
@@ -118,13 +121,18 @@ $tipe_billing = $results['tipe_billing'];
         // $total_tagihan = ($total + $jaminan_proporsional);
         $total_tagihan = ($total);
 
-
         $nilai_invoice = $total_tagihan;
         ?>
         <tr>
             <td class="text-right" colspan="6">Total</td>
             <td class="text-right"><?= number_format($subtotal, 2) ?></td>
         </tr>
+        <?php if ($is_sj_pertama && !empty($diskon_khusus) && $diskon_khusus > 0) { ?>
+            <tr>
+                <td class="text-right" colspan="6">Diskon Khusus</td>
+                <td class="text-right"><?= number_format($diskon_khusus_dipakai, 2) ?></td>
+            </tr>
+        <?php } ?>
         <tr>
             <td class="text-right" colspan="6">DPP</td>
             <td class="text-right"><?= number_format($excludeppn, 2) ?></td>
@@ -159,6 +167,7 @@ $tipe_billing = $results['tipe_billing'];
         </tr>
     </tbody>
 </table>
+<input type="hidden" class="diskon_khusus" name="diskon_khusus" value="<?= $diskon_khusus_dipakai ?>">
 <input type="hidden" class="nm_customer" name="nm_customer" value="<?= $results['data_penawaran']->name_customer ?>">
 <input type="hidden" class="total_harga_beli" name="total_harga_beli" value="<?= $grand_total_beli ?>">
 <input type="hidden" class="tipe_billing" name="tipe_billing" value="<?= $tipe_billing ?>">

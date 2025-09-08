@@ -54,6 +54,7 @@ class Surat_jalan_model extends BF_Model
             $nestedData[] = "<div class='text-center'>{$urut}</div>";
             $nestedData[] = "<div class='text-center'>" . strtoupper($row['no_surat_jalan']) . "</div>";
             $nestedData[] = "<div class='text-center'>" . strtoupper($row['no_loading']) . "</div>";
+            $nestedData[] = "<div class='text-center'>" . strtoupper($row['no_so']) . "</div>";
             $nestedData[] = "<div>" . strtoupper($row['name_customer']) . "</div>";
             $nestedData[] = "<div class='text-center'>" . date('d/M/Y', strtotime($row['delivery_date'])) . "</div>";
             $nestedData[] = "<div class='text-center'>" . $status . "</div>";
@@ -116,7 +117,7 @@ class Surat_jalan_model extends BF_Model
         // =============================
         // 3. Ambil data paginasi
         // =============================
-        $this->db->select('sj.id, sj.no_surat_jalan, sj.no_loading, sj.delivery_date, sj.status, c.name_customer');
+        $this->db->select('sj.id, sj.no_surat_jalan, sj.no_loading, sj.no_so, sj.delivery_date, sj.status, c.name_customer');
         $this->db->from('surat_jalan sj');
         $this->db->join('sales_order so', 'sj.no_so = so.no_so', 'left');
         $this->db->join('master_customers c', 'so.id_customer = c.id_customer', 'left');
@@ -126,6 +127,7 @@ class Surat_jalan_model extends BF_Model
             $this->db->group_start();
             $this->db->like('sj.no_surat_jalan', $like_value);
             $this->db->or_like('sj.no_loading', $like_value);
+            $this->db->or_like('sj.no_so', $like_value);
             $this->db->or_like('c.name_customer', $like_value);
             $this->db->group_end();
         }
