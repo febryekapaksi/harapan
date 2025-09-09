@@ -356,7 +356,6 @@ class Penawaran_model extends BF_Model
         ];
     }
 
-
     public function get_json_approval_direksi()
     {
         $requestData = $_REQUEST;
