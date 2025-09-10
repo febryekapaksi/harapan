@@ -326,8 +326,8 @@
             <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
             <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
-            <td><input type="hidden" id="debet1" name="debet[]" value="<?= ?>" class="form-control" readonly />
-                <input type="text" id="debet21" name="debet2[]" value="<?= ?>" class="form-control" readonly />
+            <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control" readonly />
+                <input type="text" id="debet21" name="debet2[]" value="" class="form-control" readonly />
             </td>
             <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
                 <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
@@ -353,18 +353,18 @@
             <td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
                 <input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
             </td>
-            <td><input type="hidden" id="kredit3" name="kredit[]" value="<?=  ?>" class="form-control" readonly />
-                <input type="text" id="kredit23" name="kredit2[]" value="<?=  ?>" class="form-control" readonly />
+            <td><input type="hidden" id="kredit3" name="kredit[]" value="" class="form-control" readonly />
+                <input type="text" id="kredit23" name="kredit2[]" value="" class="form-control" readonly />
             </td>
 
         </tr>
         <tr bgcolor='#DCDCDC'>
             <td colspan="3" align="right"><b>TOTAL</b></td>
-            <td align="right"><input type="hidden" id="total" name="total" value="<?=  ?>" class="form-control" readonly />
+            <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control" readonly />
                 <input type="text" id="total31" name="total3" value="<?=   ?>" class="form-control" readonly />
             </td>
-            <td align="right"><input type="hidden" id="total2" name="total2" value="<?=  ?>" class="form-control" readonly />
-                <input type="text" id="total41" name="total4" value="<?=  ?>" class="form-control" readonly />
+            <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
+                <input type="text" id="total41" name="total4" value="" class="form-control" readonly />
             </td>
 
         </tr>
