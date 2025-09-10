@@ -254,7 +254,7 @@ class Incoming_check_model extends BF_Model
             GROUP BY a.id_material';
         $result            = $this->db->query($sql)->result_array();
 
-        $this->db->select('d.no_pr');
+        $this->db->select('d.no_pr, b.hargasatuan');
         $this->db->from('tr_incoming_check_detail a');
         $this->db->join('dt_trans_po b', 'b.id = a.id_po_detail');
         // $this->db->from('dt_trans_po a');
@@ -289,10 +289,7 @@ class Incoming_check_model extends BF_Model
         foreach ($get_no_surat as $item) {
             $no_surat[] = $item->no_surat;
         }
-
         $no_surat = implode(', ', $no_surat);
-
-
 
         $data = array(
             'result_header'     => $result_header,
@@ -306,7 +303,7 @@ class Incoming_check_model extends BF_Model
             'no_pr' => $no_pr,
             'file_incoming_material' => $result_header[0]->file_incoming_material,
             'summary_incoming' => $get_summary_incoming,
-            'no_surat' => $no_surat
+            'no_surat' => $no_surat,
             // 'id_ros'    => $result_header[0]->id_ros,
             // 'no_ros'    => $result_header[0]->no_ros,
             // 'total_freight'    => $result_header[0]->total_freight,
@@ -611,12 +608,17 @@ class Incoming_check_model extends BF_Model
                         'sts' => '0'
                     ])->row_array();
 
+                $total_stock = $check_stock->qty_stock * $check_stock->harga_beli;
+                $total_beli = $get_new_incoming_ttl->ttl_new_incoming; //dikali harga po 
+                $costbook = ($total_stock + $total_beli) / ($get_new_incoming_ttl->ttl_new_incoming + $check_stock->qty_stock);
+
                 $this->db->insert('warehouse_stock', [
                     'id_material' => $det_inc['id_material'],
                     'nm_product' => $det_inc['nm_material'],
                     'id_gudang' => '1',
                     'kd_gudang' => 'PUS',
                     'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
+                    // ada input buat costbook/harga_beli
                     'update_by' => $this->auth->user_id(),
                     'update_date' => date('Y-m-d H:i:s')
                 ]);
@@ -658,7 +660,6 @@ class Incoming_check_model extends BF_Model
             }
 
             $this->db->update('tr_checked_incoming_detail', ['sts' => '1'], ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id'],  'sts' => '0']);
-
 
             $ttl_all_checked += (float) str_replace(',', '', (string)($post['qty_oke_' . $det_inc['id']] ?? 0)) + (float) str_replace(',', '', (string)($post['qty_ng_'  . $det_inc['id']] ?? 0));
 

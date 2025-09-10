@@ -69,7 +69,9 @@
 					b.konversi,
 					c.code as satuan,
 					e.code as packing,
-					f.no_surat
+					f.no_surat,
+					g.hargasatuan,
+					g.harga_total
 				FROM 
 					tr_incoming_check_detail a 
 					LEFT JOIN new_inventory_4 b ON b.code_lv4 = a.id_material 
@@ -101,9 +103,11 @@
 						<th class="text-center">Konversi</th>
 						<th class="text-center">Qty Pack</th>
 						<th class="text-center">Packing</th>
-						<th class="text-center" style="min-width: 50px;">Qty KW 2</th>
-						<th class="text-center" style="min-width: 50px;">Qty OK</th>
-						<th class="text-center" style="min-width: 50px;">Qty Pack</th>
+						<th class="text-center" style="min-width: 100px;">Qty KW 2</th>
+						<th class="text-center" style="min-width: 100px;">Qty OK</th>
+						<th class="text-center" style="min-width: 100px;">Qty Pack</th>
+						<th class="text-center hidden" style="min-width: 200px;">Harga Satuan</th>
+						<th class="text-center hidden" style="min-width: 200px;">Total Harga</th>
 						<th class="text-center">Expired Date</th>
 						<th class="text-center">Document</th>
 						<th class="text-center">Lot Description</th>
@@ -113,6 +117,7 @@
 				<tbody class="list_incoming_check_<?= $no_ipp ?>">
 					<?php
 					$no = 1;
+					$harga_baru = 0;
 					foreach ($result as $item) :
 						$packing = $item['qty_order'];
 						if ($item['konversi'] > 0) {
@@ -124,11 +129,15 @@
 							$konversi = $item['konversi'];
 						}
 
+						$harga_baru = $item['harga_total'] / $item['qty_order'];
+
 						echo '<tr>';
 						echo '
 						<input type="hidden" name="id" value="' . $item['id'] . '">
 						<input type="hidden" name="kode_trans_' . $item['id'] . '" value="' . $item['kode_trans'] . '">
 						<input type="hidden" name="id_material_' . $item['id'] . '" value="' . $item['id_material'] . '">
+						<input type="hidden" name="harga_satuan' . $item['id'] . '" value="' . $item['hargasatuan'] . '">
+						<input type="hidden" name="harga_total' . $item['id'] . '" value="' . $item['harga_total'] . '">
 					';
 						echo '<td class="text-center">' . $no . '</td>';
 						echo '<td class="text-center">' . $get_no_surat->no_surat . '</td>';
@@ -146,6 +155,12 @@
 				</td>';
 						echo '<td class="">
 					<input type="text" name="qty_pack_' . $item['id'] . '" id="" class="form-control form-control-sm maskM qty_pack_' . $item['id'] . '" readonly>
+				</td>';
+						echo '<td class="hidden">
+					<input type="text" name="harga_baru_' . $item['id'] . '" id="" class="form-control form-control-sm harga_baru_' . $item['id'] . '" value="' . number_format(($harga_baru), 2) . '" readonly>
+				</td>';
+						echo '<td class="hidden">
+					<input type="text" name="total_harga_' . $item['id'] . '" id="" class="form-control form-control-sm total_harga total_harga_' . $item['id'] . '" readonly>
 				</td>';
 						echo '<td class="">
 					<input type="date" name="expired_date_' . $item['id'] . '" id="" class="form-control form-control-sm input_hid expired_date_' . $item['id'] . '" min="' . date('Y-m-d') . '" data-id="' . $item['id'] . '">
@@ -182,13 +197,17 @@
 							echo '</td>';
 							echo '</tr>';
 						endforeach;
-
-
 						$no++;
 						$Noo++;
 					endforeach;
 					?>
 				</tbody>
+				<tfoot hidden>
+					<tr>
+						<td class="text-right" colspan="12">Total Harga</td>
+						<td colspan="2"><input type="text" id="grandTotal" class="form-control form-control-sm"></td>
+					</tr>
+				</tfoot>
 			</table>
 		</div>
 
@@ -244,7 +263,7 @@
 		</div>
 	</div>
 
-	<div class="list_form"> 
+	<div class="list_form">
 		<?php
 		$sql = '
 			SELECT 
@@ -302,72 +321,72 @@
 
 <h5>Informasi Jurnal</h5>
 <table class="table table-bordered table-hover">
-    <thead>
-        <tr bgcolor='#9acfea'>
-            <th>
-                <center>Tanggal</center>
-            </th>
-            <th>
-                <center>Tipe</center>
-            </th>
-            <th>
-                <center>No. COA</center>
-            </th>
-            <th>
-                <center>Debit</center>
-            </th>
-            <th>
-                <center>Kredit</center>
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
-            <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
-            <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control" readonly />
-                <input type="text" id="debet21" name="debet2[]" value="" class="form-control" readonly />
-            </td>
-            <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
-                <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
-            </td>
+	<thead>
+		<tr bgcolor='#9acfea'>
+			<th>
+				<center>Tanggal</center>
+			</th>
+			<th>
+				<center>Tipe</center>
+			</th>
+			<th>
+				<center>No. COA</center>
+			</th>
+			<th>
+				<center>Debit</center>
+			</th>
+			<th>
+				<center>Kredit</center>
+			</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr bgcolor='#DCDCDC'>
+			<td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+			<td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+			<td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
+			<td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control" readonly />
+				<input type="text" id="debet21" name="debet2[]" value="" class="form-control" readonly />
+			</td>
+			<td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
+				<input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+			</td>
 
-        </tr>
-        <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-            <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
-            <td><input type="text" id="no_coa2" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
-            <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
-                <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
-            </td>
-            <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
-                <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
-            </td>
+		</tr>
+		<tr bgcolor='#DCDCDC'>
+			<td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+			<td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+			<td><input type="text" id="no_coa2" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
+			<td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+				<input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+			</td>
+			<td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
+				<input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+			</td>
 
-        </tr>
-        <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal3" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-            <td><input type="text" id="type3" name="type[]" value="JV" class="form-control" readonly /></td>
-            <td><input type="text" id="no_coa3" name="no_coa[]" value="2101-01-01" class="form-control" readonly /></td>
-            <td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
-                <input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
-            </td>
-            <td><input type="hidden" id="kredit3" name="kredit[]" value="" class="form-control" readonly />
-                <input type="text" id="kredit23" name="kredit2[]" value="" class="form-control" readonly />
-            </td>
+		</tr>
+		<tr bgcolor='#DCDCDC'>
+			<td><input type="date" id="tgl_jurnal3" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+			<td><input type="text" id="type3" name="type[]" value="JV" class="form-control" readonly /></td>
+			<td><input type="text" id="no_coa3" name="no_coa[]" value="2101-01-01" class="form-control" readonly /></td>
+			<td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
+				<input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
+			</td>
+			<td><input type="hidden" id="kredit3" name="kredit[]" value="" class="form-control" readonly />
+				<input type="text" id="kredit23" name="kredit2[]" value="" class="form-control" readonly />
+			</td>
 
-        </tr>
-        <tr bgcolor='#DCDCDC'>
-            <td colspan="3" align="right"><b>TOTAL</b></td>
-            <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control" readonly />
-                <input type="text" id="total31" name="total3" value="" class="form-control" readonly />
-            </td>
-            <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
-                <input type="text" id="total41" name="total4" value="" class="form-control" readonly />
-            </td>
+		</tr>
+		<tr bgcolor='#DCDCDC'>
+			<td colspan="3" align="right"><b>TOTAL</b></td>
+			<td align="right"><input type="hidden" id="total" name="total" value="" class="form-control" readonly />
+				<input type="text" id="total31" name="total3" value="" class="form-control" readonly />
+			</td>
+			<td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
+				<input type="text" id="total41" name="total4" value="" class="form-control" readonly />
+			</td>
 
-        </tr>
+		</tr>
 </table>
 <style>
 	.tanggal {
@@ -440,10 +459,27 @@
 			qty_oke = qty_oke.split(',').join('');
 			qty_oke = parseFloat(qty_oke);
 		}
+		console.log(qty_oke)
 		var konversi = $('.konversi_' + id).val();
+		var harga_baru = $('.harga_baru_' + id).val();
+		harga_baru = harga_baru.split(',').join('');
+		harga_baru = parseFloat(harga_baru);
+
+		var total_harga = qty_oke * harga_baru;
+		console.log(total_harga)
+
+		$('.total_harga_' + id).val(total_harga);
 
 		var qty_pack = parseFloat(qty_oke / konversi);
 		$('.qty_pack_' + id).val(qty_pack.toFixed(2));
+
+		let TTL = 0
+		$('.total_harga').each(function() {
+			TTL += Number($(this).val().split(',').join(''));
+		})
+
+		$('#grandTotal').val(TTL);
+		$('#debet21').val(TTL);
 	});
 
 	$(document).on('click', '.add_lot', function(e) {
