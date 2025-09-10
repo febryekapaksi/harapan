@@ -120,6 +120,32 @@ class Loading extends Admin_Controller
 
         $detail = $this->db->get_where('loading_delivery_detail', ['no_loading' => $loading['no_loading']])->result_array();
 
+        // Kumpulkan id produk (ganti field sesuai tabelmu: id_product / product_id / kode_barang)
+        $productIds = array_unique(array_map(function ($d) {
+            return $d['id_product']; // <-- sesuaikan nama kolom
+        }, $detail));
+
+        $stockMap = [];
+        if (!empty($productIds)) {
+            // kalau ada kolom gudang, filter juga: ->where('warehouse_id', $loading['id_gudang'])
+            $rows = $this->db->select('code_lv4, qty_free')   // <-- sesuaikan kolom qty
+                ->from('warehouse_stock')
+                ->where_in('code_lv4', $productIds)
+                ->get()->result_array();
+
+            foreach ($rows as $r) {
+                $stockMap[$r['code_lv4']] = (float)$r['qty_free'];
+            }
+        }
+
+        // sisipkan stok ke tiap baris detail
+        foreach ($detail as &$d) {
+            $pid = $d['id_product'];
+            $d['stock_aktual'] = isset($stockMap[$pid]) ? $stockMap[$pid] : 0;
+        }
+        unset($d);
+
+
         //data nya sudah dibuat ke surat jalan belom?
         $usedPairs = $this->db
             ->select('no_so, no_delivery')
@@ -142,6 +168,8 @@ class Loading extends Admin_Controller
         ];
 
         // View form edit
+        $this->template->page_icon('fa fa-check-square-o');
+        $this->template->title('Confirm QTY');
         $this->template->render('form', $data);
     }
 
@@ -178,6 +206,8 @@ class Loading extends Admin_Controller
         ];
 
         // View form edit
+        $this->template->page_icon('fa fa-check-square-o');
+        $this->template->title('Confirm Berat');
         $this->template->render('form', $data);
     }
 

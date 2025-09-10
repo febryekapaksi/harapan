@@ -148,8 +148,8 @@ class Product_costing extends Admin_Controller
             $this->db->where('code_lv4', $header['code_lv4']);
             $this->db->update('warehouse_stock', [
                 'harga_beli' => $header['harga_beli'],
-                'update_by' => $this->id_user,
-                'update_date' => $this->datetime
+                'update_by' => $this->auth->user_id(),
+                'update_date' => date('Y-m-d H:i:s')
             ]);
         }
 

@@ -80,6 +80,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                         <th style="min-width: 20px;" class="text-center">Berat (Kg)</th>
                                         <?php if (isset($mode) && $mode == 'confirm_qty') { ?>
                                             <th style="min-width: 20px;" class="text-center">Qty Aktual</th>
+                                            <th style="min-width: 20px;" class="text-center">Stock Aktual</th>
                                             <th style="min-width: 20px;" class="text-center">Keterangan</th>
                                         <?php  } else if (isset($mode) && $mode == 'confirm_berat') { ?>
                                             <th style="min-width: 20px;" class="text-center">Berat Aktual</th>
@@ -139,6 +140,10 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                                             <input type="number" class="form-control text-center qty-aktual" name="detail[<?= $i ?>][qty_aktual]" value="">
                                                         </td>
                                                         <td>
+                                                            <input type="number" class="form-control text-center stock-aktual" name="detail[<?= $i ?>][stock_aktual]"
+                                                                value="<?= isset($detail[$i]['stock_aktual']) ? (float)$detail[$i]['stock_aktual'] : 0 ?>" readonly>
+                                                        </td>
+                                                        <td>
                                                             <textarea class="form-control" name="detail[<?= $i ?>][keterangan]"></textarea>
                                                         </td>
                                                     <?php } else if (isset($mode) && $mode == 'confirm_berat') { ?>
@@ -169,7 +174,6 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                         endforeach;
                                     }
                                     ?>
-
                                 </tbody>
                                 <tfoot>
                                     <tr>
@@ -328,7 +332,6 @@ $isApproval = (isset($mode) && $mode == 'approval');
                 $('#tableModalSpk tbody tr.spk-header').show();
             }
         });
-
 
         // Tombol Pilih SPK
         $('#selectSpk').on('click', function() {
@@ -937,6 +940,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
 
             const qtyAktual = parseFloat($(this).val()) || 0;
             const qtySpk = parseInt(row.find('.qty-muat').val()) || 0;
+            const stockActual = parseInt(row.find('.stock-aktual').val()) || 0;
 
             if (qtyAktual > qtySpk) {
                 swal({
@@ -966,6 +970,21 @@ $isApproval = (isset($mode) && $mode == 'approval');
                     $(e.target).val(qtySpk);
                 });
                 return; // Hentikan perhitungan lanjut
+            }
+
+            if (qtyAktual > stockActual) {
+                swal({
+                    title: "Error Message !",
+                    text: 'Qty Aktual melebihi Stock Gudang',
+                    type: "warning",
+                    timer: 7000,
+                    showCancelButton: false,
+                    showConfirmButton: true,
+                    allowOutsideClick: true
+                }, () => {
+                    $(e.target).val(qtySpk);
+                });
+                return;
             }
 
             const beratPerUnit = parseFloat(row.find('input[name*="[weight]"]').val()) || 0;
