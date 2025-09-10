@@ -361,7 +361,7 @@
         <tr bgcolor='#DCDCDC'>
             <td colspan="3" align="right"><b>TOTAL</b></td>
             <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control" readonly />
-                <input type="text" id="total31" name="total3" value="<?=   ?>" class="form-control" readonly />
+                <input type="text" id="total31" name="total3" value="" class="form-control" readonly />
             </td>
             <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
                 <input type="text" id="total41" name="total4" value="" class="form-control" readonly />
