@@ -90,8 +90,13 @@
             if (konversi > 0 && purchase > 0) {
                 var propose_pack = purchase / konversi;
             }
-
             HTML.find('.propose_packing').text(number_format(propose_pack, 2))
+
+            console.log(nomor)
+            console.log(id_material)
+            console.log(purchase)
+            console.log(keterangan)
+            console.log(tanggal)
 
             $.ajax({
                 url: base_url + active_controller + '/save_reorder_change',
@@ -111,16 +116,15 @@
                         type: "success",
                         timer: 7000
                     });
-                    console.log(data.pesan)
                 },
-                error: function() {
+                error: function(xhr, status, error) {
                     swal({
                         title: "Save Failed!",
-                        text: data.pesan,
+                        text: "Terjadi kesalahan koneksi ke server.",
                         type: "warning",
                         timer: 7000
                     });
-                    console.log('error connection serve !')
+                    console.log('error connection server !', error);
                 }
             });
         });
