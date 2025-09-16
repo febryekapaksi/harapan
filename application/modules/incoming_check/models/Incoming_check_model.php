@@ -536,13 +536,14 @@ class Incoming_check_model extends BF_Model
                         $qty_awal_stock = $get_stock->qty_stock;
                     }
 
-                    $this->db->select('b.nama');
+                    $this->db->select('b.id_suplier, b.nama');
                     $this->db->from('tr_purchase_order a');
                     $this->db->join('new_supplier b', 'b.kode_supplier = a.id_suplier', 'left');
                     $this->db->where_in('a.no_po', explode(',', $det_inc['no_ipp']));
                     $get_supplier = $this->db->get()->row();
 
                     $supplier = (!empty($get_supplier)) ? $get_supplier->nama : '';
+                    $iDsupplier = (!empty($get_supplier)) ? $get_supplier->id_suplier : '';
 
                     $get_no_po = $this
                         ->db
@@ -787,6 +788,8 @@ class Incoming_check_model extends BF_Model
         $no_po        = $post['no_pox'];
         $no_surat     = $post['no_surat'];
 
+        
+       
 
        	//SYAMSUDIN 16-09-2025 JURNAL
 
@@ -801,8 +804,8 @@ class Incoming_check_model extends BF_Model
 			$jenis_jurnal       = $this->input->post('jenis_jurnal');
 
 			$total_po           = $total_beli;
-			$id_vendor          = '-';
-			$nama_vendor        = '-'; 
+			$id_vendor          = $iDsupplier;
+			$nama_vendor        = $supplier; 
 
 			$Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
@@ -832,7 +835,7 @@ class Incoming_check_model extends BF_Model
 			for ($i = 0; $i < count($this->input->post('type')); $i++) {
 				$tipe = $this->input->post('type')[$i];
 				$perkiraan = $this->input->post('no_coa')[$i];
-				$noreff = $id_invoice;
+				$noreff = $no_po;
 
 				$datadetail = array(
 					'tipe'            => $this->input->post('type')[$i],
@@ -840,7 +843,7 @@ class Incoming_check_model extends BF_Model
 					'tanggal'         => $this->input->post('tgl_jurnal')[$i],
 					'no_perkiraan'    => $this->input->post('no_coa')[$i],
 					'keterangan'      =>  $keterangan,
-					'no_reff'        => $id_invoice,
+					'no_reff'        => $no_po,
 					'debet'          => round($this->input->post('debet')[$i]),
 					'kredit'         => round($this->input->post('kredit')[$i]),
 					'created_by' 	 => $this->auth->user_id(),
@@ -854,9 +857,7 @@ class Incoming_check_model extends BF_Model
 
 			
 
-			$id_cust  = $post['id_customer'];
-			$nama     = $post['nm_customer'];
-			$No_Inv   = $id_invoice;
+			$No_Inv   = $no_po;
 
 			$datahutang = array(
 				'tipe'            => 'JV',
@@ -867,8 +868,8 @@ class Incoming_check_model extends BF_Model
 				'no_reff'       => $No_Inv,
 				'debet'         => 0,
 				'kredit'         =>  $total,
-				'id_supplier'     => '-',
-				'nama_supplier'   => '-',
+				'id_supplier'     => $id_vendor,
+				'nama_supplier'   => $nama_vendor,
 
 			);
 			$this->db->insert('tr_kartu_hutang', $datahutang);
