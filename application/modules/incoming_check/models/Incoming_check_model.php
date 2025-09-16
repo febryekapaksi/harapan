@@ -873,7 +873,7 @@ class Incoming_check_model extends BF_Model
 
 			);
 			$this->db->insert('tr_kartu_hutang', $datahutang);
-		}
+		
 
       
 
