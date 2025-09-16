@@ -480,6 +480,9 @@
 
 		$('#grandTotal').val(TTL);
 		$('#debet21').val(TTL);
+		$('#kredit22').val(TTL);
+		$('#total31').val(TTL);
+		$('#total41').val(TTL);
 	});
 
 	$(document).on('click', '.add_lot', function(e) {
