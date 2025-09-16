@@ -536,7 +536,7 @@ class Incoming_check_model extends BF_Model
                         $qty_awal_stock = $get_stock->qty_stock;
                     }
 
-                    $this->db->select('b.id_suplier, b.nama');
+                    $this->db->select('a.id_suplier, b.nama');
                     $this->db->from('tr_purchase_order a');
                     $this->db->join('new_supplier b', 'b.kode_supplier = a.id_suplier', 'left');
                     $this->db->where_in('a.no_po', explode(',', $det_inc['no_ipp']));
