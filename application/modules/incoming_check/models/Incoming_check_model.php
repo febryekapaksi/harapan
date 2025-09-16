@@ -798,12 +798,12 @@ class Incoming_check_model extends BF_Model
 			$type        = $post['no_pox'];
 			$reff        = $post['kode_trans'];
 			$no_req      = $post['no_surat'];
-			$total       = round($this->input->post('total'));
+			$total       = round($this->input->post('debet[0]'));
 			$jenis       = $this->input->post('jenis');
 			$tipe_jurnal       = $this->input->post('tipe');
 			$jenis_jurnal       = $this->input->post('jenis_jurnal');
 
-			$total_po           = $total_beli;
+			$total_po           = round($this->input->post('debet[0]'));
 			$id_vendor          = $iDsupplier;
 			$nama_vendor        = $supplier; 
 
