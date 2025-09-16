@@ -751,7 +751,7 @@ class Incoming_check_model extends BF_Model
                 'pusat' => $nilai_qty,
                 'subgudang' => $ttl_qty_sub,
                 'produksi' => $ttl_qty_prod,
-                'price_book' => $nilai_costbook,
+                'price_book' => 0,
                 'status' => 'Y',
                 'kode_trans' => $post['kode_trans'],
                 'updated_by' => $this->auth->user_id(),
