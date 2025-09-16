@@ -697,28 +697,28 @@ class Incoming_check_model extends BF_Model
 
             $nilai_qty = ($get_warehouse_stock->qty_stock + $get_new_incoming_ttl['ttl_new_incoming']);
 
-            $nilai_costbook = (($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)) / $nilai_qty);
+            // $nilai_costbook = (($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)) / $nilai_qty);
 
-            $insert_costbook = $this->db->insert('tr_cost_book', [
-                'id' => $id_costbook,
-                'id_material' => $det_inc['id_material'],
-                'nm_material' => $nm_material,
-                'kode_produk' => $kode_material,
-                'tipe_material' => 'product',
-                'id_gudang_ke' => '1',
-                'nm_gudang_ke' => 'GUDANG PUSAT',
-                'tgl' => date('Y-m-d'),
-                'no_transaksi' => $post['kode_trans'],
-                'jenis_transaksi' => 'In Pembelian',
-                'qty_transaksi' => ($get_new_incoming_ttl['ttl_new_incoming'] !== null ? $get_new_incoming_ttl['ttl_new_incoming'] : 0),
-                'qty' => $nilai_qty,
-                'nilai_beli' => $hargasatuan,
-                'costbook' => $nilai_costbook,
-                'value_transaksi' => ($hargasatuan * $get_new_incoming_ttl['ttl_new_incoming']),
-                'value_neraca' => ($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)),
-                'created_by' => $this->auth->user_id(),
-                'created_on' => date('Y-m-d H:i:s')
-            ]);
+            // $insert_costbook = $this->db->insert('tr_cost_book', [
+            //     'id' => $id_costbook,
+            //     'id_material' => $det_inc['id_material'],
+            //     'nm_material' => $nm_material,
+            //     'kode_produk' => $kode_material,
+            //     'tipe_material' => 'product',
+            //     'id_gudang_ke' => '1',
+            //     'nm_gudang_ke' => 'GUDANG PUSAT',
+            //     'tgl' => date('Y-m-d'),
+            //     'no_transaksi' => $post['kode_trans'],
+            //     'jenis_transaksi' => 'In Pembelian',
+            //     'qty_transaksi' => ($get_new_incoming_ttl['ttl_new_incoming'] !== null ? $get_new_incoming_ttl['ttl_new_incoming'] : 0),
+            //     'qty' => $nilai_qty,
+            //     'nilai_beli' => $hargasatuan,
+            //     'costbook' => $nilai_costbook,
+            //     'value_transaksi' => ($hargasatuan * $get_new_incoming_ttl['ttl_new_incoming']),
+            //     'value_neraca' => ($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)),
+            //     'created_by' => $this->auth->user_id(),
+            //     'created_on' => date('Y-m-d H:i:s')
+            // ]);
 
             $arr_warehouse_sub = [];
             $arr_warehouse_prod = [];
