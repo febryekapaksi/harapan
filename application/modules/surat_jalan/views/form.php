@@ -394,7 +394,7 @@
                     `;
             });
 
-            // set nilainya (tanpa formatting)
+            //set costbook
             $('#total_costbook').val(totalCostbook);
 
             $('#tableSpk tbody').html(html);
