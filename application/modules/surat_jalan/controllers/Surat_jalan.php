@@ -106,7 +106,8 @@ class Surat_jalan extends Admin_Controller
                     c.address_office AS alamat,
                     p.nama AS product,
                     p.weight,
-                    (ld.qty_muat * p.weight) AS total_berat
+                    (ld.qty_muat * p.weight) AS total_berat,
+                    (ld.qty_muat * COALESCE(w.harga_beli,0)) AS costbook,
                 ')
             ->from('loading_delivery_detail ld')
             ->join('spk_delivery sd', 'ld.no_delivery = sd.no_delivery', 'left')
@@ -115,6 +116,7 @@ class Surat_jalan extends Admin_Controller
             ->join('sales_order_detail sod', 'sod.no_so = ld.no_so AND sod.id_product = ld.id_product', 'left')
             ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
             ->join('new_inventory_4 p', 'ld.id_product = p.code_lv4', 'left')
+            ->join('warehouse_stock w', 'p.code_lv4 = w.id_material', 'left')
             ->where('ld.no_loading', $no_loading)
             ->where("CONCAT(ld.no_so, '|', ld.no_delivery) NOT IN (
                     SELECT CONCAT(no_so, '|', no_delivery)
