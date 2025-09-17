@@ -145,18 +145,6 @@
 
                     </tr>
                     <tr bgcolor='#DCDCDC'>
-                        <td><input type="date" id="tgl_jurnal3" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-                        <td><input type="text" id="type3" name="type[]" value="JV" class="form-control" readonly /></td>
-                        <td><input type="text" id="no_coa3" name="no_coa[]" value="2101-01-01" class="form-control" readonly /></td>
-                        <td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
-                            <input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
-                        </td>
-                        <td><input type="hidden" id="kredit3" name="kredit[]" value="" class="form-control" readonly />
-                            <input type="text" id="kredit23" name="kredit2[]" value="" class="form-control" readonly />
-                        </td>
-
-                    </tr>
-                    <tr bgcolor='#DCDCDC'>
                         <td colspan="3" align="right"><b>TOTAL</b></td>
                         <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control" readonly />
                             <input type="text" id="total31" name="total3" value="" class="form-control" readonly />
@@ -396,6 +384,12 @@
 
             //set costbook
             $('#total_costbook').val(totalCostbook);
+            $('#debet1').val(totalCostbook);
+            $('#debet21').val(totalCostbook);
+            $('#kredit2').val(totalCostbook);
+            $('#kredit22').val(totalCostbook);
+            $('#total31').val(totalCostbook);
+            $('#total41').val(totalCostbook);
 
             $('#tableSpk tbody').html(html);
             $('#getSpk').prop('disabled', true);
