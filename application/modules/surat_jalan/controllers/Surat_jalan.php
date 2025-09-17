@@ -248,7 +248,7 @@ class Surat_jalan extends Admin_Controller
 
 			$tgl_inv  = date('Y-m-d');
 			$keterangan  = "Surat Jalan" . $no_surat_jalan;
-			$type        = $no_surat_jalan;
+			$type        = $no_surat_jalan; 
 			$reff        = $no_surat_jalan;
 			$no_req      = $no_surat_jalan;
             $no_po       = $no_surat_jalan;
