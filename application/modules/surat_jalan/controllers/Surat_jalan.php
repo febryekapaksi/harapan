@@ -258,9 +258,6 @@ class Surat_jalan extends Admin_Controller
 			$jenis_jurnal       = $this->input->post('jenis_jurnal');
 
 			$total_po           = round($this->input->post('debet[0]'));
-			$id_vendor          = $iDsupplier;
-			$nama_vendor        = $supplier; 
-
 			$Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
 
