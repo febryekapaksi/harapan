@@ -536,13 +536,14 @@ class Incoming_check_model extends BF_Model
                         $qty_awal_stock = $get_stock->qty_stock;
                     }
 
-                    $this->db->select('b.nama');
+                    $this->db->select('a.id_suplier, b.nama');
                     $this->db->from('tr_purchase_order a');
                     $this->db->join('new_supplier b', 'b.kode_supplier = a.id_suplier', 'left');
                     $this->db->where_in('a.no_po', explode(',', $det_inc['no_ipp']));
                     $get_supplier = $this->db->get()->row();
 
                     $supplier = (!empty($get_supplier)) ? $get_supplier->nama : '';
+                    $iDsupplier = (!empty($get_supplier)) ? $get_supplier->id_suplier : '';
 
                     $get_no_po = $this
                         ->db
@@ -696,28 +697,28 @@ class Incoming_check_model extends BF_Model
 
             $nilai_qty = ($get_warehouse_stock->qty_stock + $get_new_incoming_ttl['ttl_new_incoming']);
 
-            $nilai_costbook = (($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)) / $nilai_qty);
+            // $nilai_costbook = (($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)) / $nilai_qty);
 
-            $insert_costbook = $this->db->insert('tr_cost_book', [
-                'id' => $id_costbook,
-                'id_material' => $det_inc['id_material'],
-                'nm_material' => $nm_material,
-                'kode_produk' => $kode_material,
-                'tipe_material' => 'product',
-                'id_gudang_ke' => '1',
-                'nm_gudang_ke' => 'GUDANG PUSAT',
-                'tgl' => date('Y-m-d'),
-                'no_transaksi' => $post['kode_trans'],
-                'jenis_transaksi' => 'In Pembelian',
-                'qty_transaksi' => ($get_new_incoming_ttl['ttl_new_incoming'] !== null ? $get_new_incoming_ttl['ttl_new_incoming'] : 0),
-                'qty' => $nilai_qty,
-                'nilai_beli' => $hargasatuan,
-                'costbook' => $nilai_costbook,
-                'value_transaksi' => ($hargasatuan * $get_new_incoming_ttl['ttl_new_incoming']),
-                'value_neraca' => ($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)),
-                'created_by' => $this->auth->user_id(),
-                'created_on' => date('Y-m-d H:i:s')
-            ]);
+            // $insert_costbook = $this->db->insert('tr_cost_book', [
+            //     'id' => $id_costbook,
+            //     'id_material' => $det_inc['id_material'],
+            //     'nm_material' => $nm_material,
+            //     'kode_produk' => $kode_material,
+            //     'tipe_material' => 'product',
+            //     'id_gudang_ke' => '1',
+            //     'nm_gudang_ke' => 'GUDANG PUSAT',
+            //     'tgl' => date('Y-m-d'),
+            //     'no_transaksi' => $post['kode_trans'],
+            //     'jenis_transaksi' => 'In Pembelian',
+            //     'qty_transaksi' => ($get_new_incoming_ttl['ttl_new_incoming'] !== null ? $get_new_incoming_ttl['ttl_new_incoming'] : 0),
+            //     'qty' => $nilai_qty,
+            //     'nilai_beli' => $hargasatuan,
+            //     'costbook' => $nilai_costbook,
+            //     'value_transaksi' => ($hargasatuan * $get_new_incoming_ttl['ttl_new_incoming']),
+            //     'value_neraca' => ($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)),
+            //     'created_by' => $this->auth->user_id(),
+            //     'created_on' => date('Y-m-d H:i:s')
+            // ]);
 
             $arr_warehouse_sub = [];
             $arr_warehouse_prod = [];
@@ -750,7 +751,7 @@ class Incoming_check_model extends BF_Model
                 'pusat' => $nilai_qty,
                 'subgudang' => $ttl_qty_sub,
                 'produksi' => $ttl_qty_prod,
-                'price_book' => $nilai_costbook,
+                'price_book' => 0,
                 'status' => 'Y',
                 'kode_trans' => $post['kode_trans'],
                 'updated_by' => $this->auth->user_id(),
@@ -787,190 +788,94 @@ class Incoming_check_model extends BF_Model
         $no_po        = $post['no_pox'];
         $no_surat     = $post['no_surat'];
 
+        
+       
 
-        $det_Jurnaltes1 = array();
+       	//SYAMSUDIN 16-09-2025 JURNAL
 
-        // Jurnal
-        $data_po = $this->db->query("SELECT * FROM tr_purchase_order WHERE no_po='$no_po'")->row();
-        $datakurs = $this->db->query("SELECT * FROM tr_ros WHERE no_po IN ('$no_surat')")->row();
-        $kurs_ros = (isset($datakurs->kurs_pib) ? $datakurs->kurs_pib : 0);
-        if ($kurs_ros > 0) {
-            $kurs = $kurs_ros;
-            $jenis_jurnal = 'JV005';
-        } else {
-            $kurs = 1;
-            $jenis_jurnal = 'JV002';
-        }
-        $nomor_jurnal = $jenis_jurnal . $no_ros . rand(100, 999);
-        $datajurnal1 = $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' order by parameter_no")->result();
-        $payment_date = $get_incoming->tanggal;
-        $hutang = 0;
-        $hutang_kurs = 0;
-        $uangmuka = 0;
+			$tgl_inv  = date('Y-m-d');
+			$keterangan  = "incoming atas po nomor " . $no_po;
+			$type        = $post['no_pox'];
+			$reff        = $post['kode_trans'];
+			$no_req      = $post['no_surat'];
+			$total       = round($this->input->post('debet[0]'));
+			$jenis       = $this->input->post('jenis');
+			$tipe_jurnal       = $this->input->post('tipe');
+			$jenis_jurnal       = $this->input->post('jenis_jurnal');
 
+			$total_po           = round($this->input->post('debet[0]'));
+			$id_vendor          = $iDsupplier;
+			$nama_vendor        = $supplier; 
 
-
-        //$bm_nilai = $data_po->bm;
-        $total_harga = 0;
-        $total_rupiah = ($totalhargabarang) * $kurs;
-        $total_forex = 0;
-        $selisih_kurs = 0;
-        $unbill_coa = "";
-        $unbill_nilai = 0;
-        $coa_hutang_unbill = '';
-        foreach ($datajurnal1 as $rec) {
-            if ($rec->parameter_no == "1") {
-                $det_Jurnaltes1[] = array(
-                    'nomor' => $nomor_jurnal,
-                    'tanggal' => $payment_date,
-                    'tipe' => 'JV',
-                    'no_perkiraan' => $rec->no_perkiraan,
-                    'keterangan' => 'Material ' . $no_po,
-                    'no_request' => $no_po,
-                    'debet' => ($rec->posisi == 'K' ? 0 : ($total_rupiah)),
-                    'kredit' => ($rec->posisi == 'D' ? 0 : ($total_rupiah)),
-                    'nilai_valas_debet' => ($rec->posisi == 'K' ? 0 : 0),
-                    'nilai_valas_kredit' => ($rec->posisi == 'D' ? 0 : 0),
-                    'no_reff' => $no_ros,
-                    'jenis_jurnal' => $jenis_jurnal,
-                    'nocust' => $data_po->id_suplier,
-                    'stspos' => "1"
-                );
-            }
-            if ($rec->parameter_no == "2") {
-                $uangmuka = $data_po->uang_muka_idr;
-
-                $coa_uangmuka = $rec->no_perkiraan;
-                //if($kurs_ros>1) $coa_uangmuka='1111-01-02';
-
-                if ($data_po->uang_muka_idr > 0) {
-
-                    $uangmuka = $data_po->uang_muka_idr; //($kurs * $data_po->nilai_dp);
-                    $uangmukausd = 0;
-                    $hutang = ($total_rupiah);
-                    $hutang = ($total_rupiah);
-                    $this->db->query("update tr_purchase_order set nilai_terima_barang_idr=" . $hutang . ", kurs_terima_barang=" . $kurs . " where no_po='" . $no_po . "'");
-                } else {
-
-                    $hutang = ($total_rupiah);
-                    $this->db->query("update tr_purchase_order set nilai_terima_barang_idr=" . $hutang . " where no_po='" . $no_po . "'");
-                }
-
-                $uangmuka2 = $data_po->uang_muka_idr; //($kurs * $data_po->nilai_dp);
-                $uangmukausd2 = $data_po->uang_muka;
-            }
-            if ($rec->parameter_no == "3") {
-                $coa_hutang_unbill = $rec->no_perkiraan;
-
-                if ($hutang > 0) {
-                    $det_Jurnaltes1[] = array(
-                        'nomor' => $nomor_jurnal,
-                        'tanggal' => $payment_date,
-                        'tipe' => 'JV',
-                        'no_perkiraan' => $coa_hutang_unbill,
-                        'keterangan' => 'Hutang ' . $no_po,
-                        'no_request' => $no_po,
-                        'debet' => ($rec->posisi == 'K' ? 0 : $hutang),
-                        'kredit' => ($rec->posisi == 'D' ? 0 : $hutang),
-                        'nilai_valas_debet' => ($rec->posisi == 'K' ? 0 : $hutang_kurs),
-                        'nilai_valas_kredit' => ($rec->posisi == 'D' ? 0 : $hutang_kurs),
-                        'no_reff' => $no_ros,
-                        'jenis_jurnal' => $jenis_jurnal,
-                        'nocust' => $data_po->id_suplier,
-                        'stspos' => "1"
-                    );
-                    $unbill_nilai = $hutang;
-                } else {
-                    $det_Jurnaltes1[] = array(
-                        'nomor' => $nomor_jurnal,
-                        'tanggal' => $payment_date,
-                        'tipe' => 'JV',
-                        'no_perkiraan' => $coa_hutang_unbill,
-                        'keterangan' => 'Hutang ' . $no_po,
-                        'no_request' => $no_po,
-                        'debet' => ($rec->posisi == 'K' ? 0 : $total_rupiah),
-                        'kredit' => ($rec->posisi == 'D' ? 0 : $total_rupiah),
-                        'nilai_valas_debet' => ($rec->posisi == 'K' ? 0 : $hutang_kurs),
-                        'nilai_valas_kredit' => ($rec->posisi == 'D' ? 0 : $hutang_kurs),
-                        'no_reff' => $no_ros,
-                        'jenis_jurnal' => $jenis_jurnal,
-                        'nocust' => $data_po->id_suplier,
-                        'stspos' => "1"
-                    );
-                }
-                $unbill_coa = $rec->no_perkiraan;
-                $unbill_nilai = $total_rupiah;
-            }
-        }
-
-        $this->db->query("update tr_purchase_order set terima_barang_idr=(terima_barang_idr+" . $total_rupiah . "), hutang_idr=(hutang_idr+" . $unbill_nilai . "),sisa_hutang_idr=(sisa_hutang_idr+" . $unbill_nilai . "),
-			total_terima_barang_idr=(total_terima_barang_idr+" . $total_rupiah . "), kurs_terima_barang=" . $kurs . " where no_po='" . $no_po . "'");
+			$Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
 
-        $this->db->insert_batch('jurnaltras', $det_Jurnaltes1);
-
-        //auto jurnal
-        $session = $this->session->userdata('app_session');
-        $jenis_jurnal = 'JV002';
-        $data_vendor     = $this->db->query("select * from new_supplier where kode_supplier='" . $data_po->id_suplier . "'")->row();
-        $nama_vendor     = $data_vendor->nama;
-        $tanggal        = $payment_date;
-        $Bln             = substr($tanggal, 5, 2);
-        $Thn             = substr($tanggal, 0, 4);
-        $Nomor_JV = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tanggal);
-        $keterangan        = 'Incoming Material ' . $kode_trans;
-
-        $datadetail = array();
-        $total = 0;
-        foreach ($det_Jurnaltes1 as $vals) {
-            $datadetail = array(
-                'tipe'            => 'JV',
-                'nomor'            => $Nomor_JV,
-                'tanggal'        => $tanggal,
-                'no_perkiraan'    => $vals['no_perkiraan'],
-                'keterangan'    => $vals['keterangan'],
-                'no_reff'        => $vals['no_reff'],
-                'debet'            => $vals['debet'],
-                'kredit'        => $vals['kredit'],
-                'nilai_valas_debet'            => $vals['nilai_valas_debet'],
-                'nilai_valas_kredit'        => $vals['nilai_valas_kredit'],
-            );
-            $this->db->insert(DBACC . '.jurnal', $datadetail);
-            $total = ($total + $vals['kredit']);
-        }
-
-        $dataJVhead = array(
-            'nomor'             => $Nomor_JV,
-            'tgl'                 => $tanggal,
-            'jml'                => $total,
-            'bulan'                => $Bln,
-            'tahun'                => $Thn,
-            'kdcab'                => '101',
-            'jenis'                => 'JV',
-            'keterangan'        => $keterangan,
-            'user_id'            => $this->auth->user_id(),
-            'ho_valid'            => '',
-        );
-        $this->db->insert(DBACC . '.javh', $dataJVhead);
-        $Qry_Update_Cabang_acc = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
-        $this->db->query($Qry_Update_Cabang_acc);
+			$Bln             = substr($tgl_inv, 5, 2);
+			$Thn             = substr($tgl_inv, 0, 4);
 
 
-        $datahutang = array(
-            'tipe'            => 'JV',
-            'nomor'            => $Nomor_JV,
-            'tanggal'        => $tanggal,
-            'no_perkiraan'    => $unbill_coa,
-            'keterangan'      => $keterangan,
-            'no_reff'           => $no_reff,
-            'kredit'            => $unbill_nilai,
-            'debet'          => 0,
-            'id_supplier'     => $data_po->id_suplier,
-            'nama_supplier'   => $nama_vendor,
-            'no_request'      => $kode_trans,
-        );
-        $this->db->insert('tr_kartu_hutang', $datahutang);
+			$dataJVhead = array(
+				'nomor'             => $Nomor_JV,
+				'tgl'                 => $tgl_inv,
+				'jml'                => $total,
+				'koreksi_no'        => '-',
+				'kdcab'                => '101',
+				'jenis'                => 'JV',
+				'keterangan'         => $keterangan,
+				'bulan'                => $Bln,
+				'tahun'                => $Thn,
+				'user_id'            => $this->auth->user_id(),
+				'memo'                => '',
+				'tgl_jvkoreksi'        => $tgl_inv,
+				'ho_valid'            => ''
+			);
 
+			$this->db->insert(DBACC . '.javh', $dataJVhead);
+
+			for ($i = 0; $i < count($this->input->post('type')); $i++) {
+				$tipe = $this->input->post('type')[$i];
+				$perkiraan = $this->input->post('no_coa')[$i];
+				$noreff = $no_po;
+
+				$datadetail = array(
+					'tipe'            => $this->input->post('type')[$i],
+					'nomor'           => $Nomor_JV,
+					'tanggal'         => $this->input->post('tgl_jurnal')[$i],
+					'no_perkiraan'    => $this->input->post('no_coa')[$i],
+					'keterangan'      =>  $keterangan,
+					'no_reff'        => $no_po,
+					'debet'          => round($this->input->post('debet')[$i]),
+					'kredit'         => round($this->input->post('kredit')[$i]),
+					'created_by' 	 => $this->auth->user_id(),
+					'created_on' 	 => date('Y-m-d H:i:s')
+				);
+				$this->db->insert(DBACC . '.jurnal', $datadetail);
+			}
+
+			$Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
+			$this->db->query($Qry_Update_Cabang_acc);
+
+			
+
+			$No_Inv   = $no_po;
+
+			$datahutang = array(
+				'tipe'            => 'JV',
+				'nomor'            => $Nomor_JV,
+				'tanggal'        => $tgl_inv,
+				'no_perkiraan'  => '1102-01-01',
+				'keterangan'    => $keterangan,
+				'no_reff'       => $No_Inv,
+				'debet'         => 0,
+				'kredit'         =>  $total,
+				'id_supplier'     => $id_vendor,
+				'nama_supplier'   => $nama_vendor,
+
+			);
+			$this->db->insert('tr_kartu_hutang', $datahutang);
+		
+
+      
 
         if ($this->db->trans_status() === FALSE || $valid == 2) {
             $this->db->trans_rollback();

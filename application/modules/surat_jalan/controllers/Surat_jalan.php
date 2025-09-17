@@ -495,7 +495,7 @@ class Surat_jalan extends Admin_Controller
             $data_detail = [
                 'id'           => $id_detail,
                 'id_product'   => $id_product,
-                'id_so_det'    => $value['id_so_det'],
+                // 'id_so_det'    => $value['id_so_det'],
                 'qty_terkirim' => $qty_terkirim,
                 'qty_retur'    => $qty_retur,
                 'qty_hilang'   => $qty_hilang,
