@@ -97,30 +97,29 @@ class Surat_jalan extends Admin_Controller
         $header = $this->db->get_where('loading_delivery', ['no_loading' => $no_loading])->row_array();
         $detail = $this->db
             ->select('
-            ld.*,
-            so.no_so,
-            sd.pengiriman,
-            sd.tanggal_kirim,
-            sod.id AS id_so_det,
-            c.name_customer AS customer,
-            c.address_office AS alamat,
-            p.nama AS product,
-            p.weight,
-            (ld.qty_muat * p.weight) AS total_berat
-        ')
+                    ld.*,
+                    so.no_so,
+                    sd.pengiriman,
+                    sd.tanggal_kirim,
+                    sod.id AS id_so_det,        
+                    c.name_customer AS customer,
+                    c.address_office AS alamat,
+                    p.nama AS product,
+                    p.weight,
+                    (ld.qty_muat * p.weight) AS total_berat
+                ')
             ->from('loading_delivery_detail ld')
             ->join('spk_delivery sd', 'ld.no_delivery = sd.no_delivery', 'left')
             ->join('sales_order so', 'ld.no_so = so.no_so', 'left')
-            // ->join('sales_order_detail sod', 'sod.no_so = ld.no_so AND sod.id_product = ld.id_product', 'left')
-            ->join('sales_order_detail sod', 'sod.id = ld.id_spk_detail', 'left')
+            // >>> ini yang benar untuk dapatkan SO detail
+            ->join('sales_order_detail sod', 'sod.no_so = ld.no_so AND sod.id_product = ld.id_product', 'left')
             ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
             ->join('new_inventory_4 p', 'ld.id_product = p.code_lv4', 'left')
             ->where('ld.no_loading', $no_loading)
             ->where("CONCAT(ld.no_so, '|', ld.no_delivery) NOT IN (
-                        SELECT CONCAT(no_so, '|', no_delivery)
-                        FROM surat_jalan
-                        WHERE no_loading = '$no_loading'
-                    )")
+                    SELECT CONCAT(no_so, '|', no_delivery)
+                    FROM surat_jalan
+                    WHERE no_loading = '$no_loading')")
             ->get()
             ->result_array();
 
@@ -138,8 +137,8 @@ class Surat_jalan extends Admin_Controller
     public function save()
     {
         $post = $this->input->post();
-        $detail = $post['detail'];
 
+        $detail = $post['detail'];
 
         $is_update = isset($post['id']) && !empty($post['id']);
         $tanggal_sekarang = date('Y-m-d H:i:s');
@@ -195,10 +194,10 @@ class Surat_jalan extends Admin_Controller
         // Prepare Detail
         $ArrDetail = [];
         foreach ($detail as $key => $value) {
-            $id_product = $value['id_product'];
-            $id_so_det  = $value['id_so_det'];
-            $id_spk_det  = $value['id_spk_det'];
-            $qty        = $value['qty'];
+            $id_product     = $value['id_product'];
+            $id_so_det      = $value['id_so_det'];
+            $id_spk_det     = $value['id_spk_det'];
+            $qty            = $value['qty'];
 
             $ArrDetail[$key] = [
                 'no_surat_jalan'  => $no_surat_jalan,
@@ -208,7 +207,7 @@ class Surat_jalan extends Admin_Controller
                 'weight'          => $value['weight'],
                 'total_berat'     => $value['total_berat'],
                 'id_so_det'       => $id_so_det,
-                'id_spk_det'       => $id_spk_det,
+                'id_spk_det'      => $id_spk_det,
             ];
 
             // Update ke SPK dan SO Detail
