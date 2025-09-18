@@ -40,12 +40,13 @@
                                 <select name="bank" id="bank" class="form-control select2" <?= $disabled ?>>
                                     <option value="">-- Pilih ---</option>
                                     <?php foreach ($bank as $b): ?>
-                                        <option value="<?= $b->no_perkiraan; ?>">
+                                        <option value="<?= $b->no_perkiraan; ?>" data-nama="<?= $b->nama; ?>">
                                             <?= $b->nama . " (" . $b->no_perkiraan . ")" ?>
                                         </option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
+                            <input type="hidden" id="bank_name" name="bank_name" value="">
                         </div>
                     </div>
 
@@ -166,7 +167,7 @@
                                     <tr bgcolor='#DCDCDC'>
                                         <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
                                         <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
-                                        <td><input type="text" id="no_coa1" name="no_coa[]" value="1101-02-01" class="form-control" readonly /></td>
+                                        <td><input type="text" id="no_coa1" name="no_coa[]" class="form-control" readonly /></td>
                                         <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
                                             <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
                                         </td>
@@ -178,7 +179,7 @@
                                     <tr bgcolor='#DCDCDC'>
                                         <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
                                         <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
-                                        <td><input type="text" id="no_coa2" name="no_coa[]" value="1102-01-01" class="form-control" readonly /></td>
+                                        <td><input type="text" id="no_coa2" name="no_coa[]" class="form-control" readonly /></td>
                                         <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
                                             <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
                                         </td>
@@ -210,7 +211,7 @@
                                         </td>
 
                                     </tr>
-
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -275,6 +276,15 @@
         $('.moneyFormat').each(function() {
             let val = parseFloat($(this).val().replace(/,/g, '')) || 0;
             $(this).val(number_format(val, 2));
+        });
+
+        $('#bank').on('change', function() {
+            const noPerkiraan = $(this).val(); // value option
+            const namaBank = $(this).find(':selected').data('nama'); // data-nama
+
+            $('input[name="no_coa[]"]').val(noPerkiraan);
+
+            $('#bank_name').val(namaBank);
         });
 
         $(document).on('click', '.btn-remove', function() {
