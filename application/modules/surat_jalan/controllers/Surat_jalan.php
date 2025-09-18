@@ -553,6 +553,68 @@ class Surat_jalan extends Admin_Controller
             $this->db->insert_batch('kartu_stok', $arr_kartu_stok);
         }
 
+        //SYAMSUDIN 16-09-2025 JURNAL
+
+        $tgl_inv  = date('Y-m-d');
+        $keterangan  = "Confirm Surat Jalan" . $no_surat_jalan;
+        $type        = $no_surat_jalan;
+        $reff        = $no_surat_jalan;
+        $no_req      = $no_surat_jalan;
+        $no_po       = $no_surat_jalan;
+        $total       = round($this->input->post('debet[0]'));
+        $jenis       = $this->input->post('jenis');
+        $tipe_jurnal       = $this->input->post('tipe');
+        $jenis_jurnal       = $this->input->post('jenis_jurnal');
+
+        $total_po           = round($this->input->post('debet[0]'));
+        $Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
+
+
+        $Bln             = substr($tgl_inv, 5, 2);
+        $Thn             = substr($tgl_inv, 0, 4);
+
+
+        $dataJVhead = array(
+            'nomor'             => $Nomor_JV,
+            'tgl'                 => $tgl_inv,
+            'jml'                => $total,
+            'koreksi_no'        => '-',
+            'kdcab'                => '101',
+            'jenis'                => 'JV',
+            'keterangan'         => $keterangan,
+            'bulan'                => $Bln,
+            'tahun'                => $Thn,
+            'user_id'            => $this->auth->user_id(),
+            'memo'                => '',
+            'tgl_jvkoreksi'        => $tgl_inv,
+            'ho_valid'            => ''
+        );
+
+        $this->db->insert(DBACC . '.javh', $dataJVhead);
+
+        for ($i = 0; $i < count($this->input->post('type')); $i++) {
+            $tipe = $this->input->post('type')[$i];
+            $perkiraan = $this->input->post('no_coa')[$i];
+            $noreff = $no_po;
+
+            $datadetail = array(
+                'tipe'            => $this->input->post('type')[$i],
+                'nomor'           => $Nomor_JV,
+                'tanggal'         => $this->input->post('tgl_jurnal')[$i],
+                'no_perkiraan'    => $this->input->post('no_coa')[$i],
+                'keterangan'      =>  $keterangan,
+                'no_reff'        => $no_po,
+                'debet'          => round($this->input->post('debet')[$i]),
+                'kredit'         => round($this->input->post('kredit')[$i]),
+                'created_by'      => $this->auth->user_id(),
+                'created_on'      => date('Y-m-d H:i:s')
+            );
+            $this->db->insert(DBACC . '.jurnal', $datadetail);
+        }
+
+        $Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
+        $this->db->query($Qry_Update_Cabang_acc);
+
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
