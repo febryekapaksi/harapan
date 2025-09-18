@@ -1513,7 +1513,7 @@ class Purchase_order extends Admin_Controller
 				'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
 				'persen_disc' 		=> str_replace(',', '', $post['persendisc']),
 				'nilai_disc' 		=> str_replace(',', '', $post['totaldisc']),
-				'note' 				=> $post['note'],
+				'note' 				=> $post['keterangan'],
 				'delivery_address' 	=> $post['delivery_address'],
 				'delivery_date' 	=> $post['delivery_date'],
 				'id_dept' 			=> $id_dept,
@@ -1548,7 +1548,7 @@ class Purchase_order extends Admin_Controller
 				'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
 				'persen_disc' 		=> str_replace(',', '', $post['persendisc']),
 				'nilai_disc' 		=> str_replace(',', '', $post['totaldisc']),
-				'note' 				=> $post['note'],
+				'note' 				=> $post['keterangan'],
 				'delivery_date' 	=> $post['delivery_date'],
 				'delivery_address' 	=> $post['delivery_address'],
 				'id_dept' 			=> $id_dept,
@@ -1582,7 +1582,7 @@ class Purchase_order extends Admin_Controller
 				'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
 				'persen_disc' 		=> str_replace(',', '', $post['persendisc']),
 				'nilai_disc' 		=> str_replace(',', '', $post['totaldisc']),
-				'note' 				=> $post['note'],
+				'note' 				=> $post['keterangan'],
 				'delivery_date' 	=> $post['delivery_date'],
 				'delivery_address' 	=> $post['delivery_address'],
 				'id_dept' 			=> $id_dept,
@@ -1784,7 +1784,7 @@ class Purchase_order extends Admin_Controller
 			'nilai_disc'	=> str_replace(',', '', $post['totaldisc']),
 			'id_dept' => implode(',', $post['dept']),
 			'delivery_date' => $post['delivery_date'],
-			'note' => $post['note']
+			'note' => $post['keterangan']
 		];
 		//Add Data
 		$this->db->update('tr_purchase_order', $data, ['no_po' => $post['no_po']]);
@@ -2217,7 +2217,7 @@ class Purchase_order extends Admin_Controller
 			'pengiriman'			=> $post['pengiriman'],
 			'terms_payment'			=> $post['terms_payment'],
 			'exclude_vat'			=> $post['exclude_vat'],
-			'note'					=> $post['note'],
+			'note'					=> $post['keterangan'],
 			'id_sales'				=> $post['id_sales'],
 			'nama_sales'			=> $post['nama_sales'],
 			'created_on'			=> date('Y-m-d H:i:s'),
