@@ -112,6 +112,9 @@
                             <center>No. COA</center>
                         </th>
                         <th>
+                            <center>Nama. COA</center>
+                        </th>
+                        <th>
                             <center>Debit</center>
                         </th>
                         <th>
@@ -124,7 +127,8 @@
                         <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
                         <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
                         <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-02" class="form-control" readonly /></td>
-                        <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control" readonly />
+                        <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang In Transit" class="form-control" readonly /></td>
+			            <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control" readonly />
                             <input type="text" id="debet21" name="debet2[]" value="" class="form-control" readonly />
                         </td>
                         <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
@@ -136,7 +140,8 @@
                         <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
                         <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
                         <td><input type="text" id="no_coa2" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
-                        <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+                        <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
+			            <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
                             <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
                         </td>
                         <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
@@ -154,8 +159,8 @@
                         </td>
 
                     </tr>
-            </table>
-
+            </table> 
+ 
             <div class="form-group row">
                 <div class="col-md-12 text-center">
                     <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
