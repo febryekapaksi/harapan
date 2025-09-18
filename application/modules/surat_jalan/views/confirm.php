@@ -148,9 +148,77 @@
                                             <input type="hidden" name="detail[<?= $i ?>][id_detail]" value="<?= $row['id'] ?>">
                                             <input type="hidden" name="detail[<?= $i ?>][id_so_det]" value="<?= $row['id_so_det'] ?>">
                                             <input type="hidden" name="detail[<?= $i ?>][id_product]" value="<?= $row['id_product'] ?>">
+                                            <input type="hidden" class="costbook" name="detail[<?= $i ?>][costbook]" value="<?= $row['costbook']; ?>">
+                                            <input type="hidden" class="total-costbook" name="detail[<?= $i ?>][total_costbook]">
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
+                                <input type="hidden" id="grandTotal">
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="col-md-12">
+                        <hr>
+                        <div class="table-responsive">
+                            <h5>Informasi Jurnal</h5>
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr bgcolor='#9acfea'>
+                                        <th>
+                                            <center>Tanggal</center>
+                                        </th>
+                                        <th>
+                                            <center>Tipe</center>
+                                        </th>
+                                        <th>
+                                            <center>No. COA</center>
+                                        </th>
+                                        <th>
+                                            <center>Debit</center>
+                                        </th>
+                                        <th>
+                                            <center>Kredit</center>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr bgcolor='#DCDCDC'>
+                                        <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                        <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+                                        <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-02" class="form-control" readonly /></td>
+                                        <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control" readonly />
+                                            <input type="text" id="debet21" name="debet2[]" value="" class="form-control" readonly />
+                                        </td>
+                                        <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
+                                            <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+                                        </td>
+
+                                    </tr>
+                                    <tr bgcolor='#DCDCDC'>
+                                        <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                        <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+                                        <td><input type="text" id="no_coa2" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
+                                        <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+                                            <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+                                        </td>
+                                        <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
+                                            <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+                                        </td>
+
+                                    </tr>
+                                    <tr bgcolor='#DCDCDC'>
+                                        <td colspan="3" align="right"><b>TOTAL</b></td>
+                                        <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control" readonly />
+                                            <input type="text" id="total31" name="total3" value="" class="form-control" readonly />
+                                        </td>
+                                        <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
+                                            <input type="text" id="total41" name="total4" value="" class="form-control" readonly />
+                                        </td>
+
+                                    </tr>
                             </table>
                         </div>
                     </div>
@@ -171,6 +239,10 @@
 
 <script>
     $(document).ready(function() {
+        $('tr').each(function() {
+            recalcRow($(this));
+        });
+        recalcGrandTotal();
         $('#data-form').submit(function(e) {
             e.preventDefault();
 
@@ -190,8 +262,6 @@
                     if (!firstInvalidRow) {
                         firstInvalidRow = row.find('td:nth-child(2)').text().trim(); // kolom ke-2 = product name
                     }
-
-
                     // Highlight warning
                     row.find('.qty-terkirim, .qty-retur, .qty-hilang').css('background-color', '#fff3cd');
                 } else {
@@ -213,6 +283,11 @@
                 swal("Peringatan", "Jumlah Terkirim + Retur + Hilang untuk produk \"" + firstInvalidRow + "\" tidak sama dengan Qty Delivery.", "warning");
                 return;
             }
+
+            $('tr').each(function() {
+                recalcRow($(this));
+            });
+            recalcGrandTotal();
 
             // Lanjut swal konfirmasi jika valid
             swal({
@@ -274,6 +349,30 @@
 
     });
 
+    // hitung ulang total untuk satu baris
+    function recalcRow(row) {
+        const qtyTerkirim = parseFloat(row.find('.qty-terkirim').val()) || 0;
+        const costbook = parseFloat(row.find('.costbook').val()) || 0;
+        const lineTotal = qtyTerkirim * costbook;
+
+        row.find('.total-costbook').val(lineTotal);
+    }
+
+    // hitung ulang grand total dari seluruh baris
+    function recalcGrandTotal() {
+        let sum = 0;
+        $('.total-costbook').each(function() {
+            sum += parseFloat($(this).val()) || 0;
+        });
+        $('#grandTotal').val(sum);
+        $('#debet1').val(sum);
+        $('#debet21').val(sum);
+        $('#kredit2').val(sum);
+        $('#kredit22').val(sum);
+        $('#total31').val(sum);
+        $('#total41').val(sum);
+    }
+
     function validateQty(input) {
         const row = input.closest('tr');
 
@@ -302,6 +401,10 @@
         // Hitung Qty Terkirim
         const qtyTerkirimBaru = qtyDelivery - totalReturHilang;
         row.querySelector('.qty-terkirim').value = qtyTerkirimBaru;
+
+        const $row = $(row);
+        recalcRow($row);
+        recalcGrandTotal();
 
         // Aktifkan input reason dan file jika ada retur
         if (qtyRetur > 0 || qtyHilang > 0) {
