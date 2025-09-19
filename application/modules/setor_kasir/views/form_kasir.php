@@ -245,7 +245,7 @@
 
             $('#bank_name').val(namaBank);
             $('#no_coa1').val(noPerkiraan);
-            $('#name_coa1').val(namaBank);
+            $('#nama_coa1').val(namaBank);
         });
 
         $('#nilaiSetor').on('input', function() {
