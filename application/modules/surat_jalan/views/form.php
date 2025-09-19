@@ -77,6 +77,7 @@
                             </div>
                             <div class="col-md-8">
                                 <textarea name="delivery_address" id="delivery_address" class="form-control"><?= isset($sj['delivery_address']) ? $sj['delivery_address'] : '' ?></textarea>
+                                <input type="hidden" id="total_costbook" name="total_costbook">
                             </div>
                         </div>
                     </div>
@@ -94,6 +95,72 @@
                     </div>
                 </div>
             </div>
+
+
+
+            <h5>Informasi Jurnal</h5>
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr bgcolor='#9acfea'>
+                        <th>
+                            <center>Tanggal</center>
+                        </th>
+                        <th>
+                            <center>Tipe</center>
+                        </th>
+                        <th>
+                            <center>No. COA</center>
+                        </th>
+                        <th>
+                            <center>Nama. COA</center>
+                        </th>
+                        <th>
+                            <center>Debit</center>
+                        </th>
+                        <th>
+                            <center>Kredit</center>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr bgcolor='#DCDCDC'>
+                        <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                        <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+                        <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-02" class="form-control" readonly /></td>
+                        <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang In Transit" class="form-control" readonly /></td>
+			            <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control" readonly />
+                            <input type="text" id="debet21" name="debet2[]" value="" class="form-control" readonly />
+                        </td>
+                        <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
+                            <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+                        </td>
+
+                    </tr>
+                    <tr bgcolor='#DCDCDC'>
+                        <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                        <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+                        <td><input type="text" id="no_coa2" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
+                        <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
+			            <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+                            <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+                        </td>
+                        <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
+                            <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+                        </td>
+
+                    </tr>
+                    <tr bgcolor='#DCDCDC'>
+                        <td colspan="3" align="right"><b>TOTAL</b></td>
+                        <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control" readonly />
+                            <input type="text" id="total31" name="total3" value="" class="form-control" readonly />
+                        </td>
+                        <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
+                            <input type="text" id="total41" name="total4" value="" class="form-control" readonly />
+                        </td>
+
+                    </tr>
+            </table> 
+ 
             <div class="form-group row">
                 <div class="col-md-12 text-center">
                     <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
@@ -238,6 +305,7 @@
                                 <td hidden>${item.weight}</td>
                                 <td hidden>${item.id_so_det}</td>
                                 <td hidden>${item.id_spk_detail}</td>
+                                <td hidden>${item.costbook}</td>
                                 <td hidden>${item.tanggal_kirim}</td>
                             </tr>
                         `;
@@ -256,6 +324,7 @@
         // Tombol pilih SPK
         $('#pilihSpk').on('click', function() {
             const selectedSpk = $('input[name="spk_selected"]:checked').val();
+            let totalCostbook = 0;
 
             if (!selectedSpk || !groupedSpk[selectedSpk]) {
                 swal("Peringatan", "Silakan pilih salah satu SPK terlebih dahulu.", "warning");
@@ -283,6 +352,8 @@
             `;
 
             groupedSpk[selectedSpk].items.forEach((data, index) => {
+                const cb = +data.costbook || 0;
+                totalCostbook += cb;
                 html += `
                         <tr>
                             <td>${index + 1}</td>
@@ -291,6 +362,7 @@
                                 <input type="hidden" name="detail[${index}][id_product]" value="${data.id_product}">
                                 <input type="hidden" name="detail[${index}][id_so_det]" value="${data.id_so_det}">
                                 <input type="hidden" name="detail[${index}][id_spk_det]" value="${data.id_spk_detail}">
+                                <input type="hidden" name="detail[${index}][costbook]" class="costbook_${index}" value="${data.costbook}">
                                 <input type="text" class="form-control" name="detail[${index}][no_delivery]" value="${data.no_delivery}" readonly>
                             </td>
                             <td>
@@ -315,6 +387,14 @@
                     `;
             });
 
+            //set costbook
+            $('#total_costbook').val(totalCostbook);
+            $('#debet1').val(totalCostbook);
+            $('#debet21').val(totalCostbook);
+            $('#kredit2').val(totalCostbook);
+            $('#kredit22').val(totalCostbook);
+            $('#total31').val(totalCostbook);
+            $('#total41').val(totalCostbook);
 
             $('#tableSpk tbody').html(html);
             $('#getSpk').prop('disabled', true);

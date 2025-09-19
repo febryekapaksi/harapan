@@ -554,7 +554,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<label for="id_customer">Total Order</label>
 									</div>
 									<div class="col-md-8" id="ForSum">
-										<input readonly type="text" class="form-control" id="subtotal" onkeyup required name="subtotal" disabled>
+										<input readonly type="text" class="form-control" id="subtotal" required name="subtotal" disabled>
 									</div>
 								</div>
 							</div>
@@ -1223,6 +1223,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 				$("#totalwidth_" + id).html(html);
 			}
 		});
+		TotalSemua()
 	}
 
 	function CariPrice(id) {
@@ -1712,6 +1713,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		$("#totalexppn").val(number_format(exppn, 2));
 		$("#dpp").val(number_format(dpp, 2));
 		$("#ppn").val(number_format(ppn, 2));
+		TotalSemua();
 	}
 
 	function cariTotal() {
