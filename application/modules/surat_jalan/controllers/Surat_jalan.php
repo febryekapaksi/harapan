@@ -323,6 +323,7 @@ class Surat_jalan extends Admin_Controller
 
     public function confirm_sj($id)
     {
+        // Header SJ
         $sj = $this->db
             ->select('sj.*, so.nama_sales, ld.nopol, p.id_penawaran, c.name_customer')
             ->from('surat_jalan sj')
@@ -338,25 +339,53 @@ class Surat_jalan extends Admin_Controller
             show_404();
         }
 
+        // --- Subquery agregasi untuk SPK Delivery Detail ---
+        // Satukan jadi 1 baris per (id_so_det, no_delivery)
+        $sdd_sub = "
+        (
+            SELECT
+                id_so_det,
+                no_delivery,
+                SUM(COALESCE(qty_so, 0))  AS qty_so,
+                SUM(COALESCE(qty_spk, 0)) AS qty_spk
+            FROM spk_delivery_detail
+            GROUP BY id_so_det, no_delivery
+        ) sdd
+    ";
+
+        // --- Subquery agregasi untuk Warehouse Stock (jika ada lebih dari 1 baris per material) ---
+        // Ambil nilai costbook representatif (pakai MAX sebagai fallback). Sekalian pilih unit.
+        $wh_sub = "
+        (
+            SELECT
+                id_material,
+                MAX(harga_beli) AS costbook,
+                MAX(id_unit)    AS id_unit
+            FROM warehouse_stock
+            GROUP BY id_material
+        ) wh
+    ";
+
+        // Detail tanpa GROUP BY di luar, karena join sudah 1:1 setelah agregasi
         $detail = $this->db
             ->select('
             d.*,
             s.code,
-            sdd.qty_so, sdd.qty_spk,
-            wh.harga_beli AS costbook
+            COALESCE(sdd.qty_so, 0)  AS qty_so,
+            COALESCE(sdd.qty_spk, 0) AS qty_spk,
+            COALESCE(wh.costbook, 0) AS costbook
         ')
             ->from('surat_jalan_detail d')
-            ->join('surat_jalan sj', 'sj.id = d.id_sj')
-            ->join('spk_delivery_detail sdd', 'd.id_so_det = sdd.id_so_det AND sj.no_delivery = sdd.no_delivery', 'left')
-            ->join('warehouse_stock wh', 'd.id_product = wh.id_material', 'left')
-            ->join('ms_satuan s', 'wh.id_unit = s.id', 'left')
+            ->join('surat_jalan sj', 'sj.id = d.id_sj') // untuk akses sj.no_delivery di join sdd
+            ->join($sdd_sub, 'sdd.id_so_det = d.id_so_det AND sdd.no_delivery = sj.no_delivery', 'left')
+            ->join($wh_sub, 'wh.id_material = d.id_product', 'left')
+            ->join('ms_satuan s', 's.id = wh.id_unit', 'left')
             ->where('d.id_sj', $id)
-            ->group_by('d.id')
             ->get()
             ->result_array();
 
         $data = [
-            'sj' => $sj,
+            'sj'     => $sj,
             'detail' => $detail,
         ];
 
@@ -364,6 +393,7 @@ class Surat_jalan extends Admin_Controller
         $this->template->title('Confirm Delivery');
         $this->template->render('confirm', $data);
     }
+
 
     public function confirm()
     {
