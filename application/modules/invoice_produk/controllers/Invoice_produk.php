@@ -499,12 +499,35 @@ class Invoice_produk extends Admin_Controller
 		$id_so = $post['no_so'];
 
 		$tgl_so = $this->db->select('tgl_so')->where('no_so', $id_so)->limit(1)->get('sales_order')->row('tgl_so');
+		$get_top = $this->db
+			->select('a.payment_term, b.name as top_name, b.data1 as jumlah_top')
+			->from('sales_order a')
+			->join('list_help b', 'b.id = a.payment_term', 'left')
+			->where('a.no_so', $id_so)
+			->get()
+			->row();
 
 		$id_invoice = $this->Invoice_produk_model->generate_id_invoice();
 
 		$this->db->trans_begin();
 
 		if ($post['tipe_billing'] == 'delivery') {
+			$delivery_date = $this->db->select('delivery_date')
+				->where('no_surat_jalan', $post['id_billing'])
+				->limit(1)->get('surat_jalan')->row('delivery_date');
+
+			// normalisasi jumlah_top -> integer hari
+			$topDays = 0;
+			if (!empty($get_top->jumlah_top)) {
+				// buang karakter non-digit jika ada (mis "30 HARI")
+				$topDays = (int) preg_replace('/\D/', '', $get_top->jumlah_top);
+			}
+
+			$jatuh_tempo = null;
+			if (!empty($delivery_date)) {
+				$jatuh_tempo = date('Y-m-d', strtotime($delivery_date . " +{$topDays} days"));
+			}
+
 			$data_insert = [
 				'id_invoice' => $id_invoice,
 				'id_so' => $id_so,
@@ -512,6 +535,7 @@ class Invoice_produk extends Admin_Controller
 				'tgl_so' => $tgl_so,
 				'id_penawaran' => $post['id_penawaran'],
 				'id_customer' => $post['id_customer'],
+				'nm_customer' => $post['nm_customer'],
 				'id_billing' => $post['id_billing'],
 				'total_harga_beli' => $post['total_harga_beli'],
 				'tipe_billing' => $post['tipe_billing'],
@@ -525,7 +549,9 @@ class Invoice_produk extends Admin_Controller
 				'sts' => 1,
 				// 'tax_invoice_no' => $post['tax_invoice_no'],
 				'created_by' => $this->auth->user_id(),
-				'created_on' => date('Y-m-d H:i:s')
+				'created_on' => date('Y-m-d H:i:s'),
+				'delivery_date' => $delivery_date,
+				'jatuh_tempo' => $jatuh_tempo
 			];
 
 
