@@ -170,17 +170,17 @@ class Penerimaan extends Admin_Controller
             ];
             $this->db->insert('tr_invoice_payment_detail', $data_detail);
 
-
-            // Rekap ulang total_bayar dari detail (sumber kebenaran)
+            // Rekap ulang total_bayar dari detail
             $sum = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
                 ->from('tr_invoice_payment_detail')
                 ->where('no_invoice', $row['id_invoice'])
                 ->get()->row()->total;
 
-            // Update tr_invoice_sales pakai hasil SUM
+            // Update header: total_bayar, piutang, dan status
             $this->db->set('total_bayar', $sum, false);
-            $this->db->set('sts', "CASE WHEN {$sum} >= grand_total THEN 0 ELSE 1 END", false);
-            $this->db->where('id_invoice', $invoice->id_invoice)->update('tr_invoice_sales');
+            $this->db->set('piutang', "GREATEST(COALESCE(grand_total,0) - {$sum}, 0)", false);
+            $this->db->set('sts', "CASE WHEN {$sum} >= COALESCE(grand_total,0) THEN 0 ELSE 1 END", false);
+            $this->db->where('id_invoice', $row['id_invoice'])->update('tr_invoice_sales');
         }
 
         $kd_bayar  = $kd_pembayaran;
