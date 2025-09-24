@@ -1992,6 +1992,237 @@ class Purchase_order extends Admin_Controller
 		$html2pdf->Output('Penawran.pdf', 'I');
 	}
 
+
+	public function print_po($no_po)
+	{
+		$this->template->page_icon('fa fa-list');
+		$this->auth->restrict($this->managePermission);
+
+		// ---------------------------
+		// 1) HEADER PO
+		// ---------------------------
+		$header = $this->db->query("
+        SELECT a.*,
+               a.id_suplier,
+               b.nama    AS nm_supp,
+               b.address AS alamat,
+               c.name    AS country_name,
+               b.contact AS nm_pic,
+               b.telp    AS hp,
+               b.email   AS email_pic,
+               b.fax
+        FROM tr_purchase_order a
+        LEFT JOIN material_planning_base_on_produksi x ON x.po_number = a.no_po
+        LEFT JOIN new_supplier b ON b.kode_supplier = a.id_suplier
+        LEFT JOIN country_all c  ON c.iso3 = b.id_country
+        WHERE a.no_po = ?
+        LIMIT 1
+    ", [$no_po])->row();
+
+		if (!$header) {
+			show_error('PO tidak ditemukan: ' . $no_po, 404);
+			return;
+		}
+
+		// ---------------------------
+		// 2) DETAIL ITEM (tergantung tipe)
+		// ---------------------------
+		$detail = [];
+		if (!empty($header->tipe)) {
+			if ($header->tipe === 'pr depart') {
+				// detail via rutin_non_planning
+				$detail = $this->db->query("
+                SELECT a.id, a.no_po, a.id_dt_po, a.idpr, a.idmaterial,
+                       a.namamaterial, a.description, a.hargasatuan, a.jumlahharga,
+                       a.kode_barang, a.ppn, a.ppn_persen, a.harga_total, a.tipe, a.keterangan,
+                       a.namamaterial AS nama, '' AS code, '1' AS konversi,
+                       c.code AS satuan, c.code AS satuan_packing, a.qty
+                FROM dt_trans_po a
+                LEFT JOIN rutin_non_planning_detail b ON b.id = a.idpr
+                LEFT JOIN ms_satuan c ON c.id = b.satuan
+                WHERE a.no_po = ?
+            ", [$no_po])->result();
+			} elseif ($header->tipe === 'pr asset') {
+				// detail via asset_planning
+				$detail = $this->db->query("
+                SELECT a.id, a.no_po, a.id_dt_po, a.idpr, a.idmaterial,
+                       a.namamaterial, a.description, a.hargasatuan, a.jumlahharga,
+                       a.kode_barang, a.ppn, a.ppn_persen, a.harga_total, a.tipe, a.keterangan,
+                       a.namamaterial AS nama, '' AS code, '1' AS konversi,
+                       'Pcs' AS satuan, 'Pcs' AS satuan_packing, a.qty
+                FROM dt_trans_po a
+                LEFT JOIN asset_planning b ON b.id = a.idpr
+                WHERE a.no_po = ?
+            ", [$no_po])->result();
+			}
+		} else {
+			// tipe kosong → fallback inventori/accessories
+			$detail = $this->db->query("
+            SELECT a.*,
+                   a.namamaterial AS nama,
+                   IF(b.code IS NULL OR b.code = '', e.id_stock, b.code) AS code,
+                   IF(b.konversi IS NULL, 1, b.konversi)                AS konversi,
+                   c.code AS satuan,
+                   d.code AS satuan_packing
+            FROM dt_trans_po a
+            LEFT JOIN new_inventory_4 b ON b.code_lv4 = a.idmaterial OR b.id = a.idmaterial
+            LEFT JOIN ms_satuan c ON c.id = b.id_unit
+            LEFT JOIN ms_satuan d ON d.id = b.id_unit_packing
+            LEFT JOIN accessories e ON e.id = a.idmaterial
+            LEFT JOIN ms_satuan f ON f.id = e.id_unit
+            WHERE a.no_po = ?
+        ", [$no_po])->result();
+		}
+
+		// ---------------------------
+		// 3) KUMPULKAN ID PR & Nama Departemen
+		// ---------------------------
+		$list_idpr      = [];
+		$list_idpr_non  = []; // utk material_planning_base_on_produksi_detail
+		$list_idpr_dep  = []; // utk rutin_non_planning (variasi penamaan lama)
+
+		foreach ($detail as $it) {
+			if (isset($it->tipe) && ($it->tipe === 'pr depart' || $it->tipe === 'pr asset')) {
+				$list_idpr[] = $it->idpr;
+			} else {
+				// untuk jalur non-PR depart/asset (produksi)
+				$list_idpr_non[] = $it->idpr;
+			}
+			if (isset($it->tipe) && $it->tipe === 'pr_depart') {
+				$list_idpr_dep[] = $it->idpr;
+			}
+		}
+
+		// Nama department (sesuai tipe)
+		$nm_department = '';
+		if (!empty($header->tipe) && $header->tipe === 'pr depart') {
+			$deptRow = $this->db->select('IF(a.nama IS NULL, "", a.nama) AS nm_department')
+				->from('ms_department a')
+				->join('rutin_non_planning_header b', 'b.id_dept = a.id', 'left')
+				->join('rutin_non_planning_detail c', 'c.no_pengajuan = b.no_pengajuan', 'left')
+				->where('c.id', isset($detail[0]) ? $detail[0]->idpr : 0)
+				->get()->row();
+			$nm_department = $deptRow ? $deptRow->nm_department : '';
+		} elseif (!empty($header->tipe) && $header->tipe === 'pr asset') {
+			$deptRow = $this->db->select('IF(a.nama IS NULL, "", a.nama) AS nm_department')
+				->from('ms_department a')
+				->join('asset_planning b', 'b.id_dept = a.id', 'left')
+				->where('b.id', isset($detail[0]) ? $detail[0]->idpr : 0)
+				->get()->row();
+			$nm_department = $deptRow ? $deptRow->nm_department : '';
+		} else {
+			// tipe kosong → ambil direct dari header id_dept
+			$deptRow = $this->db->select('IF(nama IS NULL, "", nama) AS nama')
+				->get_where('ms_department', ['id' => $header->id_dept])->row();
+			$nm_department = $deptRow ? $deptRow->nama : '';
+		}
+
+		// ---------------------------
+		// 4) KUMPULKAN NO PR
+		// ---------------------------
+		$list_no_pr = [];
+
+		if (!empty($header->tipe) && $header->tipe === 'pr depart' && !empty($list_idpr)) {
+			$prs = $this->db->select('IF(a.no_pr IS NULL, "", a.no_pr) AS no_pr')
+				->from('rutin_non_planning_header a')
+				->join('rutin_non_planning_detail b', 'b.no_pengajuan = a.no_pengajuan', 'left')
+				->where_in('b.id', $list_idpr)
+				->group_by('a.no_pr')
+				->get()->result();
+			foreach ($prs as $p) if ($p->no_pr !== '') $list_no_pr[] = $p->no_pr;
+		}
+
+		if (!empty($header->tipe) && $header->tipe === 'pr asset' && !empty($list_idpr)) {
+			$prs = $this->db->select('IF(a.no_pr IS NULL, "", a.no_pr) AS no_pr')
+				->from('asset_planning a')
+				->where_in('a.id', $list_idpr)
+				->group_by('a.no_pr')
+				->get()->result();
+			foreach ($prs as $p) if ($p->no_pr !== '') $list_no_pr[] = $p->no_pr;
+		}
+
+		// non PR depart/asset → via produksi
+		if (!empty($list_idpr_non)) {
+			$prs = $this->db->select('IF(a.no_pr IS NULL, "", a.no_pr) AS no_pr')
+				->from('material_planning_base_on_produksi a')
+				->join('material_planning_base_on_produksi_detail b', 'b.so_number = a.so_number', 'left')
+				->where_in('b.id', $list_idpr_non)
+				->group_by('a.no_pr')
+				->get()->result();
+			foreach ($prs as $p) if ($p->no_pr !== '') $list_no_pr[] = $p->no_pr;
+		}
+
+		// variasi lama pr_depart (kalau ada)
+		if (!empty($list_idpr_dep)) {
+			$prs = $this->db->select('IF(a.no_pr IS NULL, "", a.no_pr) AS no_pr')
+				->from('rutin_non_planning_header a')
+				->join('rutin_non_planning_detail b', 'b.no_pengajuan = a.no_pengajuan', 'left')
+				->where_in('b.id', $list_idpr_dep)
+				->group_by('a.no_pr')
+				->get()->result();
+			foreach ($prs as $p) if ($p->no_pr !== '') $list_no_pr[] = $p->no_pr;
+		}
+
+		$no_pr_join = implode(', ', $list_no_pr);
+
+		// ---------------------------
+		// 5) Summary & Supplier
+		// ---------------------------
+		$detailsum = $this->db->query("
+        SELECT AVG(width) AS totalwidth, AVG(qty) AS totalqty
+        FROM dt_trans_po
+        WHERE no_po = ?
+    ", [$no_po])->row();
+
+		$data_supplier = $this->db->get_where('new_supplier', ['kode_supplier' => $header->id_suplier])->row();
+
+		// Nama departemen multiple (jika header->id_dept berisi banyak id dipisah koma)
+		$nm_depart = '';
+		if (!empty($header->id_dept)) {
+			$ids = explode(',', $header->id_dept);
+			$ids = array_map('trim', $ids);
+			if (!empty($ids)) {
+				$deptNames = $this->db->select('UPPER(nama) AS nama')
+					->from('ms_department')
+					->where_in('id', $ids)->get()->result();
+				$nm_depart = implode(', ', array_map(function ($r) {
+					return $r->nama;
+				}, $deptNames));
+			}
+		}
+
+		// ---------------------------
+		// 6) SUSUN DATA KE VIEW
+		// ---------------------------
+		$data = [
+			'header'       => $header,        // object header (sebelumnya array[0])
+			'detail'       => $detail,        // list item
+			'detailsum'    => $detailsum,     // avg width/qty
+			'data_supplier' => $data_supplier,  // supplier
+			'nm_department' => $nm_department ?: $nm_department, // singe/multi
+			'no_pr'        => $no_pr_join,
+		];
+
+		// ---------------------------
+		// 7) RENDER VIEW (seperti print_invoice_delivery)
+		// ---------------------------
+		ob_clean();
+		ob_start();
+		$this->load->view('print_po', $data);
+		$html = ob_get_clean();
+
+		// Jika mau langsung PDF:
+		// require_once('./assets/html2pdf/html2pdf/html2pdf.class.php');
+		// $html2pdf = new HTML2PDF('P', 'A4', 'en', true, 'UTF-8', array(10, 5, 10, 5));
+		// $html2pdf->pdf->SetDisplayMode('fullpage');
+		// $html2pdf->WriteHTML($html);
+		// $html2pdf->Output('Purchase Order.pdf', 'I');
+
+		// Atau tampilkan HTML (debug / cetak dari browser):
+		$this->load->view('print_po', $data);
+	}
+
+
 	public function PrintH2()
 	{
 		ob_clean();
