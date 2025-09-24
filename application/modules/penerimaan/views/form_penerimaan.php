@@ -10,7 +10,7 @@
                                 <label>Tanggal Pembayaran <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="tgl_pembayaran" id="tgl_pembayaran">
+                                <input type="date" class="form-control" name="tgl_pembayaran" id="tgl_pembayaran" min="2025-09-01">
                             </div>
                         </div>
 
@@ -32,7 +32,7 @@
                         </div>
 
                         <!-- Customer -->
-                        <div class="form-group row"> 
+                        <div class="form-group row">
                             <div class="col-md-4">
                                 <label>Pilih Bank <span class="text-red">*</span></label>
                             </div>
@@ -155,7 +155,7 @@
                                         <th>
                                             <center>No. COA</center>
                                         </th>
-                                         <th>
+                                        <th>
                                             <center>Nama. COA</center>
                                         </th>
                                         <th>
@@ -172,7 +172,7 @@
                                         <td><input type="text" id="type1" name="type[]" value="BUM" class="form-control" readonly /></td>
                                         <td><input type="text" id="no_coa1" name="no_coa[]" class="form-control" readonly /></td>
                                         <td><input type="text" id="nama_coa1" name="nama_coa[]" value="" class="form-control" readonly /></td>
-			                            <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
+                                        <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
                                             <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
                                         </td>
                                         <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
@@ -185,7 +185,7 @@
                                         <td><input type="text" id="type2" name="type[]" value="BUM" class="form-control" readonly /></td>
                                         <td><input type="text" id="no_coa2" name="no_coa[]" value="1102-01-01" class="form-control" readonly /></td>
                                         <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly /></td>
-			                            <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+                                        <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
                                             <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
                                         </td>
                                         <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
@@ -198,7 +198,7 @@
                                         <td><input type="text" id="type3" name="type[]" value="BUM" class="form-control" readonly /></td>
                                         <td><input type="text" id="no_coa3" name="no_coa[]" value="7201-01-02" class="form-control" readonly /></td>
                                         <td><input type="text" id="nama_coa3" name="nama_coa[]" value="Biaya Adm Bank & Buku Cek/Giro" class="form-control" readonly /></td>
-			                            <td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
+                                        <td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
                                             <input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
                                         </td>
                                         <td><input type="hidden" id="kredit3" name="kredit[]" value="0" class="form-control" readonly />
