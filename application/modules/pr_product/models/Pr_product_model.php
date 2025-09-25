@@ -57,7 +57,7 @@ class Pr_product_model extends BF_Model
                 "<div align='center'>{$nomor}</div>",
                 "<div align='left'>{$row['code_lv4']}</div>",
                 "<div align='left'>" . strtoupper($row['nm_product']) . "</div>",
-                "<div align='left'>{$row['nama']}</div>",
+                "<div align='left'>{$row['category']}</div>",
                 "<div align='right'>" . number_format($qty_pack, 2) . "</div>",
                 "<div align='center'>{$satuan}</div>",
                 "<div align='center' class='konversi'>" . number_format($konversi, 2) . "</div>",
@@ -86,12 +86,25 @@ class Pr_product_model extends BF_Model
     public function get_query_json_reorder_point($like = null, $column_order = null, $column_dir = null, $limit_start = 0, $limit_length = 10)
     {
         $columns_order_by = [
-            0 => 'a.code',        // atau ganti sesuai urutan kolom di tabel datatables-mu
-            1 => 'a.nama',
+            0 => 'a.code',
+            1 => 'a.nm_product',
             2 => 'z.nama',
-            3 => 'a.code_lv4',    // <— tambahkan jika ingin bisa di-sort oleh code_lv4
+            3 => 'a.code_lv4',
         ];
 
+        $this->db->select("
+        a.code,
+        a.code_lv4               AS code_lv4,
+        a.nama                   AS nm_product,
+        z.nama                   AS category,
+        COALESCE(b.qty_stock,0)  AS qty_stock,
+        COALESCE(a.min_stok,0)   AS min_stok,
+        COALESCE(a.max_stok,0)   AS max_stok,
+        COALESCE(a.konversi,0)   AS konversi,
+        COALESCE(a.id_unit_packing,0) AS id_unit_packing,
+        COALESCE(a.request,0)    AS request,
+        COALESCE(a.keterangan,'') AS keterangan
+    ");
         $this->db->from('new_inventory_4 a');
         $this->db->join('new_inventory_1 z', 'a.code_lv1 = z.code_lv1', 'left');
         $this->db->join('warehouse_stock b', 'a.code_lv4 = b.code_lv4 AND b.id_gudang = 1', 'left');
@@ -102,8 +115,7 @@ class Pr_product_model extends BF_Model
             $this->db->group_start();
             $this->db->like('a.nama', $like);
             $this->db->or_like('a.code', $like);
-            $this->db->or_like('a.code_lv4', $like);                         // <— cari pakai code_lv4
-            // opsional: kalau user ketik tanpa titik, tetap ketemu
+            $this->db->or_like('a.code_lv4', $like);
             $this->db->or_like('REPLACE(a.code_lv4,".","")', str_replace('.', '', $like), 'both', false);
             $this->db->group_end();
         }
@@ -122,13 +134,9 @@ class Pr_product_model extends BF_Model
         }
 
         $query = $this->db->get();
-
-        return [
-            'totalData'     => $totalData,
-            'totalFiltered' => $totalFiltered,
-            'query'         => $query
-        ];
+        return compact('totalData', 'totalFiltered', 'query');
     }
+
 
     public function get_data_json_material_planning()
     {
