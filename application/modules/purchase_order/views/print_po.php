@@ -82,7 +82,7 @@ $terbilang = function_exists('rupiah_to_words')
                 margin: 0;
                 padding: 5mm;
                 font-family: Arial, sans-serif;
-                font-size: 10px;
+                font-size: 16px;
             }
 
             table {
@@ -126,7 +126,7 @@ $terbilang = function_exists('rupiah_to_words')
 
         body {
             font-family: Arial, sans-serif;
-            font-size: 12px;
+            font-size: 15px;
             padding: 5mm;
             margin: 0;
         }
@@ -188,7 +188,7 @@ $terbilang = function_exists('rupiah_to_words')
         <div style="width: 50%;">
             <table class="no-border">
                 <tr>
-                    <td style="width: 80px; vertical-align: top;"><strong>Vendor</strong></td>
+                    <td style="width: 60px; vertical-align: top;"><strong>Vendor</strong></td>
                     <td>
                         <?= strtoupper($vendorName)  ?> <br>
                         <?= nl2br($vendorAddress) ?>
@@ -205,22 +205,24 @@ $terbilang = function_exists('rupiah_to_words')
         <div style="width: 50%;">
             <table class="no-border">
                 <tr>
-                    <td>PO Date </td>
-                    <td>: <?= idDate($poDate) ?></td>
-                    <td>PO Number </td>
-                    <td>: <?= htmlspecialchars($poNumber) ?></td>
+                    <td>PO Date :<br>
+                        <?= idDate($poDate) ?></td>
+                    <td>PO Number :<br>
+                        <?= htmlspecialchars($poNumber) ?></td>
                 </tr>
                 <tr>
-                    <td>Terms </td>
-                    <td>: <?= $terms ?></td>
-                    <td>FOB </td>
-                    <td>: </td>
+                    <td>Terms : <br>
+                        <?= $terms ?></td>
+
+                    <td>FOB : <br>
+                    </td>
                 </tr>
                 <tr>
-                    <td>Vendor is Taxable </td>
-                    <td>: <?= $vendorTax ?></td>
-                    <td>Rate </td>
-                    <td>: <?= $rate ?></td>
+                    <td>Vendor is Taxable :<br>
+                        <?= $vendorTax ?></td>
+
+                    <td>Rate : <br>
+                        <?= $rate ?></td>
                 </tr>
             </table>
         </div>
