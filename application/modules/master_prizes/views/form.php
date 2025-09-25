@@ -75,10 +75,12 @@ $ENABLE_DELETE  = has_permission('Master_Kelas.Delete');
         $('#is_zonk').on('change', function() {
             const $n = $('#name');
             if (this.checked) {
-                $n.val('ANDA KURANG BERUNTUNG').prop('readonly', true).addClass('bg-light');
+                if (!$n.val()) $n.val('ANDA KURANG BERUNTUNG'); // isi hanya jika kosong
+                $n.prop('readonly', true).addClass('bg-light');
             } else {
-                $n.val('').prop('readonly', false).removeClass('bg-light').focus();
+                // JANGAN $n.val('') di sini
+                $n.prop('readonly', false).removeClass('bg-light');
             }
-        }).trigger('change'); // inisialisasi saat halaman load
+        }).trigger('change');
     });
 </script>
