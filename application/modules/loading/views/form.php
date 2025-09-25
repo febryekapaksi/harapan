@@ -113,7 +113,9 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                             <?php foreach ($rows as $row) :
                                                 $key = $row['no_so'] . '|' . $row['no_delivery'];
                                                 $isUsed = in_array($key, $usedKeys);
-                                                $weight = $row['jumlah_berat'] / $row['qty_muat'];
+                                                $berat = (float)($row['jumlah_berat'] ?? 0);
+                                                $qty   = (float)($row['qty_muat'] ?? 0);
+                                                $weight = ($qty > 0) ? ($berat / $qty) : 0;
                                             ?>
                                                 <tr>
                                                     <td>
