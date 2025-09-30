@@ -898,6 +898,7 @@ class Invoice_produk extends Admin_Controller
 						<tr>
 						<th class="text-center">No. DO</th>
 						<th class="text-center">No. SO</th>
+						<th class="text-center">Tgl. Kirim</th>
 						<th class="text-center">Tgl. Invoice</th>
 						<th class="text-center">Nama Customer</th>
 						<th class="text-center">Nominal Invoice</th>
@@ -909,7 +910,7 @@ class Invoice_produk extends Admin_Controller
 
 			// Query + filter tanggal
 			$this->db
-				->select('sj.no_surat_jalan, sj.no_delivery, sj.no_so, c.name_customer, i.created_on, sj.created_at')
+				->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.created_on, sj.created_at')
 				->from('surat_jalan sj')
 				->join('tr_invoice_sales i', 'sj.no_surat_jalan = i.id_billing AND i.tipe_billing="delivery"', 'left')
 				->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
@@ -995,6 +996,7 @@ class Invoice_produk extends Admin_Controller
 				$hasil .= '<tr>';
 				$hasil .= '<td class="text-center">' . $item->no_surat_jalan . '</td>';
 				$hasil .= '<td class="text-center">' . $item->no_so . '</td>';
+				$hasil .= '<td class="text-center">' . date('d/M/Y', strtotime($item->delivery_date)) . '</td>';
 				$hasil .= '<td class="text-center">' . $tanggal . '</td>';
 				$hasil .= '<td class="text-left">' . $item->name_customer . '</td>';
 				$hasil .= '<td class="text-right">' . number_format($nominal_invoice, 2) . '</td>';
