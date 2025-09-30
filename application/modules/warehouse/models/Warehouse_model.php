@@ -111,6 +111,11 @@ class Warehouse_model extends BF_Model
         // Total Data
         $this->db->select('ws.id');
         $this->db->from('warehouse_stock ws');
+        $this->db->join('ms_satuan sm', 'ws.id_unit = sm.id', 'left');
+        $this->db->join('ms_satuan sp', 'ws.id_unit_packing = sp.id', 'left');
+        $this->db->join('new_inventory_4 ni', 'ni.code_lv4 = ws.code_lv4', 'inner');
+        $this->db->where('ni.deleted_date IS NULL', null, false);
+        $this->db->where('ni.deleted_by IS NULL',  null, false);
         $totalData = $this->db->count_all_results();
 
         // Total Filtered
@@ -118,6 +123,9 @@ class Warehouse_model extends BF_Model
         $this->db->from('warehouse_stock ws');
         $this->db->join('ms_satuan sm', 'ws.id_unit = sm.id', 'left');
         $this->db->join('ms_satuan sp', 'ws.id_unit_packing = sp.id', 'left');
+        $this->db->join('new_inventory_4 ni', 'ni.code_lv4 = ws.code_lv4', 'inner');
+        $this->db->where('ni.deleted_date IS NULL', null, false);
+        $this->db->where('ni.deleted_by IS NULL',  null, false);
 
         if ($like_value) {
             $this->db->group_start();
@@ -139,6 +147,9 @@ class Warehouse_model extends BF_Model
         $this->db->from('warehouse_stock ws');
         $this->db->join('ms_satuan sm', 'ws.id_unit = sm.id', 'left');
         $this->db->join('ms_satuan sp', 'ws.id_unit_packing = sp.id', 'left');
+        $this->db->join('new_inventory_4 ni', 'ni.code_lv4 = ws.code_lv4', 'inner');
+        $this->db->where('ni.deleted_date IS NULL', null, false);
+        $this->db->where('ni.deleted_by IS NULL',  null, false);
 
         if ($like_value) {
             $this->db->group_start();
@@ -192,7 +203,7 @@ class Warehouse_model extends BF_Model
             $nestedData = [];
 
             $nestedData[] = "<div align='center'>{$nomor}</div>";
-            $nestedData[] = $row['tgl_transaksi'];
+            $nestedData[] = date('d/M/Y', strtotime($row['tgl_transaksi']));
             $nestedData[] = $row['no_transaksi'];
             $nestedData[] = $row['transaksi'];
             $nestedData[] = $row['code_lv4'];
@@ -243,11 +254,13 @@ class Warehouse_model extends BF_Model
         $this->db->select('ks.id');
         $this->db->from('kartu_stok ks');
         $this->db->where('ks.deleted', null);
+        $this->db->order_by('ks.tgl_transaksi', 'desc');
         $totalData = $this->db->count_all_results();
 
         $this->db->select('ks.id');
         $this->db->from('kartu_stok ks');
         $this->db->where('ks.deleted', null);
+        $this->db->order_by('ks.tgl_transaksi', 'desc');
 
         if (!empty($like_value)) {
             $this->db->group_start();
@@ -265,6 +278,7 @@ class Warehouse_model extends BF_Model
     ');
         $this->db->from('kartu_stok ks');
         $this->db->where('ks.deleted', null);
+        $this->db->order_by('ks.tgl_transaksi', 'desc');
 
         if (!empty($like_value)) {
             $this->db->group_start();
