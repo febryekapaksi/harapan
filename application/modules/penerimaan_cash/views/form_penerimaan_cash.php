@@ -27,7 +27,8 @@
                                 <label>Tanggal Pembayaran <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-8">
-                                <input type="date" class="form-control" name="tgl_pembayaran" id="tgl_pembayaran">
+                                <input type="date" class="form-control" name="tgl_pembayaran" id="tgl_pembayaran"
+                                    min="2025-09-01">
                             </div>
                         </div>
 
@@ -128,7 +129,7 @@
                                 <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
                                 <td><input type="text" id="no_coa1" name="no_coa[]" value="1102-01-04" class="form-control" readonly /></td>
                                 <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Piutang Sales" class="form-control" readonly /></td>
-			                    <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
+                                <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
                                     <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
                                 </td>
                                 <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
@@ -141,7 +142,7 @@
                                 <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
                                 <td><input type="text" id="no_coa2" name="no_coa[]" value="1102-01-01" class="form-control" readonly /></td>
                                 <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly /></td>
-			                    <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+                                <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
                                     <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
                                 </td>
                                 <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
@@ -636,10 +637,10 @@
 
     }
 
-     function isiJurnal() {
+    function isiJurnal() {
         let totalInvoice = 0;
         let nilaiBayar = $('#totalTerima').val().split(',').join('');
-        
+
         $('#debet1').val(nilaiBayar);
         $('#debet21').val(number_format(nilaiBayar, 2));
 
@@ -647,11 +648,11 @@
         $('#kredit22').val(number_format(nilaiBayar, 2));
 
         $('#total').val(nilaiBayar);
-        $('#total31').val(number_format(nilaiBayar, 2)); 
+        $('#total31').val(number_format(nilaiBayar, 2));
         $('#total2').val(nilaiBayar);
         $('#total41').val(number_format(nilaiBayar, 2));
 
-     }
+    }
 
     function number_format(number, decimals, dec_point, thousands_sep) {
         // Strip all characters but numerical ones.

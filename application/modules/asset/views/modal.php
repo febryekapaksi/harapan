@@ -1,7 +1,4 @@
 <div class="box box-primary">
-	<div class="box-header">
-		<h3 class="box-title"></h3>
-	</div>
 	<div class="box-body">
 		<div class='form-group row'>
 			<label class='label-control col-sm-2'><b>Nama Asset <span class='text-red'>*</span></b></label>
@@ -38,16 +35,18 @@
 					?>
 				</select>
 			</div>
-			<label class='label-control col-sm-2'><b>Cost Center <span class='text-red'>*</span></b></label>
-			<div class='col-sm-4'>
-				<select name='cost_center' id='cost_center' class='form-control input-md chosen-select'>
-					<option value="">- Cost Center -</option>
-					<?php 
-						foreach($list_costcenter as $item_costcenter) {
-							echo '<option value="'.$item_costcenter['id'].'">'.strtoupper($item_costcenter['nm_gudang']).'</option>';
+			<div class="hidden">
+				<label class='label-control col-sm-2'><b>Cost Center <span class='text-red'>*</span></b></label>
+				<div class='col-sm-4'>
+					<select name='cost_center' id='cost_center' class='form-control input-md chosen-select'>
+						<option value="">- Cost Center -</option>
+						<?php
+						foreach ($list_costcenter as $item_costcenter) {
+							echo '<option value="' . $item_costcenter['id'] . '">' . strtoupper($item_costcenter['nm_gudang']) . '</option>';
 						}
-					?>
-				</select>
+						?>
+					</select>
+				</div>
 			</div>
 		</div>
 		<div class='form-group row'>
@@ -184,7 +183,7 @@
 		var nm_asset = $('#nm_asset').val();
 		var category = $('#category').val();
 		var lokasi_asset = $('#lokasi_asset').val();
-		var cost_center = $('#cost_center').val();
+		// var cost_center = $('#cost_center').val();
 		var depresiasi = $('#depresiasi').val();
 		var nilai_asset = $('#nilai_asset').val();
 		var qty = $('#qty').val();
@@ -224,16 +223,16 @@
 			return false;
 		}
 
-		if (cost_center == '' || cost_center == null || cost_center == 0) {
-			swal({
-				title: "Error Message!",
-				text: 'Cost Center belum dipilih ...',
-				type: "warning"
-			});
+		// if (cost_center == '' || cost_center == null || cost_center == 0) {
+		// 	swal({
+		// 		title: "Error Message!",
+		// 		text: 'Cost Center belum dipilih ...',
+		// 		type: "warning"
+		// 	});
 
-			$('#simpan-bro').prop('disabled', false);
-			return false;
-		}
+		// 	$('#simpan-bro').prop('disabled', false);
+		// 	return false;
+		// }
 
 		if (depresiasi == '' || depresiasi == null || depresiasi == 0) {
 			swal({

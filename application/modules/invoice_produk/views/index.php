@@ -289,6 +289,11 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 			success: function(result) {
 				$('#ModalView').html(result);
 				$('#dialog-popup').modal('show');
+				$('.datepicker').datepicker({
+					dateFormat: 'yy-mm-dd',
+					changeMonth: true,
+					changeYear: true,
+				});
 			}
 		});
 	});

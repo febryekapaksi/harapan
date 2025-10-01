@@ -151,14 +151,14 @@ $ENABLE_DELETE  = has_permission('Purchase_Order.Delete');
 							}
 							?>
 							<td><?= $record->nm_supplier ?></td>
-							<td class="text-right"><?= number_format($record->total_barang - $record->nilai_disc + $record->total_ppn + $record->taxtotal) ?></td>
+							<td class="text-right"><?= number_format($record->subtotal) ?></td>
 							<td class="text-center"><?= $record->revisi ?></td>
 							<td><?= $record->reject_reason ?></td>
 							<td style="padding-left:20px">
 								<?php if ($ENABLE_VIEW) : ?>
 									<a class="btn btn-warning btn-sm" href="<?= base_url('/purchase_order/view_po/' . $record->no_po) ?>" title="View" data-no_po="<?= $record->no_po ?>"><i class="fa fa-eye"></i></a>
 
-									<a class="btn btn-primary btn-sm" href="<?= base_url('/purchase_order/PrintH2/' . $record->no_po) ?>" target="_blank" title="Print"><i class="fa fa-print"></i></a>
+									<a class="btn btn-primary btn-sm" href="<?= base_url('/purchase_order/print_po/' . $record->no_po) ?>" target="_blank" title="Print"><i class="fa fa-print"></i></a>
 								<?php endif; ?>
 								<?php if ($ENABLE_MANAGE && $valid_edit > 0) :
 								?>

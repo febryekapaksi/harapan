@@ -5,14 +5,11 @@ $dataD	= $this->db->query($qData)->result_array();
 $list_dept = $this->Asset_model->getList('department');
 $list_catg = $this->Asset_model->getList('asset_category');
 
-$QUERY	 	= "SELECT * FROM ms_costcenter WHERE id_costcenter = '".$dataD[0]['cost_center']."' ORDER BY nama_costcenter ASC";
+$QUERY	 	= "SELECT * FROM ms_costcenter WHERE id_costcenter = '" . $dataD[0]['cost_center'] . "' ORDER BY nama_costcenter ASC";
 $costcenter	= $this->db->query($QUERY)->row();
 ?>
 
 <div class="box box-primary">
-	<div class="box-header">
-		<h3 class="box-title"></h3>
-	</div>
 	<div class="box-body">
 		<div class='form-group row'>
 			<label class='label-control col-sm-2'><b>Nama Asset <span class='text-red'>*</span></b></label>
@@ -48,11 +45,13 @@ $costcenter	= $this->db->query($QUERY)->row();
 					?>
 				</select>
 			</div>
-			<label class='label-control col-sm-2'><b>Cost Center <span class='text-red'>*</span></b></label>
-			<div class='col-sm-4'>
-				<?php
-				echo form_input(array('id' => 'cost_center', 'name' => 'cost_center', 'class' => 'form-control input-md', 'autocomplete' => 'off', 'placeholder' => 'Nilai Asset', 'readonly' => 'readonly'), strtoupper($costcenter->nama_costcenter));
-				?>
+			<div class="hidden">
+				<label class='label-control col-sm-2'><b>Cost Center <span class='text-red'>*</span></b></label>
+				<div class='col-sm-4'>
+					<?php
+					echo form_input(array('id' => 'cost_center', 'name' => 'cost_center', 'class' => 'form-control input-md', 'autocomplete' => 'off', 'placeholder' => 'Nilai Asset', 'readonly' => 'readonly'), strtoupper($costcenter->nama_costcenter));
+					?>
+				</div>
 			</div>
 		</div>
 		<div class='form-group row'>

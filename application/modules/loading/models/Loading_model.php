@@ -107,64 +107,115 @@ class Loading_model extends BF_Model
 
     public function get_query_json_loading($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
     {
+        // Whitelist kolom utk ORDER BY (gunakan alias yg tersedia di SELECT)
         $columns_order_by = [
             0 => 'l.no_loading',
             1 => 'l.no_loading',
-            2 => 'list_spk',
+            2 => 's.list_spk',     // list_spk berasal dari subquery alias s
             3 => 'l.nopol',
             4 => 'l.pengiriman',
             5 => 'l.total_berat',
             6 => 'l.tanggal_muat',
         ];
 
-        $base_sql = "SELECT
-                    l.id,
-                    l.no_loading,
-                    l.pengiriman,
-                    l.nopol,
-                    l.kapasitas,
-                    l.total_berat,
-                    l.tanggal_muat,
-                    l.status,
-                    GROUP_CONCAT(DISTINCT d.no_delivery SEPARATOR '<br>') AS list_spk
-                FROM loading_delivery l
-                LEFT JOIN loading_delivery_detail d ON d.no_loading = l.no_loading
-                WHERE 1=1";
+        // Normalisasi input
+        $order_col = isset($columns_order_by[$column_order]) ? $columns_order_by[$column_order] : 'l.no_loading';
+        $order_dir = (strtoupper($column_dir) === 'ASC') ? 'ASC' : 'DESC';
 
-        if ($like_value) {
-            $base_sql .= " AND (
-            l.no_loading LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-            OR l.pengiriman LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-            OR l.nopol LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-            OR d.no_delivery LIKE '%" . $this->db->escape_like_str($like_value) . "%'
+        $limit_start  = is_null($limit_start)  ? 0  : (int)$limit_start;
+        $limit_length = is_null($limit_length) ? 10 : (int)$limit_length;
+
+        // ---------------------------
+        // Subquery agregasi untuk list_spk
+        // ---------------------------
+        $sub_list_spk = "
+        SELECT
+            d.no_loading,
+            GROUP_CONCAT(DISTINCT d.no_delivery ORDER BY d.no_delivery SEPARATOR '<br>') AS list_spk
+        FROM loading_delivery_detail d
+        GROUP BY d.no_loading
+    ";
+
+        // ---------------------------
+        // WHERE (filter pencarian)
+        // Pakai parameter binding, termasuk EXISTS utk cari di no_delivery
+        // ---------------------------
+        $where_sql = " WHERE 1=1 ";
+        $params = [];
+
+        if (!empty($like_value)) {
+            $like = '%' . $this->db->escape_like_str($like_value) . '%';
+
+            // Cari di kolom utama
+            $where_sql .= " AND ( 
+              l.no_loading   LIKE ? 
+           OR l.pengiriman   LIKE ? 
+           OR l.nopol        LIKE ?
+           OR EXISTS (
+                SELECT 1 
+                FROM loading_delivery_detail dd 
+                WHERE dd.no_loading = l.no_loading 
+                  AND dd.no_delivery LIKE ?
+           )
         )";
+            // Bind 4 parameter
+            array_push($params, $like, $like, $like, $like);
         }
 
-        $group_by = " GROUP BY l.no_loading";
-        $count_sql = $base_sql . $group_by;
+        // ---------------------------
+        // COUNT total (tanpa filter)
+        // ---------------------------
+        $sql_count_total = "SELECT COUNT(*) AS cnt FROM loading_delivery l";
+        $totalData = (int) $this->db->query($sql_count_total)->row()->cnt;
 
-        $this->db->query("SET SQL_BIG_SELECTS=1");
-        $totalData = $this->db->query($count_sql)->num_rows();
-        $totalFiltered = $totalData;
+        // ---------------------------
+        // COUNT filtered (dengan filter)
+        // ---------------------------
+        $sql_count_filtered = "
+        SELECT COUNT(*) AS cnt
+        FROM loading_delivery l
+        LEFT JOIN ( $sub_list_spk ) s ON s.no_loading = l.no_loading
+        $where_sql
+    ";
+        $totalFiltered = (int) $this->db->query($sql_count_filtered, $params)->row()->cnt;
 
-        if ($column_order !== null && isset($columns_order_by[$column_order])) {
-            $base_sql .= $group_by . " ORDER BY " . $columns_order_by[$column_order] . " " . $column_dir;
-        } else {
-            $base_sql .= $group_by . " ORDER BY l.no_loading DESC";
-        }
+        // ---------------------------
+        // DATA utama (tanpa GROUP BY di luar)
+        // ---------------------------
+        $sql_data = "
+        SELECT
+            l.id,
+            l.no_loading,
+            l.pengiriman,
+            l.nopol,
+            l.kapasitas,
+            l.total_berat,
+            l.tanggal_muat,
+            l.status,
+            COALESCE(s.list_spk, '') AS list_spk
+        FROM loading_delivery l
+        LEFT JOIN ( $sub_list_spk ) s ON s.no_loading = l.no_loading
+        $where_sql
+        ORDER BY $order_col $order_dir
+    ";
 
+        // Limit (ikuti pola datatables: -1 berarti tanpa limit)
         if ($limit_length != -1) {
-            $base_sql .= " LIMIT {$limit_start}, {$limit_length}";
+            $sql_data .= " LIMIT ?, ? ";
+            $params_data = array_merge($params, [$limit_start, $limit_length]);
+        } else {
+            $params_data = $params;
         }
 
-        $query = $this->db->query($base_sql);
+        $query = $this->db->query($sql_data, $params_data);
 
         return [
-            'totalData' => $totalData,
+            'totalData'     => $totalData,
             'totalFiltered' => $totalFiltered,
-            'query' => $query
+            'query'         => $query,
         ];
     }
+
 
     public function data_side_approval_loading()
     {

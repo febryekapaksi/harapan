@@ -106,6 +106,7 @@ class Master_prizes extends Admin_Controller
                 'stock_total'   => $result['stock_total'] ?? '',
                 'status'        => $result['status'] ?? '',
                 'note'          => $result['note'] ?? '',
+                'is_zonk'       => $result['is_zonk'] ?? '',
             ];
 
             $this->template->title($field_hist . ' Hadiah');
@@ -116,31 +117,76 @@ class Master_prizes extends Admin_Controller
 
     public function hapus()
     {
-        $data = $this->input->post();
-        $id = $data['id'];
+        $id = $this->input->post('id');
 
+        // 1) Ambil data prize & vouchers
+        $prize = $this->db->get_where('master_prizes', ['id' => $id])->row();
+        if (!$prize) {
+            echo json_encode(['status' => 0, 'pesan' => 'Prize tidak ditemukan']);
+            return;
+        }
+
+        // Direktori dari vouchers (kalau kolom qr_directory ada)
+        $vouchers = $this->db->select('id, qr_directory')
+            ->from('vouchers')
+            ->where('prize_id', $id)
+            ->get()->result();
+
+        // Kumpulkan direktori unik
+        $dirs = [];
+        foreach ($vouchers as $v) {
+            if (!empty($v->qr_directory)) {
+                $dirs[rtrim($v->qr_directory, '/') . '/'] = true;
+            }
+        }
+        // fallback: jika tidak ada di vouchers, derive dari code prize
+        if (empty($dirs)) {
+            $dirs['uploads/qrvouchers/' . $prize->code . '/'] = true;
+        }
+        $dirs = array_keys($dirs);
+
+        // 2) Transaksi DB
         $this->db->trans_start();
-        $this->db->where('id', $id);
-        $this->db->delete('master_prizes');
+        $this->db->where('prize_id', $id)->delete('vouchers');       // hapus voucher2 terkait
+        $this->db->where('id', $id)->delete('master_prizes');        // hapus master
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
-            $Arr_Data = array(
-                'pesan'  => 'Process Failed!',
-                'status' => 0
-            );
-        } else {
-            $this->db->trans_commit();
-            $Arr_Data = array(
-                'pesan'  => 'Process Success!',
-                'status' => 1
-            );
-            history("Delete data master prizes id " . $id);
+            echo json_encode(['status' => 0, 'pesan' => 'Process Failed!']);
+            return;
         }
 
-        echo json_encode($Arr_Data);
+        $this->db->trans_commit();
+        history("Delete data master prizes id " . $id);
+
+        // 3) Hapus file/folder di disk (setelah commit)
+        $this->load->helper('file');
+
+        $base = realpath(FCPATH . 'uploads/qrvouchers'); // pagar pembatas keamanan
+        foreach ($dirs as $dir) {
+            $fullPath = rtrim(FCPATH . $dir, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
+
+            // validasi path tetap di bawah uploads/qrvouchers
+            $targetReal = realpath($fullPath);
+            if ($targetReal === false) {
+                // folder mungkin sudah tidak ada — lanjut
+                continue;
+            }
+            if (strpos($targetReal, $base) !== 0) {
+                // kalau bukan di dalam base, jangan dihapus (keamanan)
+                log_message('error', 'Skip delete outside base: ' . $targetReal);
+                continue;
+            }
+
+            // hapus isi folder lalu foldernya
+            @delete_files($targetReal, TRUE); // hapus semua file & subfolder
+            @rmdir($targetReal);
+        }
+
+        echo json_encode(['status' => 1, 'pesan' => 'Process Success!']);
     }
+
 
     public function download_qr($prizeId)
     {

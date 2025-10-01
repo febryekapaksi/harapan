@@ -133,18 +133,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 								</div>
 							</div>
 						</div>
-						<!-- <div class="col-sm-12">
-		<div class="col-sm-6">
-		<div class="form-group row">
-			<div class="col-md-4">
-				<label for="customer">Expect Date</label>
-			</div>
-			<div class="col-md-8">
-				<input type="date" class="form-control" id="expect_tanggal" required name="expect_tanggal"  >
-			</div>
-		</div>
-		</div>
-		</div> -->
+
 						<div class="col-sm-12">
 							<div class="col-sm-6">
 								<div class="form-group row">

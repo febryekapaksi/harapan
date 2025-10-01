@@ -499,12 +499,35 @@ class Invoice_produk extends Admin_Controller
 		$id_so = $post['no_so'];
 
 		$tgl_so = $this->db->select('tgl_so')->where('no_so', $id_so)->limit(1)->get('sales_order')->row('tgl_so');
+		$get_top = $this->db
+			->select('a.payment_term, b.name as top_name, b.data1 as jumlah_top')
+			->from('sales_order a')
+			->join('list_help b', 'b.id = a.payment_term', 'left')
+			->where('a.no_so', $id_so)
+			->get()
+			->row();
 
 		$id_invoice = $this->Invoice_produk_model->generate_id_invoice();
 
 		$this->db->trans_begin();
 
 		if ($post['tipe_billing'] == 'delivery') {
+			$delivery_date = $this->db->select('delivery_date')
+				->where('no_surat_jalan', $post['id_billing'])
+				->limit(1)->get('surat_jalan')->row('delivery_date');
+
+			// normalisasi jumlah_top -> integer hari
+			$topDays = 0;
+			if (!empty($get_top->jumlah_top)) {
+				// buang karakter non-digit jika ada (mis "30 HARI")
+				$topDays = (int) preg_replace('/\D/', '', $get_top->jumlah_top);
+			}
+
+			$jatuh_tempo = null;
+			if (!empty($delivery_date)) {
+				$jatuh_tempo = date('Y-m-d', strtotime($delivery_date . " +{$topDays} days"));
+			}
+
 			$data_insert = [
 				'id_invoice' => $id_invoice,
 				'id_so' => $id_so,
@@ -512,6 +535,7 @@ class Invoice_produk extends Admin_Controller
 				'tgl_so' => $tgl_so,
 				'id_penawaran' => $post['id_penawaran'],
 				'id_customer' => $post['id_customer'],
+				'nm_customer' => $post['nm_customer'],
 				'id_billing' => $post['id_billing'],
 				'total_harga_beli' => $post['total_harga_beli'],
 				'tipe_billing' => $post['tipe_billing'],
@@ -525,7 +549,9 @@ class Invoice_produk extends Admin_Controller
 				'sts' => 1,
 				// 'tax_invoice_no' => $post['tax_invoice_no'],
 				'created_by' => $this->auth->user_id(),
-				'created_on' => date('Y-m-d H:i:s')
+				'created_on' => $post['tgl_invoice'],
+				'delivery_date' => $delivery_date,
+				'jatuh_tempo' => $jatuh_tempo
 			];
 
 
@@ -567,7 +593,7 @@ class Invoice_produk extends Admin_Controller
 					'disc' => $nilai_disc,
 					'subtotal' => $subtotal,
 					'created_by' => $this->auth->user_id(),
-					'created_on' => date('Y-m-d H:i:s')
+					'created_on' => $post['tgl_invoice']
 				];
 			}
 
@@ -809,6 +835,7 @@ class Invoice_produk extends Admin_Controller
 						<tr>
 						<th class="text-center">No. DO</th>
 						<th class="text-center">No. SO</th>
+						<th class="text-center">Tgl. Kirim</th>
 						<th class="text-center">Tgl. Invoice</th>
 						<th class="text-center">Nama Customer</th>
 						<th class="text-center">Nominal Invoice</th>
@@ -820,7 +847,7 @@ class Invoice_produk extends Admin_Controller
 
 			// Query + filter tanggal
 			$this->db
-				->select('sj.no_surat_jalan, sj.no_delivery, sj.no_so, c.name_customer, i.created_on, sj.created_at')
+				->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.created_on, sj.created_at')
 				->from('surat_jalan sj')
 				->join('tr_invoice_sales i', 'sj.no_surat_jalan = i.id_billing AND i.tipe_billing="delivery"', 'left')
 				->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
@@ -906,6 +933,7 @@ class Invoice_produk extends Admin_Controller
 				$hasil .= '<tr>';
 				$hasil .= '<td class="text-center">' . $item->no_surat_jalan . '</td>';
 				$hasil .= '<td class="text-center">' . $item->no_so . '</td>';
+				$hasil .= '<td class="text-center">' . date('d/M/Y', strtotime($item->delivery_date)) . '</td>';
 				$hasil .= '<td class="text-center">' . $tanggal . '</td>';
 				$hasil .= '<td class="text-left">' . $item->name_customer . '</td>';
 				$hasil .= '<td class="text-right">' . number_format($nominal_invoice, 2) . '</td>';
