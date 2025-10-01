@@ -222,7 +222,7 @@ $tipe_billing = $results['tipe_billing'];
     </thead>
     <tbody>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" class="form-control" readonly /></td>
             <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa1" name="no_coa[]" value="1102-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly /></td>
@@ -235,7 +235,7 @@ $tipe_billing = $results['tipe_billing'];
 
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" class="form-control" readonly /></td>
             <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa2" name="no_coa[]" value="2102-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Uang Muka Penjualan" class="form-control" readonly /></td>
@@ -248,7 +248,7 @@ $tipe_billing = $results['tipe_billing'];
 
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal3" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="date" id="tgl_jurnal3" name="tgl_jurnal[]" class="form-control" readonly /></td>
             <td><input type="text" id="type3" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa3" name="no_coa[]" value="2103-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa3" name="nama_coa[]" value="PPN Keluaran" class="form-control" readonly /></td>
@@ -261,7 +261,7 @@ $tipe_billing = $results['tipe_billing'];
 
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal4" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="date" id="tgl_jurnal4" name="tgl_jurnal[]" class="form-control" readonly /></td>
             <td><input type="text" id="type4" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa4" name="no_coa[]" value="4101-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa4" name="nama_coa[]" value="PENDAPATAN PENJUALAN Produk" class="form-control" readonly /></td>
@@ -274,7 +274,7 @@ $tipe_billing = $results['tipe_billing'];
 
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal5" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="date" id="tgl_jurnal5" name="tgl_jurnal[]" class="form-control" readonly /></td>
             <td><input type="text" id="type5" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa5" name="no_coa[]" value="5101-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa5" name="nama_coa[]" value="HPP" class="form-control" readonly /></td>
@@ -287,7 +287,7 @@ $tipe_billing = $results['tipe_billing'];
 
         </tr>
         <tr bgcolor='#DCDCDC'>
-            <td><input type="date" id="tgl_jurnal6" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+            <td><input type="date" id="tgl_jurnal6" name="tgl_jurnal[]" class="form-control" readonly /></td>
             <td><input type="text" id="type6" name="type[]" value="JV" class="form-control" readonly /></td>
             <td><input type="text" id="no_coa6" name="no_coa[]" value="1104-01-03" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa6" name="nama_coa[]" value="Persediaan Barang In Customer" class="form-control" readonly /></td>
@@ -311,3 +311,16 @@ $tipe_billing = $results['tipe_billing'];
 
         </tr>
 </table>
+
+
+<script>
+    $(document).ready(function() {
+        $(document).on('change', 'input[name="tgl_invoice"]', function() {
+            const val = $(this).val(); // ambil nilai tgl_invoice
+            if (val) {
+                // isi semua field tgl_jurnal dengan value yg sama
+                $('input[name="tgl_jurnal[]"]').val(val);
+            }
+        });
+    });
+</script>
