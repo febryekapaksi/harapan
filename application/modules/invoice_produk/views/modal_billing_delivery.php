@@ -62,6 +62,7 @@ $tipe_billing = $results['tipe_billing'];
         <span class="input-group-addon">Pilih Tanggal</span>
         <input type="date" name="tgl_invoice" class="form-control">
     </div>
+    <br>
 </span>
 <table class="table table-bordered">
     <thead>
