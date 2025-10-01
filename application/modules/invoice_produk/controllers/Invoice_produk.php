@@ -549,7 +549,7 @@ class Invoice_produk extends Admin_Controller
 				'sts' => 1,
 				// 'tax_invoice_no' => $post['tax_invoice_no'],
 				'created_by' => $this->auth->user_id(),
-				'created_on' => date('Y-m-d H:i:s'),
+				'created_on' => $post['tgl_invoice'],
 				'delivery_date' => $delivery_date,
 				'jatuh_tempo' => $jatuh_tempo
 			];
@@ -593,7 +593,7 @@ class Invoice_produk extends Admin_Controller
 					'disc' => $nilai_disc,
 					'subtotal' => $subtotal,
 					'created_by' => $this->auth->user_id(),
-					'created_on' => date('Y-m-d H:i:s')
+					'created_on' => $post['tgl_invoice']
 				];
 			}
 
