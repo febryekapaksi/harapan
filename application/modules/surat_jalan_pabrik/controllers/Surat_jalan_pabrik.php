@@ -256,6 +256,7 @@ class Surat_jalan_pabrik extends Admin_Controller
     public function confirm()
     {
         $post = $this->input->post();
+
         $detail = $post['detail'];
 
         $id_sj = $post['id'];
