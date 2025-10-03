@@ -58,7 +58,7 @@ $totalOrder = $subtotal + $ppn + $biayaLain;
 
 // terbilang (opsional)
 $terbilang = function_exists('rupiah_to_words')
-    ? ucfirst(rupiah_to_words($totalOrder)) . ' Rupiah'
+    ? ucfirst(rupiah_to_words($header->total_include_ppn)) . ' Rupiah'
     : '';
 ?>
 <!DOCTYPE html>
@@ -294,7 +294,7 @@ $terbilang = function_exists('rupiah_to_words')
                     </tr>
                     <tr>
                         <td class="text-left">PPN (<?= rtrim(rtrim(number_format($ppnPersen, 2), '0'), ',') ?>%)</td>
-                        <td class="text-right"><?= fmt2($ppn) ?></td>
+                        <td class="text-right"><?= fmt2($header->total_ppn) ?></td>
                     </tr>
                     <tr>
                         <td class="text-left">Biaya Lain-lain</td>
@@ -302,7 +302,7 @@ $terbilang = function_exists('rupiah_to_words')
                     </tr>
                     <tr>
                         <td class="text-left"><strong>Total Order</strong></td>
-                        <td class="text-right"><strong><?= fmt2($totalOrder) ?></strong></td>
+                        <td class="text-right"><strong><?= fmt2($header->total_include_ppn) ?></strong></td>
                     </tr>
                 </table>
             </td>
