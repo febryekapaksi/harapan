@@ -320,7 +320,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 														</td>
 														<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_alloyprice_" . $key . "' " . $disabled . " data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' name='dt[" . $key . "][alloyprice]' onkeyup='HitAmmount(" . $key . ")'></td>
 														<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_fabcost_" . $key . "' " . $disabled . " name='dt[" . $key . "][fabcost]' onkeyup='HitAmmount(" . $key . ")'></td>
-														<td><input type='text' class='form-control text-right input-sm auto_num' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ")' value='" . number_format($value->hargasatuan) . "'></td>
+														<td><input type='text' class='form-control text-right input-sm auto_num' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ")' value='" . $value->hargasatuan . "'></td>
 														<td hidden>
 															<select class='form-control input-sm' id='dt_ppn_" . $key . "' name='dt[" . $key . "][ppn]' onchange='CariPPN(" . $key . ")'>
 																<option value=''>SELECT</option>
@@ -588,7 +588,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 					</div>
 					<center>
 						<button type="submit" class="btn btn-success btn-sm" name="save" id="simpan-com"><i class="fa fa-save"></i> Approve</button>
-						<button type="submit" class="btn btn-danger btn-sm" name="save" id="reject-com"><i class="fa fa-save"></i> Reject</button>
+						<button type="submit" class="btn btn-danger btn-sm" name="save" id="reject-com"><i class="fa fa-ban"></i> Reject</button>
 						<a href="<?= base_url('approval_po') ?>" class="btn btn-sm btn-default"><i class="fa fa-arrow-left"></i> Back</a>
 					</center>
 				</div>
@@ -1422,202 +1422,202 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 	}
 
-	// function HitAmmount(id) {
-	// 	var alloyprice = getNum($("#dt_alloyprice_" + id).val().split(",").join(""));
-	// 	var fabcost = getNum($("#dt_fabcost_" + id).val().split(",").join(""));
-	// 	var diskon = getNum($("#dt_diskon_" + id).val().split(",").join(""));
-	// 	var pajak = getNum($("#dt_pajak_" + id).val().split(",").join(""));
-	// 	var qty = getNum($("#dt_qty_" + id).val().split(",").join(""));
-	// 	var hargasatuan = getNum($("#dt_hargasatuan_" + id).val().split(",").join(""));
-	// 	var ppn = getNum($("#dt_nilai_ppn_" + id).val().split(",").join(""));
-	// 	var persen_ppn = getNum($("#dt_persen_ppn_" + id).val().split(",").join(""));
-	// 	var dt_width = getNum($("#dt_totalweight_" + id).val().split(",").join(""));
-	// 	var disc_persen = getNum($('#disc_persen_' + id).val().split(',').join(''));
-	// 	var disc_num = getNum($('#disc_num_' + id).val().split(',').join(''));
-	// 	var loi = $("#loi").val();
+	function HitAmmount(id) {
+		var alloyprice = getNum($("#dt_alloyprice_" + id).val().split(",").join(""));
+		var fabcost = getNum($("#dt_fabcost_" + id).val().split(",").join(""));
+		var diskon = getNum($("#dt_diskon_" + id).val().split(",").join(""));
+		var pajak = getNum($("#dt_pajak_" + id).val().split(",").join(""));
+		var qty = getNum($("#dt_qty_" + id).val().split(",").join(""));
+		var hargasatuan = getNum($("#dt_hargasatuan_" + id).val().split(",").join(""));
+		var ppn = getNum($("#dt_nilai_ppn_" + id).val().split(",").join(""));
+		var persen_ppn = getNum($("#dt_persen_ppn_" + id).val().split(",").join(""));
+		var dt_width = getNum($("#dt_totalweight_" + id).val().split(",").join(""));
+		var disc_persen = getNum($('#disc_persen_' + id).val().split(',').join(''));
+		var disc_num = getNum($('#disc_num_' + id).val().split(',').join(''));
+		var loi = $("#loi").val();
 
-	// 	// if(loi == 'Import'){
-	// 	// 	var total 	= Number(alloyprice) + Number(fabcost);
-	// 	// 	var jumlah 	= total * dt_width;	
+		// if(loi == 'Import'){
+		// 	var total 	= Number(alloyprice) + Number(fabcost);
+		// 	var jumlah 	= total * dt_width;	
 
-	// 	// 	$("#dt_hargasatuan_"+id).val(number_format(total,2));
-	// 	// }
-	// 	//else{
+		// 	$("#dt_hargasatuan_"+id).val(number_format(total,2));
+		// }
+		//else{
 
-	// 	if (disc_num !== ((hargasatuan * qty) * disc_persen / 100)) {
-	// 		disc_num = ((hargasatuan * qty) * disc_persen / 100);
-	// 	}
-
-
-	// 	var total = hargasatuan;
-	// 	var jumlah = hargasatuan * qty;
-	// 	var jumlah_w_disc = (jumlah - (jumlah * disc_persen / 100));
-	// 	var ppn = (jumlah_w_disc * persen_ppn / 100);
-	// 	var totalharga = (jumlah_w_disc + ppn);
-	// 	// console.log(totalharga);
-
-	// 	// alert(jumlah);
-	// 	//}
-
-	// 	var tot_pajak = pajak;
-	// 	var tot_diskon = diskon / 100 * jumlah;
-	// 	var tot_jumlah = totalharga - tot_diskon + tot_pajak;
-
-	// 	var nilai_ppn = parseFloat(((hargasatuan - (hargasatuan * disc_persen / 100)) * qty) * persen_ppn / 100);
-	// 	$("#dt_nilai_ppn_" + id).val(number_format(nilai_ppn, 2));
+		if (disc_num !== ((hargasatuan * qty) * disc_persen / 100)) {
+			disc_num = ((hargasatuan * qty) * disc_persen / 100);
+		}
 
 
+		var total = hargasatuan;
+		var jumlah = hargasatuan * qty;
+		var jumlah_w_disc = (jumlah - (jumlah * disc_persen / 100));
+		var ppn = (jumlah_w_disc * persen_ppn / 100);
+		var totalharga = (jumlah_w_disc + ppn);
+		// console.log(totalharga);
 
-	// 	$("#dt_jumlahharga_" + id).val(number_format(jumlah, 2));
-	// 	$("#dt_totalharga_" + id).val(number_format(totalharga, 2));
+		// alert(jumlah);
+		//}
 
-	// 	$("#dt_ch_pajak_" + id).val(tot_pajak);
-	// 	$("#dt_ch_diskon_" + id).val(tot_diskon);
-	// 	$("#dt_ch_jumlah_" + id).val(tot_jumlah);
+		var tot_pajak = pajak;
+		var tot_diskon = diskon / 100 * jumlah;
+		var tot_jumlah = totalharga - tot_diskon + tot_pajak;
 
-	// 	$("#disc_persen_" + id).val(number_format(disc_persen));
-	// 	$("#disc_num_" + id).val(number_format(disc_num));
-
-	// 	var SUM_JML = 0
-	// 	var SUM_DIS = 0
-	// 	var SUM_PJK = 0
-	// 	var SUM_JMX = 0
-	// 	var SUM_PPN = 0
-	// 	var SUM_DISC = 0
-
-	// 	$(".ch_diskon").each(function() {
-	// 		SUM_DIS += Number($(this).val());
-	// 	});
-
-	// 	$(".ch_pajak").each(function() {
-	// 		SUM_PJK += Number($(this).val());
-	// 	});
-
-	// 	$(".ch_jumlah").each(function() {
-	// 		SUM_JML += Number($(this).val());
-	// 	});
-
-	// 	$(".ch_jumlah_ex").each(function() {
-	// 		SUM_JMX += Number($(this).val().split(",").join(""));
-	// 	});
-	// 	$(".ch_ppn").each(function() {
-	// 		SUM_PPN += Number($(this).val().split(",").join(""));
-	// 	});
-	// 	$(".disc_num").each(function() {
-	// 		SUM_DISC += Number($(this).val().split(",").join(""));
-	// 	});
-
-	// 	$("#hargatotal").val(number_format(SUM_JMX, 2));
-	// 	$("#totalppn").val(number_format(SUM_PPN, 2));
-	// 	$("#totaldisc").val(number_format(SUM_DISC, 2));
-	// 	$("#diskontotal").val(number_format(SUM_DIS));
-	// 	$("#taxtotal").val(number_format(SUM_PJK));
-	// 	// $("#subtotal").val(number_format(SUM_JML, 2));
-	// }
-
-
-	// function cariTotal() {
-	// 	var kirim = getNum($("#kirim").val().split(",").join(""));
-	// 	var total = getNum($("#hargatotal").val().split(",").join(""));
-	// 	var persen_disc = getNum($("#persendisc").val().split(",").join(""));
-	// 	var disc = getNum($("#totaldisc").val().split(",").join(""));
-	// 	var persen_ppn = getNum($("#persenppn").val().split(",").join(""));
-	// 	var ppn = getNum($("#totalppn").val().split(",").join(""));
-
-	// 	// if (persen_disc > 0 && persen_disc !== null) {	
-	// 	// 	var disc = parseFloat(total * persen_disc / 100);
-	// 	// 	$("#totaldisc").val(number_format(disc, 2));
-	// 	// }
-
-	// 	if (persen_ppn > 0 && persen_ppn !== null) {
-	// 		var ppn = parseFloat(total * persen_ppn / 100);
-	// 		$("#totalppn").val(number_format(ppn, 2));
-	// 	}
-
-	// 	var grandtotal = kirim + total - disc + ppn;
-	// 	$("#kirim").val(number_format(kirim, 2));
-	// 	// $("#subtotal").val(number_format(grandtotal, 2));
-
-	// }
-
-	// function SumDel() {
-	// 	var SUM_JML = 0
-	// 	var SUM_DIS = 0
-	// 	var SUM_PJK = 0
-	// 	var SUM_JMX = 0
-
-	// 	$(".ch_diskon").each(function() {
-	// 		SUM_DIS += Number($(this).val());
-	// 	});
-
-	// 	$(".ch_pajak").each(function() {
-	// 		SUM_PJK += Number($(this).val());
-	// 	});
-
-	// 	$(".ch_jumlah").each(function() {
-	// 		SUM_JML += Number($(this).val());
-	// 	});
-
-	// 	$(".ch_jumlah_ex").each(function() {
-	// 		SUM_JMX += Number($(this).val().split(",").join(""));
-	// 	});
-
-	// 	$("#hargatotal").val(number_format(SUM_JMX));
-	// 	$("#diskontotal").val(number_format(SUM_DIS));
-	// 	$("#taxtotal").val(number_format(SUM_PJK));
-	// 	$("#subtotal").val(number_format(SUM_JML));
-
-	// }
-
-	// function TotalSemua() {
-	// 	var SUM_JML = 0
-	// 	var SUM_DIS = 0
-	// 	var SUM_PJK = 0
-	// 	var SUM_JMX = 0
-	// 	var SUM_JMXX = 0
-	// 	var SUM_PPN = 0;
-
-	// 	var totaldisc = Number($('#totaldisc').val());
-	// 	var totalppn = Number($('#totalppn').val());
-
-	// 	$(".ch_diskon").each(function() {
-	// 		SUM_DIS += Number($(this).val());
-	// 	});
-
-	// 	$(".ch_pajak").each(function() {
-	// 		SUM_PJK += Number($(this).val());
-	// 	});
-
-	// 	$(".ch_jumlah").each(function() {
-	// 		SUM_JML += Number($(this).val());
-	// 	});
-
-	// 	$(".ch_jumlah_ex2").each(function() {
-	// 		SUM_JMX += Number($(this).val().split(",").join(""));
-	// 		SUM_JMXX += Number($(this).val().split(",").join(""));
-	// 	});
-	// 	$(".disc_num").each(function() {
-	// 		SUM_JMX += Number($(this).val().split(",").join(""));
-	// 	});
-	// 	$(".ch_ppn").each(function() {
-	// 		SUM_JMX -= Number($(this).val().split(",").join(""));
-	// 		SUM_JMXX -= Number($(this).val().split(",").join(""));
-
-	// 		SUM_PPN += Number($(this).val().split(",").join(""));
-	// 	});
-	// 	SUM_JMXX += Number($("#totalppn").val().split(",").join(""));
-	// 	var biaya_kirim = Number($("#kirim").val().split(",").join(""));
+		var nilai_ppn = parseFloat(((hargasatuan - (hargasatuan * disc_persen / 100)) * qty) * persen_ppn / 100);
+		$("#dt_nilai_ppn_" + id).val(number_format(nilai_ppn, 2));
 
 
 
-	// 	// alert(SUM_JMX);
+		$("#dt_jumlahharga_" + id).val(number_format(jumlah, 2));
+		$("#dt_totalharga_" + id).val(number_format(totalharga, 2));
 
-	// 	$("#hargatotal").val(number_format(SUM_JMX, 2));
-	// 	$("#diskontotal").val(number_format(SUM_DIS, 2));
-	// 	$("#taxtotal").val(number_format(SUM_PJK, 2));
-	// 	// $("#subtotal").val(number_format((SUM_JMX - totaldisc + totalppn + biaya_kirim), 2));
+		$("#dt_ch_pajak_" + id).val(tot_pajak);
+		$("#dt_ch_diskon_" + id).val(tot_diskon);
+		$("#dt_ch_jumlah_" + id).val(tot_jumlah);
 
-	// }
+		$("#disc_persen_" + id).val(number_format(disc_persen));
+		$("#disc_num_" + id).val(number_format(disc_num));
+
+		var SUM_JML = 0
+		var SUM_DIS = 0
+		var SUM_PJK = 0
+		var SUM_JMX = 0
+		var SUM_PPN = 0
+		var SUM_DISC = 0
+
+		$(".ch_diskon").each(function() {
+			SUM_DIS += Number($(this).val());
+		});
+
+		$(".ch_pajak").each(function() {
+			SUM_PJK += Number($(this).val());
+		});
+
+		$(".ch_jumlah").each(function() {
+			SUM_JML += Number($(this).val());
+		});
+
+		$(".ch_jumlah_ex").each(function() {
+			SUM_JMX += Number($(this).val().split(",").join(""));
+		});
+		$(".ch_ppn").each(function() {
+			SUM_PPN += Number($(this).val().split(",").join(""));
+		});
+		$(".disc_num").each(function() {
+			SUM_DISC += Number($(this).val().split(",").join(""));
+		});
+
+		$("#hargatotal").val(number_format(SUM_JMX, 2));
+		$("#totalppn").val(number_format(SUM_PPN, 2));
+		$("#totaldisc").val(number_format(SUM_DISC, 2));
+		$("#diskontotal").val(number_format(SUM_DIS));
+		$("#taxtotal").val(number_format(SUM_PJK));
+		// $("#subtotal").val(number_format(SUM_JML, 2));
+	}
+
+
+	function cariTotal() {
+		var kirim = getNum($("#kirim").val().split(",").join(""));
+		var total = getNum($("#hargatotal").val().split(",").join(""));
+		var persen_disc = getNum($("#persendisc").val().split(",").join(""));
+		var disc = getNum($("#totaldisc").val().split(",").join(""));
+		var persen_ppn = getNum($("#persenppn").val().split(",").join(""));
+		var ppn = getNum($("#totalppn").val().split(",").join(""));
+
+		// if (persen_disc > 0 && persen_disc !== null) {	
+		// 	var disc = parseFloat(total * persen_disc / 100);
+		// 	$("#totaldisc").val(number_format(disc, 2));
+		// }
+
+		if (persen_ppn > 0 && persen_ppn !== null) {
+			var ppn = parseFloat(total * persen_ppn / 100);
+			$("#totalppn").val(number_format(ppn, 2));
+		}
+
+		var grandtotal = kirim + total - disc + ppn;
+		$("#kirim").val(number_format(kirim, 2));
+		// $("#subtotal").val(number_format(grandtotal, 2));
+
+	}
+
+	function SumDel() {
+		var SUM_JML = 0
+		var SUM_DIS = 0
+		var SUM_PJK = 0
+		var SUM_JMX = 0
+
+		$(".ch_diskon").each(function() {
+			SUM_DIS += Number($(this).val());
+		});
+
+		$(".ch_pajak").each(function() {
+			SUM_PJK += Number($(this).val());
+		});
+
+		$(".ch_jumlah").each(function() {
+			SUM_JML += Number($(this).val());
+		});
+
+		$(".ch_jumlah_ex").each(function() {
+			SUM_JMX += Number($(this).val().split(",").join(""));
+		});
+
+		$("#hargatotal").val(number_format(SUM_JMX));
+		$("#diskontotal").val(number_format(SUM_DIS));
+		$("#taxtotal").val(number_format(SUM_PJK));
+		$("#subtotal").val(number_format(SUM_JML));
+
+	}
+
+	function TotalSemua() {
+		var SUM_JML = 0
+		var SUM_DIS = 0
+		var SUM_PJK = 0
+		var SUM_JMX = 0
+		var SUM_JMXX = 0
+		var SUM_PPN = 0;
+
+		var totaldisc = Number($('#totaldisc').val());
+		var totalppn = Number($('#totalppn').val());
+
+		$(".ch_diskon").each(function() {
+			SUM_DIS += Number($(this).val());
+		});
+
+		$(".ch_pajak").each(function() {
+			SUM_PJK += Number($(this).val());
+		});
+
+		$(".ch_jumlah").each(function() {
+			SUM_JML += Number($(this).val());
+		});
+
+		$(".ch_jumlah_ex2").each(function() {
+			SUM_JMX += Number($(this).val().split(",").join(""));
+			SUM_JMXX += Number($(this).val().split(",").join(""));
+		});
+		$(".disc_num").each(function() {
+			SUM_JMX += Number($(this).val().split(",").join(""));
+		});
+		$(".ch_ppn").each(function() {
+			SUM_JMX -= Number($(this).val().split(",").join(""));
+			SUM_JMXX -= Number($(this).val().split(",").join(""));
+
+			SUM_PPN += Number($(this).val().split(",").join(""));
+		});
+		SUM_JMXX += Number($("#totalppn").val().split(",").join(""));
+		var biaya_kirim = Number($("#kirim").val().split(",").join(""));
+
+
+
+		// alert(SUM_JMX);
+
+		$("#hargatotal").val(number_format(SUM_JMX, 2));
+		$("#diskontotal").val(number_format(SUM_DIS, 2));
+		$("#taxtotal").val(number_format(SUM_PJK, 2));
+		// $("#subtotal").val(number_format((SUM_JMX - totaldisc + totalppn + biaya_kirim), 2));
+
+	}
 
 	function number_format(number, decimals, dec_point, thousands_sep) {
 		// Strip all characters but numerical ones.
