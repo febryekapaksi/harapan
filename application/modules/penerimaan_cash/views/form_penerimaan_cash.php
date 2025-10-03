@@ -418,7 +418,7 @@
                         <td>${inv.id_invoice}</td>
 
                         <td>
-                            <input type="text" name="detail[${rowIndex}][tagihan]" class="form-control text-right tagihan auto_num" value="${nominal}" readonly />
+                            <input type="text" name="detail[${rowIndex}][tagihan]" class="form-control text-right tagihan auto_num" value="${inv.grand_total}" readonly />
                         </td>
                         <td>
                             <input type="text" name="detail[${rowIndex}][sisa_invoice]" class="form-control text-right sisa_invoice auto_num" value="${nominal}" readonly/>
