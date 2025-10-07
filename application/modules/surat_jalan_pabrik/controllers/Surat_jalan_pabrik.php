@@ -41,6 +41,7 @@ class Surat_jalan_pabrik extends Admin_Controller
             ->join('sales_order so', 'sd.no_so = so.no_so', 'left')
             ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
             ->where('sd.pengiriman', 'Pabrik')
+            ->where("sd.no_delivery NOT IN (SELECT no_delivery FROM surat_jalan)")
             ->get()
             ->result_array();
 

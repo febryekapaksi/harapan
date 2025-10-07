@@ -28,7 +28,7 @@ $no_pr         = isset($no_pr) ? $no_pr : '';
 
 $poNumber  = $header->no_surat ?? '';
 $poDate    = $header->tgl_po ?? ($header->created_on ?? null);
-$terms     = $header->payment_term_name ?? ($header->terms ?? ''); // kalau ada nama TOP
+$terms     = $header->top ?? ($header->top ?? ''); // kalau ada nama TOP
 $rate      = $header->rate ?? ''; // opsional
 $vendorTax = isset($header->vendor_is_taxable) && $header->vendor_is_taxable ? 'Yes' : '';
 
