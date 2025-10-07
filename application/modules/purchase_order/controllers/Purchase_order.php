@@ -1997,6 +1997,8 @@ class Purchase_order extends Admin_Controller
 	{
 		$this->template->page_icon('fa fa-list');
 		$this->auth->restrict($this->managePermission);
+		$term = $this->db->get_where('list_help', ['group_by' => 'top invoice', 'sts' => 'Y'])->result();
+
 
 		// ---------------------------
 		// 1) HEADER PO
@@ -2010,11 +2012,13 @@ class Purchase_order extends Admin_Controller
                b.contact AS nm_pic,
                b.telp    AS hp,
                b.email   AS email_pic,
-               b.fax
+               b.fax,
+			   l.name 	 AS top
         FROM tr_purchase_order a
         LEFT JOIN material_planning_base_on_produksi x ON x.po_number = a.no_po
         LEFT JOIN new_supplier b ON b.kode_supplier = a.id_suplier
         LEFT JOIN country_all c  ON c.iso3 = b.id_country
+		LEFT JOIN list_help l ON l.id = a.term
         WHERE a.no_po = ?
         LIMIT 1
     ", [$no_po])->row();
