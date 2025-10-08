@@ -455,7 +455,56 @@ class Pr_product extends Admin_Controller
         echo json_encode($Arr_Data);
     }
 
-    public function print_new()
+    public function print_new($so_number = null)
+    {
+        if ($so_number === null) {
+            $so_number = $this->uri->segment(3);
+        }
+
+        $header = $this->db->query("
+        SELECT a.*
+        FROM material_planning_base_on_produksi a
+        WHERE a.so_number = ?
+        LIMIT 1
+        ", [$so_number])->row();
+
+        if (!$header) {
+            show_error('SO tidak ditemukan: ' . htmlspecialchars($so_number), 404);
+            return;
+        }
+
+        $detail = $this->db->query("
+        SELECT d.*,
+               p.nama                AS product,
+               p.weight              AS berat,
+               s1.code               AS satuan,
+               w.harga_beli          AS harga,
+               w.code_product        AS item       
+        FROM material_planning_base_on_produksi_detail d
+        LEFT JOIN new_inventory_4 p ON p.code_lv4 = d.id_material
+        LEFT JOIN warehouse_stock w ON w.id_material = d.id_material
+        LEFT JOIN ms_satuan s1 ON s1.id = p.id_unit
+        WHERE d.so_number = ?
+        ORDER BY d.id ASC
+        ", [$so_number])->result();
+
+        $data = [
+            'printby'       => $this->session->userdata('app_session')['id_user'] ?? '',
+            'header'        => $header,
+            'detail'        => $detail,
+            'kode'          => $so_number,
+        ];
+
+        ob_clean();
+        ob_start();
+        $this->load->view('print_new', $data);
+        $html = ob_get_clean();
+
+        $this->load->view('print_new', $data);
+    }
+
+
+    public function print_new2()
     {
         $kode  = $this->uri->segment(3);
         $data_session  = $this->session->userdata;
