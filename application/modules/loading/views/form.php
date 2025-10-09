@@ -213,6 +213,19 @@ $isApproval = (isset($mode) && $mode == 'approval');
     </div>
 </div>
 
+
+<style>
+    .modal-content {
+        display: flex;
+        flex-direction: column;
+        height: 90vh;
+    }
+
+    .modal-body {
+        flex: 1 1 auto;
+        overflow-y: auto;
+    }
+</style>
 <!-- Modal -->
 <div class="modal fade" id="modalSpk" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
