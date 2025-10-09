@@ -23,39 +23,39 @@ $ENABLE_DELETE  = has_permission('Purchase_Order.Delete');
 		</span>
 	</div>
 	<!-- /.box-header -->
-	<!-- /.box-header -->
 	<div class="box-body">
-		<table id="example1" class="table table-bordered table-striped">
-			<thead>
-				<tr>
-					<th width="5">#</th>
-					<th>No PO</th>
-					<th>No PR</th>
-					<th>No Incoming</th>
-					<th>Tanggal PO</th>
-					<th>Progress PO</th>
-					<th>PO</th>
-					<th>Vendor</th>
-					<th>Harga PO</th>
-					<th>Revisi</th>
-					<th>Reject Reason</th>
-					<?php if ($ENABLE_MANAGE) : ?>
-						<th>Action</th>
-					<?php endif; ?>
-				</tr>
-			</thead>
+		<div class="table-responsive">
+			<table id="example1" class="table table-bordered table-striped">
+				<thead>
+					<tr>
+						<th width="5">#</th>
+						<th>No PO</th>
+						<th>No PR</th>
+						<th>No Incoming</th>
+						<th>Tanggal PO</th>
+						<th>Progress PO</th>
+						<th>PO</th>
+						<th>Vendor</th>
+						<th>Harga PO</th>
+						<th>Revisi</th>
+						<th>Reject Reason</th>
+						<?php if ($ENABLE_MANAGE) : ?>
+							<th>Action</th>
+						<?php endif; ?>
+					</tr>
+				</thead>
 
-			<tbody>
-				<?php if (empty($results)) {
-				} else {
+				<tbody>
+					<?php if (empty($results)) {
+					} else {
 
-					$numb = 0;
-					foreach ($results as $record) {
-						$valid_edit = 1;
-						$numb++;
+						$numb = 0;
+						foreach ($results as $record) {
+							$valid_edit = 1;
+							$numb++;
 
-						$no_pr = [];
-						$get_no_pr = $this->db->query("
+							$no_pr = [];
+							$get_no_pr = $this->db->query("
 							SELECT
 								b.no_pr as no_pr
 							FROM
@@ -86,100 +86,101 @@ $ENABLE_DELETE  = has_permission('Purchase_Order.Delete');
 								a.id IN (SELECT aa.idpr FROM dt_trans_po aa WHERE aa.no_po = '" . $record->no_po . "' AND aa.tipe = 'pr asset')
 							GROUP BY a.no_pr
 						")->result();
-						foreach ($get_no_pr as $item_pr) {
-							$no_pr[] = $item_pr->no_pr;
-						}
-
-						$no_pr = implode(', ', $no_pr);
-
-				?>
-						<tr>
-							<td><?= $numb; ?></td>
-							<td><?= $record->no_surat ?></td>
-							<td><?= $no_pr ?></td>
-							<td><?= $list_no_incoming[$record->no_po] ?></td>
-							<td><?= date('d-M-Y', strtotime($record->tanggal)) ?></td>
-							<?php
-							$ttl_qty_incoming = 0;
-							if ($record->status == '1') {
-								if ($record->reject_reason !== null && $record->reject_reason !== '') {
-									echo "<td class='text-center'><span class='badge bg-red'>Reject</span></td>";
-								} else {
-									echo "<td class='text-center'><span class='badge bg-blue'>Waiting</span></td>";
-								}
-							} elseif ($record->status == '2') {
-								echo "<td class='text-center'><span class='badge bg-green'>Approved</span></td>";
-							} else {
-								echo "<td class='text-center'><span class='badge bg-red'>Closed</span></td>";
+							foreach ($get_no_pr as $item_pr) {
+								$no_pr[] = $item_pr->no_pr;
 							}
 
-							if ($record->status == '1') {
-								echo "<td class='text-center'><span class='badge bg-red'>Waiting Approval</span></td>";
-							} else {
-								$sts = "<td class='text-center'><span class='badge bg-orange'>Waiting In</span></td>";
+							$no_pr = implode(', ', $no_pr);
 
-								$get_qty_incoming = $this->db->select('IF(SUM(qty_oke) IS NUll, 0, SUM(qty_oke)) as ttl_qty_incoming')->get_where('tr_checked_incoming_detail', ['no_ipp' => $record->no_po])->row();
-								$ttl_qty_incoming = $get_qty_incoming->ttl_qty_incoming;
-
-								$get_ttl_qty_po = $this->db->select('IF(SUM(qty) IS NULL, 0, SUM(qty)) AS ttl_qty_po')->get_where('dt_trans_po', ['no_po' => $record->no_po])->row();
-								$ttl_qty_po = $get_ttl_qty_po->ttl_qty_po;
-
-								if ($ttl_qty_incoming < 1) {
-									$ttl_qty_incoming = 0;
-									$this->db->select('b.qty_oke');
-									$this->db->from('warehouse_adjustment a');
-									$this->db->join('warehouse_adjustment_detail b', 'b.kode_trans = a.kode_trans');
-									$this->db->where('a.no_ipp', $record->no_po);
-									$get_ttl_incoming = $this->db->get()->result();
-
-									foreach ($get_ttl_incoming as $item_ttl_incoming) {
-										$ttl_qty_incoming += $item_ttl_incoming->qty_oke;
-									}
-								}
-
-								if ($ttl_qty_incoming > 0) {
-									$valid_edit = 0;
-									if ($ttl_qty_incoming >= $ttl_qty_po) {
-										$sts = "<td class='text-center'><span class='badge bg-green'>Complete</span></td>";
+					?>
+							<tr>
+								<td><?= $numb; ?></td>
+								<td><?= $record->no_surat ?></td>
+								<td><?= $no_pr ?></td>
+								<td><?= $list_no_incoming[$record->no_po] ?></td>
+								<td><?= date('d-M-Y', strtotime($record->tanggal)) ?></td>
+								<?php
+								$ttl_qty_incoming = 0;
+								if ($record->status == '1') {
+									if ($record->reject_reason !== null && $record->reject_reason !== '') {
+										echo "<td class='text-center'><span class='badge bg-red'>Reject</span></td>";
 									} else {
-
-										$sts = "<td class='text-center'><span class='badge bg-purple'>Partial</span></td>";
+										echo "<td class='text-center'><span class='badge bg-blue'>Waiting</span></td>";
 									}
+								} elseif ($record->status == '2') {
+									echo "<td class='text-center'><span class='badge bg-green'>Approved</span></td>";
+								} else {
+									echo "<td class='text-center'><span class='badge bg-red'>Closed</span></td>";
 								}
 
-								echo $sts;
-							}
-							?>
-							<td><?= $record->nm_supplier ?></td>
-							<td class="text-right"><?= number_format($record->subtotal) ?></td>
-							<td class="text-center"><?= $record->revisi ?></td>
-							<td><?= $record->reject_reason ?></td>
-							<td style="padding-left:20px">
-								<?php if ($ENABLE_VIEW) : ?>
-									<a class="btn btn-warning btn-sm" href="<?= base_url('/purchase_order/view_po/' . $record->no_po) ?>" title="View" data-no_po="<?= $record->no_po ?>"><i class="fa fa-eye"></i></a>
+								if ($record->status == '1') {
+									echo "<td class='text-center'><span class='badge bg-red'>Waiting Approval</span></td>";
+								} else {
+									$sts = "<td class='text-center'><span class='badge bg-orange'>Waiting In</span></td>";
 
-									<a class="btn btn-primary btn-sm" href="<?= base_url('/purchase_order/print_po/' . $record->no_po) ?>" target="_blank" title="Print"><i class="fa fa-print"></i></a>
-								<?php endif; ?>
-								<?php if ($ENABLE_MANAGE && $valid_edit > 0) :
-								?>
-									<a class="btn btn-info btn-sm" href="<?= base_url('/purchase_order/edit/' . $record->no_po) ?>" title="Edit"><i class="fa fa-edit"></i></a>
+									$get_qty_incoming = $this->db->select('IF(SUM(qty_oke) IS NUll, 0, SUM(qty_oke)) as ttl_qty_incoming')->get_where('tr_checked_incoming_detail', ['no_ipp' => $record->no_po])->row();
+									$ttl_qty_incoming = $get_qty_incoming->ttl_qty_incoming;
 
-								<?php
-								endif; ?>
+									$get_ttl_qty_po = $this->db->select('IF(SUM(qty) IS NULL, 0, SUM(qty)) AS ttl_qty_po')->get_where('dt_trans_po', ['no_po' => $record->no_po])->row();
+									$ttl_qty_po = $get_ttl_qty_po->ttl_qty_po;
 
-								<?php
-								if ($ENABLE_DELETE) {
-									echo '<button type="button" class="btn btn-sm btn-danger close_po_modal" data-no_po="' . $record->no_po . '" title="Close PO"><i class="fa fa-close"></i></button>';
+									if ($ttl_qty_incoming < 1) {
+										$ttl_qty_incoming = 0;
+										$this->db->select('b.qty_oke');
+										$this->db->from('warehouse_adjustment a');
+										$this->db->join('warehouse_adjustment_detail b', 'b.kode_trans = a.kode_trans');
+										$this->db->where('a.no_ipp', $record->no_po);
+										$get_ttl_incoming = $this->db->get()->result();
+
+										foreach ($get_ttl_incoming as $item_ttl_incoming) {
+											$ttl_qty_incoming += $item_ttl_incoming->qty_oke;
+										}
+									}
+
+									if ($ttl_qty_incoming > 0) {
+										$valid_edit = 0;
+										if ($ttl_qty_incoming >= $ttl_qty_po) {
+											$sts = "<td class='text-center'><span class='badge bg-green'>Complete</span></td>";
+										} else {
+
+											$sts = "<td class='text-center'><span class='badge bg-purple'>Partial</span></td>";
+										}
+									}
+
+									echo $sts;
 								}
 								?>
+								<td><?= $record->nm_supplier ?></td>
+								<td class="text-right"><?= number_format($record->subtotal) ?></td>
+								<td class="text-center"><?= $record->revisi ?></td>
+								<td><?= $record->reject_reason ?></td>
+								<td style="padding-left:20px">
+									<?php if ($ENABLE_VIEW) : ?>
+										<a class="btn btn-warning btn-sm" href="<?= base_url('/purchase_order/view_po/' . $record->no_po) ?>" title="View" data-no_po="<?= $record->no_po ?>"><i class="fa fa-eye"></i></a>
 
-							</td>
+										<a class="btn btn-primary btn-sm" href="<?= base_url('/purchase_order/print_po/' . $record->no_po) ?>" target="_blank" title="Print"><i class="fa fa-print"></i></a>
+									<?php endif; ?>
+									<?php if ($ENABLE_MANAGE && $valid_edit > 0) :
+									?>
+										<a class="btn btn-info btn-sm" href="<?= base_url('/purchase_order/edit/' . $record->no_po) ?>" title="Edit"><i class="fa fa-edit"></i></a>
 
-						</tr>
-				<?php }
-				}  ?>
-			</tbody>
-		</table>
+									<?php
+									endif; ?>
+
+									<?php
+									if ($ENABLE_DELETE) {
+										echo '<button type="button" class="btn btn-sm btn-danger close_po_modal" data-no_po="' . $record->no_po . '" title="Close PO"><i class="fa fa-close"></i></button>';
+									}
+									?>
+
+								</td>
+
+							</tr>
+					<?php }
+					}  ?>
+				</tbody>
+			</table>
+		</div>
 	</div>
 	<!-- /.box-body -->
 </div>
