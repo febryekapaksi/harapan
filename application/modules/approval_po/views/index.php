@@ -47,19 +47,21 @@ $ENABLE_DELETE  = has_permission('Approval_PR_Material.Delete');
 	</div>
 	<!-- /.box-header -->
 	<div class="box-body">
-		<table id="example1" class="table table-bordered table-striped" width='100%'>
-			<thead>
-				<tr class="bg-blue">
-					<th class="text-center">#</th>
-					<th class="text-center">No. PO</th>
-					<th class="text-center">Tanggal PO</th>
-					<th class="text-center">Created By</th>
-					<th class="text-center">Created Date</th>
-					<th class="text-center">Action</th>
-				</tr>
-			</thead>
-			<tbody></tbody>
-		</table>
+		<div class="table-responsive">
+			<table id="example1" class="table table-bordered table-striped" width='100%'>
+				<thead>
+					<tr class="bg-blue">
+						<th class="text-center">#</th>
+						<th class="text-center">No. PO</th>
+						<th class="text-center">Tanggal PO</th>
+						<th class="text-center">Created By</th>
+						<th class="text-center">Created Date</th>
+						<th class="text-center">Action</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		</div>
 	</div>
 	<!-- /.box-body -->
 </div>
