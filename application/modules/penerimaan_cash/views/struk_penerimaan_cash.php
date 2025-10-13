@@ -85,7 +85,7 @@
         <?php
         foreach ($items as $i): ?>
             <?php
-            $total_item = round(($i->harga * $i->qty) * (1 + ($i->disc / 100)), -2);
+            $total_item = round(($i->harga * $i->qty),   -2);
             $grand_total += $total_item
             ?>
             <table>
@@ -101,7 +101,7 @@
     <table>
         <tr>
             <td><b>Total Invoice</b></td>
-            <td class="text-right"><b><?= number_format($grand_total, 0) ?></b></td>
+            <td class="text-right"><b><?= number_format($header->grand_total, 0) ?></b></td>
         </tr>
         <tr>
             <td><b>Pembayaran Diterima</b></td>
