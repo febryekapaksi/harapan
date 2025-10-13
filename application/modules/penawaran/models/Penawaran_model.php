@@ -46,16 +46,33 @@ class Penawaran_model extends BF_Model
         return $query->result();
     }
 
-    function generate_id($kode = '')
+    public function generate_id()
     {
-        $query = $this->db->query("SELECT MAX(id_penawaran) as max_id FROM penawaran");
-        $row = $query->row_array();
-        $thn = date('y');
-        $max_id = $row['max_id'];
-        $max_id1 = (int) substr($max_id, 4, 5);
-        $counter = $max_id1 + 1;
-        $idcust = "QU" . $thn . str_pad($counter, 5, "0", STR_PAD_LEFT);
-        return $idcust;
+        $prefix = 'QU';
+        $yy = date('y');
+        $lock = "penawaran_{$prefix}_{$yy}";
+
+        $this->db->query("SELECT GET_LOCK(?, 5) AS l", [$lock]);
+
+        $row = $this->db->query(
+            "SELECT RIGHT(id_penawaran,5) AS kode
+         FROM penawaran
+         WHERE id_penawaran LIKE ?
+         ORDER BY id_penawaran DESC LIMIT 1",
+            [$prefix . $yy . '%']
+        )->row();
+
+        $next = $row ? (intval($row->kode) + 1) : 1;
+        $id   = $prefix . $yy . str_pad($next, 5, '0', STR_PAD_LEFT);
+
+        while ($this->db->where('id_penawaran', $id)->count_all_results('penawaran') > 0) {
+            $next++;
+            $id = $prefix . $yy . str_pad($next, 5, '0', STR_PAD_LEFT);
+        }
+
+        $this->db->query("SELECT RELEASE_LOCK(?)", [$lock]);
+
+        return $id;
     }
 
     // SERVERSIDE 

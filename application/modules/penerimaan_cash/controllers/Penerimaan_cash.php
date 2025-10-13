@@ -385,8 +385,20 @@ class Penerimaan_cash extends Admin_Controller
 	public function print_struk($kd_pembayaran)
 	{
 		$header = $this->db
-			->where('kd_pembayaran', $kd_pembayaran)
-			->get('tr_invoice_payment')->row();
+			->select('
+						a.*, 
+						b.id_invoice, 
+						b.grand_total, 
+						b.total_bayar, 
+						b.piutang, 
+						b.freight, 
+						b.sts
+					')
+			->from('tr_invoice_payment a')
+			->join('tr_invoice_sales b', 'a.no_invoice = b.id_invoice', 'left')
+			->where('a.kd_pembayaran', $kd_pembayaran)
+			->get()
+			->row();
 
 		$details = $this->db
 			->where('kd_pembayaran', $kd_pembayaran)
