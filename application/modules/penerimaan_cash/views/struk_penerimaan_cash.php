@@ -86,7 +86,7 @@
         foreach ($items as $i): ?>
             <?php
             $total_item = round(($i->harga * $i->qty) * (1 + ($i->disc / 100)), -2);
-            $grand_total += $total_item // sesuai logika customermu
+            $grand_total += $total_item
             ?>
             <table>
                 <tr>
