@@ -244,7 +244,7 @@ class Penerimaan_cash extends Admin_Controller
 		$url = 'https://app.whacenter.com/api/send';
 
 		$data = [
-			'device_id' => '532c60ddc0f2c1184b396488c804413e',
+			'device_id' => 'ea118812b9454dc34a477ae1c053f0fc',
 			'number' => $number, // format: 628xxx
 			'message' => $message
 		];
@@ -312,15 +312,24 @@ class Penerimaan_cash extends Admin_Controller
 				// Rekap ulang total_bayar dari detail (sumber kebenaran)
 				$sum = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
 					->from('tr_invoice_payment_detail')
-					->where('no_invoice', $row['id_invoice'])
+					->where('no_invoice', $inv->id_invoice)
 					->get()->row()->total;
 
-				// Update tr_invoice_sales pakai hasil SUM
+				// Update tr_invoice_sales
 				$this->db->set('total_bayar', $sum, false);
-				$this->db->set('sts', "CASE WHEN {$sum} >= grand_total THEN 0 ELSE 1 END", false);
+				$this->db->set(
+					'piutang',
+					"GREATEST(ROUND(COALESCE(grand_total,0) - {$sum}, 2), 0)",
+					false
+				);
+				$this->db->set('sts', "CASE WHEN {$sum} >= COALESCE(grand_total,0) THEN 0 ELSE 1 END", false);
+
 				$this->db->where('id_invoice', $inv->id_invoice)->update('tr_invoice_sales');
 			}
 		}
+
+		$kd_bayar  = $kd_pembayaran;
+		$this->appr_jurnal($kd_bayar);
 
 		// Hapus OTP setelah sukses
 		$this->db->delete('tr_invoice_payment_otp', ['kd_pembayaran' => $kd_pembayaran]);
@@ -475,7 +484,7 @@ class Penerimaan_cash extends Admin_Controller
 			'details' => $details,
 			'subtotal' => $subtotal,
 			'exclude_ppn' => $exclude_ppn,
-			// 'freight' => $freight,
+			'freight' => $freight,
 			// 'dpp' => $dpp,
 			// 'ppn' => $ppn,
 			'total_pembayaran' => $total_pembayaran,

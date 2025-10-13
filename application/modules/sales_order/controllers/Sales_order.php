@@ -273,7 +273,7 @@ class Sales_order extends Admin_Controller
       ];
     } else {
       $this->db->trans_commit();
-      // $this->send_wa_so($no_so);
+      $this->send_wa_so($no_so);
       $status = [
         'status' => 1,
         'pesan' => 'Sales Order berhasil disimpan dan langsung DEAL.',

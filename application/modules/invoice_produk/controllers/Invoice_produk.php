@@ -546,10 +546,11 @@ class Invoice_produk extends Admin_Controller
 				// 'ppn' => $post['ppn'],
 				'nilai_ppn' => $post['nilai_ppn'],
 				'grand_total' => $post['grand_total'],
+				'piutang'	=> $post['grand_total'],
 				'sts' => 1,
 				// 'tax_invoice_no' => $post['tax_invoice_no'],
 				'created_by' => $this->auth->user_id(),
-				'created_on' => $post['tgl_invoice'],
+				'created_on' => date('Y-m-d'),
 				'delivery_date' => $delivery_date,
 				'jatuh_tempo' => $jatuh_tempo
 			];
@@ -593,7 +594,7 @@ class Invoice_produk extends Admin_Controller
 					'disc' => $nilai_disc,
 					'subtotal' => $subtotal,
 					'created_by' => $this->auth->user_id(),
-					'created_on' => $post['tgl_invoice']
+					'created_on' => date('Y-m-d')
 				];
 			}
 
@@ -696,8 +697,6 @@ class Invoice_produk extends Admin_Controller
 
 			);
 			$this->db->insert('tr_kartu_piutang', $datapiutang);
-
-			
 		}
 
 		if ($this->db->trans_status() === FALSE) {
