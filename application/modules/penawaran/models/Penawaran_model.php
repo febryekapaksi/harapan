@@ -223,7 +223,7 @@ class Penawaran_model extends BF_Model
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
         } else {
-            $this->db->order_by('p.created_at', 'desc');
+            $this->db->order_by('p.quotation_date', 'desc');
         }
 
         if ($limit_length != -1) {
