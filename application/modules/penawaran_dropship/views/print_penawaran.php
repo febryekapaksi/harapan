@@ -179,7 +179,7 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
                     <td class="text-center"><?= $no++ ?></td>
                     <td><?= $d->product_name ?></td>
                     <td class="text-center"><?= $d->qty ?></td>
-                    <td class="text-right"><?= number_format($d->price_list) ?></td>
+                    <td class="text-right"><?= number_format($d->harga_penawaran) ?></td>
                     <td class="text-center"><?= $d->diskon ?>%</td>
                     <td class="text-right">
                         <?php $amount = $d->qty * $d->harga_penawaran;
