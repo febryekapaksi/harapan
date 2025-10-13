@@ -27,7 +27,7 @@ $nm_department = isset($nm_department) ? $nm_department : '';
 $no_pr         = isset($no_pr) ? $no_pr : '';
 
 $poNumber  = $header->no_surat ?? '';
-$poDate    = $header->tgl_po ?? ($header->created_on ?? null);
+$poDate    = $header->tanggal ?? ($header->tanggal ?? null);
 $terms     = $header->top ?? ($header->top ?? ''); // kalau ada nama TOP
 $rate      = $header->rate ?? ''; // opsional
 $vendorTax = isset($header->vendor_is_taxable) && $header->vendor_is_taxable ? 'Yes' : '';
