@@ -43,17 +43,17 @@
         var dataTable = $('#tabelPr').DataTable({
             "processing": true,
             "serverSide": true,
-            "stateSave": true,
+            "stateSave": false,
             "autoWidth": false,
             "destroy": true,
             "responsive": true,
-            "aaSorting": [
-                [1, "asc"]
-            ],
             "columnDefs": [{
                 "targets": 'no-sort',
                 "orderable": false,
             }],
+            "order": [
+                [7, "desc"]
+            ],
             "sPaginationType": "simple_numbers",
             "iDisplayLength": 10,
             "aLengthMenu": [

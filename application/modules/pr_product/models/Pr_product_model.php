@@ -38,7 +38,7 @@ class Pr_product_model extends BF_Model
         foreach ($query->result_array() as $row) {
             $nomor = $urut + $requestData['start'];
 
-            $satuan = $GET_SATUAN[$row['id_unit_packing']]['code'] ?? '';
+            $satuan = $GET_SATUAN[$row['id_unit']]['code'] ?? '';
             $outstanding_pr = $GET_OUTSTANDING_PR[$row['code_lv4']] ?? 0;
 
             $konversi = $row['konversi'] ?? 0;
@@ -58,10 +58,10 @@ class Pr_product_model extends BF_Model
                 "<div align='left'>{$row['code_lv4']}</div>",
                 "<div align='left'>" . strtoupper($row['nm_product']) . "</div>",
                 "<div align='left'>{$row['category']}</div>",
-                "<div align='right'>" . number_format($qty_pack, 2) . "</div>",
+                "<div align='right'>" . number_format($row['qty_stock']) . "</div>",
                 "<div align='center'>{$satuan}</div>",
                 "<div align='center' class='konversi'>" . number_format($konversi, 2) . "</div>",
-                "<div align='right'>" . number_format($row['qty_stock'], 4) . "</div>",
+                "<div align='right'>" . $row['weight'] . "</div>",
                 "<div align='right'>" . number_format($row['min_stok'], 2) . "</div>",
                 "<div align='right'>" . number_format($row['max_stok'], 2) . "</div>",
                 "<div align='right'>" . number_format($outstanding_pr, 2) . "</div>",
@@ -94,6 +94,7 @@ class Pr_product_model extends BF_Model
 
         $this->db->select("
         a.code,
+        a.id_unit,
         a.code_lv4               AS code_lv4,
         a.nama                   AS nm_product,
         z.nama                   AS category,
@@ -101,7 +102,7 @@ class Pr_product_model extends BF_Model
         COALESCE(a.min_stok,0)   AS min_stok,
         COALESCE(a.max_stok,0)   AS max_stok,
         COALESCE(a.konversi,0)   AS konversi,
-        COALESCE(a.id_unit_packing,0) AS id_unit_packing,
+        COALESCE(a.weight,0)   AS weight,
         COALESCE(a.request,0)    AS request,
         COALESCE(a.keterangan,'') AS keterangan
     ");
@@ -213,7 +214,7 @@ class Pr_product_model extends BF_Model
             0 => 'a.no_pr',
             1 => 'b.nm_customer',
             2 => 'a.tgl_dibutuhkan',
-            3 => 'a.created_date'
+            7 => 'a.created_date'
         ];
 
         $this->db->select("a.*, b.nm_customer, c.nm_lengkap as request_by, DATE_FORMAT(a.created_date, '%d %M %Y') as request_date");
@@ -238,7 +239,7 @@ class Pr_product_model extends BF_Model
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
         } else {
-            $this->db->order_by('a.id', 'desc');
+            $this->db->order_by('a.created_date', 'ASC');
         }
 
         if ($limit_length != -1) {
