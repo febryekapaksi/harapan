@@ -114,12 +114,12 @@ $ENABLE_DELETE  = has_permission('Metode_Pembelian.Delete');
 		var dataTable = $('#example1').DataTable({
 			"processing": true,
 			"serverSide": true,
-			"stateSave": true,
+			"stateSave": false,
 			"bAutoWidth": true,
 			"destroy": true,
 			"responsive": true,
 			"aaSorting": [
-				[2, "asc"]
+				[2, "desc"]
 			],
 			"columnDefs": [{
 				"targets": 'no-sort',
