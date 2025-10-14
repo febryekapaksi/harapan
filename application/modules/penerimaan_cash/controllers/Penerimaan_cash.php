@@ -198,7 +198,7 @@ class Penerimaan_cash extends Admin_Controller
 
 		// Generate OTP
 		$otp_code = rand(100000, 999999);
-		$otp_expiry = date('Y-m-d H:i:s', strtotime('+1 minutes'));
+		$otp_expiry = date('Y-m-d H:i:s', strtotime('+5 minutes'));
 		$total_rupiah = number_format($total_terima, 0, ',', '.');
 
 		// Simpan ke tabel sementara (tr_invoice_payment_otp)
