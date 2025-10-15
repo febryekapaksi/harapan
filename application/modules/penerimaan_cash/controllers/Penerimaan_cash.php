@@ -322,7 +322,7 @@ class Penerimaan_cash extends Admin_Controller
 					"GREATEST(ROUND(COALESCE(piutang,0) - {$sum}, 2), 0)",
 					false
 				);
-				$this->db->set('sts', "CASE WHEN {$sum} >= COALESCE(piutang,0) THEN 0 ELSE 1 END", false);
+				$this->db->set('sts', "CASE WHEN {$sum} >= COALESCE(grand_total,0) THEN 0 ELSE 1 END", false);
 
 				$this->db->where('id_invoice', $inv->id_invoice)->update('tr_invoice_sales');
 			}
