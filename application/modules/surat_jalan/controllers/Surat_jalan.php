@@ -98,38 +98,27 @@ class Surat_jalan extends Admin_Controller
         $header = $this->db->get_where('loading_delivery', ['no_loading' => $no_loading])->row_array();
         $detail = $this->db
             ->select('
-                    ld.*,
-                    so.no_so,
+                    ldd.*,
+                    sd.no_so,
                     sd.pengiriman,
                     sd.tanggal_kirim,
-                    sod.id AS id_so_det,        
-                    c.name_customer AS customer,
-                    c.address_office AS alamat,
-                    p.nama AS product,
+                    sd.delivery_address AS alamat,
+                    sdd.id_so_det,        
                     p.weight,
-                    (ld.qty_muat * p.weight) AS total_berat,
-                    (ld.qty_muat * COALESCE(w.harga_beli,0)) AS costbook,
+                    (ldd.qty_muat * COALESCE(w.harga_beli,0)) AS costbook,
                 ')
-            ->from('loading_delivery_detail ld')
-            ->join('spk_delivery sd', 'ld.no_delivery = sd.no_delivery', 'left')
-            ->join('sales_order so', 'ld.no_so = so.no_so', 'left')
-            // >>> ini yang benar untuk dapatkan SO detail
-            ->join('sales_order_detail sod', 'sod.no_so = ld.no_so AND sod.id_product = ld.id_product', 'left')
-            ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
-            ->join('new_inventory_4 p', 'ld.id_product = p.code_lv4', 'left')
+            ->from('loading_delivery_detail ldd')
+            ->join('spk_delivery sd', 'ldd.no_delivery = sd.no_delivery', 'left')
+            ->join('spk_delivery_detail sdd', 'sdd.no_delivery = ldd.no_delivery AND sdd.id_product = ldd.id_product', 'left')
+            ->join('new_inventory_4 p', 'ldd.id_product = p.code_lv4', 'left')
             ->join('warehouse_stock w', 'p.code_lv4 = w.id_material', 'left')
-            ->where('ld.no_loading', $no_loading)
-            ->where("CONCAT(ld.no_so, '|', ld.no_delivery) NOT IN (
+            ->where('ldd.no_loading', $no_loading)
+            ->where("CONCAT(ldd.no_so, '|', ldd.no_delivery) NOT IN (
                     SELECT CONCAT(no_so, '|', no_delivery)
                     FROM surat_jalan
                     WHERE no_loading = '$no_loading')")
             ->get()
             ->result_array();
-
-        // echo '<pre>';
-        // print_r($this->db->last_query());
-        // echo '</pre>';
-        // die();
 
         echo json_encode([
             'header' => $header,
