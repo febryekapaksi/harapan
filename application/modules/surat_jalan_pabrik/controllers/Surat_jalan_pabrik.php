@@ -121,20 +121,21 @@ class Surat_jalan_pabrik extends Admin_Controller
         } else {
             // MODE INSERT
             $Ym = date('ym');
-            $SQL = "SELECT MAX(no_surat_jalan) as maxM FROM surat_jalan WHERE no_surat_jalan LIKE 'SJ/G/{$Ym}/%'";
-            $result = $this->db->query($SQL)->result_array();
-            $angkaUrut = $result[0]['maxM'];
+            $prefix = "SJ/P/{$Ym}/";
 
+            $SQL = "SELECT MAX(no_surat_jalan) AS maxM
+                    FROM surat_jalan
+                    WHERE no_surat_jalan LIKE ?";
+            $result = $this->db->query($SQL, [$prefix . '%'])->row_array();
+
+            $angkaUrut = $result && $result['maxM'] ? $result['maxM'] : null;
+            $urutan = 0;
             if ($angkaUrut) {
                 $parts = explode('/', $angkaUrut);
                 $urutan = isset($parts[3]) ? (int)$parts[3] : 0;
-            } else {
-                $urutan = 0;
             }
-
             $urutan++;
-            $formatUrut = sprintf('%04s', $urutan);
-            $no_surat_jalan = "SJ/P/{$Ym}/{$formatUrut}";
+            $no_surat_jalan = $prefix . sprintf('%04d', $urutan);
 
             $ArrHeader = [
                 'no_surat_jalan'   => $no_surat_jalan,
