@@ -1567,7 +1567,7 @@ class Purchase_order extends Admin_Controller
 				'expect_tanggal'	=> date('Y-m-d', strtotime($post['expect_tanggal'])),
 				'term'				=> $post['term'],
 				'cif'				=> $post['cif'],
-				'note'				=> $post['note_ket'],
+				// 'note'				=> $post['note_ket'],
 				'no_pr'				=> $post['no_pr'],
 				'matauang'			=> $post['matauang'],
 				'total_include_ppn'	=> str_replace(',', '', $post['totalinppn']),
@@ -1754,37 +1754,45 @@ class Purchase_order extends Admin_Controller
 		$tgl  = $post['tanggal'];
 		$code = $this->Pr_model->generate_code($tgl);
 		$no_surat = $this->Pr_model->BuatNomor($tgl);
+		$nominal_kurs = isset($post['nominal_kurs']) ? str_replace(',', '', $post['nominal_kurs']) : 0;
 
 		$this->db->trans_begin();
 
-		$get_po = $this->db->get_where('tr_purchase_order', ['no_po' => $post['no_po']]);
+		$po = $this->db
+			->select('revisi')
+			->get_where('tr_purchase_order', ['no_po' => $post['no_po']], 1)
+			->row();
+		$revisi_baru = $po ? ((int) $po->revisi + 1) : 1;
 
 		$data = [
 			'id_suplier'		=> $post['supplier'],
 			'loi'				=> $post['loi'],
-			'nominal_kurs'		=> str_replace(',', '', $post['nominal_kurs']),
+			'nominal_kurs'		=> $nominal_kurs,
 			'tanggal'			=> $post['tanggal'],
 			'expect_tanggal'	=> date('Y-m-d', strtotime($post['expect_tanggal'])),
 			'term'				=> $post['term'],
 			'cif'				=> $post['cif'],
-			'note'				=> $post['note_ket'],
+			// 'note'				=> $post['note_ket'],
 			'no_pr'				=> $post['no_pr'],
 			'matauang'			=> $post['matauang'],
+			'total_include_ppn'	=> str_replace(',', '', $post['totalinppn']),
+			'total_exclude_ppn'	=> str_replace(',', '', $post['totalexppn']),
+			'diskon_khusus'		=> str_replace(',', '', $post['diskonkhusus']),
 			'hargatotal'		=> str_replace(',', '', $post['hargatotal']),
 			'diskontotal'		=> str_replace(',', '', $post['diskontotal']),
 			'taxtotal'			=> str_replace(',', '', $post['kirim']),
 			'subtotal'			=> str_replace(',', '', $post['subtotal']),
-			'total_ppn'			=> str_replace(',', '', $post['totalppn']),
+			'total_ppn'			=> str_replace(',', '', $post['ppn']),
 			'total_barang'		=> str_replace(',', '', $post['hargatotal']),
 			'status'			=> '1',
-			'revisi'			=> ($get_po->revisi + 1),
-			'reject_reason'			=> '',
+			'revisi'			=> $revisi_baru,
+			'reject_reason'		=> '',
 			'total_ppn_persen'	=> str_replace(',', '', $post['persenppn']),
-			'persen_disc'	=> str_replace(',', '', $post['persendisc']),
-			'nilai_disc'	=> str_replace(',', '', $post['totaldisc']),
-			'id_dept' => implode(',', $post['dept']),
-			'delivery_date' => $post['delivery_date'],
-			'note' => $post['keterangan']
+			'persen_disc'		=> str_replace(',', '', $post['persendisc']),
+			'nilai_disc'		=> str_replace(',', '', $post['totaldisc']),
+			'id_dept'		 	=> implode(',', $post['dept']),
+			'delivery_date' 	=> $post['delivery_date'],
+			'note' 				=> $post['keterangan']
 		];
 		//Add Data
 		$this->db->update('tr_purchase_order', $data, ['no_po' => $post['no_po']]);
