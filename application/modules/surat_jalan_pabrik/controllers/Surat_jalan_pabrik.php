@@ -215,6 +215,7 @@ class Surat_jalan_pabrik extends Admin_Controller
 
     public function confirm_sj($id)
     {
+        // Header SJ
         $sj = $this->db
             ->select('sj.*, so.nama_sales, ld.nopol, p.id_penawaran, c.name_customer')
             ->from('surat_jalan sj')
@@ -230,23 +231,49 @@ class Surat_jalan_pabrik extends Admin_Controller
             show_404();
         }
 
+        $sdd_sub = "
+        (
+            SELECT
+                id_so_det,
+                no_delivery,
+                SUM(COALESCE(qty_so, 0))  AS qty_so,
+                SUM(COALESCE(qty_spk, 0)) AS qty_spk
+            FROM spk_delivery_detail
+            GROUP BY id_so_det, no_delivery
+        ) sdd
+    ";
+
+
+        $wh_sub = "
+        (
+            SELECT
+                id_material,
+                MAX(harga_beli) AS costbook,
+                MAX(id_unit)    AS id_unit
+            FROM warehouse_stock
+            GROUP BY id_material
+        ) wh
+    ";
+
         $detail = $this->db
             ->select('
             d.*,
             s.code,
-            sdd.qty_so, sdd.qty_spk
+            COALESCE(sdd.qty_so, 0)  AS qty_so,
+            COALESCE(sdd.qty_spk, 0) AS qty_spk,
+            COALESCE(wh.costbook, 0) AS costbook
         ')
             ->from('surat_jalan_detail d')
-            ->join('spk_delivery_detail sdd', 'd.id_so_det = sdd.id_so_det', 'left')
-            ->join('new_inventory_4 inv', 'd.id_product = inv.code_lv4', 'left')
-            ->join('ms_satuan s', 'inv.id_unit = s.id', 'left')
+            ->join('surat_jalan sj', 'sj.id = d.id_sj') // untuk akses sj.no_delivery di join sdd
+            ->join($sdd_sub, 'sdd.id_so_det = d.id_so_det AND sdd.no_delivery = sj.no_delivery', 'left')
+            ->join($wh_sub, 'wh.id_material = d.id_product', 'left')
+            ->join('ms_satuan s', 's.id = wh.id_unit', 'left')
             ->where('d.id_sj', $id)
-            ->group_by('d.id')
             ->get()
             ->result_array();
 
         $data = [
-            'sj' => $sj,
+            'sj'     => $sj,
             'detail' => $detail,
         ];
 

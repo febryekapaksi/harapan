@@ -328,8 +328,6 @@ class Surat_jalan extends Admin_Controller
             show_404();
         }
 
-        // --- Subquery agregasi untuk SPK Delivery Detail ---
-        // Satukan jadi 1 baris per (id_so_det, no_delivery)
         $sdd_sub = "
         (
             SELECT
@@ -342,8 +340,7 @@ class Surat_jalan extends Admin_Controller
         ) sdd
     ";
 
-        // --- Subquery agregasi untuk Warehouse Stock (jika ada lebih dari 1 baris per material) ---
-        // Ambil nilai costbook representatif (pakai MAX sebagai fallback). Sekalian pilih unit.
+
         $wh_sub = "
         (
             SELECT
@@ -355,7 +352,6 @@ class Surat_jalan extends Admin_Controller
         ) wh
     ";
 
-        // Detail tanpa GROUP BY di luar, karena join sudah 1:1 setelah agregasi
         $detail = $this->db
             ->select('
             d.*,
