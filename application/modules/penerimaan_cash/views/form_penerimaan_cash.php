@@ -460,27 +460,27 @@
                 if (confirm) {
                     $.ajax({
                         type: 'POST',
-                        url: siteurl + active_controller + 'save_tanpa_otp',
+                        url: siteurl + active_controller + 'save',
                         data: formData,
                         contentType: false,
                         processData: false,
                         dataType: 'json',
                         success: function(result) {
                             if (result.status == '1') {
-                                swal({
-                                    title: 'Berhasil!',
-                                    text: result.message,
-                                    type: 'success'
-                                }, function() {
-                                    // Redirect atau cetak struk langsung
-                                    window.location.href = siteurl + active_controller
-                                    // window.location.href = result.redirect_url;
-                                });
+                                // swal({
+                                //     title: 'Berhasil!',
+                                //     text: result.message,
+                                //     type: 'success'
+                                // }, function() {
+                                //     // Redirect atau cetak struk langsung
+                                //     window.location.href = siteurl + active_controller
+                                //     // window.location.href = result.redirect_url;
+                                // });
 
                                 // Setelah OTP dikirim, tampilkan modal input
-                                // startOtpTimer();
-                                // $('#modal-otp').modal('show');
-                                // $('#otp-kd-pembayaran').val(result.kd_pembayaran);
+                                $('#modal-otp').modal('show');
+                                startOtpTimer();
+                                $('#otp-kd-pembayaran').val(result.kd_pembayaran);
                             } else {
                                 swal('Failed!', result.message, 'warning');
                             }
@@ -549,7 +549,7 @@
                     kd_pembayaran: kd
                 },
                 success: function(res) {
-                    otpSeconds = 60;
+                    otpSeconds = 180;
                     startOtpTimer();
                     swal('Berhasil', 'OTP baru telah dikirim ke WhatsApp', 'success');
                 },
@@ -567,7 +567,7 @@
     });
 
     let otpCountdown;
-    let otpSeconds = 60;
+    let otpSeconds = 180;
 
     function startOtpTimer() {
         $('#otp-timer').text(otpSeconds);
