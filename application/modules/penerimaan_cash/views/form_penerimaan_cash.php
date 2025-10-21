@@ -549,7 +549,7 @@
                     kd_pembayaran: kd
                 },
                 success: function(res) {
-                    otpSeconds = 60;
+                    otpSeconds = 180;
                     startOtpTimer();
                     swal('Berhasil', 'OTP baru telah dikirim ke WhatsApp', 'success');
                 },
@@ -567,7 +567,7 @@
     });
 
     let otpCountdown;
-    let otpSeconds = 60;
+    let otpSeconds = 180;
 
     function startOtpTimer() {
         $('#otp-timer').text(otpSeconds);
