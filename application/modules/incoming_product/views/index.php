@@ -5,6 +5,25 @@ $ENABLE_VIEW    = has_permission('Incoming_Material.View');
 $ENABLE_DELETE  = has_permission('Incoming_Material.Delete');
 
 ?>
+<style>
+    .table-fixed-header {
+        max-height: 250px;
+        overflow-y: auto;
+        overflow-x: auto;
+    }
+
+    .table-fixed-header thead th {
+        position: sticky;
+        top: 0;
+        z-index: 2;
+        background: #fff;
+    }
+
+    .table-fixed-header table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+</style>
 <link rel="stylesheet" href="https://cdn.datatables.net/2.0.3/css/dataTables.dataTables.min.css">
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <form action="#" method="POST" id="form_proses_bro" enctype="multipart/form-data">
@@ -31,19 +50,23 @@ $ENABLE_DELETE  = has_permission('Incoming_Material.Delete');
                             ?>
                         </div>
                     </div>
-                    <div class='form-group row'>
-                        <label class='label-control col-sm-2'><b>No PO</b></label>
+                    <div class="form-group row">
+                        <label class="label-control col-sm-2"><b>No PO</b></label>
+
                         <div class="col-md-4">
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th class="text-center">NO. PO</th>
-                                        <th class="text-center">No. PR</th>
-                                        <th class="text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="list_no_po"></tbody>
-                            </table>
+                            <div class="table-fixed-header"> <!-- area scroll -->
+                                <table class="table table-bordered table-sm mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">NO. PO</th>
+                                            <th class="text-center">No. PR</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="list_no_po">
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
