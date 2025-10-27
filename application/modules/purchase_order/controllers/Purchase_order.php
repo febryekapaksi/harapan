@@ -1792,6 +1792,7 @@ class Purchase_order extends Admin_Controller
 			'persen_disc'		=> str_replace(',', '', $post['persendisc']),
 			'nilai_disc'		=> str_replace(',', '', $post['totaldisc']),
 			'id_dept'		 	=> implode(',', $post['dept']),
+			'delivery_address' 	=> $post['delivery_address'],
 			'delivery_date' 	=> $post['delivery_date'],
 			'note' 				=> $post['keterangan']
 		];
