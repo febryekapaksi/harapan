@@ -1587,7 +1587,8 @@ class Purchase_order extends Admin_Controller
 				'delivery_address' 	=> $post['delivery_address'],
 				'id_dept' 			=> $id_dept,
 				'created_on'		=> date('Y-m-d H:i:s'),
-				'created_by'		=> $this->auth->user_id()
+				'created_by'		=> $this->auth->user_id(),
+				'tipe'				=> 'pr product'
 			];
 		}
 
@@ -1791,6 +1792,7 @@ class Purchase_order extends Admin_Controller
 			'persen_disc'		=> str_replace(',', '', $post['persendisc']),
 			'nilai_disc'		=> str_replace(',', '', $post['totaldisc']),
 			'id_dept'		 	=> implode(',', $post['dept']),
+			'delivery_address' 	=> $post['delivery_address'],
 			'delivery_date' 	=> $post['delivery_date'],
 			'note' 				=> $post['keterangan']
 		];

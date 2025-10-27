@@ -300,15 +300,15 @@ class Incoming_product_model extends BF_Model
 
     public function process_in_product()
     {
-        $data             = $this->input->post();
+        $data            = $this->input->post();
         $data_session    = $this->session->userdata;
         $dateTime        = date('Y-m-d H:i:s');
-        $no_po            = $data['no_po'];
-        $incoming_date = $data['incoming_date'];
+        $no_po           = $data['no_po'];
+        $incoming_date   = $data['incoming_date'];
 
         $addInMat        = $data['addInMat'];
 
-        $Ym             = date('ym');
+        $Ym              = date('ym');
 
         $table = 'dt_trans_po';
 
@@ -324,12 +324,12 @@ class Incoming_product_model extends BF_Model
 
         $ArrInsertH = array(
             'no_ipp'             => $no_po,
-            'category'             => 'incoming product',
+            'category'           => 'incoming product',
             'jumlah_mat'         => $SumMat + $SumRisk,
             'kd_gudang_dari'     => 'PURCHASE',
             // 'note' => $note,
             'created_by'         => $this->auth->user_id(),
-            'created_date'         => $dateTime
+            'created_date'       => $dateTime
         );
 
         $ArrHeader2 = array(
@@ -367,14 +367,15 @@ class Incoming_product_model extends BF_Model
                 $get_trans_po = $this->db->get_where('dt_trans_po', ['id' => $valx['id']])->row();
                 if ($qtyIN > 0) {
                     $this->db->insert('tr_incoming_check_detail', [
-                        'kode_trans' => $kodecollect,
-                        'no_ipp' => $no_po,
-                        'id_po_detail' => $valx['id'],
-                        'id_material_req' => $get_trans_po->idmaterial,
-                        'id_material' => $get_trans_po->idmaterial,
-                        'nm_material' => $get_trans_po->namamaterial,
-                        'qty_order' => $qtyIN,
-                        'keterangan' => $valx['keterangan']
+                        'kode_trans'        => $kodecollect,
+                        'no_ipp'            => $no_po,
+                        'id_po_detail'      => $valx['id'],
+                        'id_material_req'   => $get_trans_po->idmaterial,
+                        'id_material'       => $get_trans_po->idmaterial,
+                        'nm_material'       => $get_trans_po->namamaterial,
+                        'harga'             => $get_trans_po->hargasatuan,
+                        'qty_order'         => $qtyIN,
+                        'keterangan'        => $valx['keterangan']
                     ]);
                 }
 
@@ -419,19 +420,29 @@ class Incoming_product_model extends BF_Model
             }
         }
 
+        $row = $this->db->select('subtotal')
+            ->from('tr_purchase_order')
+            ->where('no_po', $no_po)
+            ->limit(1)
+            ->get()
+            ->row();
+
+        $subtotal = $row ? $row->subtotal : null;
+
         $this->db->insert('tr_incoming_check', [
-            'kode_trans' => $kodecollect,
-            'tanggal' => $incoming_date,
-            'no_ipp' => $no_po,
-            'category' => 'incoming product',
-            'jumlah_mat' => $jumlah_mat,
-            'id_gudang_dari' => 1,
-            'kd_gudang_dari' => 'PUS',
-            'id_gudang_ke' => 1,
-            'kd_gudang_ke' => 'PUS',
-            'file_incoming_material' => $upload_incoming,
-            'created_by' => $this->auth->user_id(),
-            'created_date' => date('Y-m-d H:i:s')
+            'kode_trans'                => $kodecollect,
+            'tanggal'                   => $incoming_date,
+            'no_ipp'                    => $no_po,
+            'category'                  => 'incoming product',
+            'jumlah_mat'                => $jumlah_mat,
+            'id_gudang_dari'            => 1,
+            'kd_gudang_dari'            => 'PUS',
+            'id_gudang_ke'              => 1,
+            'kd_gudang_ke'              => 'PUS',
+            'file_incoming_material'    => $upload_incoming,
+            'total_harga_product'       => $subtotal,
+            'created_by'                => $this->auth->user_id(),
+            'created_date'              => date('Y-m-d H:i:s')
         ]);
 
         $checkSumQty = $this->db->query("SELECT SUM(qty) as total_qty, SUM(qty_in) AS qty_terkirim FROM dt_trans_po WHERE no_po = '" . $no_po . "'")->row();

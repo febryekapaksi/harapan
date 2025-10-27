@@ -261,6 +261,7 @@
                     data.detail.forEach(row => {
                         if (!grouped[row.no_delivery]) {
                             grouped[row.no_delivery] = {
+                                no_loading: row.no_loading,
                                 no_delivery: row.no_delivery,
                                 no_so: row.no_so,
                                 customer: row.customer,
@@ -282,7 +283,7 @@
                         // Header SPK + radio
                         html += `
                         <tr style="background-color:#f0f0f0; font-weight:bold;">
-                            <td colspan="6">SPK : ${no_spk} - ${group.customer}</td>
+                            <td colspan="6">Nomor Muat : ${group.no_loading} - ${group.customer}</td>
                             <td>
                                 <input type="radio" name="spk_selected" class="select-spk" value="${no_spk}">
                             </td>
@@ -343,7 +344,7 @@
             html += `
                 <tr style="background-color:#f0f0f0; font-weight:bold;">
                     <td colspan="7" style="background-color:#f0f0f0; font-weight:bold;">
-                        SPK : ${selectedSpk} - ${groupedSpk[selectedSpk].customer}
+                        Nomor Muat : ${groupedSpk[selectedSpk].no_loading} - ${groupedSpk[selectedSpk].customer}
                     </td>
                     <td>
                         <button type="button" class="btn btn-danger btn-sm" id="hapusSpk"><i class="fa fa-trash"></i></button>
