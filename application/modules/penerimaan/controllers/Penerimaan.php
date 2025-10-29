@@ -178,8 +178,8 @@ class Penerimaan extends Admin_Controller
 
             // Update header: total_bayar, piutang, dan status
             $this->db->set('total_bayar', $sum, false);
-            $this->db->set('piutang', "GREATEST(COALESCE(piutang,0) - {$sum}, 0)", false);
-            $this->db->set('sts', "CASE WHEN {$sum} >= COALESCE(grand_total,0) THEN 0 ELSE 1 END", false);
+            $this->db->set('piutang', $sisa_invoice, false);
+            $this->db->set('sts', "CASE WHEN {$sisa_invoice} <= 0 THEN 0 ELSE 1 END", false);
             $this->db->where('id_invoice', $row['id_invoice'])->update('tr_invoice_sales');
         }
 
