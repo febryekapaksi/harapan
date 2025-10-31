@@ -26,26 +26,6 @@ $tgl_appre_2 = '';
 $status3 = '';
 $tgl_appre_3 = '';
 if (!empty($header)) {
-	if ($header[0]->app_1 == '1') {
-		$status1 = '<div class="badge bg-green">Approved</div>';
-		$tgl_appre_1 = date('d F Y', strtotime($header[0]->app_1_date));
-	} else {
-		if ($header[0]->sts_reject1 == '1') {
-			$status1 = '<div class="badge bg-red">Rejected</div>';
-			$tgl_appre_1 = date('d F Y', strtotime($header[0]->sts_reject1_date));
-		}
-	}
-
-	if ($header[0]->app_2 == '1') {
-		$status2 = '<div class="badge bg-green">Approved</div>';
-		$tgl_appre_2 = date('d F Y', strtotime($header[0]->app_2_date));
-	} else {
-		if ($header[0]->sts_reject2 == '1') {
-			$status2 = '<div class="badge bg-red">Rejected</div>';
-			$tgl_appre_2 = date('d F Y', strtotime($header[0]->sts_reject2_date));
-		}
-	}
-
 	if ($header[0]->app_3 == '1') {
 		$status3 = '<div class="badge bg-green">Approved</div>';
 		$tgl_appre_3 = date('d F Y', strtotime($header[0]->app_3_date));
@@ -99,7 +79,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 							if ($departement->id == $id_dept) {
 								$selected = 'selected';
 							}
-							echo "<option value='" . $departement->id . "' " . $selected . ">" . strtoupper($departement->nama) . "</option>";
+							echo "<option value='" . $departement->id . "' " . $selected . ">" . strtoupper($departement->name) . "</option>";
 						}
 						?>
 					</select>
@@ -159,36 +139,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 							</tr>
 						</thead>
 						<tbody>
-							<tr>
-								<td class="text-center">Departement Head</td>
-								<td class="text-center">
-									<?= $status1 ?>
-								</td>
-								<td class="text-center">
-									<?= $tgl_appre_1 ?>
-								</td>
-								<td>
-									<input type="text" name="reject_reason1" id="" class="form-control" value="<?= $alasan_reject1 ?>" readonly>
-								</td>
-								<td>
-									<input type="text" name="keterangan_1" id="" class="form-control" value="<?= $keterangan_1 ?>">
-								</td>
-							</tr>
-							<tr>
-								<td class="text-center">Cost Control</td>
-								<td class="text-center">
-									<?= $status2 ?>
-								</td>
-								<td class="text-center">
-									<?= $tgl_appre_2 ?>
-								</td>
-								<td>
-									<input type="text" name="reject_reason2" id="" class="form-control" value="<?= $alasan_reject2 ?>" readonly>
-								</td>
-								<td>
-									<input type="text" name="keterangan_2" id="" class="form-control" value="<?= $keterangan_2 ?>">
-								</td>
-							</tr>
+
 							<tr>
 								<td class="text-center">Management</td>
 								<td class="text-center">
@@ -261,8 +212,12 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 							$nomor++;
 							echo "<tr class='header_" . $nomor . "'>";
 							echo "<td align='center'>" . $nomor . "<input type='hidden' name='detail[" . $nomor . "][id]' value='" . $valx['id'] . "'></td>";
-							echo "<td align='left'><input type='text' " . $disabled3 . " name='detail[" . $nomor . "][nm_barang]' class='form-control input-md nm_barang_" . $nomor . "' value='" . strtoupper($valx['nm_barang']) . "'></td>";
-							echo "<td align='left'><input type='text' " . $disabled3 . " name='detail[" . $nomor . "][spec]' class='form-control input-md spec_" . $nomor . "' value='" . strtoupper($valx['spec']) . "'></td>";
+							echo "<td align='left'>
+								<textarea class='form-control input-md nm_barang_" . $nomor . "' name='detail[" . $nomor . "][nm_barang]' " . $disabled3 . ">" . strtoupper($valx['nm_barang']) . "</textarea>
+							</td>";
+							echo "<td align='left'>
+								<textarea class='form-control input-md spec_" . $nomor . "' name='detail[" . $nomor . "][spec]' " . $disabled3 . ">" . strtoupper($valx['spec']) . "</textarea>
+							</td>";
 							echo "<td align='left'><input type='text' " . $disabled2 . " id='qty_" . $nomor . "' name='detail[" . $nomor . "][qty]' class='form-control input-md text-right autoNumeric2 sum_tot qty_" . $nomor . "' value='" . $valx['qty'] . "'></td>";
 							echo "<td align='left'>
 									<select name='detail[" . $nomor . "][satuan]' class='form-control wajib satuan_" . $nomor . "' " . $disabled2 . " required>";
@@ -273,10 +228,12 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 							}
 							echo "	</select>
 									</td>";
-							echo "<td align='left'><input type='text' " . $disabled2 . " id='harga_" . $nomor . "' name='detail[" . $nomor . "][harga]' class='form-control input-md text-right maskM sum_tot harga_" . $nomor . "' value='" . number_format($valx['harga']) . "' data-decimal='.' data-thousand='' data-precision='0' data-allow-zero=''></td>";
-							echo "<td align='left'><input type='text' " . $disabled2 . " id='total_harga_" . $nomor . "' name='detail[" . $nomor . "][total_harga]' class='form-control input-md text-right maskM jumlah_all total_harga_" . $nomor . "' value='" . number_format($valx['qty'] * $valx['harga']) . "' data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' readonly></td>";
+							echo "<td align='left'><input type='text' " . $disabled2 . " id='harga_" . $nomor . "' name='detail[" . $nomor . "][harga]' class='form-control input-md text-right maskM sum_tot harga_" . $nomor . "' value='" . $valx['harga'] . "' data-decimal='.' data-thousand='' data-precision='0' data-allow-zero=''></td>";
+							echo "<td align='left'><input type='text' " . $disabled2 . " id='total_harga_" . $nomor . "' name='detail[" . $nomor . "][total_harga]' class='form-control input-md text-right maskM jumlah_all total_harga_" . $nomor . "' value='" . ($valx['qty'] * $valx['harga']) . "' data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' readonly></td>";
 							echo "<td align='left'><input type='text' " . $disabled3 . " name='detail[" . $nomor . "][tanggal]' class='form-control input-md text-center datepicker tgl_dibutuhkan tanggal_" . $nomor . "' readonly value='" . strtoupper($valx['tanggal']) . "'></td>";
-							echo "<td align='left'><input type='text' " . $disabled3 . " name='detail[" . $nomor . "][keterangan]' class='form-control input-md keterangan_" . $nomor . "' value='" . strtoupper($valx['keterangan']) . "'></td>";
+							echo "<td align='left'>
+								<textarea class='form-control input-md keterangan_" . $nomor . "' name='detail[" . $nomor . "][keterangan]' " . $disabled3 . ">" . strtoupper($valx['keterangan']) . "</textarea>
+							</td>";
 							if (empty($approve)) {
 								echo "<td align='center'><button type='button' class='btn btn-sm btn-warning edit_detail edit_detail_" . $nomor . "' data-id='" . $valx['id'] . "' data-nomor='" . $nomor . "' style='margin-right: 0.5em;'><i class='fa fa-pencil'></i>
 								</button><button type='button' class='btn btn-sm btn-danger delPart' title='Delete Part'><i class='fa fa-close'></i></button></td>";
@@ -455,16 +412,16 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 			$('#save').prop('disabled', false);
 			return false;
 		}
-		if (coa == '0' || coa == '') {
-			swal({
-				title: "Error Message!",
-				text: 'COA is empty, select first ...',
-				type: "warning"
-			});
+		//if (coa == '0' || coa == '') {
+		//	swal({
+		//		title: "Error Message!",
+		//		text: 'COA is empty, select first ...',
+		//		type: "warning"
+		//	});
 
-			$('#save').prop('disabled', false);
-			return false;
-		}
+		//	$('#save').prop('disabled', false);
+		//	return false;
+		//}
 
 
 		var app = $("#approve").val();

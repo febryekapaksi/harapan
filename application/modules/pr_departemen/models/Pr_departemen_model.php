@@ -77,6 +77,7 @@ class Pr_departemen_model extends BF_Model
                 join('<br>', $list_qty),
                 join('<br>', $list_tanggal),
                 join('<br>', $list_ket),
+                $item->pic,
                 "<span class='badge' style='background-color: {$warna};'>{$sts}</span>",
                 $view . ' ' . $edit . ' ' . $print . ' ' . $close
             ];
@@ -99,10 +100,11 @@ class Pr_departemen_model extends BF_Model
             1 => 'a.created_date'
         ];
 
-        $this->db->select('a.*, b.nama');
+        $this->db->select('a.*, b.nama, c.nm_lengkap as pic');
         $this->db->from('rutin_non_planning_detail z');
         $this->db->join('rutin_non_planning_header a', 'z.no_pengajuan = a.no_pengajuan', 'left');
         $this->db->join('ms_department b', 'b.id = a.id_dept', 'left');
+        $this->db->join('users c', 'c.id_user = a.created_by', 'left');
         $this->db->where('a.status_id', 1);
         $this->db->where('a.close_pr IS NULL');
         $this->db->group_by('z.no_pengajuan');
@@ -113,8 +115,9 @@ class Pr_departemen_model extends BF_Model
 
         if ($like) {
             $this->db->group_start();
-            $this->db->like('a.no_pengajuan', $like);
-            $this->db->or_like('b.nama', $like);
+            $this->db->like('a.no_pengajuan', $like, 'both');
+            $this->db->or_like('b.nama', $like, 'both');
+            $this->db->or_like('c.nm_lengkap', $like, 'both');
             $this->db->group_end();
         }
 

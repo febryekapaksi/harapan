@@ -41,25 +41,39 @@
 					</select>
 				</div>
 			</div>
+			<div class="row">
+				<div class="col-md-6">
+					<label for="">Budget</label>
+					<input type="text" name="" id="" class="form-control form-control-sm text-right autoNumeric0 nilai_budget" value="" readonly>
+				</div>
+				<div class="col-md-6">
+					<label for="">Pengajuan</label>
+					<input type="text" name="" id="" class="form-control form-control-sm text-right nilai_pengajuan" value="" readonly>
+				</div>
+			</div>
+			<br><br>
 			<table class="table table-bordered table-striped" id="example1" width='100%'>
 				<thead>
 					<tr class='bg-blue'>
 						<th class="text-center" width='4%'>#</th>
-						<th class="text-center">Kode Barang</th>
 						<th class="text-center">Nama Barang</th>
-						<th class="text-center" width='10%'>Inventory Type</th>
-						<th class="text-center no-sort" width='7%'>Stock</th>
-						<th class="text-center no-sort" width='7%'>Kebutuhan 1 Bulan</th>
-						<th class="text-center no-sort" width='7%'>Max Stock</th>
-						<th class="text-center no-sort" width='8%'>Propose Purchase</th>
-						<th class="text-center no-sort" width='8%'>Unit</th>
-						<th class="text-center no-sort" width='8%'>Propose Purchase (Packing)</th>
-						<th class="text-center no-sort" width='5%'>Unit Packing</th>
-						<th class="text-center no-sort" width='8%'>Spec</th>
-						<th class="text-center no-sort" width='8%'>Info</th>
+						<th class="text-center">Kebutuhan 1 Bulan</th>
+						<th class="text-center">Stock</th>
+						<th class="text-center">Max Stock</th>
+						<th class="text-center">Propose Purhcase</th>
+						<th class="text-center">Unit</th>
+						<th class="text-center">Keterangan</th>
+						<th class="text-center">Price Reference</th>
+						<th class="text-center">Total Price</th>
 					</tr>
 				</thead>
 				<tbody></tbody>
+				<tfoot>
+					<tr class="bg-blue">
+						<th colspan="9" class="text-center">Total Price Pengajuan</th>
+						<th class="text-right total-price">0</th>
+					</tr>
+				</tfoot>
 			</table><br>
 			<?php
 			echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-danger', 'style' => 'min-width:100px; float:right; margin: 5px 5px 5px 5px;', 'content' => 'Back', 'id' => 'back')) . ' ';
@@ -86,6 +100,8 @@
 		var category = $("#category").val();
 		DataTables(category);
 
+
+
 		$(document).on('click', '#back', function() {
 			window.location.href = siteurl + active_controller;
 		});
@@ -93,6 +109,8 @@
 		$(document).on('change', '#category', function() {
 			var category = $("#category").val();
 			DataTables(category);
+			hitungBudget();
+			hitungPengajuan();
 		});
 
 		$('.autoNumeric2').autoNumeric('init', {
@@ -104,6 +122,9 @@
 			changeMonth: true,
 			changeYear: true,
 		});
+
+		hitungBudget();
+		hitungPengajuan();
 	});
 
 	$(document).on('click', '#autoUpdate', function() {
@@ -146,6 +167,7 @@
 								});
 								// window.location.href = base_url + active_controller + 'add_new';
 								DataTables(inventory);
+								hitungPengajuan();
 							} else if (data.status == 0) {
 								swal({
 									title: "Save Failed!",
@@ -211,6 +233,8 @@
 								});
 								// window.location.href = base_url + active_controller + 'add_new';
 								DataTables(id_category);
+								hitungBudget();
+								hitungPengajuan();
 							} else if (data.status == 0) {
 								swal({
 									title: "Save Failed!",
@@ -240,38 +264,63 @@
 
 	$(document).on('change', '.changeSave', function() {
 		var id = $(this).data('id');
+		var inventory = $('#category').val();
+		var max_propose = $(this).data('max_propose');
 		var qty_satuan = $(this).val();
-		if (qty_satuan == '' || qty_satuan == null) {
-			qty_satuan = 0;
-		} else {
-			qty_satuan = qty_satuan.split(',').join('');
-			qty_satuan = parseFloat(qty_satuan);
-		}
+		// if (qty_satuan == '' || qty_satuan == null) {
+		// 	qty_satuan = 0;
+		// } else {
+		// 	qty_satuan = qty_satuan.split(',').join('');
+		// 	qty_satuan = parseFloat(qty_satuan);
+		// }
 
-		var konversi = $(this).data('konversi');
-		if (konversi == '' || konversi == 0 || konversi == null) {
-			konversi = 1;
-		}
+		// if (qty_satuan > max_propose) {
+		// 	swal({
+		// 		type: 'warning',
+		// 		title: 'Peringatan !',
+		// 		text: 'Nilai propose tidak boleh lebih dari Max Stock !',
+		// 		showCancelButton: false,
+		// 		allowoOutsideClick: false
+		// 	});
 
-		var nilai = (qty_satuan / konversi);
+		// 	qty_satuan = max_propose;
+		// }
 
-		var qty = $('.purchase_' + id).val().split(",").join("");
+		// var konversi = $(this).data('konversi');
+		// if (konversi == '' || konversi == 0 || konversi == null) {
+		// 	konversi = 1;
+		// }
+
+		// var nilai = (qty_satuan / konversi);
+
+		// var qty = $('.purchase_' + id).val().split(",").join("");
 
 		var nomor = $(this).data('no');
 		var id_material = $(this).data('id');
-		var input_pack = $('#purchase_pack_' + nomor).val().split(",").join("");
+		// var input_pack = $('#purchase_pack_' + nomor).val().split(",").join("");
 		var purchase = $('#purchase_' + nomor).val().split(",").join("");
-		if ($(this).hasClass('input_qty_packing')) {
-			purchase = (input_pack * konversi);
+		if (purchase > max_propose) {
+			swal({
+				type: 'warning',
+				title: 'Peringatan !',
+				text: 'Nilai propose tidak boleh lebih dari Max Stock !',
+				showCancelButton: false,
+				allowoOutsideClick: false
+			});
+
+			purchase = max_propose;
 		}
-		var purchase_pack = $('#purchase_pack_' + nomor).val().split(",").join("");
-		if ($(this).hasClass('input_qty_satuan')) {
-			purchase_pack = (purchase / konversi);
-		}
+		// if ($(this).hasClass('input_qty_packing')) {
+		// 	purchase = (input_pack * konversi);
+		// }
+		// var purchase_pack = $('#purchase_pack_' + nomor).val().split(",").join("");
+		// if ($(this).hasClass('input_qty_satuan')) {
+		// 	purchase_pack = (purchase / konversi);
+		// }
 		// var tanggal 	= $('#tanggal_'+nomor).val();
 		var tanggal = $('#tgl_butuh').val();
 		var satuan = $('#satuan_' + nomor).val();
-		var spec = $('#spec_' + nomor).val();
+		// var spec = $('#spec_' + nomor).val();
 		var info = $('#info_' + nomor).val();
 
 		$.ajax({
@@ -280,16 +329,15 @@
 			data: {
 				"id_material": id_material,
 				"purchase": purchase,
-				"purchase_pack": purchase_pack,
 				"tanggal": tanggal,
-				"spec": spec,
 				"info": info,
 				"satuan": satuan
 			},
 			cache: false,
 			dataType: 'json',
 			success: function(data) {
-				console.log(data.pesan)
+				DataTables(inventory);
+				hitungPengajuan();
 			},
 			error: function() {
 				console.log('error connection serve !')
@@ -324,6 +372,22 @@
 		var category = $('#category').val();
 		var tingkat_pr = $('.tingkat_pr').val();
 
+		var nilai_budget = $('.nilai_budget').val();
+		if (nilai_budget !== '') {
+			nilai_budget = nilai_budget.split(',').join('');
+			nilai_budget = parseFloat(nilai_budget);
+		} else {
+			nilai_budget = 0;
+		}
+
+		var nilai_pengajuan = $('.nilai_pengajuan').val();
+		if (nilai_pengajuan !== '') {
+			nilai_pengajuan = nilai_pengajuan.split(',').join('');
+			nilai_pengajuan = parseFloat(nilai_pengajuan);
+		} else {
+			nilai_pengajuan = 0;
+		}
+
 		if (category == '0') {
 			swal({
 				title: "Error Message!",
@@ -349,12 +413,30 @@
 					},
 					function(isConfirm) {
 						if (isConfirm) {
+							var nilai_budget = $('.nilai_budget').val();
+							if (nilai_budget !== '') {
+								nilai_budget = nilai_budget.split(',').join('');
+								nilai_budget = parseFloat(nilai_budget);
+							} else {
+								nilai_budget = 0;
+							}
+
+							var nilai_pengajuan = $('.nilai_pengajuan').val();
+							if (nilai_pengajuan !== '') {
+								nilai_pengajuan = nilai_pengajuan.split(',').join('');
+								nilai_pengajuan = parseFloat(nilai_pengajuan);
+							} else {
+								nilai_pengajuan = 0;
+							}
+
 							$.ajax({
 								url: base_url + active_controller + '/save_reorder_all',
 								type: "POST",
 								data: {
 									'category': category,
-									'tingkat_pr': tingkat_pr
+									'tingkat_pr': tingkat_pr,
+									'nilai_budget': nilai_budget,
+									'nilai_pengajuan': nilai_pengajuan
 								},
 								cache: false,
 								dataType: 'json',
@@ -460,12 +542,17 @@
 
 	$(document).on('change', '.input_qty_satuan', function() {
 		var id = $(this).data('id');
+		var max_propose = $(this).data('max_propose');
 		var qty_satuan = $(this).val();
 		if (qty_satuan == '' || qty_satuan == null) {
 			qty_satuan = 0;
 		} else {
 			qty_satuan = qty_satuan.split(',').join('');
 			qty_satuan = parseFloat(qty_satuan);
+		}
+
+		if (qty_satuan > max_propose) {
+			qty_satuan = max_propose;
 		}
 
 		var konversi = $(this).data('konversi');
@@ -477,6 +564,40 @@
 
 		$('.purchase_pack_' + id).val(nilai.toLocaleString());
 	});
+
+	function hitungBudget() {
+		var category = $('#category').val();
+
+		$.ajax({
+			type: 'post',
+			url: siteurl + active_controller + 'hitung_budget',
+			data: {
+				'category': category
+			},
+			cache: false,
+			dataType: 'json',
+			success: function(result) {
+				$('.nilai_budget').val(number_format(result.nilai_budget));
+			}
+		});
+	}
+
+	function hitungPengajuan() {
+		var category = $('#category').val();
+
+		$.ajax({
+			type: 'post',
+			url: siteurl + active_controller + 'hitung_pengajuan',
+			data: {
+				'category': category
+			},
+			cache: false,
+			dataType: 'json',
+			success: function(result) {
+				$('.nilai_pengajuan').val(number_format(result.nilai_pengajuan));
+			}
+		});
+	}
 
 	function DataTables(category = null) {
 		var dataTable = $('#example1').DataTable({
@@ -506,6 +627,15 @@
 					d.category = category
 				},
 				cache: false,
+				dataSrc: function(json) {
+					var total_price = json.total_price;
+
+					// Menampilkan total harga di footer
+					$('#example1 tfoot .total-price').text(number_format(total_price));
+
+					// Mengembalikan data untuk DataTable
+					return json.data;
+				},
 				error: function() {
 					$(".my-grid-error").html("");
 					$("#my-grid").append('<tbody class="my-grid-error"><tr><th colspan="3">No data found in the server</th></tr></tbody>');

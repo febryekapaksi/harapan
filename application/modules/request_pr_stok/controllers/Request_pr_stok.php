@@ -1,6 +1,10 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
+require_once 'vendor/autoload.php';
+
+use Mpdf\Mpdf;
+
 class Request_pr_stok extends Admin_Controller
 {
   //Permission
@@ -8,6 +12,9 @@ class Request_pr_stok extends Admin_Controller
   protected $addPermission    = 'PR_Stok.Add';
   protected $managePermission = 'PR_Stok.Manage';
   protected $deletePermission = 'PR_Stok.Delete';
+
+  protected $id_user;
+  protected $datetime;
 
   public function __construct()
   {
@@ -36,10 +43,9 @@ class Request_pr_stok extends Admin_Controller
       ->where('a.booking_date <>', null)
       ->where('a.close_pr', null)
       ->group_by('a.so_number')
+      ->order_by('a.created_date', 'desc')
       ->get()
       ->result();
-
-
 
     history("View index request pr stok");
     $this->template->set('result', $get_data);
@@ -123,18 +129,24 @@ class Request_pr_stok extends Admin_Controller
 
     $id_material  = $data['id_material'];
     $purchase     = str_replace(',', '', $data['purchase']);
-    $purchase_pack     = str_replace(',', '', $data['purchase_pack']);
+    // $purchase_pack     = str_replace(',', '', $data['purchase_pack']);
     $tanggal      = $data['tanggal'];
-    $spec         = $data['spec'];
     $info         = $data['info'];
+
+    $get_accessories = $this->db->get_where('accessories', ['id' => $id_material])->row();
+    $purchase_pack = ($purchase / $get_accessories->konversi);
+
+    $get_price_ref = $this->db->select('price_reference')->get_where('budget_rutin_detail', ['id_barang' => $id_material])->row();
+
+    $price_ref = (!empty($get_price_ref)) ? $get_price_ref->price_reference : 0;
 
 
     $ArrHeader = array(
-      'spec_pr'          => $spec,
       'info_pr'          => $info,
       'request'       => $purchase,
       'request_pack' => $purchase_pack,
-      'tgl_dibutuhkan' => $tanggal
+      'tgl_dibutuhkan' => $tanggal,
+      'price_ref_high' => $price_ref
     );
     // print_r($ArrHeader);
     // exit;
@@ -183,10 +195,13 @@ class Request_pr_stok extends Admin_Controller
     $ArrSaveDetail = [];
     $SUM = 0;
     foreach ($getraw_materials as $key => $value) {
+      $price_ref = (!empty($value['price_ref'])) ? $value['price_ref'] : 0;
+
       $SUM += $value['request_pack'];
       $ArrSaveDetail[$key]['so_number'] = $so_number;
       $ArrSaveDetail[$key]['id_material'] = $value['id'];
       $ArrSaveDetail[$key]['propose_purchase'] = $value['request_pack'];
+      $ArrSaveDetail[$key]['price_ref'] = $price_ref;
     }
 
     $ArrSaveHeader = array(
@@ -202,19 +217,33 @@ class Request_pr_stok extends Admin_Controller
       'created_date'    => $this->datetime,
       'booking_by'      => $this->id_user,
       'booking_date'    => $this->datetime,
-      'tingkat_pr' => $data['tingkat_pr']
+      'tingkat_pr' => $data['tingkat_pr'],
+      'nilai_budget' => $data['nilai_budget'],
+      'nilai_pengajuan' => $data['nilai_pengajuan']
     );
 
     // print_r($ArrSaveHeader);
     // print_r($ArrSaveDetail);
     // exit;
 
-    $this->db->trans_start();
-    $this->db->insert('material_planning_base_on_produksi', $ArrSaveHeader);
-    if (!empty($ArrSaveDetail)) {
-      $this->db->insert_batch('material_planning_base_on_produksi_detail', $ArrSaveDetail);
+    $this->db->trans_begin();
+    $insert_header = $this->db->insert('material_planning_base_on_produksi', $ArrSaveHeader);
+    if (!$insert_header) {
+      $this->db->trans_rollback();
+
+      print_r($this->db->last_query());
+      exit;
     }
-    $this->db->trans_complete();
+    if (!empty($ArrSaveDetail)) {
+      $insert_detail = $this->db->insert_batch('material_planning_base_on_produksi_detail', $ArrSaveDetail);
+      if (!$insert_detail) {
+        $this->db->trans_rollback();
+
+        print_r($this->db->last_query());
+        exit;
+      }
+    }
+    // $this->db->trans_complete();
 
     if ($this->db->trans_status() === FALSE) {
       $this->db->trans_rollback();
@@ -429,18 +458,34 @@ class Request_pr_stok extends Admin_Controller
     $ArrUpdate = [];
 
     foreach ($get_rutin as $key => $value) {
-      $get_kebutuhan   = $this->db->select('SUM(kebutuhan_month) AS sum_keb')->get_where('budget_rutin_detail', array('id_barang' => $value['id']))->result();
-      $get_stock     = $this->db->select('SUM(qty_stock) AS stock')->where_in('id_gudang', [17, 19, 20])->get_where('warehouse_stock', array('id_material' => $value['id']))->result();
+      $get_kebutuhan   = $this->db->select('SUM(kebutuhan_month) AS sum_keb')->get_where('budget_rutin_detail', array('id_barang' => $value['id']))->row();
+      $get_stock     = $this->db->select('SUM(qty_stock) AS stock')->where('id_gudang', 1)->get_where('warehouse_stock', array('id_material' => $value['id'], 'id_gudang' => 1))->result();
+      $get_konversi = $this->db->select('a.konversi, a.max_stok')->get_where('accessories a', ['a.id' => $value['id']])->row_array();
+
+      $konversi = (!empty($get_konversi)) ? $get_konversi['konversi'] : 1;
+      $max_stok = ($get_kebutuhan->sum_keb * 1.5);
+
+      $get_price_ref = $this->db->select('price_reference')->get_where('budget_rutin_detail', ['id_barang' => $value['id']])->row();
+      $price_ref = (!empty($get_price_ref)) ? $get_price_ref->price_reference : 0;
 
       $stock_oke   = (!empty($get_stock[0]->stock)) ? $get_stock[0]->stock : 0;
-      $purchase   = ($get_kebutuhan[0]->sum_keb * 1.5) - $stock_oke;
+      $purchase   = ($max_stok - $stock_oke);
       $purchase2   = ($purchase < 0) ? 0 : ceil($purchase);
+      // if (($max_stok * $konversi) > $stock_oke) {
+      //   $purchase2 = ceil($purchase);
+      // } else if (($max_stok * $konversi) == $stock_oke) {
+      //   $purchase2 = (($max_stok * $konversi) * 0.5);
+      // } else {
+      //   $purchase2 = 0;
+      // }
 
       $ArrUpdate[$key]['id'] = $value['id'];
       $ArrUpdate[$key]['request'] = $purchase2;
+      $ArrUpdate[$key]['request_pack'] = ($purchase2 / $konversi);
       $ArrUpdate[$key]['tgl_dibutuhkan'] = $tgl_next_month;
       $ArrUpdate[$key]['spec_pr'] = null;
       $ArrUpdate[$key]['info_pr'] = null;
+      $ArrUpdate[$key]['price_ref_high'] = $price_ref;
     }
 
     $this->db->trans_start();
@@ -466,37 +511,17 @@ class Request_pr_stok extends Admin_Controller
     echo json_encode($Arr_Data);
   }
 
-  public function PrintH2()
+  public function PrintH2($id_pr)
   {
-    ob_clean();
-    ob_start();
-    // $this->auth->restrict($this->managePermission);
-    $id = $this->uri->segment(3);
-    $data['header'] = $this->db->query("SELECT a.*, b.nm_customer, b.alamat, c.name as country_name, d.nm_pic, d.hp, d.email_pic, b.fax FROM material_planning_base_on_produksi as a LEFT JOIN material_planning_base_on_produksi x ON x.so_number = a.so_number LEFT JOIN customer b ON b.id_customer = a.id_customer LEFT JOIN country_all c ON c.iso3 = b.country_code LEFT JOIN customer_pic d ON d.id_pic = b.id_pic WHERE a.so_number = '" . $id . "' ")->result();
-    $data['detail']  = $this->db->query("SELECT a.*, if(b.code IS NULL, e.id_stock, b.code) as code, if(b.nama IS NULL, e.stock_name, b.nama) as nama, if(b.konversi IS NULL, if(e.konversi <= 0, 1, e.konversi), b.konversi) as konversi, if(c.code IS NULL, f.code, c.code) as satuan, if(d.code IS NULL, g.code, d.code) as satuan_packing FROM material_planning_base_on_produksi_detail a 
-		LEFT JOIN new_inventory_4 b ON b.code_lv4 = a.id_material 
-		LEFT JOIN ms_satuan c ON c.id = b.id_unit
-		LEFT JOIN ms_satuan d ON d.id = b.id_unit_packing
-		LEFT JOIN accessories e ON e.id = a.id_material
-		LEFT JOIN ms_satuan f ON f.id = e.id_unit
-		LEFT JOIN ms_satuan g ON g.id = e.id_unit_gudang
-		WHERE a.so_number = '" . $id . "' ")->result();
-    // $data['detailsum'] = $this->db->query("SELECT AVG(width) as totalwidth, AVG(qty) as totalqty FROM dt_trans_po WHERE no_po = '" . $id . "' ")->result();
+    $header = $this->request_pr_stok_model->getPRStockHeader($id_pr);
+    $detail = $this->request_pr_stok_model->getPRStockDetail($id_pr);
+
+    $data = [
+      'header' => $header,
+      'detail' => $detail
+    ];
+
     $this->load->view('Print', $data);
-    $html = ob_get_contents();
-
-    // print_r($data['header']);
-    // exit;
-
-    require_once('./assets/html2pdf/html2pdf/html2pdf.class.php');
-    $html2pdf = new HTML2PDF('P', 'A4', 'en', true, 'UTF-8', array(10, 5, 10, 5));
-    $html2pdf->pdf->SetDisplayMode('fullpage');
-    $html2pdf->WriteHTML($html);
-    ob_end_clean();
-    $html2pdf->Output('Purchase Request.pdf', 'I');
-
-    // $this->template->title('Testing');
-    // $this->template->render('print2');
   }
 
   public function edit_detail()
@@ -614,17 +639,26 @@ class Request_pr_stok extends Admin_Controller
   public function add_stok()
   {
     $post = $this->input->post();
+    $get_material = $this->db->get_where('accessories', ['id' => $post['id']])->row();
+
+    $price_ref = (!empty($get_material) && $get_material->price_ref_high !== null) ? $get_material->price_ref_high : 0;
 
     $this->db->trans_begin();
+
 
     $ArrData = [
       'so_number' => $post['so_number'],
       'id_material' => $post['id'],
       'propose_purchase' => $post['qty'],
       'status_app' => 'N',
-      'note' => $post['notes']
+      'note' => $post['notes'],
+      'price_ref' => $price_ref
     ];
-    $this->db->insert('material_planning_base_on_produksi_detail', $ArrData);
+    $insert = $this->db->insert('material_planning_base_on_produksi_detail', $ArrData);
+    if (!$insert) {
+      print_r($this->db->error($insert));
+      exit;
+    }
 
     if ($this->db->trans_status() === FALSE) {
       $this->db->trans_rollback();
@@ -693,5 +727,49 @@ class Request_pr_stok extends Admin_Controller
     echo json_encode([
       'status' => $valid
     ]);
+  }
+
+  public function hitung_budget()
+  {
+    $category = $this->input->post('category');
+
+    $this->db->select('a.kebutuhan_month, a.price_reference');
+    $this->db->from('budget_rutin_detail a');
+    $this->db->join('accessories b', 'b.id = a.id_barang');
+    $this->db->where('b.id_category', $category);
+    $get_hitung_budget = $this->db->get()->result();
+
+    $nilai_budget = 0;
+    foreach ($get_hitung_budget as $item_budget) {
+      $nilai_budget += ($item_budget->kebutuhan_month * $item_budget->price_reference);
+    }
+
+    $response = [
+      'nilai_budget' => $nilai_budget
+    ];
+
+    echo json_encode($response);
+  }
+
+  public function hitung_pengajuan()
+  {
+    $category = $this->input->post('category');
+
+    $this->db->select('a.request, a.price_ref_high');
+    $this->db->from('accessories a');
+    $this->db->where('a.id_category', $category);
+    $this->db->where('a.request >', 0);
+    $get_hitung_pengajuan = $this->db->get()->result();
+
+    $nilai_pengajuan = 0;
+    foreach ($get_hitung_pengajuan as $item) {
+      $nilai_pengajuan += ($item->request * $item->price_ref_high);
+    }
+
+    $response = [
+      'nilai_pengajuan' => $nilai_pengajuan
+    ];
+
+    echo json_encode($response);
   }
 }

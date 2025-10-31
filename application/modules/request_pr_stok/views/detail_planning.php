@@ -50,7 +50,17 @@
 						</tr>
 					</table>
 				</div>
+				<div class="col-md-6">
+					<label for="">Nilai Budget</label>
+					<input type="text" name="" id="" class="form-control form-control-sm text-right" value="<?= number_format($header[0]['nilai_budget']) ?>" readonly>
+				</div>
+				<div class="col-md-6">
+					<label for="">Nilai Pengajuan</label>
+					<input type="text" name="" id="" class="form-control form-control-sm text-right" value="<?= number_format($header[0]['nilai_pengajuan']) ?>" readonly>
+				</div>
+				<br><br>
 				<div class="col-md-12">
+					<br><br>
 					<table class='table table-striped table-bordered table-hover table-condensed' width='100%'>
 						<thead class='thead'>
 							<tr class='bg-blue'>
@@ -63,6 +73,8 @@
 								<th class="text-center th">Unit Pack</th>
 								<th class='text-center th'>Qty</th>
 								<th class="text-center th">Unit Measurement</th>
+								<th class="text-center th">Price Ref</th>
+								<th class="text-center th">Total Price</th>
 								<th class='text-center th'>#</th>
 							</tr>
 						</thead>
@@ -93,11 +105,13 @@
 										</td>";
 								echo "<td class='text-right min_stok'>" . number_format($value['min_stok'], 2) . "</td>";
 								echo "<td class='text-right max_stok'>" . number_format($value['max_stok'], 2) . "</td>";
-								echo "<td class='text-right min_order'>" . number_format(0, 2) . "</td>";
+								echo "<td class='text-right min_order'>" . number_format($get_stock->min_order, 2) . "</td>";
 								echo "<td class='text-right'>" . number_format($propose, 2) . "</td>";
-								echo "<td class='text-center'>".strtoupper($get_stock->satuan_pack)."</td>";
+								echo "<td class='text-center'>" . strtoupper($get_stock->satuan_pack) . "</td>";
 								echo "<td class='text-center'>" . number_format($propose * $konversi, 2) . "</td>";
-								echo "<td class='text-center'>".strtoupper($get_stock->satuan)."</td>";
+								echo "<td class='text-center'>" . strtoupper($get_stock->satuan) . "</td>";
+								echo '<td class="text-right">' . number_format($value['price_ref'], 2) . '</td>';
+								echo '<td class="text-right">' . number_format(($value['price_ref'] * ($propose * $konversi)), 2) . '</td>';
 								if ($value['status_app'] == 'N') {
 									echo "<td class='text-center'><span class='badge bg-blue text-bold'>Waiting Process</span></td>";
 								}

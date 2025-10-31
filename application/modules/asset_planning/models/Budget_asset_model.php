@@ -2,11 +2,15 @@
 class Budget_asset_model extends BF_Model
 {
 
+	protected $hris;
+
 	public function __construct()
 	{
 		parent::__construct();
 		// $this->load->database();
 		// $this->db2 = $this->load->database('gl', TRUE);
+
+		// $this->hris = $this->load->database('hris', true);
 	}
 
 	public function index()
@@ -121,12 +125,28 @@ class Budget_asset_model extends BF_Model
 
 			$tanda = $requestData['tanda'];
 
+			// $this->hris->select('a.id, a.name as nm_dept, b.name as nm_comp');
+			// $this->hris->from('departments a');
+			// $this->hris->join('companies b', 'b.id = a.company_id', 'left');
+			// $this->hris->where('a.id', $row['id_dept']);
+			// $get_department = $this->hris->get()->row();
+
+			$this->db->select('a.id, a.nama as nm_dept');
+			$this->db->from('ms_department a');
+			$this->db->where('a.deleted_by', null);
+			$this->db->where('a.id', $row['id_dept']);
+			$get_department = $this->db->get()->row();
+
+
+			$nm_dept = (!empty($get_department)) ? $get_department->nm_dept : '';
+
+			$keterangan = (!empty($row['rev_keterangan'])) ? $row['rev_keterangan'] : $row['keterangan'];
+
 			$nestedData 	= array();
 			$nestedData[]	= "<div align='center'>" . $nomor . "</div>";
-			$nestedData[]	= "<div align='left'>" . strtoupper($row['coa'] . ' | ' . $row['nama']) . "</div>";
-			$nestedData[]	= "<div align='left'>" . strtoupper($row['nm_dept']) . "</div>";
-			$nestedData[]	= "<div align='left'>" . strtoupper($row['nm_costcenter']) . "</div>";
+			$nestedData[]	= "<div align='left'>" . strtoupper($nm_dept) . "</div>";
 			$nestedData[]	= "<div align='left'>" . strtoupper($row['nama_asset']) . "</div>";
+			$nestedData[]	= "<div align='left'>" . strtoupper($keterangan) . "</div>";
 			$nestedData[]	= "<div align='center'>" . $row['qty'] . "</div>";
 			$nestedData[]	= "<div align='right'>" . number_format($row['budget']) . "</div>";
 			$nestedData[]	= "<div align='right'>" . number_format($row['budget_pr']) . "</div>";
@@ -162,6 +182,8 @@ class Budget_asset_model extends BF_Model
 			if ($row['status'] != 'N') {
 				$view = "<a href='" . site_url($this->uri->segment(1)) . '/add_asset/' . $row['code_plan'] . "/view' class='btn btn-sm btn-warning' title='Detail Data' data-role='qtip'><i class='fa fa-eye'></i></a>";
 			}
+			$nestedData[]	= "<div align='center'>" . $row['nm_lengkap'] . "</div>";
+			$nestedData[]	= "<div align='center'>" . date('d F Y H:i:s', strtotime($row['created_date'])) . "</div>";
 			$nestedData[]	= "	<div align='left'>
 									" . $view . "
                                     " . $edit . "
@@ -196,21 +218,24 @@ class Budget_asset_model extends BF_Model
 				(@row:=@row+1) AS nomor,
 				a.*,
 				b.nama as nm_dept,
-				c.nama_costcenter as nm_costcenter,
-				d.nama
+				d.nama,
+				e.nm_lengkap
 			FROM
 				asset_planning a
 				LEFT JOIN ms_department b ON a.id_dept = b.id
-				LEFT JOIN ".DBACC.".coa_master d ON a.coa = d.no_perkiraan
-				LEFT JOIN ms_costcenter c ON a.id_costcenter = c.id,
+				LEFT JOIN " . DBACC . ".coa_master d ON a.coa = d.no_perkiraan
+				LEFT JOIN users e ON e.id_user = a.created_by,
 				(SELECT @row:=0) r
 		    WHERE  a.deleted='N' " . $where . " AND(
 				a.id LIKE '%" . $this->db->escape_like_str($like_value) . "%'
 				OR b.nama LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-				OR c.nama_costcenter LIKE '%" . $this->db->escape_like_str($like_value) . "%'
+				OR e.nm_lengkap LIKE '%" . $this->db->escape_like_str($like_value) . "%'
+				OR a.keterangan LIKE '%" . $this->db->escape_like_str($like_value) . "%'
+				OR a.rev_keterangan LIKE '%" . $this->db->escape_like_str($like_value) . "%'
 	        )
 		";
-		// echo $sql; exit;
+		// echo $sql;
+		// exit;
 
 		$data['totalData'] = $this->db->query($sql)->num_rows();
 		$data['totalFiltered'] = $this->db->query($sql)->num_rows();
@@ -218,12 +243,11 @@ class Budget_asset_model extends BF_Model
 			0 => 'nomor',
 			1 => 'id',
 			2 => 'nm_dept',
-			3 => 'nm_costcenter',
-			4 => 'nama_asset',
-			5 => 'qty',
-			6 => 'budget',
-			7 => 'budget_pr',
-			8 => 'budget_po'
+			3 => 'nama_asset',
+			4 => 'qty',
+			5 => 'budget',
+			6 => 'budget_pr',
+			7 => 'budget_po'
 		);
 
 		$sql .= " ORDER BY " . $columns_order_by[$column_order] . " " . $column_dir . " ";
