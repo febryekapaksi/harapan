@@ -3,6 +3,11 @@
 class Request_pr_stok_model extends BF_Model
 {
 
+  protected $ENABLE_ADD;
+  protected $ENABLE_MANAGE;
+  protected $ENABLE_VIEW;
+  protected $ENABLE_DELETE;
+
   public function __construct()
   {
     parent::__construct();
@@ -81,7 +86,7 @@ class Request_pr_stok_model extends BF_Model
 
         if (!empty($get_stok_data)) {
           $nm_detail = $nm_detail . $get_stok_data->stock_name . '<br>';
-          $qty_detail = $qty_detail . number_format($item->propose_purchase, 2).' '.ucfirst($get_stok_data->code).'<br>';
+          $qty_detail = $qty_detail . number_format($item->propose_purchase, 2) . ' ' . ucfirst($get_stok_data->code) . '<br>';
         }
       }
 
@@ -93,13 +98,13 @@ class Request_pr_stok_model extends BF_Model
       $this->db->where('a.so_number', $row['so_number']);
       $this->db->group_by('c.id');
       $get_kategori_pr = $this->db->get()->result();
-      foreach($get_kategori_pr as $item_kategori_pr) {
+      foreach ($get_kategori_pr as $item_kategori_pr) {
         $kategori_pr[] = $item_kategori_pr->kategori;
       }
 
-      if(!empty($kategori_pr)) {
+      if (!empty($kategori_pr)) {
         $kategori_pr = implode(', ', $kategori_pr);
-      }else{
+      } else {
         $kategori_pr = '';
       }
 
@@ -150,8 +155,8 @@ class Request_pr_stok_model extends BF_Model
       }
 
       $nestedData[]    = "<div align='left'><span class='badge' style='background-color: " . $warna . ";'>" . $sts . "</span></div>";
-      $nestedData[]    = "<div align='center'>".$row['request_by']."</div>";
-      $nestedData[]    = "<div align='center'>".$row['request_date']."</div>";
+      $nestedData[]    = "<div align='center'>" . $row['request_by'] . "</div>";
+      $nestedData[]    = "<div align='center'>" . $row['request_date'] . "</div>";
 
       $approve  = "";
       $view  = "<a href='" . site_url($this->uri->segment(1)) . '/detail_planning/' . $row['so_number'] . "' class='btn btn-sm btn-warning' title='Detail PR' data-role='qtip'><i class='fa fa-eye'></i></a>";
@@ -207,8 +212,8 @@ class Request_pr_stok_model extends BF_Model
               OR a.so_number LIKE '%" . $this->db->escape_like_str($like_value) . "%'
               OR a.project LIKE '%" . $this->db->escape_like_str($like_value) . "%'
               OR a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-              OR d.stock_name LIKE '%".$this->db->escape_like_str($like_value)."%'
-              OR e.nm_lengkap LIKE '%".$this->db->escape_like_str($like_value)."%'
+              OR d.stock_name LIKE '%" . $this->db->escape_like_str($like_value) . "%'
+              OR e.nm_lengkap LIKE '%" . $this->db->escape_like_str($like_value) . "%'
             )
             GROUP BY a.so_number
             ";
@@ -406,6 +411,18 @@ class Request_pr_stok_model extends BF_Model
     $urut2  = 0;
     $GET_KEBUTUHAN_PER_MONTH = get_kebutuhanPerMonth();
     $GET_WAREHOUSE_STOCK = getStokBarangAll();
+
+
+
+    $this->db->select('SUM(a.request * a.price_ref) as total_price');
+    $this->db->from('accessories a');
+    if (!empty($requestData['category'])) {
+      $this->db->where('a.id_category', $requestData['category']);
+    }
+    $get_total_price = $this->db->get()->row();
+
+    $total_price = (!empty($get_total_price)) ? $get_total_price->total_price : 0;
+
     foreach ($query->result_array() as $row) {
       $total_data     = $totalData;
       $start_dari     = $requestData['start'];
@@ -426,24 +443,29 @@ class Request_pr_stok_model extends BF_Model
 
       $nestedData   = array();
       $nestedData[]  = "<div align='center'>" . $nomor . "</div>";
-      $nestedData[]  = "<div align='left'>" . $row['id_stock'] . "</div>";
       $nestedData[]  = "<div align='left'>" . $row['stock_name'] . "</div>";
-      $nestedData[]  = "<div align='left'>" . strtoupper($row['category_type']) . "</div>";
 
       $STOCK_WRH    = (!empty($GET_WAREHOUSE_STOCK[$row['id']]['stok'])) ? $GET_WAREHOUSE_STOCK[$row['id']]['stok'] : 0;
-      $stock_oke     = (!empty($STOCK_WRH)) ? number_format($STOCK_WRH) : '-';
+      $stock_oke     = (!empty($STOCK_WRH)) ? $STOCK_WRH : 0;
       $stock_oke2   = (!empty($STOCK_WRH)) ? $STOCK_WRH : 0;
-      $nestedData[]  = "<div align='right'>" . $stock_oke . "</div>";
+
+      $konversi = ($row['konversi'] > 0) ? $row['konversi'] : 1;
+
+      // $get_price_ref = $this->db->select('price_reference')->get_where('budget_rutin_detail', ['id_barang' => $row['id']])->row();
+      $price_ref = $row['price_ref'];
 
       $kebutuhnMonth   = (!empty($GET_KEBUTUHAN_PER_MONTH[$row['id']]['kebutuhan'])) ? $GET_KEBUTUHAN_PER_MONTH[$row['id']]['kebutuhan'] : 0;
       $nestedData[]  = "<div align='right'>" . number_format($kebutuhnMonth) . "</div>";
+      $nestedData[]  = "<div align='right'>" . number_format($stock_oke) . "</div>";
       $nestedData[]  = "<div align='right'>" . number_format(($kebutuhnMonth * 1.5)) . "</div>";
-      $purchase = ($kebutuhnMonth * 1.5) - $stock_oke2;
+      $purchase = ($kebutuhnMonth) - $stock_oke2;
       $purchase2x = ($purchase < 0) ? 0 : $purchase;
       $purchase2 = (!empty($row['request'])) ? $row['request'] : $purchase2x;
 
       $purchase_value = ($purchase2 > 0) ? number_format($purchase2, 2) : '';
-      $konversi = ($row['konversi'] > 0) ? $row['konversi'] : 1;
+
+      $grand_total_val = ($purchase_value !== '') ? number_format($price_ref * $purchase2) : '';
+      $grand_total_val2 = ($purchase_value !== '') ? ($price_ref * $purchase2) : 0;
 
       $purchase_value_pack = ($row['request_pack'] > 0) ? number_format($row['request_pack'], 2) : '';
 
@@ -451,23 +473,18 @@ class Request_pr_stok_model extends BF_Model
       $unit_sat = ($unit_satuan != '0') ? $unit_satuan : '';
 
       $nestedData[]  = "<div align='right'>
-									<input type='text' name='purchase_" . $nomor . "' id='purchase_" . $nomor . "' value='" . $purchase_value . "' data-id='" . $row['id'] . "' data-no='" . $nomor . "' data-konversi='" . $row['konversi'] . "' class='form-control input-md text-right input_qty_satuan maskM changeSave purchase_" . $row['id'] . "' style='width:100%;'>
+									<input type='text' name='purchase_" . $nomor . "' id='purchase_" . $nomor . "' value='" . $purchase_value . "' data-id='" . $row['id'] . "' data-no='" . $nomor . "' data-konversi='" . $row['konversi'] . "' class='form-control input-md text-right input_qty_satuan maskM changeSave purchase_" . $row['id'] . "' style='width:100%;' data-max_propose='" . ceil($kebutuhnMonth * 1.5) . "'>
 								  </div><script type='text/javascript'>$('.maskM').autoNumeric('init', {mDec: '2', aPad: false});</script>";
+
       $nestedData[]  = "<div align='left'>
 									<select id='satuan_" . $nomor . "' class='chosen_select form-control input-md'><option value='" . $row['id_unit'] . "'>" . strtoupper($unit_sat) . "</option></select>	
 									<input type='hidden' name='tanggal_" . $nomor . "' id='tanggal_" . $nomor . "' data-id='" . $row['id'] . "' data-no='" . $nomor . "' class='form-control input-md tgl changeSave' style='width:100%;' readonly value='" . $tgl_next_month . "'></div>";
 
       $unit_packing   = get_name('ms_satuan', 'code', 'id', $row['id_unit_gudang']);
       $unit_pack = ($unit_packing != '0') ? $unit_packing : '';
-      $nestedData[]  = "<div align='right'>
-									<input type='text' name='purchase_pack_" . $nomor . "' id='purchase_pack_" . $nomor . "' value='" . ($purchase_value_pack) . "' data-id='" . $row['id'] . "' data-no='" . $nomor . "' data-konversi='" . $row['konversi'] . "' class='form-control input-md text-right input_qty_packing purchase_pack_" . $row['id'] . " maskM changeSave' style='width:100%;'>
-								  </div><script type='text/javascript'>$('.maskM').autoNumeric('init', {mDec: '2', aPad: false});</script>";
-      $nestedData[]  = "<div align='center'>" . strtoupper($unit_pack) . "</div>";
 
       $nestedData[]  = "<div align='left'>
-									<input type='text' name='spec_" . $nomor . "' id='spec_" . $nomor . "' data-id='" . $row['id'] . "' data-no='" . $nomor . "' class='form-control input-md changeSave' style='width:100%;' placeholder='Spec' value='" . $spec_pr . "'></div>";
-      $nestedData[]  = "<div align='left'>
-									<input type='text' name='info_" . $nomor . "' id='info_" . $nomor . "' data-id='" . $row['id'] . "' data-no='" . $nomor . "' class='form-control input-md changeSave' style='width:100%;' placeholder='Info' value='" . $info_pr . "'></div>
+									<input type='text' name='info_" . $nomor . "' id='info_" . $nomor . "' data-id='" . $row['id'] . "' data-no='" . $nomor . "' class='form-control input-md changeSave' style='width:100%;' placeholder='- Keterangan -' value='" . $info_pr . "'></div>
 									<style>.tgl{cursor:pointer;}</style>
 									<script type='text/javascript'>
 									$('.chosen_select').select2({width: '100%'});
@@ -478,20 +495,22 @@ class Request_pr_stok_model extends BF_Model
 										minDate : 0
 									});
 									</script>";
-      // $approve 		= "&nbsp;<button type='button' class='btn btn-sm btn-success save_pr' title='Save PR'  data-id='".$row['id']."' data-no='".$nomor."'><i class='fa fa-check'></i></button>";
-      // $nestedData[]	= 	"<div align='center'>
-      // 					".$approve."
-      // 					</div>";
+
+      $nestedData[] = number_format($price_ref);
+      $nestedData[] = '<div align="right">' . $grand_total_val . '</div>';
       $data[] = $nestedData;
       $urut1++;
       $urut2++;
+
+      // $total_price += $grand_total_val2;
     }
 
     $json_data = array(
       "draw"              => intval($requestData['draw']),
       "recordsTotal"      => intval($totalData),
       "recordsFiltered"   => intval($totalFiltered),
-      "data"              => $data
+      "data"              => $data,
+      "total_price" => $total_price
     );
 
     echo json_encode($json_data);
@@ -535,5 +554,28 @@ class Request_pr_stok_model extends BF_Model
 
     $data['query'] = $this->db->query($sql);
     return $data;
+  }
+
+  public function getPRStockHeader($id_pr)
+  {
+    $get_header = $this->db->get_where('material_planning_base_on_produksi', ['so_number' => $id_pr])->row();
+
+    return $get_header;
+  }
+
+  public function getPRStockDetail($id_pr)
+  {
+    $this->db->select('a.*, b.stock_name, b.konversi, b.spec, c.qty_stock, d.nm_category, e.code as satuan, f.kebutuhan_month as qty_kebutuhan');
+    $this->db->from('material_planning_base_on_produksi_detail a');
+    $this->db->join('accessories b', 'b.id = a.id_material', 'left');
+    $this->db->join('warehouse_stock c', 'c.id_material = a.id_material', 'left');
+    $this->db->join('accessories_category d', 'd.id = b.id_category', 'left');
+    $this->db->join('ms_satuan e', 'e.id = b.id_unit_gudang', 'left');
+    $this->db->join('budget_rutin_detail f', 'f.id_barang = b.id', 'left');
+    $this->db->where('a.so_number', $id_pr);
+    $this->db->group_by('b.id');
+    $get_detail = $this->db->get()->result();
+
+    return $get_detail;
   }
 }

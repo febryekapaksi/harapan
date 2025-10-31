@@ -81,6 +81,7 @@ class App_pr_departemen_model extends BF_Model
                 implode('<br>', $list_qty),
                 implode('<br>', $list_tanggal),
                 implode('<br>', $list_ket),
+                $row['pic'],
                 "<span class='badge' style='background-color: {$warna};'>{$sts}</span>",
                 "<div align='center'> $approve $print </div>",
             ];
@@ -103,10 +104,11 @@ class App_pr_departemen_model extends BF_Model
             2 => 'b.nama'
         ];
 
-        $this->db->select('a.*, b.nama');
+        $this->db->select('a.*, b.nama, c.nm_lengkap as pic');
         $this->db->from('rutin_non_planning_detail z');
         $this->db->join('rutin_non_planning_header a', 'z.no_pengajuan = a.no_pengajuan', 'left');
         $this->db->join('ms_department b', 'b.id = a.id_dept', 'left');
+        $this->db->join('users c', 'c.id_user = a.created_by', 'left');
         $this->db->where('a.status_id', 1);
         $this->db->where('a.no_pr IS NULL');
         $this->db->where('a.app_post', '3');
@@ -119,6 +121,7 @@ class App_pr_departemen_model extends BF_Model
             $this->db->or_like('a.tanggal', $like);
             $this->db->or_like('a.no_pr', $like);
             $this->db->or_like('b.nama', $like);
+            $this->db->or_like('c.nm_lengkap', $like);
             $this->db->group_end();
         }
 
