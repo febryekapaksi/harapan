@@ -67,11 +67,6 @@ $disabled3      = ($approve == 'view') ? 'readonly' : '';
 ?>
 <link rel="stylesheet" href="https://cdn.datatables.net/2.0.2/css/dataTables.dataTables.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.css" integrity="sha512-0nkKORjFgcyxv3HbE4rzFUlENUMNqic/EzDIeYCgsKa/nwqr2B91Vu/tNAu4Q0cBuG4Xe/D1f/freEci/7GDRA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-<style>
-    .chosen-drop {
-        z-index: 99999 !important;
-    }
-</style>
 <form action="#" method="POST" id="form_ct" enctype="multipart/form-data" autocomplete='off'>
     <input type="hidden" name="id" value="<?= $id; ?>">
     <input type="hidden" name="tanda" value="<?= $tanda; ?>">
