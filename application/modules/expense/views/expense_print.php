@@ -1,15 +1,3 @@
-<?php
-$gambar = '';
-foreach ($data_detail as $item_detail) {
-	if ($item_detail->doc_file !== '') {
-		if (strpos($item_detail->doc_file, 'pdf', 0) > 1) {
-			$gambar .= '<iframe src="asset/expense/' . base_url($item_detail->doc_file) . '" #toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0"></iframe><br /><br />';
-		} else {
-			$gambar .= '<img src="asset/expense/' . base_url($item_detail->doc_file) . '" width="500"><br />';
-		}
-	}
-}
-?>
 <html>
 
 <head>
@@ -53,7 +41,7 @@ foreach ($data_detail as $item_detail) {
 					$total_km = 0;
 					$grand_total = 0;
 					$i = 0;
-					// $gambar = "";
+					$gambar = "";
 					if (!empty($data_detail)) {
 						foreach ($data_detail as $record) {
 							$i++; ?>
@@ -68,7 +56,13 @@ foreach ($data_detail as $item_detail) {
 								<td align="right"><?= number_format($record->expense); ?></td>
 							</tr>
 					<?php
-
+							if ($record->doc_file != '') {
+								if (strpos($record->doc_file, 'pdf', 0) > 1) {
+									$gambar .= '<iframe src="' . base_url('assets/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0"></iframe><br /><br />';
+								} else {
+									$gambar .= '<img src="' . base_url() . 'assets/expense/' . $record->doc_file . '" width="500"><br />';
+								}
+							}
 							$total_expense = ($total_expense + ($record->expense));
 							$idd++;
 						}
@@ -141,17 +135,7 @@ foreach ($data_detail as $item_detail) {
 	<em>STM/FR02/09/01/00</em>
 
 	<br />
-	<?php
-	foreach ($data_detail as $item_detail) {
-		if (!empty($item_detail->doc_file)) {
-			if (strpos($item_detail->doc_file, 'pdf', 0) > 1) {
-				echo '<iframe src="' . base_url('assets/expense/' . $item_detail->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0"></iframe><br /><br />';
-			} else {
-				echo '<img src="' . base_url('assets/expense/' . $item_detail->doc_file) . '" width="500"><br />';
-			}
-		}
-	}
-	?>
+	<?= $gambar ?>
 </body>
 
 </html>

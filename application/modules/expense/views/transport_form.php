@@ -76,7 +76,7 @@
 						<label class="col-sm-2 control-label">Dokumen</label>
 						<div class="col-sm-4">
 							<input type="hidden" name="filename" id="filename" value="<?= (isset($data->doc_file) ? $data->doc_file : ''); ?>">
-							<input type="file" name="doc_file" id="doc_file" accept="image/*">
+							<input type="file" name="doc_file" id="doc_file">
 							<span class="pull-right"><?php
 														$gambar = '';
 														if (isset($data->doc_file)) {
@@ -125,165 +125,81 @@
 	</div>
 	<?= form_close() ?>
 	<script src="<?= base_url('assets/js/number-divider.min.js') ?>"></script>
-	<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
 	<script type="text/javascript">
 		var url_save = siteurl + 'expense/transport_save/';
 		var url_approve = siteurl + 'expense/transport_approve/';
 		$('.divide').divide();
-		$('#frm_data').on('submit', async function(e) {
+		$('#frm_data').on('submit', function(e) {
 			e.preventDefault();
-			let errors = "";
-
+			var errors = "";
 			if ($("#filename").val() == "") {
 				if ($('#doc_file').get(0).files.length === 0) {
 					errors = "Dokumen harus diupload";
 				}
 			}
 			if ($("#tgl_doc").val() == "") errors = "Tanggal Transaksi tidak boleh kosong";
-
 			if (errors == "") {
 				swal({
-					title: "Anda Yakin?",
-					text: "Data Akan Disimpan!",
-					type: "info",
-					showCancelButton: true,
-					confirmButtonText: "Ya, simpan!",
-					cancelButtonText: "Tidak!",
-					closeOnConfirm: false,
-					closeOnCancel: true
-				}, async function(isConfirm) {
-					if (isConfirm) {
-						$('.ajax_loader').show();
-
-						var formdata = new FormData($('#frm_data')[0]);
-
-						$.ajax({
-							url: url_save,
-							dataType: "json",
-							type: 'POST',
-							data: formdata,
-							processData: false,
-							contentType: false,
-							success: function(msg) {
-								if (msg['save'] == '1') {
-									swal({
-										title: "Sukses!",
-										text: msg['msg'],
-										type: "success",
-										timer: 1500
-									}, function() {
+						title: "Anda Yakin?",
+						text: "Data Akan Disimpan!",
+						type: "info",
+						showCancelButton: true,
+						confirmButtonText: "Ya, simpan!",
+						cancelButtonText: "Tidak!",
+						closeOnConfirm: false,
+						closeOnCancel: true
+					},
+					function(isConfirm) {
+						if (isConfirm) {
+							var formdata = new FormData($('#frm_data')[0]);
+							$.ajax({
+								url: url_save,
+								dataType: "json",
+								type: 'POST',
+								data: formdata,
+								processData: false,
+								contentType: false,
+								success: function(msg) {
+									if (msg['save'] == '1') {
+										swal({
+											title: "Sukses!",
+											text: "Data Berhasil Di Simpan",
+											type: "success",
+											timer: 1500,
+											showConfirmButton: false
+										});
 										window.location = siteurl + 'expense/transport';
-									});
-								} else {
+									} else {
+										swal({
+											title: "Gagal!",
+											text: "Data Gagal Di Simpan",
+											type: "error",
+											timer: 1500,
+											showConfirmButton: false
+										});
+									};
+									console.log(msg);
+								},
+								error: function(msg) {
 									swal({
 										title: "Gagal!",
-										text: msg['msg'],
+										text: "Ajax Data Gagal Di Proses",
 										type: "error",
-										timer: 1500
+										timer: 1500,
+										showConfirmButton: false
 									});
+									console.log(msg);
 								}
-							},
-							error: function(msg) {
-								swal({
-									title: "Gagal!",
-									text: "Ajax Data Gagal Di Proses",
-									type: "error",
-									timer: 1500
-								});
-								console.log(msg);
-							}
-						});
-						// try {
-						// 	const imageInput = document.getElementById('doc_file');
-						// 	const imageFile = imageInput.files[0];
+							});
+						}
+					});
 
-						// 	if (!imageFile) {
-						// 		alert('Please select an image!');
-						// 		return false;
-						// 	}
-
-						// 	// Detect mobile devices
-						// 	const isMobile = /Mobi|Android/i.test(navigator.userAgent);
-
-						// 	// Compression settings
-						// 	const options = {
-						// 		maxSizeMB: 1,
-						// 		maxWidthOrHeight: isMobile ? 1024 : 2000,
-						// 		useWebWorker: !isMobile // Disable worker on mobile if needed
-						// 	};
-
-						// 	// 🧠 Compress the image
-						// 	console.log("Original size:", imageFile.size / 1024, "KB");
-
-						// 	const compressedFile = await imageCompression(imageFile, options);
-
-						// 	console.log("Compressed size:", compressedFile.size / 1024, "KB");
-
-						// 	// Build new FormData and append compressed image
-						// 	const formdata = new FormData();
-						// 	// formdata.append('doc_file', compressedFile, compressedFile.name);
-
-						// 	// Append all other form fields except file
-						// 	$('#frm_data').find('input, select, textarea').each(function() {
-						// 		const $el = $(this);
-						// 		const type = $el.attr('type');
-						// 		const name = $el.attr('name');
-						// 		if (!name || type === 'file') return;
-
-						// 		if ((type === 'checkbox' || type === 'radio') && !$el.is(':checked')) return;
-
-						// 		formdata.append(name, $el.val());
-						// 	});
-
-						// 	// 🚀 Send the AJAX request
-						// 	$.ajax({
-						// 		url: url_save,
-						// 		dataType: "json",
-						// 		type: 'POST',
-						// 		data: formdata,
-						// 		processData: false,
-						// 		contentType: false,
-						// 		success: function(msg) {
-						// 			if (msg['save'] == '1') {
-						// 				swal({
-						// 					title: "Sukses!",
-						// 					text: msg['msg'],
-						// 					type: "success",
-						// 					timer: 1500
-						// 				}, function() {
-						// 					window.location = siteurl + 'expense/transport';
-						// 				});
-						// 			} else {
-						// 				swal({
-						// 					title: "Gagal!",
-						// 					text: msg['msg'],
-						// 					type: "error",
-						// 					timer: 1500
-						// 				});
-						// 			}
-						// 		},
-						// 		error: function(msg) {
-						// 			swal({
-						// 				title: "Gagal!",
-						// 				text: "Ajax Data Gagal Di Proses",
-						// 				type: "error",
-						// 				timer: 1500
-						// 			});
-						// 			console.log(msg);
-						// 		}
-						// 	});
-						// } catch (error) {
-						// 	console.error("Compression failed:", error);
-						// 	alert("Image compression failed. Coba gunakan gambar dengan ukuran lebih kecil.");
-						// }
-					}
-				});
+				//			data_save();
 			} else {
 				swal(errors);
 				return false;
 			}
 		});
-
 		<?php if (isset($stsview)) {
 			if ($stsview == 'view') {
 		?>
@@ -326,7 +242,8 @@
 										title: "Sukses!",
 										text: "Data Berhasil Di Update",
 										type: "success",
-										timer: 1500
+										timer: 1500,
+										showConfirmButton: false
 									});
 									window.location.reload();
 								} else {
@@ -334,7 +251,8 @@
 										title: "Gagal!",
 										text: "Data Gagal Di Update",
 										type: "error",
-										timer: 1500
+										timer: 1500,
+										showConfirmButton: false
 									});
 								};
 								console.log(msg);

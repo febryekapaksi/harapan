@@ -46,14 +46,6 @@ if ($type == 'expense') {
 	$bank_id = $header->bank_id;
 	$accnumber = $header->accnumber;
 	$accname = $header->accname;
-} elseif ($type == 'direct_payment') {
-	$keterangan = $header->deskripsi;
-	$no_doc = $header->no_doc;
-	$tgl_doc = $header->tgl_doc;
-
-	$bank_id = $header->bank;
-	$accnumber = $header->bank_number;
-	$accname = $header->bank_account;
 }
 
 ?>
@@ -138,12 +130,10 @@ if ($type == 'expense') {
 				</thead>
 				<tbody>
 					<?php
-					$n = 0;
-					$gTotal = 0;
 					if (!empty($details)) {
+						$n = $gTotal = 0;
 						foreach ($details as $dtl) : $n++;
-							$coa = (isset($dtl->coa)) ? $dtl->coa : '';
-							$nm_coa = (isset($list_coa[$coa]) && $coa !== '') ? $list_coa[$coa] : '';
+							$nm_coa = (isset($list_coa[$dtl->coa]) && $dtl->coa !== '') ? $list_coa[$dtl->coa] : '';
 							if ($type == 'expense') :
 								$harga  = $dtl->harga;
 								if (isset($dtl->id_kasbon) && $dtl->id_kasbon !== '') {
@@ -155,7 +145,7 @@ if ($type == 'expense') {
 								$gTotal += ($data_req_payment['jumlah'] + $data_req_payment['admin_bank'] - $data_req_payment['total_pph']); ?>
 								<tr>
 									<td><?= $n; ?></td>
-									<td><?= $coa . ' - ' . $nm_coa; ?></td>
+									<td><?= $dtl->coa . ' - ' . $nm_coa; ?></td>
 									<td><?= $dtl->deskripsi; ?> <?= (isset($dtl->id_kasbon) && $dtl->id_kasbon !== '') ? "<b>(Kasbon)</b>" : null ?></td>
 									<td><?= $dtl->tanggal; ?></td>
 									<td><?= $dtl->qty; ?></td>
@@ -227,7 +217,7 @@ if ($type == 'expense') {
 
 									<tr>
 										<td><?= $n; ?></td>
-										<td><?= $coa . ' - ' . $nm_coa; ?></td>
+										<td><?= $dtl->coa . ' - ' . $nm_coa; ?></td>
 										<td><?= $dtl->keperluan; ?></td>
 										<td><?= $dtl->tgl_doc; ?></td>
 										<td>-</td>
@@ -271,7 +261,7 @@ if ($type == 'expense') {
 
 									<tr>
 										<td><?= $n; ?></td>
-										<td><?= $coa . ' - ' . $nm_coa; ?></td>
+										<td><?= $dtl->coa . ' - ' . $nm_coa; ?></td>
 										<td><?= $dtl->keperluan; ?></td>
 										<td><?= $dtl->tgl_doc; ?></td>
 										<td>1</td>
@@ -390,7 +380,7 @@ if ($type == 'expense') {
 								$gTotal += ($dtl->total_request + $data_req_payment['admin_bank'] - $data_req_payment['total_pph']); ?>
 								<tr>
 									<td><?= $n; ?></td>
-									<td><?= $coa . ' - ' . $nm_coa; ?></td>
+									<td><?= $dtl->coa . ' - ' . $nm_coa; ?></td>
 									<td><?= $dtl->deskripsi; ?></td>
 									<td><?= $dtl->tgl_pr; ?></td>
 									<td>1</td>
@@ -445,7 +435,7 @@ if ($type == 'expense') {
 								$gTotal += ($data_req_payment['jumlah'] + $data_req_payment['admin_bank'] - $data_req_payment['total_pph']); ?>
 								<tr>
 									<td><?= $n; ?></td>
-									<td><?= $coa . ' - ' . $nm_coa; ?></td>
+									<td><?= $dtl->coa . ' - ' . $nm_coa; ?></td>
 									<td><?= $dtl->keterangan; ?></td>
 									<td><?= $dtl->tanggal; ?></td>
 									<td>1</td>
@@ -495,41 +485,14 @@ if ($type == 'expense') {
 
 									</td>
 								</tr>
-							<?php endif;
-							if ($type == 'direct_payment') {
-							?>
-								<tr>
-									<td><?= $n; ?></td>
-									<td><?= $coa . ' - ' . $nm_coa; ?></td>
-									<td><?= $dtl->deskripsi; ?></td>
-									<td><?= $dtl->tgl_doc; ?></td>
-									<td><?= number_format($dtl->grand_total, 2) ?></td>
-									<td><?= $data_req_payment['currency']; ?></td>
-									<td class="text-right"><?= number_format($dtl->grand_total, 2) ?></td>
-
-									<td class="text-center"><a href="<?= base_url('assets/expense/') . $data_req_payment['link_doc']; ?>" target="_blank"><i class="fa fa-download"></i></a></td>
-									<td>
-										<?php if ($dtl->sts == '2') : ?>
-											<input type="checkbox" checked value="<?= $dtl->id; ?>" name="item[<?= $n; ?>][id]" class="check_item" id="check_<?= $dtl->id; ?>">
-										<?php elseif ($dtl->sts == '3') : ?>
-											<label for="" class="label bg-maroon">Process</label>
-										<?php elseif ($dtl->sts == '4') : ?>
-											<label for="" class="label bg-green">PAID</label>
-										<?php else : ?>
-											<label for="" class="label bg-gray"><span class="text-muted">Undefined</span></label>
-										<?php endif; ?>
-									</td>
-								</tr>
-					<?php
-								$gTotal += $dtl->grand_total;
-							}
+					<?php endif;
 						endforeach;
 					}  ?>
 				</tbody>
 				<tfoot>
 					<tr class="bg-blue">
 						<th colspan="6" class="text-right">Total</th>
-						<th class="text-right"><?= number_format($gTotal, 2); ?></th>
+						<th class="text-right"><?= number_format($gTotal); ?></th>
 						<th colspan="3" class="text-center"></th>
 					</tr>
 				</tfoot>
