@@ -206,7 +206,7 @@
     </div>
 
     <!-- reCAPTCHA v3 token -->
-    <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
+    <!-- <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response"> -->
 
     <button type="submit" class="btn" name="login"><i class="fa fa-sign-in"></i>&emsp;Sign In</button>
 
@@ -217,39 +217,6 @@
     </footer>
   </div>
 
-  <!-- reCAPTCHA v3 -->
-  <script src="https://www.google.com/recaptcha/api.js?render=<?= isset($recaptcha_site_key) ? $recaptcha_site_key : (defined('RECAPTCHA_SITE_KEY') ? RECAPTCHA_SITE_KEY : '') ?>"></script>
-  <script>
-    (() => {
-      const form = document.getElementById('frm_login');
-      const btn = form.querySelector('button[type="submit"]');
-      const siteKey = "<?= $recaptcha_site_key ?? (defined('RECAPTCHA_SITE_KEY') ? RECAPTCHA_SITE_KEY : '') ?>";
-
-      if (!siteKey) {
-        console.error('SITE KEY kosong');
-      }
-
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
-        btn.disabled = true;
-
-        grecaptcha.ready(() => {
-          grecaptcha.execute(siteKey, {
-              action: 'login'
-            })
-            .then((token) => {
-              document.getElementById('g-recaptcha-response').value = token;
-              form.submit();
-            })
-            .catch((err) => {
-              btn.disabled = false;
-              alert('Gagal memuat reCAPTCHA. Coba lagi.');
-              console.error(err);
-            });
-        });
-      });
-    })();
-  </script>
 
   <script src="<?= base_url('assets/login/js/index.js'); ?>"></script>
 </body>
