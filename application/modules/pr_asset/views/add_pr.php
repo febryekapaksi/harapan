@@ -156,7 +156,7 @@
 													title: "Save Success!",
 													text: "Data has been saved !",
 													type: "success",
-													timer: 7000,
+													timer: 3000,
 													showCancelButton: false,
 													showConfirmButton: false,
 													allowOutsideClick: false
@@ -192,7 +192,7 @@
 												title: "Error Message !",
 												text: 'An Error Occured During Process. Please try again..',
 												type: "warning",
-												timer: 7000,
+												timer: 3000,
 												showCancelButton: false,
 												showConfirmButton: false,
 												allowOutsideClick: false
@@ -226,7 +226,7 @@
 									title: "Error Message !",
 									text: 'An Error Occured During Process. Please try again..',
 									type: "warning",
-									timer: 7000,
+									timer: 3000,
 									showCancelButton: false,
 									showConfirmButton: false,
 									allowOutsideClick: false
