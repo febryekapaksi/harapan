@@ -3,6 +3,11 @@
 class App_pr_stock_model extends BF_Model
 {
 
+  protected $ENABLE_ADD;
+  protected $ENABLE_MANAGE;
+  protected $ENABLE_VIEW;
+  protected $ENABLE_DELETE;
+
   public function __construct()
   {
     parent::__construct();
@@ -40,7 +45,7 @@ class App_pr_stock_model extends BF_Model
 
     $requestData    = $_REQUEST;
     $fetch          = $this->get_query_approval_pr_material(
-      // $requestData['tanda'],
+      $requestData['tanda'],
       $requestData['search']['value'],
       $requestData['order'][0]['column'],
       $requestData['order'][0]['dir'],
@@ -68,16 +73,16 @@ class App_pr_stock_model extends BF_Model
         $nomor = $urut1 + $start_dari;
       }
 
-      $tingkat_approval = 3;
-      // if ($requestData['tanda'] == 'cost_control') {
-      //   $tingkat_approval = 2;
-      // }
-      // if ($requestData['tanda'] == 'management') {
-      //   $tingkat_approval = 3;
-      // }
+      $tingkat_approval = 1;
+      if ($requestData['tanda'] == 'cost_control') {
+        $tingkat_approval = 2;
+      }
+      if ($requestData['tanda'] == 'management') {
+        $tingkat_approval = 3;
+      }
       $nestedData   = array();
       $nestedData[]  = "<div align='center'>" . $nomor . "</div>";
-      $nestedData[]  = "<div align='left'>" . strtoupper('STOCK PLANNING ' . $row['so_number']) . "</div>";
+      $nestedData[]  = "<div align='left'>" . strtoupper('PRODUCTION PLANNING ' . $row['so_number']) . "</div>";
       $nestedData[]  = "<div align='left'>" . strtoupper($row['so_number']) . "</div>";
       $nestedData[]  = "<div align='center'>" . strtoupper($row['no_pr']) . "</div>";
       $nestedData[]  = "<div align='left'>" . strtoupper($row['project']) . "</div>";
@@ -103,20 +108,14 @@ class App_pr_stock_model extends BF_Model
       } else {
         if ($row['app_1'] == null && $row['app_2'] == null && $row['app_3'] == null) :
           $warna = "blue";
-          $sts = "Waiting Approval Head";
-        elseif ($row['app_1'] !== null && $row['app_2'] == null && $row['app_3'] == null) :
-          $warna = "blue";
-          $sts = "Waiting Approval Cost Control";
-        elseif ($row['app_1'] !== null && $row['app_2'] !== null && $row['app_3'] == null) :
-          $warna = "blue";
-          $sts = "Waiting Approval Management";
+          $sts = "Waiting Approval";
         else :
           if ($row['sts_app'] == "Y") :
             $warna = "green";
             $sts = "Approved";
           else :
             $warna = "blue";
-            $sts = "Waiting Approval Head";
+            $sts = "Waiting Approval";
           endif;
         endif;
       }
@@ -146,7 +145,7 @@ class App_pr_stock_model extends BF_Model
     echo json_encode($json_data);
   }
 
-  public function get_query_approval_pr_material($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
+  public function get_query_approval_pr_material($tanda, $like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
   {
 
     $costcenter_where = "";
@@ -159,7 +158,7 @@ class App_pr_stock_model extends BF_Model
     // $product_where = " AND b.code_lv1 = '".$product."'";
     // }
 
-    $filter_approval = ' AND a.app_post = 3';
+    $filter_approval = '';
     // if ($tanda == 'head') {
     //   $filter_approval = ' AND a.app_post IS NULL';
     // }
