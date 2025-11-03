@@ -3249,9 +3249,6 @@ class Incoming_check extends Admin_Controller
 		$harga	= $get_detail->harga;
 		$total_harga = $qty_oke * $harga;
 
-		// print_r($file_name);
-		// exit;
-
 		$this->db->insert('tr_checked_incoming_detail', [
 			'kode_trans' => $data['kode_trans'],
 			'no_ipp' => $get_detail->no_ipp,
