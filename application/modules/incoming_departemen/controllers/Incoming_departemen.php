@@ -1,10 +1,6 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-require_once 'vendor/autoload.php';
-
-use Mpdf\Mpdf;
-
 class Incoming_departemen extends Admin_Controller
 {
 	protected $viewPermission 	= 'Incoming_Departemen.View';
@@ -12,17 +8,13 @@ class Incoming_departemen extends Admin_Controller
 	protected $managePermission = 'Incoming_Departemen.Manage';
 	protected $deletePermission = 'Incoming_Departemen.Delete';
 
-	// protected $dbhris;
-
 	public function __construct()
 	{
 		parent::__construct();
 		$this->load->model('master_model');
 		$this->load->library(array('upload', 'Image_lib'));
-		$this->template->title('Incoming Departemen');
+		$this->template->title('Manage Data Supplier');
 		$this->template->page_icon('fa fa-building-o');
-
-		// $this->dbhris = $this->load->database('hris', true);
 
 		date_default_timezone_set('Asia/Bangkok');
 	}
@@ -37,7 +29,7 @@ class Incoming_departemen extends Admin_Controller
 				"PO" as tipe_po,
 				b.nama as nm_supplier
 			FROM
-				tr_purchase_order_non_product a
+				tr_purchase_order a
 				LEFT JOIN new_supplier b ON b.kode_supplier = a.id_suplier
 			WHERE
 				a.tipe = "pr depart"
@@ -64,7 +56,7 @@ class Incoming_departemen extends Admin_Controller
 		$this->db->from('warehouse_adjustment a');
 		$this->db->join('warehouse_adjustment_detail b', 'b.kode_trans = a.kode_trans', 'left');
 		$this->db->join('users c', 'c.id_user = a.created_by', 'left');
-		$this->db->join('tr_purchase_order_non_product d', 'd.no_surat = a.no_ipp', 'left');
+		$this->db->join('tr_purchase_order d', 'd.no_surat = a.no_ipp', 'left');
 		$this->db->where('b.tipe_po <>', null);
 		$this->db->group_by('a.kode_trans');
 		$this->db->order_by('a.tanggal', 'desc');
@@ -213,54 +205,38 @@ class Incoming_departemen extends Admin_Controller
 		// print_r($no_po);
 		// exit;
 
-		$this->db->select('a.id as id, a.namamaterial as namamaterial, a.qty as qty, c.spec as spec, a.no_po as no_po, d.id_dept, "PO" as tipe_po');
-		$this->db->from('dt_trans_po_non_product a');
-		$this->db->join('tr_purchase_order_non_product b', 'b.no_po = a.no_po');
+		$this->db->select('a.id as id, a.namamaterial as namamaterial, a.qty as qty, c.spec as spec, a.no_po as no_po, e.nama as nm_department, "PO" as tipe_po');
+		$this->db->from('dt_trans_po a');
+		$this->db->join('tr_purchase_order b', 'b.no_po = a.no_po');
 		$this->db->join('rutin_non_planning_detail c', 'c.id = a.idpr');
 		$this->db->join('rutin_non_planning_header d', 'd.no_pr = c.no_pr', 'left');
+		$this->db->join('ms_department e', 'e.id = d.id_dept', 'left');
 		$this->db->where_in('b.no_surat', $no_po);
 		$query1 = $this->db->get_compiled_select();
 
 		$this->db->reset_query();
-		$this->db->select('b.id as id, b.nm_barang as namamaterial, b.qty as qty, b.spec as spec, a.no_doc as no_po, c.id_dept, "NON-PO" as tipe_po');
+		$this->db->select('b.id as id, b.nm_barang as namamaterial, b.qty as qty, b.spec as spec, a.no_doc as no_po, d.nama as nm_department, "NON-PO" as tipe_po');
 		$this->db->from('tr_kasbon a');
 		$this->db->join('rutin_non_planning_detail b', 'b.no_pr = a.id_pr');
 		$this->db->join('rutin_non_planning_header c', 'c.no_pr = a.id_pr');
+		$this->db->join('ms_department d', 'd.id = c.id_dept', 'left');
 		$this->db->where_in('a.no_doc', $no_po);
 		$query2 = $this->db->get_compiled_select();
 
 		$sql = $query1 . ' UNION ALL ' . $query2;
 
-		// print_r($sql);
-		// exit;
-
 		$result = $this->db->query($sql)->result_array();
 
-		// $this->dbhris->select('a.id, a.name, b.name as nm_comp');
-		// $this->dbhris->from('departments a');
-		// $this->dbhris->join('companies b', 'b.id = a.company_id', 'left');
-		// $get_departments = $this->dbhris->get()->result_array();
 
-		$this->db->select('a.id, a.nama as name');
-		$this->db->from('ms_department a');
-		$this->db->where('a.deleted_by', null);
-		$get_departments = $this->db->get()->result_array();
-
-		$arr_list_dept = [];
-		foreach ($get_departments as $item) {
-			$arr_list_dept[$item['id']] = [
-				'id_dept' => $item['id'],
-				'nm_dept' => $item['name']
-			];
-		}
+		// print_r($this->db->last_query());
+		// exit;
 
 		$data = array(
 			'no_po' => $no_po,
 			'tanggal_trans' => $tanggal_trans,
 			'pic' 	=> $pic,
 			'note' 	=> $note,
-			'result' => $result,
-			'list_departments' => $arr_list_dept
+			'result' => $result
 		);
 
 		$this->template->render('modal_incoming', $data);
@@ -271,9 +247,9 @@ class Incoming_departemen extends Admin_Controller
 		$data 			= $this->input->post();
 		$data_session	= $this->session->userdata;
 		$no_po			= $data['no_po'];
-		$inventory		= $data['adjustment'];
+		$inventory		= $data['inventory'];
 		$id_dept		= $data['id_dept'];
-		$id_costcenter	= '';
+		$id_costcenter	= $data['id_costcenter'];
 		$pic			= $data['pic'];
 		$note			= $data['note'];
 		$tanggal		= $data['tanggal'];
@@ -311,7 +287,7 @@ class Incoming_departemen extends Admin_Controller
 
 				//update detail purchase
 				// if ($cek_type == 'POX') {
-				// 	$result_det	= $this->db->select('qty_in_inc as qty_in')->get_where('dt_trans_po_non_product', array('id' => $valx['id']))->result_array();
+				// 	$result_det	= $this->db->select('qty_in_inc as qty_in')->get_where('dt_trans_po', array('id' => $valx['id']))->result_array();
 				// } else {
 				// 	$result_det	= $this->db->select('qty_in_inc as qty_in')->get_where('tran_non_po_detail', array('id' => $valx['id']))->result_array();
 				// }
@@ -949,7 +925,7 @@ class Incoming_departemen extends Admin_Controller
 					a.note as keterangan,
 					b.nama as nm_supplier
 				FROM
-					tr_purchase_order_non_product a
+					tr_purchase_order a
 					LEFT JOIN new_supplier b ON b.kode_supplier = a.id_suplier
 				WHERE
 					a.tipe = "pr depart" AND
@@ -957,7 +933,7 @@ class Incoming_departemen extends Admin_Controller
 			')->result_array();
 		} else {
 			$this->db->select('a.no_po as id_po, a.no_surat as no_po, "PO" as tipe_po, a.note as keterangan, b.nama as nm_supplier');
-			$this->db->from('tr_purchase_order_non_product a');
+			$this->db->from('tr_purchase_order a');
 			$this->db->join('new_supplier b', 'b.kode_supplier = a.id_suplier', 'left');
 			$this->db->where('a.tipe', 'pr depart');
 			$this->db->where('a.id_suplier', $id_supplier);
@@ -985,7 +961,7 @@ class Incoming_departemen extends Admin_Controller
 				SELECT
 					b.no_pr
 				FROM
-					dt_trans_po_non_product a
+					dt_trans_po a
 					JOIN rutin_non_planning_detail b ON b.id = a.idpr
 				WHERE
 					a.no_po = '" . $item_po['id_po'] . "'
@@ -1036,8 +1012,8 @@ class Incoming_departemen extends Admin_Controller
 				}
 
 				$this->db->select('IF(SUM(b.qty) IS NULL, 0, SUM(b.qty)) as qty_actual');
-				$this->db->from('tr_purchase_order_non_product a');
-				$this->db->join('dt_trans_po_non_product b', 'b.no_po = a.no_po', 'left');
+				$this->db->from('tr_purchase_order a');
+				$this->db->join('dt_trans_po b', 'b.no_po = a.no_po', 'left');
 				$this->db->where('a.no_surat', $item_po['no_po']);
 				$get_actual_qty = $this->db->get()->row_array();
 				if (!empty($get_actual_qty)) {
