@@ -1,3 +1,9 @@
+<?php
+$ENABLE_ADD = has_permission('Incoming_Departemen.Add');
+$ENABLE_VIEW = has_permission('Incoming_Departemen.View');
+$ENABLE_MANAGE = has_permission('Incoming_Departemen.Manage');
+$ENABLE_DELETE = has_permission('Incoming_Departemen.Delete');
+?>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.datatables.net/2.1.3/css/dataTables.dataTables.min.css">
 <form action="#" method="POST" id="form_proses_bro" enctype="multipart/form-data" autocomplete='off'>
@@ -77,9 +83,9 @@
 						</div>
 					</div>
 					<?php
-					if (isset($akses_menu['create']) && $akses_menu['create'] == '1') {
-						echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-success', 'style' => 'min-width:100px; float:right; margin: 5px 0px 5px 0px;', 'value' => 'Process', 'content' => 'Process', 'id' => 'modalDetail')) . ' ';
-					}
+					// if ($ENABLE_ADD) {
+					// 	echo form_button(array('type' => 'button', 'class' => 'btn btn-md btn-success', 'style' => 'min-width:100px; float:right; margin: 5px 0px 5px 0px;', 'value' => 'Process', 'content' => 'Process', 'id' => 'modalDetail')) . ' ';
+					// }
 					?>
 				</div>
 			</div>
