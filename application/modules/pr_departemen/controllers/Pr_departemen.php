@@ -82,7 +82,7 @@ class PR_Departemen extends Admin_Controller
         $satuan = $this->db->get_where('ms_satuan', ['deleted' => 'N', 'category' => 'packing'])->result_array();
 
         // Buat dropdown satuan
-        $select_satuan = "<select name='detail[{$id}][satuan]' class='form-control chosen_select wajib' required>";
+        $select_satuan = "<select name='detail[{$id}][satuan]' class='form-control wajib' required>";
         $select_satuan .= "<option value='0'>Pilih</option>";
         foreach ($satuan as $s) {
             $select_satuan .= "<option value='{$s['id']}'>{$s['code']}</option>";

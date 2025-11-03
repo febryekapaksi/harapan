@@ -256,7 +256,7 @@ class Incoming_asset extends Admin_Controller
 				$ArrDeatilAdj[$val]['qty_oke'] 			= $qtyIN;
 				$ArrDeatilAdj[$val]['keterangan'] 		= strtolower($valx['keterangan']);
 				$ArrDeatilAdj[$val]['no_ba'] 		    = null;
-				$ArrDeatilAdj[$val]['ket_req_pro'] 		= strtolower($valx['pemeriksa']);
+				$ArrDeatilAdj[$val]['ket_req_po'] 		= strtolower($valx['pemeriksa']);
 				$ArrDeatilAdj[$val]['update_by'] 		= $UserName;
 				$ArrDeatilAdj[$val]['update_date'] 		= $dateTime;
 				$ArrDeatilAdj[$val]['check_qty_oke'] 	= $qtyIN;
@@ -498,7 +498,7 @@ class Incoming_asset extends Admin_Controller
 
 			$link = '';
 			if (!empty($row['doc'])) {
-				$link = "<a href='" . base_url('uploads/produksi/'. $row['doc']) . "' target='_blank' title='Download' data-role='qtip'>Download</a>";
+				$link = "<a href='" . base_url('uploads/produksi/' . $row['doc']) . "' target='_blank' title='Download' data-role='qtip'>Download</a>";
 			}
 
 			$TANGGAL = (!empty($row['tanggal'])) ? $row['tanggal'] : $row['created_date'];
@@ -511,7 +511,7 @@ class Incoming_asset extends Admin_Controller
 			$nestedData[]	= "<div align='center'>" . date('d-M-Y', strtotime($TANGGAL)) . "</div>";
 			$nestedData[]	= "<div align='center'>" . $row['no_ipp'] . "</div>";
 			// $nestedData[]	= "<div align='left'>".$row['kd_gudang_dari']."</div>";
-			$nestedData[]	= "<div align='left'>" . strtoupper(get_name('department', 'nm_dept', 'id', $row['id_gudang_ke'])) . "</div>";
+			$nestedData[]	= "<div align='left'>" . strtoupper(get_name('ms_department', 'nama', 'id', $row['id_gudang_ke'])) . "</div>";
 			$nestedData[]	= "<div align='center'>" . strtoupper($row['pic']) . "</div>";
 			$nestedData[]	= "<div align='left'>" . strtoupper($row['note']) . "</div>";
 			$nestedData[]	= "<div align='center'>" . strtoupper($NM_LENGKAP) . "</div>";
@@ -672,7 +672,7 @@ class Incoming_asset extends Admin_Controller
 				$ArrDeatilAdj[$val]['qty_oke'] 			= $qtyIN;
 				$ArrDeatilAdj[$val]['keterangan'] 		= strtolower($valx['keterangan']);
 				$ArrDeatilAdj[$val]['no_ba'] 		    = strtolower($valx['status']);
-				$ArrDeatilAdj[$val]['ket_req_pro'] 		= strtolower($valx['pemeriksa']);
+				$ArrDeatilAdj[$val]['ket_req_po'] 		= strtolower($valx['pemeriksa']);
 				$ArrDeatilAdj[$val]['update_by'] 		= $UserName;
 				$ArrDeatilAdj[$val]['update_date'] 		= $dateTime;
 				$ArrDeatilAdj[$val]['check_qty_oke'] 	= $qtyIN;
@@ -883,9 +883,9 @@ class Incoming_asset extends Admin_Controller
 		$mpdf->AddPage();
 		$mpdf->SetFooter($footer);
 		$this->mpdf->WriteHTML($show);
-		$this->mpdf->Output('tanda-terima-pembelian-asset-'.$kode_trans.'.pdf', 'I');
+		$this->mpdf->Output('tanda-terima-pembelian-asset-' . $kode_trans . '.pdf', 'I');
 
-		
+
 		// $this->template->set($data);
 		// $this->template->render('print_incoming_assets');
 	}
