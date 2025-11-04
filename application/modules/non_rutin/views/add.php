@@ -46,7 +46,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 // $dataso = $this->db->query("select a.project, b.so_number from table_sales_order a LEFT JOIN so_bf_header b ON a.no_ipp=b.no_ipp order by so_number")->result();
 ?>
 <link rel="stylesheet" href="https://cdn.datatables.net/2.0.2/css/dataTables.dataTables.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.css" integrity="sha512-0nkKORjFgcyxv3HbE4rzFUlENUMNqic/EzDIeYCgsKa/nwqr2B91Vu/tNAu4Q0cBuG4Xe/D1f/freEci/7GDRA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <form action="#" method="POST" id="form_ct" enctype="multipart/form-data" autocomplete='off'>
 	<input type="hidden" name="id" value="<?= $id; ?>">
 	<input type="hidden" name="tanda" value="<?= $tanda; ?>">
@@ -65,7 +65,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 			<div class='form-group row'>
 				<label class='label-control col-sm-2'><b>Department <span class='text-red'>*</span></b></label>
 				<div class='col-sm-4'>
-					<select name='id_dept' id='id_dept' class='form-control input-md chosen_select' <?= $disabled; ?>>
+					<select name='id_dept' id='id_dept' class='form-control input-md select2_select' <?= $disabled; ?>>
 						<option value='0'>Select An Department</option>
 						<?php
 						// foreach (get_list_dept() as $val => $valx) {
@@ -102,7 +102,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 				</div>
 				<label class='label-control col-sm-2'><b>COA <span class='text-red'>*</span></b> </label>
 				<div class='col-sm-4'>
-					<select name="coa" id="coa" class="form-control chosen_select" required>
+					<select name="coa" id="coa" class="form-control select2_select" required>
 						<option value="">- Select COA -</option>
 						<?php
 						foreach ($list_coa as $coa) :
@@ -266,12 +266,12 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 
 </form>
 <style type="text/css">
-	.chosen-container-active .chosen-single {
+	.select2-container-active .select2-single {
 		border: none;
 		box-shadow: none;
 	}
 
-	.chosen-container-single .chosen-single {
+	.select2-container-single .select2-single {
 		height: 34px;
 		border: 1px solid #d2d6de;
 		border-radius: 0px;
@@ -281,7 +281,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 		line-height: 32px;
 	}
 
-	.chosen-container-single .chosen-single div {
+	.select2-container-single .select2-single div {
 		top: 5px;
 	}
 
@@ -291,7 +291,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 </style>
 <script src="<?= base_url('assets/js/autoNumeric.js') ?>"></script>
 <script src="https://cdn.datatables.net/2.0.2/js/dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js" integrity="sha512-rMGGF4wg1R73ehtnxXBt5mbUfN9JUJwbk21KMlnLZDJh7BkPmeovBuddZCENJddHYYMkCh9hPFnPmS9sspki8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 	$(document).ready(function() {
 		$('.maskM').autoNumeric();
@@ -299,7 +299,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 			mDec: '2',
 			aPad: false
 		});
-		$('.chosen_select').chosen();
+		$('.select2_select').select2();
 		$('.datepicker').datepicker({
 			dateFormat: 'yy-mm-dd',
 			//minDate: 0
@@ -353,7 +353,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 			success: function(data) {
 				$("#add_" + id_bef).before(data.header);
 				$("#add_" + id_bef).remove();
-				$('.chosen_select').chosen({
+				$('.select2_select').select2({
 					width: '100%'
 				});
 				$('.maskM').autoNumeric();
@@ -361,7 +361,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 					dateFormat: 'yy-mm-dd',
 					//minDate: 0
 				});
-				$('.chosen_select').chosen();
+				$('.select2_select').select2();
 				swal.close();
 			},
 			error: function() {
