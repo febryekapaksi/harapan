@@ -579,7 +579,7 @@ class Non_rutin extends Admin_Controller
 		$d_Header .= "<textarea class='form-control input-nm' name='detail[" . $id . "][spec]'></textarea>";
 		$d_Header .= "</td>";
 		$d_Header .= "<td align='left'><input type='text' id='qty_" . $id . "' name='detail[" . $id . "][qty]' class='form-control input-md text-center autoNumeric2 sum_tot'></td>";
-		$d_Header .= "<td align='left'><select name='detail[" . $id . "][satuan]' class='form-control chosen_select wajib' required>";
+		$d_Header .= "<td align='left'><select name='detail[" . $id . "][satuan]' class='form-control select2_select wajib' required>";
 		$d_Header .= "<option value='0'>Pilih</option>";
 		foreach ($satuan as $key => $value) {
 			$d_Header .= "<option value='" . $value['id'] . "'>" . $value['code'] . "</option>";
