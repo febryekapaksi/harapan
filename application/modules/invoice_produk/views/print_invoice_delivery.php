@@ -204,9 +204,11 @@
         $total_tagihan = $total_all;
         ?>
         <tr>
-            <td width="15%">Terbilang</td>
-            <td width="60%"><strong><em><?= ucfirst(rupiah_to_words($invoice->nilai_invoice)) ?> Rupiah</em></strong></td>
-            <td width="15%" class="text-right">Total</td>
+            <td width="10%">Terbilang</td>
+            <td width="35%"><strong><em><?= ucfirst(rupiah_to_words($invoice->nilai_invoice)) ?> Rupiah</em></strong></td>
+            <td rowspan="2" class="text-center"><small>Pembayaran Non-Tunai dapat ditransfer ke<br>Rek Bank A/N: PT. SURYA BANGUN FAJAR
+                </small></td>
+            <td width="10%" class="text-right">Total</td>
             <td width="15%" class="text-right"><?= number_format($total, 2) ?></td>
         </tr>
         <tr>
@@ -223,6 +225,7 @@
             <td class="text-right"><?= number_format($nilai_retensi, 2) ?></td>
         </tr> -->
         <tr>
+            <td rowspan="2" class="text-center">BCA : 001-07-49-611</td>
             <td class="text-right">PPn (12%)</td>
             <td class="text-right"><?= number_format($vat, 2) ?></td>
         </tr>
