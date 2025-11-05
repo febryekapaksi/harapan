@@ -306,6 +306,52 @@ class Approval_po_non_product extends Admin_Controller
     // $getitemso = $this->db->get()->result();
 
     $getitemso = $this->db->query("
+    SELECT 
+				a.id as id,
+				a.idpr as idpr,
+				a.no_po as no_po,
+				a.idmaterial as idmaterial,
+				a.qty as qty,
+				a.hargasatuan as hargasatuan,
+				a.jumlahharga as jumlahharga,
+				a.kode_barang as kode_barang,
+				a.ppn as ppn,
+				a.ppn_persen as ppn_persen,
+				a.harga_total as harga_total,
+				a.tipe as tipe_pr,
+				a.keterangan as keterangan,
+				(b.qty_stock - b.qty_booking) AS avl_stock, 
+				if(c.code IS NULL, d.id_stock, c.code) as code, 
+				'' as code1, 
+				if(c.nama IS NULL, d.stock_name, c.nama) as nm_material, 
+				'' as nm_material1, 
+				e.propose_purchase as propose_purchase,
+        if(c.konversi IS NULL, 1, c.konversi) as konversi,
+        '0' as konversi1,
+        f.code as satuan,
+        '' as satuan1,
+        a.description as description,
+        a.note as note,
+        a.persen_disc as persen_disc,
+        a.nilai_disc as nilai_disc,
+        g.code as packing_unit,
+        h.code as packing_unit2
+			FROM
+				dt_trans_po_non_product a
+				LEFT JOIN warehouse_stock b ON b.id_material = a.idmaterial
+				LEFT JOIN new_inventory_4 c ON c.code_lv4 = a.idmaterial
+        LEFT JOIN accessories d ON d.id = a.idmaterial
+				JOIN material_planning_base_on_produksi_detail e ON e.id = a.idpr
+        LEFT JOIN ms_satuan f ON f.id = c.id_unit
+        LEFT JOIN ms_satuan g ON g.id = c.id_unit_packing
+        LEFT JOIN ms_satuan h ON h.id = d.id_unit_gudang
+			WHERE
+				a.no_po IN ('" . str_replace(",", "','", $no_po) . "') AND
+				(a.tipe IS NULL OR a.tipe = '')
+      GROUP BY a.id
+
+			UNION ALL
+
 			SELECT 
 				a.id as id,
 				a.idpr as idpr,
