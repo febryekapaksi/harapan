@@ -84,7 +84,7 @@ class Incoming_stok extends Admin_Controller
               $konversi = 1;
             }
             $ArrStock[$val]['id']   = $valx['id_barang'];
-            $ArrStock[$val]['qty']  = $qty_incoming * $konversi;
+            $ArrStock[$val]['qty']  = $qty_incoming;
 
             // print_r($qty_incoming.' - '.$konversi.'<br>');
 
@@ -265,6 +265,9 @@ class Incoming_stok extends Admin_Controller
       // print_r($ArrUpdatePO);
       // exit;
 
+      // print_r($ArrStock);
+      // exit;
+
       $this->db->trans_start();
       if (!empty($ArrInsertDetail)) {
         $this->db->insert('warehouse_adjustment', $ArrInsert);
@@ -287,7 +290,7 @@ class Incoming_stok extends Admin_Controller
           'pesan'    => 'Save berhasil disimpan. Thanks ...',
           'status'  => 1,
         );
-        move_warehouse_stok($ArrStock, NULL, $id_gudang, $kode_trans, null);
+        move_warehouse_stok_non_product($ArrStock, NULL, $id_gudang, $kode_trans, null);
         history("Incoming barang stok : " . $kode_trans);
       }
       echo json_encode($Arr_Data);
