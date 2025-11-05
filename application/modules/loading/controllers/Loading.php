@@ -84,7 +84,16 @@ class Loading extends Admin_Controller
             show_404(); // Jika tidak ada, tampilkan error 404
         }
 
-        $detail = $this->db->get_where('loading_delivery_detail', ['no_loading' => $loading['no_loading']])->result_array();
+        $detail = $this->db
+            ->select('
+        ldd.*, 
+        so.nama_sales
+        ')
+            ->from('loading_delivery_detail ldd')
+            ->join('sales_order so', 'so.no_so = ldd.no_so', 'left')
+            ->where('ldd.no_loading', $loading['no_loading'])
+            ->get()
+            ->result_array();
 
         //data nya sudah dibuat ke surat jalan belom?
         $usedPairs = $this->db
@@ -118,7 +127,16 @@ class Loading extends Admin_Controller
             show_404(); // Jika tidak ada, tampilkan error 404
         }
 
-        $detail = $this->db->get_where('loading_delivery_detail', ['no_loading' => $loading['no_loading']])->result_array();
+        $detail = $this->db
+            ->select('
+        ldd.*, 
+        so.nama_sales
+        ')
+            ->from('loading_delivery_detail ldd')
+            ->join('sales_order so', 'so.no_so = ldd.no_so', 'left')
+            ->where('ldd.no_loading', $loading['no_loading'])
+            ->get()
+            ->result_array();
 
         // Kumpulkan id produk (ganti field sesuai tabelmu: id_product / product_id / kode_barang)
         $productIds = array_unique(array_map(function ($d) {
@@ -182,7 +200,16 @@ class Loading extends Admin_Controller
             show_404(); // Jika tidak ada, tampilkan error 404
         }
 
-        $detail = $this->db->get_where('loading_delivery_detail', ['no_loading' => $loading['no_loading']])->result_array();
+        $detail = $this->db
+            ->select('
+        ldd.*, 
+        so.nama_sales
+        ')
+            ->from('loading_delivery_detail ldd')
+            ->join('sales_order so', 'so.no_so = ldd.no_so', 'left')
+            ->where('ldd.no_loading', $loading['no_loading'])
+            ->get()
+            ->result_array();
 
         //data nya sudah dibuat ke surat jalan belom?
         $usedPairs = $this->db
@@ -220,7 +247,16 @@ class Loading extends Admin_Controller
             show_404(); // Jika tidak ada, tampilkan error 404
         }
 
-        $detail = $this->db->get_where('loading_delivery_detail', ['no_loading' => $loading['no_loading']])->result_array();
+        $detail = $this->db
+            ->select('
+        ldd.*, 
+        so.nama_sales
+        ')
+            ->from('loading_delivery_detail ldd')
+            ->join('sales_order so', 'so.no_so = ldd.no_so', 'left')
+            ->where('ldd.no_loading', $loading['no_loading'])
+            ->get()
+            ->result_array();
 
         //data nya sudah dibuat ke surat jalan belom?
         $usedPairs = $this->db
@@ -325,13 +361,12 @@ class Loading extends Admin_Controller
 
     public function get_spk()
     {
-        // $pengiriman = $this->input->get('pengiriman', TRUE);
-
         $data = $this->db
             ->select('
             s.no_delivery,
             s.no_so,
             s.pengiriman,
+            so.nama_sales,
             DATE_FORMAT(s.tanggal_spk, "%d %M %Y") AS tanggal_spk,
             c.name_customer,
             d.id,
@@ -344,9 +379,10 @@ class Loading extends Admin_Controller
         ')
             ->from('spk_delivery_detail d')
             ->join('spk_delivery s', 's.no_delivery = d.no_delivery')
+            ->join('sales_order so', 'so.no_so = s.no_so')
             ->join('master_customers c', 'c.id_customer = s.id_customer')
             ->join('new_inventory_4 p', 'p.code_lv4 = d.id_product')
-            ->join('loading_delivery_detail l', 'l.id_spk_detail = d.id', 'left') // per item, bukan per delivery
+            // ->join('loading_delivery_detail l', 'l.id_spk_detail = d.id', 'left') // per item, bukan per delivery
             ->where('s.pengiriman', "Gudang")
             ->where('d.qty_belum_muat >', 0)
             ->order_by('s.no_delivery')

@@ -214,6 +214,16 @@
 
 	?>
 
+	<div class="row align-items-center mt-2" id="lot-helper-bar">
+		<div class="col-md-8">
+			<medium class="text-muted text-danger">
+				<span class="text-danger">*</span>
+				Lengkapi <strong>Qty OK</strong>, <strong>Expired Date</strong>, dan <strong>Lot Description</strong>, lalu klik
+				tombol <span class="badge bg-blue"><i class="fa fa-plus"></i></span>
+			</medium>
+		</div>
+	</div>
+
 	<div class="row">
 		<div class="col-md-4" style="margin-top: 1vh;">
 			<div class="table-responsive">

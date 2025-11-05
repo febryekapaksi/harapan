@@ -94,7 +94,51 @@ class Purchase_order_non_product extends Admin_Controller
 		// $getitemso = $this->db->group_by('a.id');
 
 		$getitemso = $this->db->query("
-			SELECT 
+		SELECT 
+				a.id as id,
+				a.idpr as idpr,
+				a.no_po as no_po,
+				a.idmaterial as idmaterial,
+				a.qty as qty,
+				a.hargasatuan as hargasatuan,
+				a.jumlahharga as jumlahharga,
+				a.kode_barang as kode_barang,
+				a.ppn as ppn,
+				a.ppn_persen as ppn_persen,
+				a.harga_total as harga_total,
+				a.tipe as tipe_pr,
+				a.keterangan as keterangan,
+				(b.qty_stock - b.qty_booking) AS avl_stock, 
+				a.kode_barang as code, 
+				'' as code1, 
+				a.namamaterial as nm_material, 
+				'' as nm_material1,
+				a.persen_disc as persen_disc,
+				a.nilai_disc as nilai_disc,
+				e.propose_purchase as propose_purchase,
+				g.code as packing_unit,
+				h.code as packing_unit2,
+				IF(i.code IS NOT NULL, i.code, j.code) as unit_measure
+			FROM
+				dt_trans_po_non_product a
+				LEFT JOIN warehouse_stock b ON b.id_material = a.idmaterial
+				LEFT JOIN new_inventory_4 c ON c.code_lv4 = a.idmaterial OR c.id = a.idmaterial
+				LEFT JOIN material_planning_base_on_produksi_detail e ON e.id = a.idpr
+				LEFT JOIN accessories f ON f.id = a.idmaterial
+				LEFT JOIN ms_satuan g ON g.id = c.id_unit_packing
+				LEFT JOIN ms_satuan h ON h.id = f.id_unit_gudang
+				LEFT JOIN ms_satuan i ON i.id = c.id_unit
+				LEFT JOIN ms_satuan j ON j.id = f.id_unit
+				LEFT JOIN tr_purchase_order_non_product k ON k.no_po = a.no_po
+			WHERE
+				a.no_po IN ('" . str_replace(",", "','", $no_po) . "') AND
+				(a.tipe IS NULL OR a.tipe = '') AND
+				k.tipe IS NULL
+			GROUP BY id
+
+			UNION ALL
+
+			SELECT
 				a.id as id,
 				a.idpr as idpr,
 				a.no_po as no_po,
@@ -2802,6 +2846,37 @@ class Purchase_order_non_product extends Admin_Controller
 		// $getitemso = $this->db->group_by('a.id');
 
 		$getitemso = $this->db->query("
+		SELECT 
+				a.id as id,
+				a.so_number as so_number,
+				a.id_material as id_material,
+				a.propose_purchase as propose_purchase,
+				(b.qty_stock - b.qty_booking) AS avl_stock, 
+				IF(c.code = '' OR c.code IS NULL, d.id_stock, c.code) as code, 
+				'' as code1, 
+				IF(c.nama = '' OR c.nama IS NULL, d.stock_name, c.nama) as nm_material,
+				'' as tipe_pr,
+				e.code as packing_unit,	
+				f.code as packing_unit2,
+				IF(g.code IS NOT NULL, g.code, h.code) as unit_measure
+			FROM
+				material_planning_base_on_produksi_detail a
+				LEFT JOIN warehouse_stock b ON b.id_material = a.id_material
+				LEFT JOIN new_inventory_4 c ON c.code_lv4 = a.id_material 
+				LEFT JOIN accessories d ON d.id = a.id_material
+				LEFT JOIN ms_satuan e ON e.id = c.id_unit_packing
+				LEFT JOIN ms_satuan f ON f.id = d.id_unit_gudang
+				LEFT JOIN ms_satuan g ON g.id = c.id_unit
+				LEFT JOIN ms_satuan h ON h.id = d.id_unit
+				LEFT JOIN material_planning_base_on_produksi bpo ON bpo.so_number = a.so_number
+			WHERE
+				a.so_number IN ('" . str_replace(",", "','", implode(',', $getparam)) . "')
+				AND a.status_app = 'Y'
+				AND bpo.category = 'pr stok'
+			GROUP BY a.id_material
+
+			UNION ALL
+
 			SELECT
 				a.id as id,
 				a.no_pengajuan as so_number,
@@ -3026,6 +3101,50 @@ class Purchase_order_non_product extends Admin_Controller
 		// $getitemso = $this->db->group_by('a.id');
 
 		$getitemso = $this->db->query("
+		SELECT 
+				a.id as id,
+				a.idpr as idpr,
+				a.no_po as no_po,
+				a.idmaterial as idmaterial,
+				a.qty as qty,
+				a.hargasatuan as hargasatuan,
+				a.jumlahharga as jumlahharga,
+				a.kode_barang as kode_barang,
+				a.ppn as ppn,
+				a.ppn_persen as ppn_persen,
+				a.harga_total as harga_total,
+				a.tipe as tipe_pr,
+				a.keterangan as keterangan,
+				(b.qty_stock - b.qty_booking) AS avl_stock, 
+				a.kode_barang as code, 
+				'' as code1, 
+				a.namamaterial as nm_material, 
+				'' as nm_material1,
+				a.persen_disc as persen_disc,
+				a.nilai_disc as nilai_disc,
+				e.propose_purchase as propose_purchase,
+				g.code as packing_unit,
+				h.code as packing_unit2,
+				IF(i.code IS NOT NULL, i.code, j.code) as unit_measure
+			FROM
+				dt_trans_po_non_product a
+				LEFT JOIN warehouse_stock b ON b.id_material = a.idmaterial
+				LEFT JOIN new_inventory_4 c ON c.code_lv4 = a.idmaterial OR c.id = a.idmaterial
+				LEFT JOIN material_planning_base_on_produksi_detail e ON e.id = a.idpr
+				LEFT JOIN accessories f ON f.id = a.idmaterial
+				LEFT JOIN ms_satuan g ON g.id = c.id_unit_packing
+				LEFT JOIN ms_satuan h ON h.id = f.id_unit_gudang
+				LEFT JOIN ms_satuan i ON i.id = c.id_unit
+				LEFT JOIN ms_satuan j ON j.id = f.id_unit
+				LEFT JOIN tr_purchase_order_non_product k ON k.no_po = a.no_po
+			WHERE
+				a.no_po IN ('" . str_replace(",", "','", $no_po) . "') AND
+				(a.tipe IS NULL OR a.tipe = '') AND
+				k.tipe IS NULL
+			GROUP BY id
+
+			UNION ALL
+
 			SELECT 
 				a.id as id,
 				a.idpr as idpr,
@@ -3301,8 +3420,15 @@ class Purchase_order_non_product extends Admin_Controller
 				->from('dt_trans_po_non_product aa')
 				->join('tr_purchase_order_non_product ab', 'ab.no_po = aa.no_po')
 				->where('aa.no_po', $no_po)
-				->where('ab.tipe', 'pr depart')
 				->get_compiled_select();
+
+			$this->db->select('b.no_pr');
+			$this->db->from('material_planning_base_on_produksi_detail a');
+			$this->db->join('material_planning_base_on_produksi b', 'b.so_number = a.so_number');
+			$this->db->where_in('a.id', $subquery_in, false);
+			$this->db->where('b.category', 'pr stok');
+			$this->db->group_by('b.no_pr');
+			$query0 = $this->db->get_compiled_select();
 
 			// Query untuk mendapatkan no_pr dari rutin_non_planning_detail dan asset_planning
 			$this->db->select('b.no_pr');
@@ -3320,7 +3446,7 @@ class Purchase_order_non_product extends Admin_Controller
 			$query2 = $this->db->get_compiled_select();
 
 			// Gabungkan kedua query menggunakan UNION ALL
-			$final_query = $query1 . ' UNION ALL ' . $query2;
+			$final_query = $query0 . ' UNION ALL  ' . $query1 . ' UNION ALL ' . $query2;
 
 			// print_r($final_query);
 			// exit;

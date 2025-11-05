@@ -84,7 +84,7 @@ class Incoming_stok extends Admin_Controller
               $konversi = 1;
             }
             $ArrStock[$val]['id']   = $valx['id_barang'];
-            $ArrStock[$val]['qty']  = $qty_incoming * $konversi;
+            $ArrStock[$val]['qty']  = $qty_incoming;
 
             // print_r($qty_incoming.' - '.$konversi.'<br>');
 
@@ -265,6 +265,9 @@ class Incoming_stok extends Admin_Controller
       // print_r($ArrUpdatePO);
       // exit;
 
+      // print_r($ArrStock);
+      // exit;
+
       $this->db->trans_start();
       if (!empty($ArrInsertDetail)) {
         $this->db->insert('warehouse_adjustment', $ArrInsert);
@@ -287,7 +290,7 @@ class Incoming_stok extends Admin_Controller
           'pesan'    => 'Save berhasil disimpan. Thanks ...',
           'status'  => 1,
         );
-        move_warehouse_stok($ArrStock, NULL, $id_gudang, $kode_trans, null);
+        move_warehouse_stok_non_product($ArrStock, NULL, $id_gudang, $kode_trans, null);
         history("Incoming barang stok : " . $kode_trans);
       }
       echo json_encode($Arr_Data);
@@ -452,10 +455,11 @@ class Incoming_stok extends Admin_Controller
                     LEFT JOIN accessories b ON a.idmaterial = b.id
                     LEFT JOIN accessories_category c ON b.id_category = c.id
                     LEFT JOIN ms_satuan d ON d.id = b.id_unit_gudang
+                    LEFT JOIN tr_purchase_order_non_product e ON a.no_po = e.no_po
                   WHERE
                     a.no_po IN ('" . str_replace(",", "','", $no_po) . "')
                     AND a.qty_in < a.qty
-                    AND c.outgoing = '" . $categoryGudang . "'
+                    AND e.tipe IS NULL
                 ")->result_array();
     // print_r($detail);
     // echo $this->db->last_query();

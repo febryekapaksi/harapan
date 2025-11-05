@@ -103,10 +103,11 @@ $isApproval = (isset($mode) && $mode == 'approval');
                                         $i = 0;
                                         foreach ($grouped as $no_delivery => $rows):
                                             $customer_name = $rows[0]['customer'];
+                                            $sales = $rows[0]['nama_sales'];
                                     ?>
                                             <!-- Header SPK -->
                                             <tr style="background-color:#f0f0f0; font-weight:bold;">
-                                                <td colspan="8">No SPK : <?= $no_delivery ?> - <?= $customer_name ?></td>
+                                                <td colspan="8">No SPK : <?= $no_delivery ?> - <?= $customer_name ?> / Sales : <?= $sales ?></td>
                                             </tr>
 
                                             <!-- Baris produk -->
@@ -401,7 +402,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
                         if (item.no_delivery !== currentSpk) {
                             html += `
                                     <tr class="spk-header" data-spk="${item.no_delivery}" style="background-color:#f0f0f0; font-weight:bold;">
-                                        <td colspan="8">No SPK : ${item.no_delivery}</td>
+                                        <td colspan="8">No SPK : ${item.no_delivery} / Sales : ${item.nama_sales}</td>
                                     </tr>
                                 `;
                             currentSpk = item.no_delivery;
@@ -449,11 +450,12 @@ $isApproval = (isset($mode) && $mode == 'approval');
             Object.keys(grouped).forEach((no_delivery) => {
                 const group = grouped[no_delivery];
                 const customer = group[0].name_customer;
+                const sales = group[0].nama_sales;
 
                 // Baris header SPK
                 let groupRow = `
             <tr style="background-color:#f0f0f0; font-weight:bold;">
-                <td colspan="8">No SPK : ${no_delivery} - ${customer}</td>
+                <td colspan="8">No SPK : ${no_delivery} - ${customer} / Sales : ${sales}</td>
             </tr>
         `;
                 $('#tableSpk tbody').append(groupRow);
