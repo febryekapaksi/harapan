@@ -613,9 +613,9 @@ function getStokBarangAll()
 											b.konversi
 										')
 		->group_by('a.id_material')
-		->where_in('a.id_gudang', [17, 19, 21])
+		->where_in('a.id_gudang', [1])
 		->join('accessories b', 'a.id_material=b.id')
-		->get('warehouse_stock a')
+		->get('warehouse_stock_stock a')
 		->result_array();
 	$ArrGetCategory 	= [];
 	foreach ($listGetCategory as $key => $value) {
