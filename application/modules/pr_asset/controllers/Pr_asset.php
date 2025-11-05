@@ -329,12 +329,7 @@ class Pr_asset extends Admin_Controller
 
 		// $list_department = $this->db->get_where('ms_department', ['deleted_by' => null])->result_array();
 
-		// $this->hris->select('a.id as id_dept, a.name as nm_dept, b.name as nm_comp');
-		// $this->hris->from('departments a');
-		// $this->hris->join('companies b', 'b.id = a.company_id', 'left');
-		// $list_department = $this->hris->get()->result_array();
-
-		$this->db->select('a.id as id_dept, a.nama as nm_dept, "" as nm_comp');
+		$this->db->select('a.id, a.nama as nm_dept');
 		$this->db->from('ms_department a');
 		$this->db->where('a.deleted_by', null);
 		$list_department = $this->db->get()->result_array();
@@ -370,10 +365,10 @@ class Pr_asset extends Admin_Controller
 
 		// $list_department = $this->db->get_where('ms_department', ['deleted_by' => null])->result_array();
 
-		$this->hris->select('a.id as id_dept, a.name as nm_dept, b.name as nm_comp');
-		$this->hris->from('departments a');
-		$this->hris->join('companies b', 'b.id = a.company_id', 'left');
-		$list_department = $this->hris->get()->result_array();
+		$this->db->select('a.id, a.nama as nm_dept');
+		$this->db->from('ms_department a');
+		$this->db->where('a.deleted_by', null);
+		$list_department = $this->db->get()->result_array();
 
 		$list_costcenter = $this->db->get_where('ms_costcenter', ['deleted_by' => null])->result_array();
 		$datacoa = $this->db->like('no_perkiraan', '13', 'after')->get_where(DBACC . '.coa_master', array('level' => '5', 'no_perkiraan not like ' => '1309%'))->result_array();

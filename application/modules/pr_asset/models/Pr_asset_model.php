@@ -3,7 +3,7 @@
 class Pr_asset_model extends BF_model
 {
 
-	protected $hris;
+	// protected $hris;
 
 	public function __construct()
 	{
@@ -786,19 +786,19 @@ class Pr_asset_model extends BF_model
 				$nomor = ($total_data - $start_dari) - $urut2;
 			}
 
-			$this->hris->select('a.id, a.name as nm_dept, b.name as nm_comp');
-			$this->hris->from('departments a');
-			$this->hris->join('companies b', 'b.id = a.company_id', 'left');
-			$this->hris->where('a.id', $row['id_dept']);
-			$get_department = $this->hris->get()->row();
+			$this->db->select('a.id, a.nama as nm_dept');
+			$this->db->from('ms_department a');
+			$this->db->where('a.id', $row['id_dept']);
+			$this->db->where('a.deleted_by', null);
+			$get_department = $this->db->get()->row();
 
 			$nm_dept = (!empty($get_department)) ? $get_department->nm_dept : '';
-			$nm_comp = (!empty($get_department)) ? $get_department->nm_comp : '';
+			// $nm_comp = (!empty($get_department)) ? $get_department->nm_comp : '';
 
 			$nestedData 	= array();
 			$nestedData[]	= "<div class='prt_" . $nomor . "' align='center'>" . $nomor . "</div><script type='text/javascript'>$('.prt_" . $nomor . "').parent().parent().attr('id','" . $nomor . "');</script>";
 			$nestedData[]	= "<div align='left'>" . strtoupper($row['nama_asset']) . "</div>";
-			$nestedData[]	= "<div align='left'>" . strtoupper($nm_dept . ' - ' . $nm_comp) . "</div>";
+			$nestedData[]	= "<div align='left'>" . strtoupper($nm_dept) . "</div>";
 			$nestedData[]	= "<div align='center'>" . $row['qty'] . "</div>";
 			$nestedData[]	= "<div align='center'>" . strtolower($row['nm_user']) . "</div>";
 			$nestedData[]	= "<div align='center'>" . date('d M Y', strtotime($row['app_date'])) . "</div>";
