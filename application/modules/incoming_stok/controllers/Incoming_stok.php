@@ -88,7 +88,7 @@ class Incoming_stok extends Admin_Controller
 
             // print_r($qty_incoming.' - '.$konversi.'<br>');
 
-            $getIncoming  = $this->db->get_where('dt_trans_po', array('id' => $valx['id']))->result_array();
+            $getIncoming  = $this->db->get_where('dt_trans_po_non_product', array('id' => $valx['id']))->result_array();
             $qtyIn        = (!empty($getIncoming[0]['qty_in'])) ? $getIncoming[0]['qty_in'] : 0;
 
             $ArrUpdatePO[$val]['id']       = $valx['id'];
@@ -128,8 +128,8 @@ class Incoming_stok extends Admin_Controller
 
             $nilai_beli = 0;
             $this->db->select('a.hargasatuan, a.persen_disc as item_disc, b.persen_disc as po_disc');
-            $this->db->from('dt_trans_po a');
-            $this->db->join('tr_purchase_order b', 'b.no_po = a.no_po', 'left');
+            $this->db->from('dt_trans_po_non_product a');
+            $this->db->join('tr_purchase_order_non_product b', 'b.no_po = a.no_po', 'left');
             $this->db->where_in('a.no_po', explode(',', $no_po));
             $get_nilai_beli = $this->db->get()->result();
             foreach ($get_nilai_beli as $item_beli) {
@@ -237,10 +237,9 @@ class Incoming_stok extends Admin_Controller
 
             $get_stock_barang = $this->db->get_where('warehouse_stock', ['id_material' => $valx['id_barang'], 'id_gudang' => $id_gudang])->row();
             $stock_barang = 0;
-            if(!empty($get_stock_barang)) {
+            if (!empty($get_stock_barang)) {
               $stock_barang = ($get_stock_barang->qty_stock);
             }
-            
           }
         }
       }
@@ -272,7 +271,7 @@ class Incoming_stok extends Admin_Controller
         $this->db->insert_batch('warehouse_adjustment_detail', $ArrInsertDetail);
       }
       if (!empty($ArrUpdatePO)) {
-        $this->db->update_batch('dt_trans_po', $ArrUpdatePO, 'id');
+        $this->db->update_batch('dt_trans_po_non_product', $ArrUpdatePO, 'id');
       }
       $this->db->trans_complete();
 
@@ -301,10 +300,10 @@ class Incoming_stok extends Admin_Controller
         ->select('b.no_surat, b.no_po')
         ->group_by('a.no_po')
         ->order_by('b.no_surat', 'ASC')
-        ->join('tr_purchase_order b', 'a.no_po=b.no_po', 'left')
+        ->join('tr_purchase_order_non_product b', 'a.no_po=b.no_po', 'left')
         ->where('a.qty_in < a.qty')
         ->get_where(
-          'dt_trans_po a',
+          'dt_trans_po_non_product a',
           array(
             'b.status' => '2',
             'a.idmaterial !=' => '',
@@ -317,10 +316,10 @@ class Incoming_stok extends Admin_Controller
           ->select('b.no_surat, b.no_po')
           ->group_by('a.no_po')
           ->order_by('b.no_surat', 'ASC')
-          ->join('tr_purchase_order b', 'a.no_po=b.no_po', 'left')
+          ->join('tr_purchase_order_non_product b', 'a.no_po=b.no_po', 'left')
           ->where('a.qty_in < a.qty')
           ->get_where(
-            'dt_trans_po a',
+            'dt_trans_po_non_product a',
             array(
               'b.status' => '2',
               'a.idmaterial !=' => '',
@@ -372,7 +371,7 @@ class Incoming_stok extends Admin_Controller
 
 
     $no_po = [];
-    $get_no_po = $this->db->query("SELECT a.no_surat FROM tr_purchase_order a WHERE a.no_po IN ('" . str_replace(",", "','", $getData[0]['no_ipp']) . "')")->result();
+    $get_no_po = $this->db->query("SELECT a.no_surat FROM tr_purchase_order_non_product a WHERE a.no_po IN ('" . str_replace(",", "','", $getData[0]['no_ipp']) . "')")->result();
     foreach ($get_no_po as $item) {
       $no_po[] = $item->no_surat;
     }
@@ -413,7 +412,7 @@ class Incoming_stok extends Admin_Controller
       ->result_array();
 
     $no_po = [];
-    $get_no_po = $this->db->query("SELECT a.no_surat FROM tr_purchase_order a WHERE a.no_po IN ('" . str_replace(",", "','", $getData[0]['no_ipp']) . "')")->result();
+    $get_no_po = $this->db->query("SELECT a.no_surat FROM tr_purchase_order_non_product a WHERE a.no_po IN ('" . str_replace(",", "','", $getData[0]['no_ipp']) . "')")->result();
     foreach ($get_no_po as $item) {
       $no_po[] = $item->no_surat;
     }
@@ -449,7 +448,7 @@ class Incoming_stok extends Admin_Controller
                     b.id_stock,
                     d.code as satuan_packing
                   FROM
-                    dt_trans_po a
+                    dt_trans_po_non_product a
                     LEFT JOIN accessories b ON a.idmaterial = b.id
                     LEFT JOIN accessories_category c ON b.id_category = c.id
                     LEFT JOIN ms_satuan d ON d.id = b.id_unit_gudang
@@ -506,10 +505,10 @@ class Incoming_stok extends Admin_Controller
       ->select('b.no_surat, b.no_po')
       ->group_by('a.no_po')
       ->order_by('b.no_surat', 'ASC')
-      ->join('tr_purchase_order b', 'a.no_po=b.no_po', 'left')
+      ->join('tr_purchase_order_non_product b', 'a.no_po=b.no_po', 'left')
       ->where('a.qty_in < a.qty')
       ->get_where(
-        'dt_trans_po a',
+        'dt_trans_po_non_product a',
         array(
           'b.status' => '2',
           'a.idmaterial !=' => '',
@@ -524,10 +523,10 @@ class Incoming_stok extends Admin_Controller
         ->select('b.no_surat, b.no_po')
         ->group_by('a.no_po')
         ->order_by('b.no_surat', 'ASC')
-        ->join('tr_purchase_order b', 'a.no_po=b.no_po', 'left')
+        ->join('tr_purchase_order_non_product b', 'a.no_po=b.no_po', 'left')
         ->where('a.qty_in < a.qty')
         ->get_where(
-          'dt_trans_po a',
+          'dt_trans_po_non_product a',
           array(
             'b.status' => '2',
             'a.idmaterial !=' => '',
@@ -552,7 +551,7 @@ class Incoming_stok extends Admin_Controller
             material_planning_base_on_produksi_detail a
             JOIN material_planning_base_on_produksi b ON b.so_number = a.so_number
           WHERE
-            a.id IN (SELECT aa.idpr FROM dt_trans_po aa WHERE aa.no_po = '" . $item->no_po . "' AND (aa.tipe IS NULL OR aa.tipe = ''))
+            a.id IN (SELECT aa.idpr FROM dt_trans_po_non_product aa WHERE aa.no_po = '" . $item->no_po . "' AND (aa.tipe IS NULL OR aa.tipe = ''))
           GROUP BY b.no_pr
 
           UNION ALL
@@ -563,7 +562,7 @@ class Incoming_stok extends Admin_Controller
             rutin_non_planning_detail a
             JOIN rutin_non_planning_header b ON b.no_pengajuan = a.no_pengajuan
           WHERE
-            a.id IN (SELECT aa.idpr FROM dt_trans_po aa WHERE aa.no_po = '" . $item->no_po . "' AND aa.tipe = 'pr depart')
+            a.id IN (SELECT aa.idpr FROM dt_trans_po_non_product aa WHERE aa.no_po = '" . $item->no_po . "' AND aa.tipe = 'pr depart')
           GROUP BY b.no_pr
         ")->result();
         foreach ($get_no_pr as $item_pr) {

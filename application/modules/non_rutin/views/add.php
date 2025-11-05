@@ -26,26 +26,6 @@ $tgl_appre_2 = '';
 $status3 = '';
 $tgl_appre_3 = '';
 if (!empty($header)) {
-	if ($header[0]->app_1 == '1') {
-		$status1 = '<div class="badge bg-green">Approved</div>';
-		$tgl_appre_1 = date('d F Y', strtotime($header[0]->app_1_date));
-	} else {
-		if ($header[0]->sts_reject1 == '1') {
-			$status1 = '<div class="badge bg-red">Rejected</div>';
-			$tgl_appre_1 = date('d F Y', strtotime($header[0]->sts_reject1_date));
-		}
-	}
-
-	if ($header[0]->app_2 == '1') {
-		$status2 = '<div class="badge bg-green">Approved</div>';
-		$tgl_appre_2 = date('d F Y', strtotime($header[0]->app_2_date));
-	} else {
-		if ($header[0]->sts_reject2 == '1') {
-			$status2 = '<div class="badge bg-red">Rejected</div>';
-			$tgl_appre_2 = date('d F Y', strtotime($header[0]->sts_reject2_date));
-		}
-	}
-
 	if ($header[0]->app_3 == '1') {
 		$status3 = '<div class="badge bg-green">Approved</div>';
 		$tgl_appre_3 = date('d F Y', strtotime($header[0]->app_3_date));
@@ -66,7 +46,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 // $dataso = $this->db->query("select a.project, b.so_number from table_sales_order a LEFT JOIN so_bf_header b ON a.no_ipp=b.no_ipp order by so_number")->result();
 ?>
 <link rel="stylesheet" href="https://cdn.datatables.net/2.0.2/css/dataTables.dataTables.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.css" integrity="sha512-0nkKORjFgcyxv3HbE4rzFUlENUMNqic/EzDIeYCgsKa/nwqr2B91Vu/tNAu4Q0cBuG4Xe/D1f/freEci/7GDRA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <form action="#" method="POST" id="form_ct" enctype="multipart/form-data" autocomplete='off'>
 	<input type="hidden" name="id" value="<?= $id; ?>">
 	<input type="hidden" name="tanda" value="<?= $tanda; ?>">
@@ -85,7 +65,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 			<div class='form-group row'>
 				<label class='label-control col-sm-2'><b>Department <span class='text-red'>*</span></b></label>
 				<div class='col-sm-4'>
-					<select name='id_dept' id='id_dept' class='form-control input-md chosen_select' <?= $disabled; ?>>
+					<select name='id_dept' id='id_dept' class='form-control input-md select2_select' <?= $disabled; ?>>
 						<option value='0'>Select An Department</option>
 						<?php
 						// foreach (get_list_dept() as $val => $valx) {
@@ -99,7 +79,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 							if ($departement->id == $id_dept) {
 								$selected = 'selected';
 							}
-							echo "<option value='" . $departement->id . "' " . $selected . ">" . strtoupper($departement->nama) . "</option>";
+							echo "<option value='" . $departement->id . "' " . $selected . ">" . strtoupper($departement->name) . "</option>";
 						}
 						?>
 					</select>
@@ -122,7 +102,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 				</div>
 				<label class='label-control col-sm-2'><b>COA <span class='text-red'>*</span></b> </label>
 				<div class='col-sm-4'>
-					<select name="coa" id="coa" class="form-control chosen_select" required>
+					<select name="coa" id="coa" class="form-control select2_select" required>
 						<option value="">- Select COA -</option>
 						<?php
 						foreach ($list_coa as $coa) :
@@ -159,36 +139,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 							</tr>
 						</thead>
 						<tbody>
-							<tr>
-								<td class="text-center">Departement Head</td>
-								<td class="text-center">
-									<?= $status1 ?>
-								</td>
-								<td class="text-center">
-									<?= $tgl_appre_1 ?>
-								</td>
-								<td>
-									<input type="text" name="reject_reason1" id="" class="form-control" value="<?= $alasan_reject1 ?>" readonly>
-								</td>
-								<td>
-									<input type="text" name="keterangan_1" id="" class="form-control" value="<?= $keterangan_1 ?>">
-								</td>
-							</tr>
-							<tr>
-								<td class="text-center">Cost Control</td>
-								<td class="text-center">
-									<?= $status2 ?>
-								</td>
-								<td class="text-center">
-									<?= $tgl_appre_2 ?>
-								</td>
-								<td>
-									<input type="text" name="reject_reason2" id="" class="form-control" value="<?= $alasan_reject2 ?>" readonly>
-								</td>
-								<td>
-									<input type="text" name="keterangan_2" id="" class="form-control" value="<?= $keterangan_2 ?>">
-								</td>
-							</tr>
+
 							<tr>
 								<td class="text-center">Management</td>
 								<td class="text-center">
@@ -261,8 +212,12 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 							$nomor++;
 							echo "<tr class='header_" . $nomor . "'>";
 							echo "<td align='center'>" . $nomor . "<input type='hidden' name='detail[" . $nomor . "][id]' value='" . $valx['id'] . "'></td>";
-							echo "<td align='left'><input type='text' " . $disabled3 . " name='detail[" . $nomor . "][nm_barang]' class='form-control input-md nm_barang_" . $nomor . "' value='" . strtoupper($valx['nm_barang']) . "'></td>";
-							echo "<td align='left'><input type='text' " . $disabled3 . " name='detail[" . $nomor . "][spec]' class='form-control input-md spec_" . $nomor . "' value='" . strtoupper($valx['spec']) . "'></td>";
+							echo "<td align='left'>
+								<textarea class='form-control input-md nm_barang_" . $nomor . "' name='detail[" . $nomor . "][nm_barang]' " . $disabled3 . ">" . strtoupper($valx['nm_barang']) . "</textarea>
+							</td>";
+							echo "<td align='left'>
+								<textarea class='form-control input-md spec_" . $nomor . "' name='detail[" . $nomor . "][spec]' " . $disabled3 . ">" . strtoupper($valx['spec']) . "</textarea>
+							</td>";
 							echo "<td align='left'><input type='text' " . $disabled2 . " id='qty_" . $nomor . "' name='detail[" . $nomor . "][qty]' class='form-control input-md text-right autoNumeric2 sum_tot qty_" . $nomor . "' value='" . $valx['qty'] . "'></td>";
 							echo "<td align='left'>
 									<select name='detail[" . $nomor . "][satuan]' class='form-control wajib satuan_" . $nomor . "' " . $disabled2 . " required>";
@@ -273,10 +228,12 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 							}
 							echo "	</select>
 									</td>";
-							echo "<td align='left'><input type='text' " . $disabled2 . " id='harga_" . $nomor . "' name='detail[" . $nomor . "][harga]' class='form-control input-md text-right maskM sum_tot harga_" . $nomor . "' value='" . number_format($valx['harga']) . "' data-decimal='.' data-thousand='' data-precision='0' data-allow-zero=''></td>";
-							echo "<td align='left'><input type='text' " . $disabled2 . " id='total_harga_" . $nomor . "' name='detail[" . $nomor . "][total_harga]' class='form-control input-md text-right maskM jumlah_all total_harga_" . $nomor . "' value='" . number_format($valx['qty'] * $valx['harga']) . "' data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' readonly></td>";
+							echo "<td align='left'><input type='text' " . $disabled2 . " id='harga_" . $nomor . "' name='detail[" . $nomor . "][harga]' class='form-control input-md text-right maskM sum_tot harga_" . $nomor . "' value='" . $valx['harga'] . "' data-decimal='.' data-thousand='' data-precision='0' data-allow-zero=''></td>";
+							echo "<td align='left'><input type='text' " . $disabled2 . " id='total_harga_" . $nomor . "' name='detail[" . $nomor . "][total_harga]' class='form-control input-md text-right maskM jumlah_all total_harga_" . $nomor . "' value='" . ($valx['qty'] * $valx['harga']) . "' data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' readonly></td>";
 							echo "<td align='left'><input type='text' " . $disabled3 . " name='detail[" . $nomor . "][tanggal]' class='form-control input-md text-center datepicker tgl_dibutuhkan tanggal_" . $nomor . "' readonly value='" . strtoupper($valx['tanggal']) . "'></td>";
-							echo "<td align='left'><input type='text' " . $disabled3 . " name='detail[" . $nomor . "][keterangan]' class='form-control input-md keterangan_" . $nomor . "' value='" . strtoupper($valx['keterangan']) . "'></td>";
+							echo "<td align='left'>
+								<textarea class='form-control input-md keterangan_" . $nomor . "' name='detail[" . $nomor . "][keterangan]' " . $disabled3 . ">" . strtoupper($valx['keterangan']) . "</textarea>
+							</td>";
 							if (empty($approve)) {
 								echo "<td align='center'><button type='button' class='btn btn-sm btn-warning edit_detail edit_detail_" . $nomor . "' data-id='" . $valx['id'] . "' data-nomor='" . $nomor . "' style='margin-right: 0.5em;'><i class='fa fa-pencil'></i>
 								</button><button type='button' class='btn btn-sm btn-danger delPart' title='Delete Part'><i class='fa fa-close'></i></button></td>";
@@ -309,12 +266,12 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 
 </form>
 <style type="text/css">
-	.chosen-container-active .chosen-single {
+	.select2-container-active .select2-single {
 		border: none;
 		box-shadow: none;
 	}
 
-	.chosen-container-single .chosen-single {
+	.select2-container-single .select2-single {
 		height: 34px;
 		border: 1px solid #d2d6de;
 		border-radius: 0px;
@@ -324,7 +281,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 		line-height: 32px;
 	}
 
-	.chosen-container-single .chosen-single div {
+	.select2-container-single .select2-single div {
 		top: 5px;
 	}
 
@@ -334,7 +291,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 </style>
 <script src="<?= base_url('assets/js/autoNumeric.js') ?>"></script>
 <script src="https://cdn.datatables.net/2.0.2/js/dataTables.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js" integrity="sha512-rMGGF4wg1R73ehtnxXBt5mbUfN9JUJwbk21KMlnLZDJh7BkPmeovBuddZCENJddHYYMkCh9hPFnPmS9sspki8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 	$(document).ready(function() {
 		$('.maskM').autoNumeric();
@@ -342,7 +299,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 			mDec: '2',
 			aPad: false
 		});
-		$('.chosen_select').chosen();
+		$('.select2_select').select2();
 		$('.datepicker').datepicker({
 			dateFormat: 'yy-mm-dd',
 			//minDate: 0
@@ -396,7 +353,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 			success: function(data) {
 				$("#add_" + id_bef).before(data.header);
 				$("#add_" + id_bef).remove();
-				$('.chosen_select').chosen({
+				$('.select2_select').select2({
 					width: '100%'
 				});
 				$('.maskM').autoNumeric();
@@ -404,7 +361,7 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 					dateFormat: 'yy-mm-dd',
 					//minDate: 0
 				});
-				$('.chosen_select').chosen();
+				$('.select2_select').select2();
 				swal.close();
 			},
 			error: function() {
@@ -455,16 +412,16 @@ $disabled3		= ($approve == 'view') ? 'readonly' : '';
 			$('#save').prop('disabled', false);
 			return false;
 		}
-		if (coa == '0' || coa == '') {
-			swal({
-				title: "Error Message!",
-				text: 'COA is empty, select first ...',
-				type: "warning"
-			});
+		//if (coa == '0' || coa == '') {
+		//	swal({
+		//		title: "Error Message!",
+		//		text: 'COA is empty, select first ...',
+		//		type: "warning"
+		//	});
 
-			$('#save').prop('disabled', false);
-			return false;
-		}
+		//	$('#save').prop('disabled', false);
+		//	return false;
+		//}
 
 
 		var app = $("#approve").val();

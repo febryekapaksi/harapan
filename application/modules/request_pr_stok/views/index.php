@@ -129,23 +129,20 @@ $ENABLE_DELETE  = has_permission('PR_Stok.Delete');
 							$warna = "red";
 							$sts = "Rejected By Management";
 						endif;
+
+						$warna = 'red';
+						$sts = 'Rejected';
 					} else {
 						if ($row->app_1 == null && $row->app_2 == null && $row->app_3 == null) :
 							$warna = "blue";
-							$sts = "Waiting Approval Head";
-						elseif ($row->app_1 !== null && $row->app_2 == null && $row->app_3 == null) :
-							$warna = "blue";
-							$sts = "Waiting Approval Cost Control";
-						elseif ($row->app_1 !== null && $row->app_2 !== null && $row->app_3 == null) :
-							$warna = "blue";
-							$sts = "Waiting Approval Management";
+							$sts = "Waiting Approval";
 						else :
 							if ($row->sts_app == "Y") :
 								$warna = "green";
 								$sts = "Approved";
 							else :
 								$warna = "blue";
-								$sts = "Waiting Approval Head";
+								$sts = "Waiting Approval";
 							endif;
 						endif;
 					}
@@ -164,9 +161,9 @@ $ENABLE_DELETE  = has_permission('PR_Stok.Delete');
 					$approve  = "";
 					$view  = "<a href='" . site_url($this->uri->segment(1)) . '/detail_planning/' . $row->so_number . "' class='btn btn-sm btn-warning' title='Detail PR' data-role='qtip'><i class='fa fa-eye'></i></a>";
 					$edit   = "";
-					if ($ENABLE_MANAGE && $valid_edit > 0) {
-						$edit   = "<a href='" . site_url($this->uri->segment(1)) . '/edit_planning/' . $row->so_number . "' class='btn btn-sm btn-info' title='Edit PR' data-role='qtip'><i class='fa fa-edit'></i></a>";
-					}
+					// if ($ENABLE_MANAGE && $valid_edit > 0) {
+					// 	$edit   = "<a href='" . site_url($this->uri->segment(1)) . '/edit_planning/' . $row->so_number . "' class='btn btn-sm btn-info' title='Edit PR' data-role='qtip'><i class='fa fa-edit'></i></a>";
+					// }
 
 					$print = '<a href="' . site_url($this->uri->segment(1)) . '/PrintH2/' . $row->so_number . '" class="btn btn-sm btn-info" title="Print PR" target="_blank"><i class="fa fa-download"></i></a>';
 

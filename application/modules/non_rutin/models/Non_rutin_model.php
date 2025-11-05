@@ -3,10 +3,13 @@
 class Non_rutin_model extends BF_Model
 {
 
+    protected $hris;
     public function __construct()
     {
         parent::__construct();
         // Your own constructor code
+
+        // $this->hris = $this->load->database('hris', true);
     }
 
     public function get_data_json_non_rutin()
@@ -93,35 +96,47 @@ class Non_rutin_model extends BF_Model
             }
 
             if (($row['sts_reject1'] !== null || $row['sts_reject2'] !== null || $row['sts_reject3'] !== null) && $row['rejected'] == 1) {
-                if ($row['sts_reject1'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Head Department";
-                elseif ($row['sts_reject2'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Cost Control";
-                elseif ($row['sts_reject3'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Management";
-                endif;
+                // if ($row['sts_reject1'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Head Department";
+                // elseif ($row['sts_reject2'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Cost Control";
+                // elseif ($row['sts_reject3'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Management";
+                // endif;
+                $warna = 'red';
+                $sts = 'Rejected';
             } else {
-                if ($row['app_1'] == null && $row['app_2'] == null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Head Department";
-                elseif ($row['app_1'] !== null && $row['app_2'] == null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Cost Control";
-                elseif ($row['app_1'] !== null && $row['app_2'] !== null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Management";
-                else :
-                    if ($row['sts_app'] == "Y") :
-                        $warna = "green";
-                        $sts = "Approved";
-                    else :
-                        $warna = "blue";
-                        $sts = "Waiting Approval Head Department";
-                    endif;
-                endif;
+                // if ($row['app_1'] == null && $row['app_2'] == null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Head Department";
+                // elseif ($row['app_1'] !== null && $row['app_2'] == null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Cost Control";
+                // elseif ($row['app_1'] !== null && $row['app_2'] !== null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Management";
+                // else :
+                //     if ($row['sts_app'] == "Y") :
+                //         $warna = "green";
+                //         $sts = "Approved";
+                //     else :
+                //         $warna = "blue";
+                //         $sts = "Waiting Approval Head Department";
+                //     endif;
+                // endif;
+
+                if ($row['app_3'] == null) {
+                    $warna = 'blue';
+                    $sts = 'Waiting Approval';
+                } else {
+                    if ($row['sts_app'] == 'Y') {
+                        $warna = 'green';
+                        $sts = 'Approved';
+                    }
+                }
             }
 
             $nestedData[]    = "<div align='left'><span class='badge' style='background-color: " . $warna . ";'>" . $sts . "</span></div>";
@@ -258,35 +273,47 @@ class Non_rutin_model extends BF_Model
             }
 
             if (($row['sts_reject1'] !== null || $row['sts_reject2'] !== null || $row['sts_reject3'] !== null) && $row['rejected'] == 1) {
-                if ($row['sts_reject1'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Head Department";
-                elseif ($row['sts_reject2'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Cost Control";
-                elseif ($row['sts_reject3'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Management";
-                endif;
+                // if ($row['sts_reject1'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Head Department";
+                // elseif ($row['sts_reject2'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Cost Control";
+                // elseif ($row['sts_reject3'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Management";
+                // endif;
+                $warna = 'red';
+                $sts = 'Rejected';
             } else {
-                if ($row['app_1'] == null && $row['app_2'] == null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Head Department";
-                elseif ($row['app_1'] !== null && $row['app_2'] == null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Cost Control";
-                elseif ($row['app_1'] !== null && $row['app_2'] !== null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Management";
-                else :
-                    if ($row['sts_app'] == "Y") :
-                        $warna = "green";
-                        $sts = "Approved";
-                    else :
-                        $warna = "blue";
-                        $sts = "Waiting Approval Head Department";
-                    endif;
-                endif;
+                // if ($row['app_1'] == null && $row['app_2'] == null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Head Department";
+                // elseif ($row['app_1'] !== null && $row['app_2'] == null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Cost Control";
+                // elseif ($row['app_1'] !== null && $row['app_2'] !== null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Management";
+                // else :
+                //     if ($row['sts_app'] == "Y") :
+                //         $warna = "green";
+                //         $sts = "Approved";
+                //     else :
+                //         $warna = "blue";
+                //         $sts = "Waiting Approval Head Department";
+                //     endif;
+                // endif;
+
+                if ($row['app_3'] == null) {
+                    $warna = 'blue';
+                    $sts = 'Waiting Approval';
+                } else {
+                    if ($row['sts_app'] == 'Y') {
+                        $warna = 'green';
+                        $sts = 'Approved';
+                    }
+                }
             }
 
             $nestedData[]    = "<div align='left'><span class='badge' style='background-color: " . $warna . ";'>" . $sts . "</span></div>";
@@ -428,35 +455,47 @@ class Non_rutin_model extends BF_Model
             }
 
             if (($row['sts_reject1'] !== null || $row['sts_reject2'] !== null || $row['sts_reject3'] !== null) && $row['rejected'] == 1) {
-                if ($row['sts_reject1'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Head Department";
-                elseif ($row['sts_reject2'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Cost Control";
-                elseif ($row['sts_reject3'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Management";
-                endif;
+                // if ($row['sts_reject1'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Head Department";
+                // elseif ($row['sts_reject2'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Cost Control";
+                // elseif ($row['sts_reject3'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Management";
+                // endif;
+                $warna = 'red';
+                $sts = 'Rejected';
             } else {
-                if ($row['app_1'] == null && $row['app_2'] == null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Head Department";
-                elseif ($row['app_1'] !== null && $row['app_2'] == null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Cost Control";
-                elseif ($row['app_1'] !== null && $row['app_2'] !== null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Management";
-                else :
-                    if ($row['sts_app'] == "Y") :
-                        $warna = "green";
-                        $sts = "Approved";
-                    else :
-                        $warna = "blue";
-                        $sts = "Waiting Approval Head Department";
-                    endif;
-                endif;
+                // if ($row['app_1'] == null && $row['app_2'] == null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Head Department";
+                // elseif ($row['app_1'] !== null && $row['app_2'] == null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Cost Control";
+                // elseif ($row['app_1'] !== null && $row['app_2'] !== null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Management";
+                // else :
+                //     if ($row['sts_app'] == "Y") :
+                //         $warna = "green";
+                //         $sts = "Approved";
+                //     else :
+                //         $warna = "blue";
+                //         $sts = "Waiting Approval Head Department";
+                //     endif;
+                // endif;
+
+                if ($row['app_3'] == null) {
+                    $warna = 'blue';
+                    $sts = 'Waiting Approval';
+                } else {
+                    if ($row['sts_app'] == 'Y') {
+                        $warna = 'green';
+                        $sts = 'Approved';
+                    }
+                }
             }
 
             $nestedData[]    = "<div align='left'><span class='badge' style='background-color: " . $warna . ";'>" . $sts . "</span></div>";
@@ -544,13 +583,19 @@ class Non_rutin_model extends BF_Model
                 $nomor = ($total_data - $start_dari) - $urut2;
             }
 
+            $this->db->select('a.id, a.nama as name');
+            $this->db->from('ms_department a');
+            $this->db->where('a.deleted_by', null);
+            $this->db->where('a.id', $row['id_dept']);
+            $get_department = $this->db->get()->row();
+
             $tanda = $requestData['tanda'];
 
             $nestedData     = array();
             $nestedData[]    = "<div align='center'>" . $nomor . "</div>";
             $no_pr = (!empty($row['no_pr'])) ? $row['no_pr'] : "<span class='text-red' title='No Pengajuan'>" . $row['no_pengajuan'] . "</span>";
             $nestedData[]    = "<div align='left'>" . $no_pr . "</div>";
-            $nestedData[]    = "<div align='left'>" . strtoupper($row['nama']) . "</div>";
+            $nestedData[]    = "<div align='left'>" . strtoupper($get_department->name) . "</div>";
 
             $list_barang    = $this->db->get_where('rutin_non_planning_detail', array('no_pengajuan' => $row['no_pengajuan']))->result_array();
             $arr_nmbarang = array();
@@ -579,6 +624,7 @@ class Non_rutin_model extends BF_Model
             $nestedData[]    = "<div align='left'>" . $dt_qty . "</div>";
             $nestedData[]    = "<div align='left'>" . $dt_tanggal . "</div>";
             $nestedData[]    = "<div align='left'>" . $dt_ket . "</div>";
+            $nestedData[]    = "<div align='left'>" . $row['nm_lengkap'] . "</div>";
 
             $last_by     = (!empty($row['updated_by'])) ? $row['updated_by'] : $row['created_by'];
             $last_date = (!empty($row['updated_date'])) ? $row['updated_date'] : $row['created_date'];
@@ -598,35 +644,47 @@ class Non_rutin_model extends BF_Model
             }
 
             if (($row['sts_reject1'] !== null || $row['sts_reject2'] !== null || $row['sts_reject3'] !== null) && $row['rejected'] == 1) {
-                if ($row['sts_reject1'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Head Department";
-                elseif ($row['sts_reject2'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Cost Control";
-                elseif ($row['sts_reject3'] == "1") :
-                    $warna = "red";
-                    $sts = "Rejected By Management";
-                endif;
+                // if ($row['sts_reject1'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Head Department";
+                // elseif ($row['sts_reject2'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Cost Control";
+                // elseif ($row['sts_reject3'] == "1") :
+                //     $warna = "red";
+                //     $sts = "Rejected By Management";
+                // endif;
+                $warna = 'red';
+                $sts = 'Rejected';
             } else {
-                if ($row['app_1'] == null && $row['app_2'] == null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Head Department";
-                elseif ($row['app_1'] !== null && $row['app_2'] == null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Cost Control";
-                elseif ($row['app_1'] !== null && $row['app_2'] !== null && $row['app_3'] == null) :
-                    $warna = "blue";
-                    $sts = "Waiting Approval Management";
-                else :
-                    if ($row['sts_app'] == "Y") :
-                        $warna = "green";
-                        $sts = "Approved";
-                    else :
-                        $warna = "blue";
-                        $sts = "Waiting Approval Head Department";
-                    endif;
-                endif;
+                // if ($row['app_1'] == null && $row['app_2'] == null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Head Department";
+                // elseif ($row['app_1'] !== null && $row['app_2'] == null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Cost Control";
+                // elseif ($row['app_1'] !== null && $row['app_2'] !== null && $row['app_3'] == null) :
+                //     $warna = "blue";
+                //     $sts = "Waiting Approval Management";
+                // else :
+                //     if ($row['sts_app'] == "Y") :
+                //         $warna = "green";
+                //         $sts = "Approved";
+                //     else :
+                //         $warna = "blue";
+                //         $sts = "Waiting Approval Head Department";
+                //     endif;
+                // endif;
+
+                if ($row['app_3'] == null) {
+                    $warna = 'blue';
+                    $sts = 'Waiting Approval';
+                } else {
+                    if ($row['sts_app'] == 'Y') {
+                        $warna = 'green';
+                        $sts = 'Approved';
+                    }
+                }
             }
 
             $nestedData[]    = "<div align='left'><span class='badge' style='background-color: " . $warna . ";'>" . $sts . "</span></div>";
@@ -696,27 +754,25 @@ class Non_rutin_model extends BF_Model
         $sql = "
 			SELECT
 				(@row:=@row+1) AS nomor,
-				a.*,
-				b.nama
+				a.*, c.nm_lengkap
 			FROM
 				rutin_non_planning_detail z
 				LEFT JOIN rutin_non_planning_header a ON z.no_pengajuan=a.no_pengajuan
-				LEFT JOIN ms_department b ON a.id_dept=b.id,
-				(SELECT @row:=0) r
+                LEFT JOIN users c ON c.id_user = a.created_by
 		    WHERE 1=1 " . $where . " AND 
             a.status_id = 1 AND 
             a.no_pr IS NULL AND 
-            a.app_post = '3' AND
+            a.sts_reject3 IS NULL AND
             a.close_pr IS NULL
             AND (
 				a.no_pengajuan LIKE '%" . $this->db->escape_like_str($like_value) . "%'
 				OR a.tanggal LIKE '%" . $this->db->escape_like_str($like_value) . "%'
 				OR a.no_pr LIKE '%" . $this->db->escape_like_str($like_value) . "%'
-				OR b.nama LIKE '%" . $this->db->escape_like_str($like_value) . "%'
 	        )
 			GROUP BY z.no_pengajuan
 		";
-        // echo $sql; exit;
+        // echo $sql;
+        // exit;
 
         $data['totalData'] = $this->db->query($sql)->num_rows();
         $data['totalFiltered'] = $this->db->query($sql)->num_rows();

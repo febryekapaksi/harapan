@@ -272,11 +272,13 @@ class Incoming_check_model extends BF_Model
         $no_pr = implode(', ', $arr_no_pr);
 
         $get_summary_incoming = $this->db->select('
+            a.id,
             a.nm_material,
             a.qty_order,
             IF(SUM(b.qty_ng) IS NULL, 0, SUM(b.qty_ng)) AS ttl_qty_ng,
             IF(SUM(b.qty_oke) IS NULL, 0, SUM(b.qty_oke)) AS ttl_qty_oke,
-        ')
+            IF(SUM(b.total_harga) IS NULL, 0, SUM(b.total_harga)) AS total_harga,
+            ')
             ->from('tr_incoming_check_detail a')
             ->join('tr_checked_incoming_detail b', 'b.id_detail = a.id', 'left')
             ->where('a.kode_trans', $kode_trans)
@@ -601,65 +603,111 @@ class Incoming_check_model extends BF_Model
             $get_warehouse_stock = $this->db->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->row();
 
             if ($check_stock <= 0) {
-                $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming')
+                $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming, harga, total_harga')
                     ->get_where('tr_checked_incoming_detail', [
-                        'kode_trans' => $post['kode_trans'],
-                        'id_material' => $det_inc['id_material'],
-                        'id_detail' => $det_inc['id'],
-                        'sts' => '0'
+                        'kode_trans'    => $post['kode_trans'],
+                        'id_material'   => $det_inc['id_material'],
+                        'id_detail'     => $det_inc['id'],
+                        'sts'           => '0'
                     ])->row_array();
 
-                $total_stock = $check_stock->qty_stock * $check_stock->harga_beli;
-                $total_beli = $get_new_incoming_ttl->ttl_new_incoming; //dikali harga po 
-                $costbook = ($total_stock + $total_beli) / ($get_new_incoming_ttl->ttl_new_incoming + $check_stock->qty_stock);
+                $qty_oke            = $get_new_incoming_ttl['ttl_new_incoming'];
+                $costbook           = $get_new_incoming_ttl['harga'];
+                $nilai_inventory    = $get_new_incoming_ttl['total_harga'];
 
                 $this->db->insert('warehouse_stock', [
-                    'id_material' => $det_inc['id_material'],
-                    'nm_product' => $det_inc['nm_material'],
-                    'id_gudang' => '1',
-                    'kd_gudang' => 'PUS',
-                    'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
-                    // ada input buat costbook/harga_beli
-                    'update_by' => $this->auth->user_id(),
-                    'update_date' => date('Y-m-d H:i:s')
+                    'id_material'       => $det_inc['id_material'],
+                    'nm_product'        => $det_inc['nm_material'],
+                    'id_gudang'         => '1',
+                    'kd_gudang'         => 'PUS',
+                    'incoming'          => $qty_oke,
+                    'begining'          => $qty_oke,
+                    'qty_stock'         => $qty_oke,
+                    'qty_free'          => $qty_oke,
+                    'harga_beli'        => $costbook,
+                    'total_nilai'       => $nilai_inventory,
+                    'update_by'         => $this->auth->user_id(),
+                    'update_date'       => date('Y-m-d H:i:s')
                 ]);
 
                 $this->db->insert('warehouse_stock_per_day', [
-                    'id_material' => $det_inc['id_material'],
-                    'nm_material' => $det_inc['nm_material'],
-                    'id_gudang' => 1,
-                    'qty_stock' => $get_new_incoming_ttl['ttl_new_incoming'],
-                    'hist_date' => date('Y-m-d H:i:s')
+                    'id_material'       => $det_inc['id_material'],
+                    'nm_material'       => $det_inc['nm_material'],
+                    'id_gudang'         => 1,
+                    'qty_stock'         => $qty_oke,
+                    'hist_date'         => date('Y-m-d H:i:s')
+                ]);
+
+                $this->db->insert('kartu_stok', [
+                    'no_transaksi'      => $post['kode_trans'],
+                    'transaksi'         => "Incoming Product",
+                    'tgl_transaksi'     => date('Y-m-d H:i:s'),
+                    'code_lv4'          => $det_inc['id_material'],
+                    'nm_product'        => $det_inc['nm_material'],
+                    'qty'               => $qty_oke,
+                    'qty_free'          => $qty_oke,
+                    'qty_transaksi'     => $qty_oke,
+                    'qty_akhir'         => $qty_oke,
+                    'qty_free_akhir'    => $qty_oke,
+                    'harga_stok'        => $costbook
                 ]);
             } else {
-                $get_stock = $this->db->select('qty_stock')->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->row_array();
-                $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming')
+                $get_stock = $this->db->select('qty_stock, qty_booking, qty_free, harga_beli')->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->row_array();
+                $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming, harga')
                     ->get_where('tr_checked_incoming_detail', [
-                        'kode_trans' => $post['kode_trans'],
-                        'id_material' => $det_inc['id_material'],
-                        'id_detail' => $det_inc['id'],
-                        'sts' => '0'
+                        'kode_trans'    => $post['kode_trans'],
+                        'id_material'   => $det_inc['id_material'],
+                        'id_detail'     => $det_inc['id'],
+                        'sts'           => '0'
                     ])->row_array();
 
+                $nilai_stock_lama   = $get_stock['qty_stock'] * $get_stock['harga_beli'];
+                $nilai_stock_baru   = $get_new_incoming_ttl['ttl_new_incoming'] * $get_new_incoming_ttl['harga'];
+                $nilai_stock_total  = $nilai_stock_lama + $nilai_stock_baru;
+                $qty_stock_akhir    = $get_new_incoming_ttl['ttl_new_incoming'] + $get_stock['qty_stock'];
+                $costbook           = $nilai_stock_total / $qty_stock_akhir;
+                $nilai_inventory    = $qty_stock_akhir * $costbook;
+                $qty_free           = $get_stock['qty_free'];
+                $qty_free_akhir     = $get_new_incoming_ttl['ttl_new_incoming'] + $qty_free;
+
                 $this->db->insert('warehouse_stock_per_day', [
-                    'id_material' => $det_inc['id_material'],
-                    'nm_material' => $det_inc['nm_material'],
-                    'id_gudang' => 1,
-                    'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
-                    'hist_date' => date('Y-m-d H:i:s')
+                    'id_material'       => $det_inc['id_material'],
+                    'nm_material'       => $det_inc['nm_material'],
+                    'id_gudang'         => 1,
+                    'qty_stock'         => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+                    'hist_date'         => date('Y-m-d H:i:s')
                 ]);
 
                 $this->db->update('warehouse_stock', [
-                    'qty_stock' => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
-                    'update_by' => $this->auth->user_id(),
-                    'update_date' => date('Y-m-d H:i:s')
+                    'incoming'          => $get_new_incoming_ttl['ttl_new_incoming'],
+                    'qty_stock'         => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+                    'qty_free'          => $qty_free,
+                    'harga_beli'        => $costbook,
+                    'total_nilai'       => $nilai_inventory,
+                    'update_by'         => $this->auth->user_id(),
+                    'update_date'       => date('Y-m-d H:i:s')
                 ], [
-                    'id_material' => $det_inc['id_material'],
-                    'id_gudang' => '1',
-                    'kd_gudang' => 'PUS'
+                    'id_material'       => $det_inc['id_material'],
+                    'id_gudang'         => '1',
+                    'kd_gudang'         => 'PUS'
+                ]);
+
+                $this->db->insert('kartu_stok', [
+                    'no_transaksi'      => $post['kode_trans'],
+                    'transaksi'         => "Incoming Product",
+                    'tgl_transaksi'     => date('Y-m-d H:i:s'),
+                    'code_lv4'          => $det_inc['id_material'],
+                    'nm_product'        => $det_inc['nm_material'],
+                    'qty'               => $get_stock['qty_stock'],
+                    'qty_book'          => $get_stock['qty_booking'],
+                    'qty_free'          => $qty_free,
+                    'qty_transaksi'     => $get_new_incoming_ttl['ttl_new_incoming'],
+                    'qty_book_akhir'    => $get_stock['qty_booking'],
+                    'qty_free_akhir'    => $qty_free_akhir,
+                    'qty_akhir'         => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+                    'harga_stok'        => $costbook
                 ]);
             }
-
             $this->db->update('tr_checked_incoming_detail', ['sts' => '1'], ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id'],  'sts' => '0']);
 
             $ttl_all_checked += (float) str_replace(',', '', (string)($post['qty_oke_' . $det_inc['id']] ?? 0)) + (float) str_replace(',', '', (string)($post['qty_ng_'  . $det_inc['id']] ?? 0));
@@ -696,29 +744,6 @@ class Incoming_check_model extends BF_Model
             }
 
             $nilai_qty = ($get_warehouse_stock->qty_stock + $get_new_incoming_ttl['ttl_new_incoming']);
-
-            // $nilai_costbook = (($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)) / $nilai_qty);
-
-            // $insert_costbook = $this->db->insert('tr_cost_book', [
-            //     'id' => $id_costbook,
-            //     'id_material' => $det_inc['id_material'],
-            //     'nm_material' => $nm_material,
-            //     'kode_produk' => $kode_material,
-            //     'tipe_material' => 'product',
-            //     'id_gudang_ke' => '1',
-            //     'nm_gudang_ke' => 'GUDANG PUSAT',
-            //     'tgl' => date('Y-m-d'),
-            //     'no_transaksi' => $post['kode_trans'],
-            //     'jenis_transaksi' => 'In Pembelian',
-            //     'qty_transaksi' => ($get_new_incoming_ttl['ttl_new_incoming'] !== null ? $get_new_incoming_ttl['ttl_new_incoming'] : 0),
-            //     'qty' => $nilai_qty,
-            //     'nilai_beli' => $hargasatuan,
-            //     'costbook' => $nilai_costbook,
-            //     'value_transaksi' => ($hargasatuan * $get_new_incoming_ttl['ttl_new_incoming']),
-            //     'value_neraca' => ($value_neraca + ($get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan)),
-            //     'created_by' => $this->auth->user_id(),
-            //     'created_on' => date('Y-m-d H:i:s')
-            // ]);
 
             $arr_warehouse_sub = [];
             $arr_warehouse_prod = [];
@@ -788,94 +813,92 @@ class Incoming_check_model extends BF_Model
         $no_po        = $post['no_pox'];
         $no_surat     = $post['no_surat'];
 
-        
-       
-
-       	//SYAMSUDIN 16-09-2025 JURNAL
-
-			$tgl_inv  = date('Y-m-d');
-			$keterangan  = "incoming atas po nomor " . $no_po;
-			$type        = $post['no_pox'];
-			$reff        = $post['kode_trans'];
-			$no_req      = $post['no_surat'];
-			$total       = round($this->input->post('debet[0]'));
-			$jenis       = $this->input->post('jenis');
-			$tipe_jurnal       = $this->input->post('tipe');
-			$jenis_jurnal       = $this->input->post('jenis_jurnal');
-
-			$total_po           = round($this->input->post('debet[0]'));
-			$id_vendor          = $iDsupplier;
-			$nama_vendor        = $supplier; 
-
-			$Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
 
-			$Bln             = substr($tgl_inv, 5, 2);
-			$Thn             = substr($tgl_inv, 0, 4);
+
+        //SYAMSUDIN 16-09-2025 JURNAL
+
+        $tgl_inv  = date('Y-m-d');
+        $keterangan  = "incoming atas po nomor " . $no_po;
+        $type        = $post['no_pox'];
+        $reff        = $post['kode_trans'];
+        $no_req      = $post['no_surat'];
+        $total       = round($this->input->post('debet[0]'));
+        $jenis       = $this->input->post('jenis');
+        $tipe_jurnal       = $this->input->post('tipe');
+        $jenis_jurnal       = $this->input->post('jenis_jurnal');
+
+        $total_po           = round($this->input->post('debet[0]'));
+        $id_vendor          = $iDsupplier;
+        $nama_vendor        = $supplier;
+
+        $Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
 
-			$dataJVhead = array(
-				'nomor'             => $Nomor_JV,
-				'tgl'                 => $tgl_inv,
-				'jml'                => $total,
-				'koreksi_no'        => '-',
-				'kdcab'                => '101',
-				'jenis'                => 'JV',
-				'keterangan'         => $keterangan,
-				'bulan'                => $Bln,
-				'tahun'                => $Thn,
-				'user_id'            => $this->auth->user_id(),
-				'memo'                => '',
-				'tgl_jvkoreksi'        => $tgl_inv,
-				'ho_valid'            => ''
-			);
+        $Bln             = substr($tgl_inv, 5, 2);
+        $Thn             = substr($tgl_inv, 0, 4);
 
-			$this->db->insert(DBACC . '.javh', $dataJVhead);
 
-			for ($i = 0; $i < count($this->input->post('type')); $i++) {
-				$tipe = $this->input->post('type')[$i];
-				$perkiraan = $this->input->post('no_coa')[$i];
-				$noreff = $no_po;
+        $dataJVhead = array(
+            'nomor'             => $Nomor_JV,
+            'tgl'                 => $tgl_inv,
+            'jml'                => $total,
+            'koreksi_no'        => '-',
+            'kdcab'                => '101',
+            'jenis'                => 'JV',
+            'keterangan'         => $keterangan,
+            'bulan'                => $Bln,
+            'tahun'                => $Thn,
+            'user_id'            => $this->auth->user_id(),
+            'memo'                => '',
+            'tgl_jvkoreksi'        => $tgl_inv,
+            'ho_valid'            => ''
+        );
 
-				$datadetail = array(
-					'tipe'            => $this->input->post('type')[$i],
-					'nomor'           => $Nomor_JV,
-					'tanggal'         => $this->input->post('tgl_jurnal')[$i],
-					'no_perkiraan'    => $this->input->post('no_coa')[$i],
-					'keterangan'      =>  $keterangan,
-					'no_reff'        => $no_po,
-					'debet'          => round($this->input->post('debet')[$i]),
-					'kredit'         => round($this->input->post('kredit')[$i]),
-					'created_by' 	 => $this->auth->user_id(),
-					'created_on' 	 => date('Y-m-d H:i:s')
-				);
-				$this->db->insert(DBACC . '.jurnal', $datadetail);
-			}
+        $this->db->insert(DBACC . '.javh', $dataJVhead);
 
-			$Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
-			$this->db->query($Qry_Update_Cabang_acc);
+        for ($i = 0; $i < count($this->input->post('type')); $i++) {
+            $tipe = $this->input->post('type')[$i];
+            $perkiraan = $this->input->post('no_coa')[$i];
+            $noreff = $no_po;
 
-			
+            $datadetail = array(
+                'tipe'            => $this->input->post('type')[$i],
+                'nomor'           => $Nomor_JV,
+                'tanggal'         => $this->input->post('tgl_jurnal')[$i],
+                'no_perkiraan'    => $this->input->post('no_coa')[$i],
+                'keterangan'      =>  $keterangan,
+                'no_reff'        => $no_po,
+                'debet'          => round($this->input->post('debet')[$i]),
+                'kredit'         => round($this->input->post('kredit')[$i]),
+                'created_by'      => $this->auth->user_id(),
+                'created_on'      => date('Y-m-d H:i:s')
+            );
+            $this->db->insert(DBACC . '.jurnal', $datadetail);
+        }
 
-			$No_Inv   = $no_po;
+        $Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
+        $this->db->query($Qry_Update_Cabang_acc);
 
-			$datahutang = array(
-				'tipe'            => 'JV',
-				'nomor'            => $Nomor_JV,
-				'tanggal'        => $tgl_inv,
-				'no_perkiraan'  => '1102-01-01',
-				'keterangan'    => $keterangan,
-				'no_reff'       => $No_Inv,
-				'debet'         => 0,
-				'kredit'         =>  $total,
-				'id_supplier'     => $id_vendor,
-				'nama_supplier'   => $nama_vendor,
 
-			);
-			$this->db->insert('tr_kartu_hutang', $datahutang);
-		
 
-      
+        $No_Inv   = $no_po;
+
+        $datahutang = array(
+            'tipe'            => 'JV',
+            'nomor'            => $Nomor_JV,
+            'tanggal'        => $tgl_inv,
+            'no_perkiraan'  => '1102-01-01',
+            'keterangan'    => $keterangan,
+            'no_reff'       => $No_Inv,
+            'debet'         => 0,
+            'kredit'         =>  $total,
+            'id_supplier'     => $id_vendor,
+            'nama_supplier'   => $nama_vendor,
+
+        );
+        $this->db->insert('tr_kartu_hutang', $datahutang);
+
 
         if ($this->db->trans_status() === FALSE || $valid == 2) {
             $this->db->trans_rollback();
@@ -3781,9 +3804,9 @@ class Incoming_check_model extends BF_Model
             $list_supplier        = $this->db->query("SELECT nm_material FROM tr_incoming_check_detail WHERE kode_trans = '" . $row['kode_trans'] . "'")->result_array();
             $arr_sup = array();
             foreach ($list_supplier as $val => $valx) {
-                $arr_sup[$val] = $valx['nm_material'];
+                $arr_sup[$val] = '<li>' . $valx['nm_material'] . '</li>';
             }
-            $dt_sup    = implode("<br>", $arr_sup);
+            $dt_sup = '<ul>' . implode('', $arr_sup) . '</ul>';
 
             $get_sum_material = $this->db->select('IF(SUM(qty_order) IS NULL, 0, SUM(qty_order)) jumlah_mat_check')->get_where('tr_incoming_check_detail', ['kode_trans' => $row['kode_trans']])->row();
 
@@ -3840,7 +3863,7 @@ class Incoming_check_model extends BF_Model
             $nestedData[]    = "<div align='center'>" . $nomor . "</div>";
             $nestedData[]    = "<div align='center'>" . $no_surat . " | " . $row['kode_trans'] . "</div>";
             $nestedData[]    = "<div align='center'>" . $no_pr . "</div>";
-            $nestedData[]    = "<div align='left'>" . strtoupper(get_name('warehouse', 'nm_gudang', 'id', $row['id_gudang_ke'])) . "</div>";
+            $nestedData[]    = "<div align='center'>" . strtoupper(get_name('warehouse', 'nm_gudang', 'id', $row['id_gudang_ke'])) . "</div>";
             $nestedData[]    = "<div align='left'>" . $dt_sup . "</div>";
             $nestedData[]    = "<div align='right'>" . number_format(get_incoming_sum_material($row['kode_trans']), 2) . "</div>";
             $nestedData[]    = "<div align='left'>" . $row['nm_lengkap'] . "</div>";

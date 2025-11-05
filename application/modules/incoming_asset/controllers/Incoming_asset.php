@@ -428,10 +428,10 @@ class Incoming_asset extends Admin_Controller
 	public function asset()
 	{
 		$this->db->select('"PO" AS ket, a.no_surat as no_po, b.nama as nm_supplier');
-		$this->db->from('tr_purchase_order a');
+		$this->db->from('tr_purchase_order_non_product a');
 		$this->db->join('new_supplier b', 'b.kode_supplier = a.id_suplier', 'left');
 		$this->db->where('a.tipe', 'pr asset');
-		$this->db->where('(SELECT IF(SUM(aa.qty_in) IS NULL, 0, SUM(aa.qty_in)) FROM dt_trans_po aa WHERE aa.no_po = a.no_po) <=', 0);
+		$this->db->where('(SELECT IF(SUM(aa.qty_in) IS NULL, 0, SUM(aa.qty_in)) FROM dt_trans_po_non_product aa WHERE aa.no_po = a.no_po) <=', 0);
 		$no_po = $this->db->get()->result();
 
 
@@ -498,7 +498,7 @@ class Incoming_asset extends Admin_Controller
 
 			$link = '';
 			if (!empty($row['doc'])) {
-				$link = "<a href='" . base_url('uploads/produksi/'. $row['doc']) . "' target='_blank' title='Download' data-role='qtip'>Download</a>";
+				$link = "<a href='" . base_url('uploads/produksi/' . $row['doc']) . "' target='_blank' title='Download' data-role='qtip'>Download</a>";
 			}
 
 			$TANGGAL = (!empty($row['tanggal'])) ? $row['tanggal'] : $row['created_date'];
@@ -596,11 +596,11 @@ class Incoming_asset extends Admin_Controller
 		// 	$result	= $this->db->where('qty_in < qty_rev')->get_where('tran_non_po_detail', array('no_non_po' => $no_po))->result_array();
 		// }
 
-		// $result = $this->db->get_where('dt_trans_po', ['no_po' => $get_po['no_po']])->result_array();
+		// $result = $this->db->get_where('dt_trans_po_non_product', ['no_po' => $get_po['no_po']])->result_array();
 
 		$this->db->select('a.*, b.id_dept');
-		$this->db->from('dt_trans_po a');
-		$this->db->join('tr_purchase_order b', 'b.no_po = a.no_po');
+		$this->db->from('dt_trans_po_non_product a');
+		$this->db->join('tr_purchase_order_non_product b', 'b.no_po = a.no_po');
 		$this->db->where('b.no_surat', $no_po);
 		$result = $this->db->get()->result_array();
 
@@ -697,7 +697,7 @@ class Incoming_asset extends Admin_Controller
 				// 	$GET_UNITPRICE = $this->db->select('net_price AS unit_price, id_barang')->get_where('tran_po_detail', array('id' => $valx['id']))->result();
 				// }
 
-				$GET_UNITPRICE = $this->db->select('hargasatuan as unit_price, id as id_barang')->get_where('dt_trans_po', ['id' => $valx['id']])->result();
+				$GET_UNITPRICE = $this->db->select('hargasatuan as unit_price, id as id_barang')->get_where('dt_trans_po_non_product', ['id' => $valx['id']])->result();
 
 				$ArrJurnal[$val]['unit_price'] 		= (!empty($GET_UNITPRICE[0]->unit_price)) ? $GET_UNITPRICE[0]->unit_price : 0;
 				$ArrJurnal[$val]['qty'] 			= $qtyIN;
@@ -777,7 +777,7 @@ class Incoming_asset extends Admin_Controller
 			// 	$this->db->update('tran_po_header', $ArrHeader2);
 			// }
 
-			$update_po_detail = $this->db->update_batch('dt_trans_po', $ArrUpdate, 'id');
+			$update_po_detail = $this->db->update_batch('dt_trans_po_non_product', $ArrUpdate, 'id');
 			if (!$update_po_detail) {
 				print_r($this->db->error($update_po_detail));
 				$this->db->trans_rollback();
@@ -883,9 +883,9 @@ class Incoming_asset extends Admin_Controller
 		$mpdf->AddPage();
 		$mpdf->SetFooter($footer);
 		$this->mpdf->WriteHTML($show);
-		$this->mpdf->Output('tanda-terima-pembelian-asset-'.$kode_trans.'.pdf', 'I');
+		$this->mpdf->Output('tanda-terima-pembelian-asset-' . $kode_trans . '.pdf', 'I');
 
-		
+
 		// $this->template->set($data);
 		// $this->template->render('print_incoming_assets');
 	}

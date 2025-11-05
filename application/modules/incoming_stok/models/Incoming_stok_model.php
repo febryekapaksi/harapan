@@ -47,7 +47,7 @@ class Incoming_stok_model extends BF_Model
       }
 
       $no_po = [];
-      $get_no_po =  $this->db->query("SELECT a.no_surat FROM tr_purchase_order a WHERE a.no_po IN ('" . str_replace(",", "','", $row['no_ipp']) . "')")->result();
+      $get_no_po =  $this->db->query("SELECT a.no_surat FROM tr_purchase_order_non_product a WHERE a.no_po IN ('" . str_replace(",", "','", $row['no_ipp']) . "')")->result();
       foreach ($get_no_po as $item) {
         $no_po[] = $item->no_surat;
       }
@@ -58,12 +58,12 @@ class Incoming_stok_model extends BF_Model
           SELECT
             c.no_pr
           FROM
-            dt_trans_po a
-            JOIN tr_purchase_order d ON d.no_po = a.no_po
+            dt_trans_po_non_product a
+            JOIN tr_purchase_order_non_product d ON d.no_po = a.no_po
             JOIN material_planning_base_on_produksi_detail b ON b.id = a.idpr
             JOIN material_planning_base_on_produksi c ON c.so_number = b.so_number
           WHERE
-            d.no_surat IN ('".str_replace(",", "','", str_replace(', ', ',', $no_po))."')
+            d.no_surat IN ('" . str_replace(",", "','", str_replace(', ', ',', $no_po)) . "')
           GROUP BY c.no_pr
       ")->result();
       foreach ($get_no_pr as $item_no_pr) {
@@ -143,7 +143,7 @@ class Incoming_stok_model extends BF_Model
             FROM
               warehouse_adjustment a
               LEFT JOIN warehouse c ON a.id_gudang_ke=c.id
-              LEFT JOIN tr_purchase_order e ON a.no_ipp=e.no_po,
+              LEFT JOIN tr_purchase_order_non_product e ON a.no_ipp=e.no_po,
               (SELECT @row:=0) r
             WHERE a.deleted_date IS NULL AND a.category='incoming stok' AND (
               a.kode_trans LIKE '%" . $this->db->escape_like_str($like_value) . "%'

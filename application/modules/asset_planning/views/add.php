@@ -20,6 +20,8 @@ $rev_budget 		= (!empty($header)) ? number_format($header[0]->rev_budget) : '';
 $rev_qty 			= (!empty($header)) ? number_format($header[0]->rev_qty) : '';
 $rev_keterangan 	= (!empty($header)) ? strtoupper($header[0]->rev_keterangan) : '';
 ?>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css" integrity="sha512-yVvxUQV0QESBt1SyZbNJMAwyKvFTLMyXSyBHDO4BG5t7k/Lw34tyqlSDlKIrIENIzCl+RVUNjmCPG+V/GMesRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <form action="#" method="POST" id="form_proses_bro" enctype="multipart/form-data" autocomplete='off'>
 	<input type="hidden" name="id" value="<?= $id; ?>">
 	<input type="hidden" name="tanda" value="<?= $tanda; ?>">
@@ -40,51 +42,11 @@ $rev_keterangan 	= (!empty($header)) ? strtoupper($header[0]->rev_keterangan) : 
 						<?php
 						foreach ($list_department as $val => $valx) {
 							$dept = ($valx['id'] == $id_dept) ? 'selected' : '';
-							echo "<option value='" . $valx['id'] . "' " . $dept . ">" . strtoupper($valx['nama']) . "</option>";
+							echo "<option value='" . $valx['id'] . "' " . $dept . ">" . strtoupper($valx['nm_dept']) . "</option>";
 						}
 						?>
 					</select>
 				</div>
-				<label class='label-control col-sm-2'><b>Post Anggaran </b></label>
-				<div class='col-sm-4'>
-					<select name='coa' id='coa' class='form-control input-md' <?= $disabled; ?>>
-						<option value='0'>Select An Post Anggaran</option>
-						<?php
-						foreach ($datacoa as $val => $valx) {
-							$cc = ($valx['no_perkiraan'] == $coa) ? 'selected' : '';
-							echo "<option value='" . $valx['no_perkiraan'] . "' " . $cc . ">" . strtoupper($valx['no_perkiraan']) . " - " . strtoupper($valx['nama']) . "</option>";
-						}
-						?>
-					</select>
-				</div>
-			</div>
-			<div class='form-group row'>
-				<label class='label-control col-sm-2'><b>Cost Center</b></label>
-				<div class='col-sm-4'>
-					<select name='id_costcenter' id='id_costcenter' class='form-control input-md' <?= $disabled; ?>>
-						<option value='0'>Select An Cost Center</option>
-						<?php
-						foreach ($list_costcenter as $val => $valx) {
-							$cc = ($valx['id'] == $id_costcenter) ? 'selected' : '';
-							echo "<option value='" . $valx['id'] . "' " . $cc . ">" . strtoupper($valx['nama_costcenter']) . "</option>";
-						}
-						?>
-					</select>
-				</div>
-				<label class='label-control col-sm-2'><b>Post Penyusutan </b></label>
-				<div class='col-sm-4'>
-					<select name='coa_akum' id='coa_akum' class='form-control input-md' <?= $disabled; ?>>
-						<option value='0'>Select An Post Penyusutan</option>
-						<?php
-						foreach ($penyusutan as $val => $valx) {
-							$cc = ($valx['no_perkiraan'] == $coa_akum) ? 'selected' : '';
-							echo "<option value='" . $valx['no_perkiraan'] . "' " . $cc . ">" . strtoupper($valx['no_perkiraan']) . " - " . strtoupper($valx['nama']) . "</option>";
-						}
-						?>
-					</select>
-				</div>
-			</div>
-			<div class='form-group row'>
 				<label class='label-control col-sm-2'><b>Nama Asset</b></label>
 				<div class='col-sm-4'>
 					<?php
@@ -276,7 +238,19 @@ $rev_keterangan 	= (!empty($header)) ? strtoupper($header[0]->rev_keterangan) : 
 		text-align: left !important;
 	}
 </style>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-maskmoney/3.0.2/jquery.maskMoney.min.js" integrity="sha512-Rdk63VC+1UYzGSgd3u2iadi0joUrcwX0IWp2rTh6KXFoAmgOjRS99Vynz1lJPT8dLjvo6JZOqpAHJyfCEZ5KoA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js" integrity="sha512-rMGGF4wg1R73ehtnxXBt5mbUfN9JUJwbk21KMlnLZDJh7BkPmeovBuddZCENJddHYYMkCh9hPFnPmS9sspki8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
+	$('#id_dept').select2({
+		width: '100%'
+	});
+	$('#bulan').select2({
+		width: '100%'
+	});
+	$('#tahun').select2({
+		width: '100%'
+	});
 	$(document).ready(function() {
 		$('.maskM').maskMoney();
 		$('.chosen_select').chosen();
@@ -304,6 +278,23 @@ $rev_keterangan 	= (!empty($header)) ? strtoupper($header[0]->rev_keterangan) : 
 		e.preventDefault();
 		$('#save').prop('disabled', true);
 
+		var approve = "<?= $approve ?>";
+
+		if (approve !== '') {
+			var status = $('#status').val();
+
+			if (status == '0') {
+				swal({
+					type: 'warning',
+					title: 'Warning !',
+					text: 'Approve status must be choosen !'
+				});
+
+				$('#save').attr('disabled', false);
+				return false;
+			}
+		}
+
 		var department = $('#department').val();
 
 		if (department == '0') {
@@ -313,7 +304,7 @@ $rev_keterangan 	= (!empty($header)) ? strtoupper($header[0]->rev_keterangan) : 
 				type: "warning"
 			});
 
-			$('#save').prop('disabled', false);
+			$('#save').attr('disabled', false);
 			return false;
 		}
 

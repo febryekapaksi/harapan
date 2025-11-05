@@ -119,14 +119,12 @@
 					$no = 1;
 					$harga_baru = 0;
 					foreach ($result as $item) :
-						$packing = $item['qty_order'];
-						if ($item['konversi'] > 0) {
-							$packing = ($item['qty_order'] / $item['konversi']);
-						}
-
-						$konversi = 1;
 						if ($item['konversi'] > 0) {
 							$konversi = $item['konversi'];
+							$packing = ($item['qty_order'] / $item['konversi']);
+						} else {
+							$konversi = 1;
+							$packing = $item['qty_order'];
 						}
 
 						$harga_baru = $item['harga_total'] / $item['qty_order'];
@@ -142,38 +140,38 @@
 						echo '<td class="text-center">' . $no . '</td>';
 						echo '<td class="text-center">' . $get_no_surat->no_surat . '</td>';
 						echo '<td class="">' . $item['nm_material'] . '</td>';
-						echo '<td class="text-center">' . number_format($item['qty_order'], 2) . ' <input type="hidden" name="qty_order_' . $item['id'] . '" value="' . $item['qty_order'] . '"> </td>';
+						echo '<td class="text-center">' . number_format($item['qty_order'], 2) . ' <input type="hidden" class="qty_order_' . $item['id'] . '" name="qty_order_' . $item['id'] . '" value="' . $item['qty_order'] . '"> </td>';
 						echo '<td class="text-center">' . $item['satuan'] . '</td>';
 						echo '<td class="text-center">' . $konversi . ' <input type="hidden" name="konversi_' . $konversi . '" class="konversi_' . $item['id'] . '" value="' . $konversi . '"></td>';
 						echo '<td class="text-center">' . number_format(($item['qty_order'] / $konversi), 2) . '</td>';
-						echo '<td class="text-center">' . $item['packing'] . '</td>';
+						echo '<td class="text-center">' . $packing . '</td>';
 						echo '<td class="">
-					<input type="text" name="qty_ng_' . $item['id'] . '" id="" class="form-control form-control-sm input_hid maskM qty_ng qty_ng_' . $item['id'] . '" data-id="' . $item['id'] . '" data-incoming="' . $item['qty_order'] . '" data-konversi="' . $konversi . '" required>
-				</td>';
+								<input type="text" name="qty_ng_' . $item['id'] . '" id="" class="form-control form-control-sm input_hid maskM qty_ng qty_ng_' . $item['id'] . '" data-id="' . $item['id'] . '" data-incoming="' . $item['qty_order'] . '" data-konversi="' . $konversi . '" required>
+							</td>';
 						echo '<td class="">
-					<input type="text" name="qty_oke_' . $item['id'] . '" id="" class="form-control form-control-sm maskM input_hid qty_oke qty_oke_' . $item['id'] . '" data-id="' . $item['id'] . '" data-id_material="' . $item['id_material'] . '">
-				</td>';
+								<input type="text" name="qty_oke_' . $item['id'] . '" id="" class="form-control form-control-sm maskM input_hid qty_oke qty_oke_' . $item['id'] . '" data-id="' . $item['id'] . '" data-id_material="' . $item['id_material'] . '">
+							</td>';
 						echo '<td class="">
-					<input type="text" name="qty_pack_' . $item['id'] . '" id="" class="form-control form-control-sm maskM qty_pack_' . $item['id'] . '" readonly>
-				</td>';
+								<input type="text" name="qty_pack_' . $item['id'] . '" id="" class="form-control form-control-sm maskM qty_pack_' . $item['id'] . '" readonly>
+							</td>';
 						echo '<td class="hidden">
-					<input type="text" name="harga_baru_' . $item['id'] . '" id="" class="form-control form-control-sm harga_baru_' . $item['id'] . '" value="' . number_format(($harga_baru), 2) . '" readonly>
-				</td>';
+								<input type="text" name="harga_baru_' . $item['id'] . '" id="" class="form-control form-control-sm harga_baru_' . $item['id'] . '" value="' . number_format(($harga_baru), 2) . '" readonly>
+							</td>';
 						echo '<td class="hidden">
-					<input type="text" name="total_harga_' . $item['id'] . '" id="" class="form-control form-control-sm total_harga total_harga_' . $item['id'] . '" readonly>
-				</td>';
+								<input type="text" name="total_harga_' . $item['id'] . '" id="" class="form-control form-control-sm total_harga total_harga_' . $item['id'] . '" readonly>
+							</td>';
 						echo '<td class="">
-					<input type="date" name="expired_date_' . $item['id'] . '" id="" class="form-control form-control-sm input_hid expired_date_' . $item['id'] . '" min="' . date('Y-m-d') . '" data-id="' . $item['id'] . '">
-				</td>';
+								<input type="date" name="expired_date_' . $item['id'] . '" id="" class="form-control form-control-sm input_hid expired_date_' . $item['id'] . '" min="' . date('Y-m-d') . '" data-id="' . $item['id'] . '">
+							</td>';
 						echo '<td>
-					<input type="file" name="upload_file_' . $item['id'] . '" id="" class="form-control input_hid upload_file_' . $item['id'] . '" data-id="' . $item['id'] . '">
-				</td>';
+								<input type="file" name="upload_file_' . $item['id'] . '" id="" class="form-control input_hid upload_file_' . $item['id'] . '" data-id="' . $item['id'] . '">
+							</td>';
 						echo '<td>
-					<input type="text" name="lot_info_' . $item['id'] . '" id="" class="form-control input_hid lot_info_' . $item['id'] . '" data-id="' . $item['id'] . '">
-				</td>';
+								<input type="text" name="lot_info_' . $item['id'] . '" id="" class="form-control input_hid lot_info_' . $item['id'] . '" data-id="' . $item['id'] . '">
+							</td>';
 						echo '<td>
-					<button type="button" class="btn btn-sm btn-primary add_lot add_lot_' . $item['id'] . '" data-id="' . $item['id'] . '" data-kode_trans="' . $item['kode_trans'] . '" data-id_material="' . $item['id_material'] . '" data-no_ipp="' . $no_ipp . '"><i class="fa fa-plus"></i></button>
-				</td>';
+								<button type="button" class="btn btn-sm btn-primary add_lot add_lot_' . $item['id'] . '" data-id="' . $item['id'] . '" data-kode_trans="' . $item['kode_trans'] . '" data-id_material="' . $item['id_material'] . '" data-no_ipp="' . $no_ipp . '"><i class="fa fa-plus"></i></button>
+							</td>';
 						echo '</tr>';
 
 						$get_checked = $this->db->get_where('tr_checked_incoming_detail', ['id_detail' => $item['id']])->result_array();
@@ -218,48 +216,57 @@
 
 	<div class="row">
 		<div class="col-md-4" style="margin-top: 1vh;">
-			<table id="my-grid" class="table table-striped table-bordered table-hover table-condensed" width="100%">
-				<thead>
-					<tr>
-						<th class="text-center">No.</th>
-						<th class="text-center">Material</th>
-						<th class="text-center">Qty Incoming</th>
-						<th class="text-center">Qty KW 2</th>
-						<th class="text-center">Qty OK</th>
-					</tr>
-				</thead>
-				<tbody class="list_summary_material">
-					<?php
-					$no = 1;
-					$stok_tidak_masuk = 0;
-					$stok_masuk = 0;
-					foreach ($summary_incoming as $summ) :
-						echo '<tr>';
-						echo '<td class="text-center">' . $no . '</td>';
-						echo '<td class="text-center">' . $summ['nm_material'] . '</td>';
-						echo '<td class="text-center">' . number_format($summ['qty_order']) . '</td>';
-						echo '<td class="text-center">' . number_format($summ['ttl_qty_ng']) . '</td>';
-						echo '<td class="text-center">' . number_format($summ['ttl_qty_oke']) . '</td>';
-						echo '</tr>';
-						$no++;
+			<div class="table-responsive">
+				<table id="my-grid" class="table table-striped table-bordered table-hover table-condensed" width="100%">
+					<thead>
+						<tr>
+							<th class="text-center">No.</th>
+							<th class="text-center">Material</th>
+							<th class="text-center">Qty Incoming</th>
+							<th class="text-center">Qty KW 2</th>
+							<th class="text-center">Qty OK</th>
+						</tr>
+					</thead>
+					<tbody class="list_summary_material">
+						<?php
+						$no = 1;
+						$stok_tidak_masuk = 0;
+						$stok_masuk = 0;
+						$total_nilai = 0;
+						foreach ($summary_incoming as $summ) :
+							$id = $summ['id'];
 
-						$stok_tidak_masuk += $summ['ttl_qty_ng'];
-						$stok_masuk += $summ['ttl_qty_oke'];
-					endforeach;
-					?>
-				</tbody>
-				<tbody class="list_masuk_stock">
-					<tr>
-						<td colspan="3" class="text-right">Masuk ke Stock</td>
-						<td class="text-center">
-							<span style="color: red;"><?= number_format($stok_tidak_masuk) ?></span>
-						</td>
-						<td class="text-center">
-							<span style="color: green;"><?= number_format($stok_masuk) ?></span>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+							echo '<tr class="summary-row" data-id="' . $id . '">';
+							echo '<td class="text-center">' . $no . '</td>';
+							echo '<td class="text-center">' . htmlspecialchars($summ['nm_material']) . '</td>';
+
+							// simpan angka murni di data-val, tampilkan number_format
+							echo '<td class="text-center sum-order" data-val="' . $summ['qty_order'] . '">' . number_format($summ['qty_order']) . '</td>';
+							echo '<td class="text-center sum-ng"    data-val="' . $summ['ttl_qty_ng'] . '">' . number_format($summ['ttl_qty_ng']) . '</td>';
+							echo '<td class="text-center sum-oke"   data-val="' . $summ['ttl_qty_oke'] . '">' . number_format($summ['ttl_qty_oke']) . '</td>';
+
+							echo '</tr>';
+							$no++;
+
+							$stok_tidak_masuk += $summ['ttl_qty_ng'];
+							$stok_masuk += $summ['ttl_qty_oke'];
+							$total_nilai += $summ['total_harga'];
+						endforeach;
+						?>
+					</tbody>
+					<tbody class="list_masuk_stock">
+						<tr>
+							<td colspan="3" class="text-right">Masuk ke Stock</td>
+							<td class="text-center">
+								<span style="color: red;"><?= number_format($stok_tidak_masuk) ?></span>
+							</td>
+							<td class="text-center">
+								<span style="color: green;"><?= number_format($stok_masuk) ?></span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
 
@@ -316,84 +323,91 @@
 		echo '<a href="' . base_url($file_incoming_material) . '" class="btn btn-sm btn-primary" style="margin-top: 2vh;" download><i class="fa fa-downloads"></i> Download File Incoming</a>';
 	}
 	?>
+
+	<div class="row">
+		<div class="col-md-12">
+			<b>Informasi Jurnal</b>
+			<div class="table-responsive">
+				<table class="table table-bordered table-hover">
+					<thead>
+						<tr bgcolor='#9acfea'>
+							<th>
+								<center>Tanggal</center>
+							</th>
+							<th>
+								<center>Tipe</center>
+							</th>
+							<th>
+								<center>No. COA</center>
+							</th>
+							<th>
+								<center>Nama. COA</center>
+							</th>
+							<th>
+								<center>Debit</center>
+							</th>
+							<th>
+								<center>Kredit</center>
+							</th>
+						</tr>
+					</thead>
+					<tbody class="list_jurnal">
+						<tr bgcolor='#DCDCDC'>
+							<td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+							<td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+							<td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
+							<td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
+							<td>
+								<input type="hidden" id="debet1" name="debet[]" value="<?= $total_nilai ?>" class="form-control" readonly />
+								<input type="text" id="debet21" name="debet2[]" value="<?= $total_nilai ?>" class="form-control" readonly />
+							</td>
+							<td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
+								<input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+							</td>
+
+						</tr>
+						<tr bgcolor='#DCDCDC'>
+							<td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+							<td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+							<td><input type="text" id="no_coa2" name="no_coa[]" value="2101-01-02" class="form-control" readonly /></td>
+							<td><input type="text" id="nama_coa2" name="nama_coa[]" value="Unbill" class="form-control" readonly /></td>
+							<td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+								<input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+							</td>
+							<td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
+								<input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+							</td>
+
+						</tr>
+						<tr bgcolor='#DCDCDC'>
+							<td><input type="date" id="tgl_jurnal3" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+							<td><input type="text" id="type3" name="type[]" value="JV" class="form-control" readonly /></td>
+							<td><input type="text" id="no_coa3" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
+							<td><input type="text" id="nama_coa3" name="nama_coa[]" value="Uang Muka Pembelian" class="form-control" readonly /></td>
+							<td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
+								<input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
+							</td>
+							<td><input type="hidden" id="kredit3" name="kredit[]" value="<?= $total_nilai ?>" class="form-control" readonly />
+								<input type="text" id="kredit23" name="kredit2[]" value="<?= $total_nilai ?>" class="form-control" readonly />
+							</td>
+
+						</tr>
+						<tr bgcolor='#DCDCDC'>
+							<td colspan="4" align="right"><b>TOTAL</b></td>
+							<td align="right"><input type="hidden" id="total" name="total" value="<?= $total_nilai ?>" class="form-control" readonly />
+								<input type="text" id="total31" name="total3" value="<?= $total_nilai ?>" class="form-control" readonly />
+							</td>
+							<td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
+								<input type="text" id="total41" name="total4" value="<?= $total_nilai ?>" class="form-control" readonly />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 </div>
 
-
-<h5>Informasi Jurnal</h5>
-<table class="table table-bordered table-hover">
-	<thead>
-		<tr bgcolor='#9acfea'>
-			<th>
-				<center>Tanggal</center>
-			</th>
-			<th>
-				<center>Tipe</center>
-			</th>
-			<th>
-				<center>No. COA</center>
-			</th>
-			<th>
-				<center>Nama. COA</center>
-			</th>
-			<th>
-				<center>Debit</center>
-			</th>
-			<th>
-				<center>Kredit</center>
-			</th>
-		</tr>
-	</thead>
-	<tbody>
-		<tr bgcolor='#DCDCDC'>
-			<td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-			<td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
-			<td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
-			<td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
-			<td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control" readonly />
-				<input type="text" id="debet21" name="debet2[]" value="" class="form-control" readonly />
-			</td>
-			<td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
-				<input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
-			</td>
-
-		</tr>
-		<tr bgcolor='#DCDCDC'>
-			<td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-			<td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
-			<td><input type="text" id="no_coa2" name="no_coa[]" value="2101-01-02" class="form-control" readonly /></td>
-			<td><input type="text" id="nama_coa2" name="nama_coa[]" value="Unbill" class="form-control" readonly /></td>
-			<td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
-				<input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
-			</td>
-			<td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
-				<input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
-			</td>
-
-		</tr>
-		<tr bgcolor='#DCDCDC'>
-			<td><input type="date" id="tgl_jurnal3" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-			<td><input type="text" id="type3" name="type[]" value="JV" class="form-control" readonly /></td>
-			<td><input type="text" id="no_coa3" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
-			<td><input type="text" id="nama_coa3" name="nama_coa[]" value="Uang Muka Pembelian" class="form-control" readonly /></td>
-			<td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
-				<input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
-			</td>
-			<td><input type="hidden" id="kredit3" name="kredit[]" value="" class="form-control" readonly />
-				<input type="text" id="kredit23" name="kredit2[]" value="" class="form-control" readonly />
-			</td>
-
-		</tr>
-		<tr bgcolor='#DCDCDC'>
-			<td colspan="3" align="right"><b>TOTAL</b></td>
-			<td align="right"><input type="hidden" id="total" name="total" value="" class="form-control" readonly />
-				<input type="text" id="total31" name="total3" value="" class="form-control" readonly />
-			</td>
-			<td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
-				<input type="text" id="total41" name="total4" value="" class="form-control" readonly />
-			</td>
-
-		</tr>
-</table>
 <style>
 	.tanggal {
 		cursor: pointer;
@@ -411,6 +425,11 @@
 			dateFormat: 'yy-mm-dd',
 			changeMonth: true,
 			changeYear: true
+		});
+
+		$('.add_lot').prop('disabled', true);
+		$('.add_lot').each(function() {
+			updateAddLotStateById($(this).data('id'));
 		});
 	});
 
@@ -485,12 +504,35 @@
 		})
 
 		$('#grandTotal').val(TTL);
-		$('#debet1').val(TTL);
-		$('#debet21').val(TTL);
-		$('#kredit2').val(TTL);
-		$('#kredit22').val(TTL);
-		$('#total31').val(TTL);
-		$('#total41').val(TTL);
+
+		// updateAddLotStateById(id)
+	});
+
+	$(document).on('change', '.qty_ng', function() {
+		var id = $(this).data('id');
+		var incoming = parseFloat($(this).data('incoming'));
+		var konversi = $('.konversi_' + id).val();;
+
+		var qty_ng = $(this).val();
+		if (qty_ng == '' || qty_ng == null) {
+			var qty_ng = 0;
+		} else {
+			var qty_ng = qty_ng.split(',').join('');
+			qty_ng = parseFloat(qty_ng);
+		}
+
+		var qty_oke = incoming - qty_ng
+		var qty_pack = (incoming - qty_ng) / konversi
+
+		if (incoming < qty_ng) {
+			$('.qty_oke_' + id).autoNumeric('set', 0);
+			$('.qty_pack_' + id).autoNumeric('set', 0);
+		} else {
+			$('.qty_oke_' + id).autoNumeric('set', (incoming - qty_ng));
+			$('.qty_pack_' + id).autoNumeric('set', ((incoming - qty_ng) / konversi));
+		}
+
+		// updateAddLotStateById(id)
 	});
 
 	$(document).on('click', '.add_lot', function(e) {
@@ -615,30 +657,44 @@
 				$('.list_incoming_check_' + no_ipp).html(result.hasil);
 				$('.list_summary_material').html(result.hasil2);
 				$('.list_masuk_stock').html(result.hasil3);
+				$('.list_jurnal').html(result.hasil4);
+				$('.maskM').autoNumeric('init', {
+					mDec: '4',
+					aPad: false
+				});
+
+				$('#ModalView2 .list_summary_material').html(result.hasil2);
+				updateModalSaveStateIn('#ModalView2');
+
+				$('.add_lot').each(function() {
+					var id = $(this).data('id');
+					updateAddLotStateById(id);
+				});
 			}
 		});
 	}
 
-	// $(document).on('change', '.qty_ng', function() {
-	// 	var id = $(this).data('id');
-	// 	var incoming = parseFloat($(this).data('incoming'));
-	// 	var konversi = parseFloat($(this).data('konversi'));
+	function num(v) {
+		v = (v == null ? '0' : String(v));
+		return parseFloat(v.split(',').join('')) || 0;
+	}
 
-	// 	var qty_ng = $(this).val();
-	// 	if (qty_ng == '' || qty_ng == null) {
-	// 		var qty_ng = 0;
-	// 	} else {
-	// 		var qty_ng = qty_ng.split(',').join('');
-	// 		qty_ng = parseFloat(qty_ng);
-	// 	}
+	function updateAddLotStateById(id) {
+		const $btn = $('.add_lot_' + id);
 
-	// 	if (incoming < qty_ng) {
-	// 		$('.qty_oke_' + id).autoNumeric('set', 0);
-	// 		$('.qty_pack_' + id).autoNumeric('set', 0);
-	// 	} else {
-	// 		$('.qty_oke_' + id).autoNumeric('set', (incoming - qty_ng));
-	// 		$('.qty_pack_' + id).autoNumeric('set', ((incoming - qty_ng) / konversi));
-	// 	}
+		// baris ringkasan yang cocok
+		const $sum = $('.summary-row[data-id="' + id + '"]');
+		if ($sum.length === 0) {
+			console.warn('Summary row not found for id', id);
+			$btn.prop('disabled', false);
+			return;
+		}
 
-	// });
+		// ambil angka murni dari data-val (tidak terpengaruh pemisah ribuan)
+		const qty_order = num($sum.find('.sum-order').data('val'));
+		const qty_oke = num($sum.find('.sum-oke').data('val'));
+		const qty_ng = num($sum.find('.sum-ng').data('val'));
+		const done = (qty_oke + qty_ng) >= qty_order && qty_order > 0;
+		$btn.prop('disabled', done);
+	}
 </script>

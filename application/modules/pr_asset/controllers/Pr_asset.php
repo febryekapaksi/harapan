@@ -25,12 +25,16 @@ class Pr_asset extends Admin_Controller
 	protected $managePermission_management = 'Approval_PR_Asset_Management.Manage';
 	protected $deletePermission_management = 'Approval_PR_Asset_Management.Delete';
 
+	// protected $hris;
+
 	public function __construct()
 	{
 		parent::__construct();
 
 		$this->load->model('Pr_asset_model');
 		$this->load->model('master_model');
+
+		// $this->hris = $this->load->database('hris', true);
 	}
 
 	public function index()
@@ -323,7 +327,18 @@ class Pr_asset extends Admin_Controller
 		$get_pr = $this->db->get_where('tran_pr_header', ['no_pr' => $get_pr_detail->no_pr])->row();
 		$get_asset = $this->db->get_where('asset_planning', ['no_pr' => $get_pr->no_pr])->result();
 
-		$list_department = $this->db->get_where('ms_department', ['deleted_by' => null])->result_array();
+		// $list_department = $this->db->get_where('ms_department', ['deleted_by' => null])->result_array();
+
+		// $this->hris->select('a.id as id_dept, a.name as nm_dept, b.name as nm_comp');
+		// $this->hris->from('departments a');
+		// $this->hris->join('companies b', 'b.id = a.company_id', 'left');
+		// $list_department = $this->hris->get()->result_array();
+
+		$this->db->select('a.id as id_dept, a.nama as nm_dept, "" as nm_comp');
+		$this->db->from('ms_department a');
+		$this->db->where('a.deleted_by', null);
+		$list_department = $this->db->get()->result_array();
+
 		$list_costcenter = $this->db->get_where('ms_costcenter', ['deleted_by' => null])->result_array();
 		$datacoa = $this->db->like('no_perkiraan', '13', 'after')->get_where(DBACC . '.coa_master', array('level' => '5', 'no_perkiraan not like ' => '1309%'))->result_array();
 		$penyusutan = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE `level`='5' AND (nama LIKE 'DEPRECIATION%') ORDER BY no_perkiraan ASC")->result_array();
@@ -342,6 +357,42 @@ class Pr_asset extends Admin_Controller
 
 		$this->template->set($data);
 		$this->template->render('edit');
+	}
+
+	public function view()
+	{
+
+		$id = $this->uri->segment(3);
+
+		$get_pr_detail = $this->db->get_where('tran_pr_detail', ['id' => $id])->row();
+		$get_pr = $this->db->get_where('tran_pr_header', ['no_pr' => $get_pr_detail->no_pr])->row();
+		$get_asset = $this->db->get_where('asset_planning', ['no_pr' => $get_pr->no_pr])->result();
+
+		// $list_department = $this->db->get_where('ms_department', ['deleted_by' => null])->result_array();
+
+		$this->hris->select('a.id as id_dept, a.name as nm_dept, b.name as nm_comp');
+		$this->hris->from('departments a');
+		$this->hris->join('companies b', 'b.id = a.company_id', 'left');
+		$list_department = $this->hris->get()->result_array();
+
+		$list_costcenter = $this->db->get_where('ms_costcenter', ['deleted_by' => null])->result_array();
+		$datacoa = $this->db->like('no_perkiraan', '13', 'after')->get_where(DBACC . '.coa_master', array('level' => '5', 'no_perkiraan not like ' => '1309%'))->result_array();
+		$penyusutan = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE `level`='5' AND (nama LIKE 'DEPRECIATION%') ORDER BY no_perkiraan ASC")->result_array();
+
+		$data = [
+			'title' => 'Edit Asset Planning',
+			'id' => $id,
+			'data_pr' => $get_pr,
+			'data_asset' => $get_asset,
+			'approve' => '',
+			'list_department' => $list_department,
+			'list_costcenter' => $list_costcenter,
+			'datacoa'		=> $datacoa,
+			'penyusutan'	=> $penyusutan
+		];
+
+		$this->template->set($data);
+		$this->template->render('view');
 	}
 
 
@@ -715,6 +766,11 @@ class Pr_asset extends Admin_Controller
 		$this->Pr_asset_model->add_pr();
 	}
 
+	public function upload_dokumen_pendukung()
+	{
+		$this->Pr_asset_model->upload_dokumen_pendukung();
+	}
+
 	public function server_side_add_pr_asset()
 	{
 		$this->Pr_asset_model->get_data_json_add_pr_asset();
@@ -723,6 +779,11 @@ class Pr_asset extends Admin_Controller
 	public function approve_pr()
 	{
 		$this->Pr_asset_model->approve_pr();
+	}
+
+	public function reset_pr_asset()
+	{
+		$this->Pr_asset_model->reset_pr_asset();
 	}
 
 	public function print_pr_asset()
@@ -2104,7 +2165,8 @@ class Pr_asset extends Admin_Controller
 		echo json_encode($Arr_Data);
 	}
 
-	public function edit_asset() {
+	public function edit_asset()
+	{
 		$post = $this->input->post();
 
 		$this->db->trans_start();
@@ -2125,7 +2187,7 @@ class Pr_asset extends Admin_Controller
 		];
 
 		$update_asset = $this->db->update('asset_planning', $data_update, ['no_pr' => $post['no_pr']]);
-		if(!$update_asset) {
+		if (!$update_asset) {
 			print_r($this->db->error($update_asset));
 			exit;
 		}
@@ -2136,16 +2198,16 @@ class Pr_asset extends Admin_Controller
 			'nilai_pr' => str_replace(',', '', $post['budget'])
 		];
 		$update_pr_detail = $this->db->update('tran_pr_detail', $data_update2, ['no_pr' => $post['no_pr']]);
-		if(!$update_pr_detail) {
+		if (!$update_pr_detail) {
 			print_r($this->db->error($update_pr_detail));
 			exit;
 		}
 
-		if($this->db->trans_status() === false) {
+		if ($this->db->trans_status() === false) {
 			$this->db->trans_rollback();
 
 			$valid = 0;
-		}else{
+		} else {
 			$this->db->trans_commit();
 
 			$valid = 1;

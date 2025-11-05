@@ -112,17 +112,37 @@
 		});
 	});
 
+	$(document).on('input change qty:changed', '#ModalView2', function() {
+		updateModalSaveStateIn('#ModalView2');
+	});
+
+	$('#ModalView2').on('shown.bs.modal', function() {
+		updateModalSaveStateIn('#ModalView2');
+	});
+
 	$(document).on('click', '.check', function(e) {
 		e.preventDefault();
 
 		$("#head_title2").html("<b>CHECK INCOMING PRODUCT</b>");
+
+		// pessimistic default: sembunyikan & disable dulu
+		$('#checkMaterial').prop('disabled', true).hide();
+
 		$.ajax({
 			type: 'POST',
 			url: base_url + active_controller + '/modal_incoming_check/' + $(this).data('kode_trans'),
-			success: function(data) {
-				$("#ModalView2").modal('show');
-				$("#view2").html(data);
+			success: function(html) {
+				// 1) isi konten dulu
+				$("#view2").html(html);
 
+				// 2) inisialisasi plugin angka jika ada (opsional)
+				// $('#ModalView2 .maskM').autoNumeric('init', { mDec: '4', aPad: false });
+
+				// 3) evaluasi state tombol berdasarkan ringkasan yang barusan dimuat
+				updateModalSaveStateIn('#ModalView2');
+
+				// 4) tampilkan modal dan tombol
+				$("#ModalView2").modal('show');
 				$('#checkMaterial').show();
 			},
 			error: function() {
@@ -135,6 +155,7 @@
 			}
 		});
 	});
+
 
 	$(document).on('click', '.plus', function() {
 		var no = $(this).data('id');
@@ -271,16 +292,21 @@
 			"processing": true,
 			"serverSide": true,
 			"stateSave": true,
-			"bAutoWidth": true,
+			"bAutoWidth": false,
 			"destroy": true,
 			"responsive": true,
 			"aaSorting": [
 				[1, "asc"]
 			],
 			"columnDefs": [{
-				"targets": 'no-sort',
-				"orderable": false,
-			}],
+					"targets": 'no-sort',
+					"orderable": false
+				},
+				{
+					"targets": 4,
+					"width": "320px"
+				}
+			],
 			"sPaginationType": "simple_numbers",
 			"iDisplayLength": 10,
 			"aLengthMenu": [
@@ -291,16 +317,42 @@
 				url: base_url + active_controller + '/server_side_check_material',
 				type: "post",
 				data: function(d) {
-					d.no_po = no_po,
-						d.gudang = gudang
+					d.no_po = no_po;
+					d.gudang = gudang;
 				},
-				cache: false,
-				error: function() {
-					$(".my-grid-error").html("");
-					$("#my-grid").append('<tbody class="my-grid-error"><tr><th colspan="3">No data found in the server</th></tr></tbody>');
-					$("#my-grid_processing").css("display", "none");
-				}
+				cache: false
 			}
 		});
+	}
+
+	// helper angka
+	function num(v) {
+		v = parseFloat(v);
+		return isNaN(v) ? 0 : v;
+	}
+
+	// Cek ringkasan khusus di dalam satu modal (pakai selector scope)
+	function isSummarySatisfiedIn($scope) {
+		let ok = true;
+
+		// Kalau di tabel kamu ada data-val:
+		$scope.find('.summary-row').each(function() {
+			const $r = $(this);
+			const ord = num($r.find('.sum-order').data('val'));
+			const oke = num($r.find('.sum-oke').data('val'));
+			const ng = num($r.find('.sum-ng').data('val'));
+			if (!(ord > 0 && (oke + ng) >= ord)) {
+				ok = false;
+				return false;
+			}
+		});
+
+		return ok;
+	}
+
+	function updateModalSaveStateIn(modalSelector) {
+		const $m = $(modalSelector);
+		const canSave = isSummarySatisfiedIn($m);
+		$m.find('#checkMaterial').prop('disabled', !canSave);
 	}
 </script>

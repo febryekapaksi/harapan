@@ -3244,8 +3244,10 @@ class Incoming_check extends Admin_Controller
 			}
 		}
 
-		// print_r($file_name);
-		// exit;
+		$total_harga = 0;
+		$qty_oke = $data['qty_oke'];
+		$harga	= $get_detail->harga;
+		$total_harga = $qty_oke * $harga;
 
 		$this->db->insert('tr_checked_incoming_detail', [
 			'kode_trans' => $data['kode_trans'],
@@ -3256,8 +3258,10 @@ class Incoming_check extends Admin_Controller
 			'qty_order' => $get_detail->qty_order,
 			'unit' => $get_material->satuan,
 			'packing' => $get_material->packing,
+			'harga'		=> $harga,
+			'total_harga'	=> $total_harga,
 			'qty_ng' => $data['qty_ng'],
-			'qty_oke' => $data['qty_oke'],
+			'qty_oke' => $qty_oke,
 			'qty_pack' => $data['qty_pack'],
 			'expired_date' => $data['expired_date'],
 			'uploaded_file' => $file_name,
@@ -3293,7 +3297,9 @@ class Incoming_check extends Admin_Controller
 					b.konversi,
 					c.code as satuan,
 					e.code as packing,
-					f.no_surat
+					f.no_surat,
+					g.hargasatuan,
+					g.harga_total
 				FROM 
 					tr_incoming_check_detail a 
 					LEFT JOIN new_inventory_4 b ON b.code_lv4 = a.id_material 
@@ -3311,22 +3317,33 @@ class Incoming_check extends Admin_Controller
 
 		$hasil = '';
 		$no = 1;
+		$harga_baru = 0;
 		foreach ($result as $item) :
+			if ($item['konversi'] > 0) {
+				$konversi = $item['konversi'];
+				$packing = ($item['qty_order'] / $item['konversi']);
+			} else {
+				$konversi = 1;
+				$packing = $item['qty_order'];
+			}
+			$harga_baru = $item['harga_total'] / $item['qty_order'];
 
 			$hasil .= '<tr>';
 			$hasil .= '
 					<input type="hidden" name="id" value="' . $item['id'] . '">
 					<input type="hidden" name="kode_trans_' . $item['id'] . '" value="' . $item['kode_trans'] . '">
 					<input type="hidden" name="id_material_' . $item['id'] . '" value="' . $item['id_material'] . '">
+					<input type="hidden" name="harga_satuan' . $item['id'] . '" value="' . $item['harga'] . '">
+					<input type="hidden" name="harga_total' . $item['id'] . '" value="' . $item['harga_total'] . '">
 				';
 			$hasil .= '<td class="text-center">' . $no . '</td>';
 			$hasil .= '<td class="text-center">' . $get_no_surat->no_surat . '</td>';
 			$hasil .= '<td class="">' . $item['nm_material'] . '</td>';
-			$hasil .= '<td class="text-center">' . number_format($item['qty_order'], 2) . ' <input type="hidden" name="qty_order_' . $item['id'] . '" value="' . $item['qty_order'] . '"> </td>';
+			$hasil .= '<td class="text-center">' . number_format($item['qty_order'], 2) . ' <input type="hidden" class="qty_order_' . $item['id'] . '" name="qty_order_' . $item['id'] . '" value="' . $item['qty_order'] . '"> </td>';
 			$hasil .= '<td class="text-center">' . $item['satuan'] . '</td>';
-			$hasil .= '<td class="text-center">' . $item['konversi'] . ' <input type="hidden" name="konversi_' . $item['konversi'] . '" class="konversi_' . $item['id'] . '" value="' . $item['konversi'] . '"></td>';
-			$hasil .= '<td class="text-center">' . number_format(($item['qty_order'] / $item['konversi'])) . '</td>';
-			$hasil .= '<td class="text-center">' . $item['packing'] . '</td>';
+			$hasil .= '<td class="text-center">' . $konversi . ' <input type="hidden" name="konversi_' . $item['konversi'] . '" class="konversi_' . $item['id'] . '" value="' . $konversi . '"></td>';
+			$hasil .= '<td class="text-center">' . number_format($item['qty_order'] / $konversi) . '</td>';
+			$hasil .= '<td class="text-center">' . $packing . '</td>';
 			$hasil .= '<td class="">
 					<input type="text" name="qty_ng_' . $item['id'] . '" id="" class="form-control form-control-sm input_hid maskM qty_ng qty_ng_' . $item['id'] . '" data-id="' . $item['id'] . '" data-incoming="' . $item['qty_order'] . '" data-konversi="' . $item['konversi'] . '" required>
 				</td>';
@@ -3335,6 +3352,12 @@ class Incoming_check extends Admin_Controller
 				</td>';
 			$hasil .= '<td class="">
 					<input type="text" name="qty_pack_' . $item['id'] . '" id="" class="form-control form-control-sm maskM qty_pack_' . $item['id'] . '" readonly>
+				</td>';
+			$hasil .= '<td class="hidden">
+					<input type="text" name="harga_baru_' . $item['id'] . '" id="" class="form-control form-control-sm harga_baru_' . $item['id'] . '" value="' . number_format(($harga_baru), 2) . '" readonly>
+				</td>';
+			$hasil .= '<td class="hidden">
+					<input type="text" name="total_harga_' . $item['id'] . '" id="" class="form-control form-control-sm total_harga total_harga_' . $item['id'] . '" readonly>
 				</td>';
 			$hasil .= '<td class="">
 					<input type="date" name="expired_date_' . $item['id'] . '" id="" class="form-control form-control-sm input_hid expired_date_' . $item['id'] . '" min="' . date('Y-m-d') . '" data-id="' . $item['id'] . '">
@@ -3346,7 +3369,7 @@ class Incoming_check extends Admin_Controller
 					<input type="text" name="lot_info_' . $item['id'] . '" id="" class="form-control input_hid lot_info_' . $item['id'] . '" data-id="' . $item['id'] . '">
 				</td>';
 			$hasil .= '<td>
-					<button type="button" class="btn btn-sm btn-primary add_lot add_lot_' . $item['id'] . '" data-id="' . $item['id'] . '" data-kode_trans="' . $item['kode_trans'] . '" data-id_material="' . $item['id_material'] . '" data-no_ipp="'.$no_ipp.'"><i class="fa fa-plus"></i></button>
+					<button type="button" class="btn btn-sm btn-primary add_lot add_lot_' . $item['id'] . '" data-id="' . $item['id'] . '" data-kode_trans="' . $item['kode_trans'] . '" data-id_material="' . $item['id_material'] . '" data-no_ipp="' . $no_ipp . '"><i class="fa fa-plus"></i></button>
 				</td>';
 			$hasil .= '</tr>';
 
@@ -3361,15 +3384,15 @@ class Incoming_check extends Admin_Controller
 				$hasil .= '<td class="text-center">
 				';
 
-				if(file_exists($checked_item['uploaded_file']) && $checked_item['uploaded_file'] !== ''){
+				if (file_exists($checked_item['uploaded_file']) && $checked_item['uploaded_file'] !== '') {
 					$hasil .= '<a href="' . base_url($checked_item['uploaded_file']) . '" class="btn btn-sm btn-primary" target="_blank">Download File</a>';
 				}
-				
+
 				$hasil .= '</td>';
 				$hasil .= '<td>' . $checked_item['lot_description'] . '</td>';
 				$hasil .= '<td class="text-center">';
 				if ($checked_item['sts'] == '0') {
-					$hasil .= '<button type="button" class="btn btn-sm btn-danger del_checked" data-id="' . $checked_item['id'] . '" data-kode_trans="' . $checked_item['kode_trans'] . '" data-no_ipp="'.$no_ipp.'"><i class="fa fa-trash"></i></button>';
+					$hasil .= '<button type="button" class="btn btn-sm btn-danger del_checked" data-id="' . $checked_item['id'] . '" data-kode_trans="' . $checked_item['kode_trans'] . '" data-no_ipp="' . $no_ipp . '"><i class="fa fa-trash"></i></button>';
 				}
 				$hasil .= '</td>';
 				$hasil .= '</tr>';
@@ -3379,55 +3402,120 @@ class Incoming_check extends Admin_Controller
 		endforeach;
 
 		$get_summary_incoming = $this->db->select('
-            a.nm_material,
+			a.id,    
+			a.nm_material,
             a.qty_order,
             IF(SUM(b.qty_ng) IS NULL, 0, SUM(b.qty_ng)) AS ttl_qty_ng,
             IF(SUM(b.qty_oke) IS NULL, 0, SUM(b.qty_oke)) AS ttl_qty_oke,
+            IF(SUM(b.total_harga) IS NULL, 0, SUM(b.total_harga)) AS total_harga,
         ')
-        ->from('tr_incoming_check_detail a')
-        ->join('tr_checked_incoming_detail b', 'b.id_detail = a.id', 'left')
-        ->where('a.kode_trans', $kode_trans)
-        ->group_by('a.id_material, a.id')
-        ->get()
-        ->result_array();
+			->from('tr_incoming_check_detail a')
+			->join('tr_checked_incoming_detail b', 'b.id_detail = a.id', 'left')
+			->where('a.kode_trans', $kode_trans)
+			->group_by('a.id_material, a.id')
+			->get()
+			->result_array();
 
 		$hasil2 = '';
 		$no = 1;
 
 		$stok_tidak_masuk = 0;
 		$stok_masuk = 0;
+		$total_nilai = 0;
+		foreach ($get_summary_incoming as $summ_incom) {
+			$id = $summ_incom['id'];
 
-		foreach($get_summary_incoming as $summ_incom){
-			$hasil2 .= '<tr>'; 
-			$hasil2 .= '<td class="text-center">'.$no.'</td>'; 
-			$hasil2 .= '<td class="text-center">'.$summ_incom['nm_material'].'</td>'; 
-			$hasil2 .= '<td class="text-center">'.number_format($summ_incom['qty_order']).'</td>'; 
-			$hasil2 .= '<td class="text-center">'.number_format($summ_incom['ttl_qty_ng']).'</td>'; 
-			$hasil2 .= '<td class="text-center">'.number_format($summ_incom['ttl_qty_oke']).'</td>'; 
+			$hasil2 .= '<tr class="summary-row" data-id="' . $id . '">';
+			$hasil2 .= '<td class="text-center">' . $no . '</td>';
+			$hasil2 .= '<td class="text-center">' . htmlspecialchars($summ_incom['nm_material']) . '</td>';
+
+			// simpan angka murni di data-val, tampilkan number_format
+			$hasil2 .= '<td class="text-center sum-order" data-val="' . $summ_incom['qty_order'] . '">' . number_format($summ_incom['qty_order']) . '</td>';
+			$hasil2 .= '<td class="text-center sum-ng"    data-val="' . $summ_incom['ttl_qty_ng'] . '">' . number_format($summ_incom['ttl_qty_ng']) . '</td>';
+			$hasil2 .= '<td class="text-center sum-oke"   data-val="' . $summ_incom['ttl_qty_oke'] . '">' . number_format($summ_incom['ttl_qty_oke']) . '</td>';
+
 			$hasil2 .= '</tr>';
-
 			$no++;
 
 			$stok_tidak_masuk += $summ_incom['ttl_qty_ng'];
 			$stok_masuk += $summ_incom['ttl_qty_oke'];
+			$total_nilai += $summ_incom['total_harga'];
 		}
 
 		$hasil3 = '
 			<tr>
 				<td colspan="3" class="text-right">Masuk ke Stock</td>
 				<td class="text-center">
-					<span style="color: red;">'.number_format($stok_tidak_masuk).'</span>
+					<span style="color: red;">' . number_format($stok_tidak_masuk) . '</span>
 				</td>
 				<td class="text-center">
-					<span style="color: green;">'.number_format($stok_masuk).'</span>
+					<span style="color: green;">' . number_format($stok_masuk) . '</span>
 				</td>
 			</tr>
 		';
 
+		$hasil4 = '
+			<tr bgcolor="#DCDCDC">
+			<td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="' . date('Y-m-d') . '" class="form-control" readonly /></td>
+			<td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+			<td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
+			<td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
+			<td>
+				<input type="hidden" id="debet1" name="debet[]" value="' . $total_nilai . '" class="form-control" readonly />
+				<input type="text" id="debet21" name="debet2[]" value="' . $total_nilai . '" class="form-control" readonly />
+			</td>
+			<td>
+				<input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
+				<input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+			</td>
+			</tr>
+			<tr bgcolor="#DCDCDC">
+			<td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="' . date('Y-m-d') . '" class="form-control" readonly /></td>
+			<td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+			<td><input type="text" id="no_coa2" name="no_coa[]" value="2101-01-02" class="form-control" readonly /></td>
+			<td><input type="text" id="nama_coa2" name="nama_coa[]" value="Unbill" class="form-control" readonly /></td>
+			<td>
+				<input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+				<input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+			</td>
+			<td>
+				<input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
+				<input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+			</td>
+			</tr>
+			<tr bgcolor="#DCDCDC">
+			<td><input type="date" id="tgl_jurnal3" name="tgl_jurnal[]" value="' . date('Y-m-d') . '" class="form-control" readonly /></td>
+			<td><input type="text" id="type3" name="type[]" value="JV" class="form-control" readonly /></td>
+			<td><input type="text" id="no_coa3" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
+			<td><input type="text" id="nama_coa3" name="nama_coa[]" value="Uang Muka Pembelian" class="form-control" readonly /></td>
+			<td>
+				<input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
+				<input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
+			</td>
+			<td>
+				<input type="hidden" id="kredit3" name="kredit[]" value="' . $total_nilai . '" class="form-control" readonly />
+				<input type="text" id="kredit23" name="kredit2[]" value="' . $total_nilai . '" class="form-control" readonly />
+			</td>
+			</tr>
+			<tr bgcolor="#DCDCDC">
+			<td colspan="4" align="right"><b>TOTAL</b></td>
+			<td align="right">
+				<input type="hidden" id="total" name="total" value="" class="form-control" readonly />
+				<input type="text" id="total31" name="total3" value="' . $total_nilai . '" class="form-control" readonly />
+			</td>
+			<td align="right">
+				<input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
+				<input type="text" id="total41" name="total4" value="' . $total_nilai . '" class="form-control" readonly />
+			</td>
+			</tr>
+		';
+
+
 		echo json_encode([
 			'hasil' => $hasil,
 			'hasil2' => $hasil2,
-			'hasil3' => $hasil3
+			'hasil3' => $hasil3,
+			'hasil4' => $hasil4
 		]);
 	}
 
@@ -3526,17 +3614,17 @@ class Incoming_check extends Admin_Controller
 
 		$no_po = [];
 		$get_no_surat = $this
-		->db
-		->query("
+			->db
+			->query("
 			SELECT
 				a.no_surat
 			FROM
 				tr_purchase_order a
 			WHERE
-				a.no_po IN ('".str_replace(",","','",$result_header->no_ipp)."')
+				a.no_po IN ('" . str_replace(",", "','", $result_header->no_ipp) . "')
 		")
-		->result();
-		foreach($get_no_surat as $item) {
+			->result();
+		foreach ($get_no_surat as $item) {
 			$no_po[] = $item->no_surat;
 		}
 
