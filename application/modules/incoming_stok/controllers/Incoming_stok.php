@@ -452,10 +452,11 @@ class Incoming_stok extends Admin_Controller
                     LEFT JOIN accessories b ON a.idmaterial = b.id
                     LEFT JOIN accessories_category c ON b.id_category = c.id
                     LEFT JOIN ms_satuan d ON d.id = b.id_unit_gudang
+                    LEFT JOIN tr_purchase_order_non_product e ON a.no_po = e.no_po
                   WHERE
                     a.no_po IN ('" . str_replace(",", "','", $no_po) . "')
                     AND a.qty_in < a.qty
-                    AND c.outgoing = '" . $categoryGudang . "'
+                    AND e.tipe IS NULL
                 ")->result_array();
     // print_r($detail);
     // echo $this->db->last_query();
