@@ -697,7 +697,7 @@ class Metode_pembelian_model extends BF_Model
 					$get_list_barang = $this->db->get()->result_array();
 				}
 			} else {
-				if ($row['category'] == 'pr asset') {
+				if ($row['category'] == 'pr asset' || $row['category'] == 'asset') {
 					$this->db->select('a.nama_asset as nm_barang, 1 as qty');
 					$this->db->from('asset_planning a');
 					$this->db->where('a.status', 'Y');
