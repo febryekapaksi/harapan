@@ -457,7 +457,7 @@ class Expense extends Admin_Controller
 				(SELECT COUNT(aa.id) FROM tr_expense aa JOIN tr_expense_detail ab ON ab.no_doc = aa.no_doc WHERE ab.id_expense_detail = a.id AND aa.status IN ('0','1','2','3')) < 1
 		")->num_rows();
 		if (!$query1) {
-			print_r($this->db->error($query1));
+			print_r('1 - ' . $this->db->last_query());
 			exit;
 		}
 
@@ -525,13 +525,17 @@ class Expense extends Admin_Controller
 				a.metode_pembelian = '2' AND 
 				(SELECT COUNT(aa.id) FROM tr_expense aa JOIN tr_expense_detail ab ON ab.no_doc = aa.no_doc WHERE ab.id_expense_detail = a.id AND aa.status IN ('0','1','2','3')) < 1
 		")->result();
-			if (!$data) {
-				print_r($this->db->error($data));
-				exit;
-			}
+			// if (!$data) {
+			// 	print_r('2 - ' . $this->db->last_query());
+			// 	exit;
+			// }
 		} else {
 			$data = false;
 		}
+
+		// print_r($data);
+		// exit;
+
 		echo json_encode($data);
 	}
 
