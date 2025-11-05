@@ -576,6 +576,33 @@ function getStokBarang($id_gudang)
 	return $ArrGetCategory;
 }
 
+function getStokBarang2($id_gudang)
+{
+	$CI = &get_instance();
+	$listGetCategory =	 $CI->db
+		->select('
+											a.id_material,
+											a.qty_stock,
+											a.qty_booking,
+											b.konversi
+										')
+		->join('accessories b', 'a.id_material=b.id')
+		->get_where('warehouse_stock_stock a', array('a.id_gudang' => $id_gudang))->result_array();
+	$ArrGetCategory 	= [];
+	foreach ($listGetCategory as $key => $value) {
+		$stok_packing = 0;
+		if ($value['qty_stock'] > 0 and $value['konversi'] > 0) {
+			$stok_packing = $value['qty_stock'] / $value['konversi'];
+		}
+
+		$id_material = $value['id_material'];
+		$ArrGetCategory[$id_material]['stok'] 	= $value['qty_stock'];
+		$ArrGetCategory[$id_material]['stok_packing'] 	= $stok_packing;
+		$ArrGetCategory[$id_material]['konversi'] 	= $value['konversi'];
+	}
+	return $ArrGetCategory;
+}
+
 function getStokBarangAll()
 {
 	$CI = &get_instance();

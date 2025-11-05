@@ -32,7 +32,7 @@ class Stok_gudang_barang_model extends BF_Model
 		$id_gudang = $requestData['id_warehouse'];
 		$date_filter = $requestData['date_filter'];
 		if ($date_filter == '') {
-			$GET_STOK = getStokBarang($id_gudang);
+			$GET_STOK = getStokBarang2($id_gudang);
 			$TAND = 'Now';
 		} else {
 			$GET_STOK = getStokBarangHistory($id_gudang, $date_filter);
