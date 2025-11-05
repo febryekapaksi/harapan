@@ -146,7 +146,7 @@ class Request_pr_stok extends Admin_Controller
       'request'       => $purchase,
       'request_pack' => $purchase_pack,
       'tgl_dibutuhkan' => $tanggal,
-      'price_ref_high' => $price_ref
+      'price_ref_use' => $price_ref
     );
     // print_r($ArrHeader);
     // exit;
@@ -190,17 +190,17 @@ class Request_pr_stok extends Admin_Controller
 
     // $getraw_materials   = $this->db->get_where('accessories', array('id_category' => $id_category, 'deleted_date' => NULL, 'status' => '1', 'request >' => 0))->result_array();
 
-    $getraw_materials = $this->db->query('SELECT a.* FROM accessories a WHERE a.id_category = "' . $id_category . '" AND a.deleted_date IS NULL AND a.status = "1" AND (a.request_pack > 0)')->result_array();
+    $getraw_materials = $this->db->query('SELECT a.* FROM accessories a WHERE a.id_category = "' . $id_category . '" AND a.deleted_date IS NULL AND a.status = "1" AND (a.request > 0)')->result_array();
 
     $ArrSaveDetail = [];
     $SUM = 0;
     foreach ($getraw_materials as $key => $value) {
       $price_ref = (!empty($value['price_ref'])) ? $value['price_ref'] : 0;
 
-      $SUM += $value['request_pack'];
+      $SUM += $value['request'];
       $ArrSaveDetail[$key]['so_number'] = $so_number;
       $ArrSaveDetail[$key]['id_material'] = $value['id'];
-      $ArrSaveDetail[$key]['propose_purchase'] = $value['request_pack'];
+      $ArrSaveDetail[$key]['propose_purchase'] = $value['request'];
       $ArrSaveDetail[$key]['price_ref'] = $price_ref;
     }
 
@@ -485,7 +485,7 @@ class Request_pr_stok extends Admin_Controller
       $ArrUpdate[$key]['tgl_dibutuhkan'] = $tgl_next_month;
       $ArrUpdate[$key]['spec_pr'] = null;
       $ArrUpdate[$key]['info_pr'] = null;
-      $ArrUpdate[$key]['price_ref_high'] = $price_ref;
+      $ArrUpdate[$key]['price_ref_use'] = $price_ref;
     }
 
     $this->db->trans_start();
@@ -641,7 +641,7 @@ class Request_pr_stok extends Admin_Controller
     $post = $this->input->post();
     $get_material = $this->db->get_where('accessories', ['id' => $post['id']])->row();
 
-    $price_ref = (!empty($get_material) && $get_material->price_ref_high !== null) ? $get_material->price_ref_high : 0;
+    $price_ref = (!empty($get_material) && $get_material->price_ref_use !== null) ? $get_material->price_ref_use : 0;
 
     $this->db->trans_begin();
 
@@ -686,7 +686,7 @@ class Request_pr_stok extends Admin_Controller
       FROM
         accessories
       WHERE
-        request_pack > 0
+        request > 0
     ')->num_rows();
 
     echo json_encode([
@@ -755,7 +755,7 @@ class Request_pr_stok extends Admin_Controller
   {
     $category = $this->input->post('category');
 
-    $this->db->select('a.request, a.price_ref_high');
+    $this->db->select('a.request, a.price_ref_use');
     $this->db->from('accessories a');
     $this->db->where('a.id_category', $category);
     $this->db->where('a.request >', 0);
@@ -763,7 +763,7 @@ class Request_pr_stok extends Admin_Controller
 
     $nilai_pengajuan = 0;
     foreach ($get_hitung_pengajuan as $item) {
-      $nilai_pengajuan += ($item->request * $item->price_ref_high);
+      $nilai_pengajuan += ($item->request * $item->price_ref_use);
     }
 
     $response = [
