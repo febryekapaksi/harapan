@@ -144,8 +144,17 @@
         <tr>
             <td>Phone</td>
             <td>: <?= $data_customer->telephone ?></td>
+            <?php
+            $baseTs   = strtotime($data_delivery->delivery_date);
+            $rawTop   = isset($data_penawaran->jumlah_top) ? trim($data_penawaran->jumlah_top) : '';
+            if ($rawTop === '-' || $rawTop === '' || !preg_match('/^\d+$/', $rawTop)) {
+                $dueTs = $baseTs;
+            } else {
+                $dueTs = strtotime('+' . $rawTop . ' days', $baseTs);
+            }
+            ?>
             <td>Due Date</td>
-            <td>: <?= date('d F Y', strtotime('+' . $data_penawaran->jumlah_top . ' days', strtotime($data_delivery->delivery_date))) ?></td>
+            <td>: <?= date('d F Y', $dueTs); ?></td>
         </tr>
         <tr>
             <td>Fax</td>
