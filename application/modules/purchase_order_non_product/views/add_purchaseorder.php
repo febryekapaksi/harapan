@@ -275,6 +275,17 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 															$readonly_cons = 'readonly';
 															$total = ($harga_cons * $get_harga_cons->qty);
 														}
+														if ($value->tipe_pr == 'pr asset') {
+															$this->db->select('a.nilai_pr as harga, 1 as qty');
+															$this->db->from('tran_pr_detail a');
+															$this->db->join('tran_pr_header b', 'b.no_pr = a.no_pr');
+															$this->db->where('b.id', $value->id);
+															$get_harga_cons = $this->db->get()->row();
+
+															$harga_cons = (!empty($get_harga_cons)) ? $get_harga_cons->harga : 0;
+															$readonly_cons = 'readonly';
+															$total = ($harga_cons * ($value->propose_purchase - $get_qty_all_po->qty_all_po));
+														}
 														if ($value->tipe_pr == '') {
 															$get_harga_cons = $this->db->get_where('material_planning_base_on_produksi_detail', ['id' => $value->id])->row();
 
