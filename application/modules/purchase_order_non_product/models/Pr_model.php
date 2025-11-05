@@ -260,6 +260,23 @@ class Pr_model extends BF_Model
 	public function cariPurchaserequest($filter_status = null)
 	{
 		$query = $this->db->query('
+		SELECT 
+				a.so_number as so_number,
+				a.no_pr as no_pr,
+				a.tgl_so as tgl_so, 
+				b.nm_lengkap as nama_user,
+				"pr material" as tipe_pr
+			FROM
+				material_planning_base_on_produksi a
+				LEFT JOIN users b ON b.id_user = a.booking_by
+			WHERE
+				(SELECT COUNT(x.id) as hitung FROM material_planning_base_on_produksi_detail x WHERE x.so_number = a.so_number ) > 0 AND 
+				a.metode_pembelian = "1" AND 
+				a.category  = "pr stok" AND
+				a.close_pr IS NULL
+
+			UNION ALL
+
 			SELECT 
 				a.no_pengajuan as so_number,
 				a.no_pr as no_pr,

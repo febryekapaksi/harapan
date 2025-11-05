@@ -2802,6 +2802,37 @@ class Purchase_order_non_product extends Admin_Controller
 		// $getitemso = $this->db->group_by('a.id');
 
 		$getitemso = $this->db->query("
+		SELECT 
+				a.id as id,
+				a.so_number as so_number,
+				a.id_material as id_material,
+				a.propose_purchase as propose_purchase,
+				(b.qty_stock - b.qty_booking) AS avl_stock, 
+				IF(c.code = '' OR c.code IS NULL, d.id_stock, c.code) as code, 
+				'' as code1, 
+				IF(c.nama = '' OR c.nama IS NULL, d.stock_name, c.nama) as nm_material,
+				'' as tipe_pr,
+				e.code as packing_unit,	
+				f.code as packing_unit2,
+				IF(g.code IS NOT NULL, g.code, h.code) as unit_measure
+			FROM
+				material_planning_base_on_produksi_detail a
+				LEFT JOIN warehouse_stock b ON b.id_material = a.id_material
+				LEFT JOIN new_inventory_4 c ON c.code_lv4 = a.id_material 
+				LEFT JOIN accessories d ON d.id = a.id_material
+				LEFT JOIN ms_satuan e ON e.id = c.id_unit_packing
+				LEFT JOIN ms_satuan f ON f.id = d.id_unit_gudang
+				LEFT JOIN ms_satuan g ON g.id = c.id_unit
+				LEFT JOIN ms_satuan h ON h.id = d.id_unit
+				LEFT JOIN material_planning_base_on_produksi bpo ON bpo.so_number = a.so_number
+			WHERE
+				a.so_number IN ('" . str_replace(",", "','", implode(',', $getparam)) . "')
+				AND a.status_app = 'Y'
+				AND bpo.category = 'pr stok'
+			GROUP BY a.id_material
+
+			UNION ALL
+
 			SELECT
 				a.id as id,
 				a.no_pengajuan as so_number,
