@@ -240,7 +240,7 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
         </tr>
         <tr class="text-center">
             <td>Date: <?= date('j F Y', strtotime($p->created_at)) ?></td>
-            <td>Date: <?= ($p->level_approval == 'M') ? date('j F Y', strtotime($p->approved_at_manager))  : date('j F Y', strtotime($p->approved_at_direksi)) ?></td>
+            <td>Date: <?= date('j F Y', strtotime($p->created_at)) ?></td>
         </tr>
     </table>
 
