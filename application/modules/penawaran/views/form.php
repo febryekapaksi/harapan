@@ -658,6 +658,29 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
         // SAVE PENAWARAN
         $('#data-form').submit(function(e) {
             e.preventDefault();
+
+            var isEmpty = false;
+            $('.product-select').each(function() {
+                if ($(this).val() === "") {
+                    isEmpty = true;
+                    return false; // Keluar dari each loop
+                }
+            });
+
+            // Jika ada yang kosong, tampilkan notifikasi error
+            if (isEmpty) {
+                swal({
+                    type: 'warning',
+                    title: 'Warning !',
+                    text: 'Please make sure all product has been selected !',
+                    timer: 3000,
+                    allowOutsideClick: false,
+                    showConfirmButton: false
+                });
+
+                return false;
+            }
+
             const requiredFields = [{
                     id: '#id_customer',
                     message: 'Customer empty, select first ...'
