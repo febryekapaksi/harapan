@@ -17,38 +17,18 @@ $ENABLE_DELETE  = has_permission('List_Transportasi.Delete');
 						<th>Tanggal</th>
 						<th>Nama</th>
 						<th>Approval Date</th>
+						<th>Total Transport</th>
 						<th>Status</th>
 						<th width="120">Action</th>
 					</tr>
 				</thead>
 				<tbody>
-					<?php
-					if (!empty($results)) {
-						$numb = 0;
-						foreach ($results as $record) {
-							$numb++; ?>
-							<tr>
-								<td><?= $numb; ?></td>
-								<td><?= $record->no_doc ?></td>
-								<td><?= $record->tgl_doc ?></td>
-								<td><?= $record->nmuser ?></td>
-								<td><?= $record->approved_on ?></td>
-								<td><?= $status[$record->status] ?></td>
-								<td>
-									<?php if ($ENABLE_VIEW) : ?>
-										<a class="btn btn-default btn-sm print" href="<?= base_url('expense/transport_req_print/' . $record->id) ?>" target="transport_req_print" title="Print"><i class="fa fa-print"></i> </a>
-										<a class="btn btn-warning btn-sm view" href="<?= base_url('expense/transport_req_view/' . $record->id . '/_all') ?>" title="View"><i class="fa fa-eye"></i></a>
-									<?php endif; ?>
-								</td>
-							</tr>
-					<?php
-						}
-					}  ?>
+
 				</tbody>
 			</table>
 		</div>
 
-		<h3>Detail Transport</h3>
+		<!-- <h3>Detail Transport</h3>
 		<div class="table-responsive">
 			<table id="mytabledata2" class="table table-bordered table-striped">
 				<thead>
@@ -59,6 +39,7 @@ $ENABLE_DELETE  = has_permission('List_Transportasi.Delete');
 						<th>Pemohon</th>
 						<th>Keperluan</th>
 						<th>Tanggal Transaksi</th>
+						<th>Total Transport</th>
 						<th>Status</th>
 						<th>Tanggal ACC</th>
 						<th width="120">Action</th>
@@ -77,6 +58,7 @@ $ENABLE_DELETE  = has_permission('List_Transportasi.Delete');
 								<td><?= $record->nmuser ?></td>
 								<td><?= $record->keperluan ?></td>
 								<td><?= $record->tgl_trans ?></td>
+								<td class="text-right"><?= number_format($record->jumlah_expense) ?></td>
 								<td><?= $status[$record->status] ?></td>
 								<td><?= $record->approved_on ?></td>
 								<td>
@@ -90,7 +72,7 @@ $ENABLE_DELETE  = has_permission('List_Transportasi.Delete');
 					}  ?>
 				</tbody>
 			</table>
-		</div>
+		</div> -->
 
 	</div>
 	<!-- /.box-body -->
@@ -117,5 +99,50 @@ $ENABLE_DELETE  = has_permission('List_Transportasi.Delete');
 			'excel'
 		]
 	});
+
+	$(document).ready(function() {
+		DataTables();
+	});
+
+	function DataTables() {
+		var DataTables = $('#mytabledata').dataTable({
+			serverSide: true,
+			processing: true,
+			stateSave: true,
+			paging: true,
+			destroy: true,
+			ajax: {
+				type: 'post',
+				url: siteurl + active_controller + 'get_data_transport_req_all',
+				cache: false,
+				dataType: 'json'
+			},
+			columns: [{
+					data: 'no'
+				},
+				{
+					data: 'no_doc'
+				},
+				{
+					data: 'tanggal'
+				},
+				{
+					data: 'nama'
+				},
+				{
+					data: 'approval_date'
+				},
+				{
+					data: 'total_transport'
+				},
+				{
+					data: 'status'
+				},
+				{
+					data: 'action'
+				}
+			]
+		});
+	}
 </script>
 <script src="<?= base_url('assets/js/basic.js') ?>"></script>
