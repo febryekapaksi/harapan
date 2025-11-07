@@ -459,7 +459,7 @@ class Request_pr_stok extends Admin_Controller
 
     foreach ($get_rutin as $key => $value) {
       $get_kebutuhan   = $this->db->select('SUM(kebutuhan_month) AS sum_keb')->get_where('budget_rutin_detail', array('id_barang' => $value['id']))->row();
-      $get_stock     = $this->db->select('SUM(qty_stock) AS stock')->where('id_gudang', 1)->get_where('warehouse_stock', array('id_material' => $value['id'], 'id_gudang' => 1))->result();
+      $get_stock     = $this->db->select('SUM(qty_stock) AS stock')->where('id_gudang', 1)->get_where('warehouse_stock_stock', array('id_material' => $value['id'], 'id_gudang' => 1))->result();
       $get_konversi = $this->db->select('a.konversi, a.max_stok')->get_where('accessories a', ['a.id' => $value['id']])->row_array();
 
       $konversi = (!empty($get_konversi)) ? $get_konversi['konversi'] : 1;

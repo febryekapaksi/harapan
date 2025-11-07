@@ -555,7 +555,7 @@ if (!isset($data->departement)) {
 
 			$.ajax({
 				url: siteurl + 'expense/get_kasbon/' + nama + '/' + departement + '/<?= (isset($data->no_doc) ? $data->no_doc : ""); ?>',
-				type: "POST",
+				type: "GET",
 				dataType: "json",
 				success: function(data) {
 					var tbody = '';
