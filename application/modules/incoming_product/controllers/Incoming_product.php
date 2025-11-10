@@ -90,7 +90,7 @@ class Incoming_product extends Admin_Controller
             FROM 
                 tr_purchase_order a 
                 LEFT JOIN new_supplier b ON b.kode_supplier = a.id_suplier 
-            WHERE a.status = '2' AND a.tipe IS NULL AND a.id_suplier = '" . $kode_supplier . "' AND (SELECT IF(SUM(aa.qty_oke + aa.qty_ng) IS NULL, 0, SUM(aa.qty_oke + aa.qty_ng)) 
+            WHERE a.status = '2'  AND a.id_suplier = '" . $kode_supplier . "' AND (SELECT IF(SUM(aa.qty_oke + aa.qty_ng) IS NULL, 0, SUM(aa.qty_oke + aa.qty_ng)) 
             FROM 
                 tr_checked_incoming_detail aa WHERE aa.no_ipp = a.no_po) < (SELECT SUM(ab.qty) FROM dt_trans_po ab WHERE ab.no_po = a.no_po) AND (SELECT COUNT(ac.id) 
             FROM 
