@@ -106,8 +106,11 @@ class Expense extends Admin_Controller
 			];
 		}
 
+		$list_coa_kasbon = [];
+		$list_coa_kasbon = $this->Expense_model->GetCoaKasbon();
 
 		$this->template->set('list_pr_non_po', $list_pr_non_po);
+		$this->template->set('list_coa_kasbon', $list_coa_kasbon);
 		$this->template->set('mod', '');
 		$this->template->render('kasbon_form');
 	}
@@ -118,6 +121,7 @@ class Expense extends Admin_Controller
 		$id             	= $this->input->post("id");
 		$tgl_doc  			= $this->input->post("tgl_doc");
 		$no_doc		   	 	= $this->input->post("no_doc");
+		$coa		   	 	= $this->input->post("coa");
 		$departement		= $this->input->post("departement");
 		$nama				= $this->input->post("nama");
 		$keperluan			= $this->input->post("keperluan");
@@ -132,7 +136,7 @@ class Expense extends Admin_Controller
 		$no_pr				= $this->input->post("no_pr");
 		$tipe_pr			= $this->input->post("tipe_pr");
 		$file_name			= $this->input->post("file_name");
-		$doc_pr			= $this->input->post("doc_pr");
+		$doc_pr				= $this->input->post("doc_pr");
 		$to_doc_pr			= $this->input->post("to_doc_pr");
 		$metode_pembayaran	= 1;
 
@@ -374,8 +378,8 @@ class Expense extends Admin_Controller
 				$result = true;
 			}
 		} else {
-			$rec = $this->db->query("select no_perkiraan from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='BUK030' and menu='kasbon'")->row();
-			$no_perkiraan = (!empty($rec)) ? $rec->no_perkiraan : '';
+			// $rec = $this->db->query("select no_perkiraan from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='BUK030' and menu='kasbon'")->row();
+			// $no_perkiraan = (!empty($rec)) ? $rec->no_perkiraan : '';
 			// if (!empty($rec)) {
 			// 	$no_perkiraan = $rec->no_perkiraan;
 			// }
@@ -390,7 +394,7 @@ class Expense extends Admin_Controller
 				'jumlah_kasbon' => $jumlah_kasbon,
 				'doc_file' => $filenames,
 				'project' => $project,
-				'coa' => $no_perkiraan,
+				'coa' => $coa,
 				'status' => 0,
 				'doc_file_2' => $filenames2,
 				'bank_id' => $bank_id,
@@ -679,15 +683,20 @@ class Expense extends Admin_Controller
 		$this->db->where('a.id_kasbon', $data->no_doc);
 		$get_pr_detail_kasbon = $this->db->get()->result_array();
 
+		$list_coa_kasbon = [];
+		$list_coa_kasbon = $this->Expense_model->GetCoaKasbon();
+
 		$this->template->set('mod', $mod);
 		$this->template->set('status', $this->status);
 		$this->template->set('data', $data);
 		$this->template->set('stsview', '');
 		$this->template->set('list_detail_pr_kasbon', $get_pr_detail_kasbon);
+		$this->template->set('list_coa_kasbon', $list_coa_kasbon);
 		$this->template->title('Kasbon Form');
 		$this->template->page_icon('fa fa-list');
 		$this->template->render('kasbon_form');
 	}
+
 	// kasbon print
 	public function kasbon_print($id)
 	{
@@ -745,11 +754,15 @@ class Expense extends Admin_Controller
 		$this->db->where('a.id_kasbon', $data->no_doc);
 		$get_pr_detail_kasbon = $this->db->get()->result_array();
 
+		$list_coa_kasbon = [];
+		$list_coa_kasbon = $this->Expense_model->GetCoaKasbon();
+
 		$this->template->set('mod', $mod);
 		$this->template->set('status', $this->status);
 		$this->template->set('data', $data);
 		$this->template->set('stsview', 'view');
 		$this->template->set('list_detail_pr_kasbon', $get_pr_detail_kasbon);
+		$this->template->set('list_coa_kasbon', $list_coa_kasbon);
 		$this->template->title('Kasbon Form');
 		$this->template->page_icon('fa fa-list');
 		$this->template->render('kasbon_form_detail');

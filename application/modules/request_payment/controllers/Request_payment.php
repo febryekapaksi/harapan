@@ -607,7 +607,6 @@ class Request_payment extends Admin_Controller
 		if ($Data['tipe'] == 'direct_payment') {
 			$header 	= $this->db->get_where('request_payment', ['no_doc' => $Data['no_doc'], 'tipe' => $Data['tipe']])->row_array();
 		}
-		// $Id 		= $this->_getIdPayment(str_replace('/', '-', $Data['date']));
 
 		$no_coa_bank = explode(' - ', $header['bank_name']);
 		$no_coa_bank = $no_coa_bank[0];
@@ -620,17 +619,11 @@ class Request_payment extends Admin_Controller
 
 		$Id = $this->Request_payment_model->generate_id_payment($kode_bank);
 
-		// $detail = 
 		$ArrDetail 			= [];
-		// $idDetail 			= $this->_getIdDetail($Id);
-
-		// print_r($this->Request_payment_model->generate_id_detail());
-		// exit;
 
 		$n = 0;
 		foreach ($Data['item'] as $detail) {
 			$n++;
-			// $idDetail++;
 			$id_detail = $this->Request_payment_model->generate_id_detail($n);
 
 			if ($Data['tipe'] == 'expense') {
@@ -854,17 +847,11 @@ class Request_payment extends Admin_Controller
 					print_r($this->db->error()['message']);
 					exit;
 				}
-				// print_r($this->db->last_query());
-				// exit;
 			}
 		}
 
 		/* Details */
 		if ($ArrDetail) {
-
-			// print_r($ArrDetail);
-			// exit;
-
 			if ($Data['tipe'] == 'expense') {
 
 				$this->db->insert_batch('payment_approve_details', $ArrDetail);
@@ -895,7 +882,6 @@ class Request_payment extends Admin_Controller
 				// }
 
 			}
-
 
 			if ($Data['tipe'] == 'kasbon') {
 				$this->db->insert_batch('payment_approve_details', $ArrDetail);

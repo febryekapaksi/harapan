@@ -84,26 +84,24 @@ $budgets = 0;
 					</div>
 				</div>
 				<div class="form-group ">
-					<label class="col-sm-2 control-label">Petty Cash<font size="4" color="red"><B>*</B></font></label>
-					<div class="col-sm-4">
-						<div class="input-group">
-							<select name="pettycash" id="pettycash" class="form-control" placeholder="Petty Cash" required>
-								<?php
-								echo '<option value="">Select an option</option>';
-								foreach ($data_pc as $record) {
-									$selected = '';
-									if (isset($data->pettycash)) {
-										if ($record->nama == $data->pettycash) {
-											$selected = ' selected';
-											$budgets = $record->budget;
-											$datacombocoa = $record->coa;
-										}
+					<label class="col-sm-2 col-md-2 control-label">Petty Cash <span class="text-red">*</span></label>
+					<div class="col-sm-4 col-md-4">
+						<select name="pettycash" id="pettycash" class="form-control select2" placeholder="Petty Cash" required>
+							<?php
+							echo '<option value="">Select an option</option>';
+							foreach ($data_pc as $record) {
+								$selected = '';
+								if (isset($data->pettycash)) {
+									if ($record->nama == $data->pettycash) {
+										$selected = ' selected';
+										$budgets = $record->budget;
+										$datacombocoa = $record->coa;
 									}
-									echo '<option value="' . $record->nama . '" ' . $selected . ' data-budget="' . $record->budget . '" data-approval="' . $record->approval . '" data-coa="' . $record->coa . '">' . $record->nama . '</option>';
 								}
-								?>
-							</select>
-						</div>
+								echo '<option value="' . $record->nama . '" ' . $selected . ' data-budget="' . $record->budget . '" data-approval="' . $record->approval . '" data-coa="' . $record->coa . '">' . $record->nama . '</option>';
+							}
+							?>
+						</select>
 					</div>
 					<label class="col-sm-2 col-md-2 control-label">Keterangan <b class="text-red">*</b></label>
 					<div class="col-sm-4 col-md-4">
@@ -124,9 +122,9 @@ $budgets = 0;
 
 
 
-				<?php
-				if (!isset($stsview) || (isset($stsview) && $stsview == '')) {
-				?>
+				<!-- <?php
+						if (!isset($stsview) || (isset($stsview) && $stsview == '')) {
+						?>
 
 					<h4>List Penggantian/Pengembalian Kasbon</h4>
 					<table class="table table-bordered">
@@ -188,8 +186,8 @@ $budgets = 0;
 					</table>
 
 				<?php
-				}
-				?>
+						}
+				?> -->
 
 				<div>
 					<h4>Transfer ke</h4>
