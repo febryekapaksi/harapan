@@ -87,6 +87,29 @@ class Expense_model extends BF_Model
 		}
 	}
 
+	// Get COA Kasbon
+	public function GetCoaKasbon()
+	{
+		$row = $this->db
+			->select('coa')
+			->from('coa_expense')
+			->where('jenis_pengeluaran', 'Kasbon')
+			->get()
+			->row();
+
+		if (!$row || !$row->coa) {
+			return [];
+		}
+
+		$coa_list = array_filter(explode(';', $row->coa));
+
+		$this->db->select('a.no_perkiraan, a.nama');
+		$this->db->from(DBACC . '.coa_master a');
+		$this->db->where_in('a.no_perkiraan', $coa_list);
+
+		return $this->db->get()->result();
+	}
+
 	// list data transport request
 	public function GetListDataTransportRequest($id_user = '', $where = '')
 	{

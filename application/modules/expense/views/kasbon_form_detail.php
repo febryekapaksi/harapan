@@ -104,6 +104,19 @@ $metode_pembayaran = (isset($data)) ? $data->metode_pembayaran : 1;
                             }
                             ?>
                         </div>
+
+                        <label class="col-sm-2 control-label">COA</label>
+                        <div class="col-sm-4">
+                            <select name="coa" class="form-control chosen_select" id="coa" required>
+                                <option value="" disabled selected>- Pilih COA -</option>
+                                <?php foreach ($list_coa_kasbon as $c): ?>
+                                    <option value="<?= $c->no_perkiraan ?>"
+                                        <?= (isset($data->coa) && $data->coa == $c->no_perkiraan) ? 'selected' : '' ?>>
+                                        <?= $c->no_perkiraan . ' - ' . $c->nama; ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
                     </div>
 
                     <div class="transfer_ke_cont">
