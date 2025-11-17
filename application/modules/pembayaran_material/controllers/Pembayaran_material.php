@@ -215,11 +215,9 @@ class Pembayaran_material extends Admin_Controller
 		// $get_bank = $this->db->get_where(DBACC . '.coa_master', ['kode_bank <>' => '', 'kode_bank <>' => null])->result();
 		$get_mata_uang = $this->db->get_where('mata_uang', ['deleted_by' => 0, 'activation' => 'active'])->result();
 
-		$this->db->select('a.id, a.rekening, a.nama, a.coa_bank, b.nama_bank, c.nama as nm_coa');
-		$this->db->from('ms_bank a');
-		$this->db->join('list_bank b', 'b.id = a.bank', 'left');
-		$this->db->join(DBACC . '.coa_master c', 'c.no_perkiraan = a.coa_bank', 'left');
-		$this->db->where('a.deleted', '0');
+		$this->db->from(DBACC . '.coa_master a')
+			->where('a.no_perkiraan LIKE', '%1101-02%')
+			->where('a.level', 5);
 		$get_bank = $this->db->get()->result();
 
 		$data = [
@@ -757,7 +755,11 @@ class Pembayaran_material extends Admin_Controller
 			->get()
 			->result();
 		$get_supplier = $this->db->get('new_supplier')->result();
-		$get_bank = $this->db->get_where(DBACC . '.coa_master', ['kode_bank <>' => '', 'kode_bank <>' => null])->result();
+		$this->db->from(DBACC . '.coa_master a')
+			->where('a.no_perkiraan LIKE', '%1101-02%')
+			->where('a.level', 5);
+		$get_bank = $this->db->get()->result();
+
 		$get_mata_uang = $this->db->get_where('mata_uang', ['deleted_by' => 0, 'activation' => 'active'])->result();
 
 		$get_payment_header = $this->db
@@ -1357,73 +1359,68 @@ class Pembayaran_material extends Admin_Controller
 			}
 		}
 
-		$arr_jurnal = [];
-		$no_jurnal = 1;
-		if (isset($post['jurnal_ls'])) {
-			// print_r($post['jurnal_ls']);
-			// exit;
-			foreach ($post['jurnal_ls'] as $item_jurnal) {
-				// if (isset($item_jurnal['tanggal_jurnal'])) {
-				$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
+		// $arr_jurnal = [];
+		// $no_jurnal = 1;
+		// if (isset($post['jurnal_ls'])) {
+		// 	foreach ($post['jurnal_ls'] as $item_jurnal) {
+		// 		$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
 
-				$arr_jurnal[] = [
-					'no_jurnal' => $id_jurnal,
-					'tgl_jurnal' => date('Y-m-d'),
-					'coa' => $item_jurnal['coa'],
-					'id_company' => $item_jurnal['id_company'],
-					'nm_company' => $item_jurnal['nm_company'],
-					'nm_coa' => $item_jurnal['nm_coa'],
-					'debit' => $item_jurnal['debit'],
-					'kredit' => $item_jurnal['kredit'],
-					'keterangan' => $item_jurnal['keterangan'],
-					'no_transaksi' => $id_payment_paid,
-					'jenis_transaksi' => 'Payment',
-					'id_divisi' => $item_jurnal['id_divisi'],
-					'nm_divisi' => $item_jurnal['nm_divisi'],
-					'created_by' => $this->auth->user_id(),
-					'created_date' => date('Y-m-d')
-				];
+		// 		$arr_jurnal[] = [
+		// 			'no_jurnal' => $id_jurnal,
+		// 			'tgl_jurnal' => date('Y-m-d'),
+		// 			'coa' => $item_jurnal['coa'],
+		// 			'nm_coa' => $item_jurnal['nm_coa'],
+		// 			'debit' => $item_jurnal['debit'],
+		// 			'kredit' => $item_jurnal['kredit'],
+		// 			'keterangan' => $item_jurnal['keterangan'],
+		// 			'no_transaksi' => $id_payment_paid,
+		// 			'jenis_transaksi' => 'Payment',
+		// 			'id_divisi' => $item_jurnal['id_divisi'],
+		// 			'nm_divisi' => $item_jurnal['nm_divisi'],
+		// 			'created_by' => $this->auth->user_id(),
+		// 			'created_date' => date('Y-m-d')
+		// 		];
 
-				$no_jurnal++;
-				// }
-			}
-		}
+		// 		$no_jurnal++;
+		// 		// }
+		// 	}
+		// }
 
-		if (isset($post['jurnal_refill_pettycash'])) {
-			foreach ($post['jurnal_refill_pettycash'] as $item_jurnal) {
-				// if (isset($item_jurnal['tanggal_jurnal'])) {
-				$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
+		// if (isset($post['jurnal_refill_pettycash'])) {
+		// 	foreach ($post['jurnal_refill_pettycash'] as $item_jurnal) {
+		// 		// if (isset($item_jurnal['tanggal_jurnal'])) {
+		// 		$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
 
-				$arr_jurnal[] = [
-					'no_jurnal' => $id_jurnal,
-					'tgl_jurnal' => date('Y-m-d'),
-					'coa' => $item_jurnal['no_coa'],
-					'id_company' => $item_jurnal['id_company'],
-					'nm_company' => $item_jurnal['nm_company'],
-					'nm_coa' => $item_jurnal['nm_coa'],
-					'debit' => $item_jurnal['debit'],
-					'kredit' => $item_jurnal['kredit'],
-					'keterangan' => $item_jurnal['keterangan'],
-					'no_transaksi' => $id_payment_paid,
-					'jenis_transaksi' => 'Refill Pettycash',
-					'id_divisi' => $item_jurnal['id_divisi'],
-					'nm_divisi' => $item_jurnal['nm_divisi'],
-					'created_by' => $this->auth->user_id(),
-					'created_date' => date('Y-m-d')
-				];
+		// 		$arr_jurnal[] = [
+		// 			'no_jurnal' => $id_jurnal,
+		// 			'tgl_jurnal' => date('Y-m-d'),
+		// 			'coa' => $item_jurnal['no_coa'],
+		// 			'id_company' => $item_jurnal['id_company'],
+		// 			'nm_company' => $item_jurnal['nm_company'],
+		// 			'nm_coa' => $item_jurnal['nm_coa'],
+		// 			'debit' => $item_jurnal['debit'],
+		// 			'kredit' => $item_jurnal['kredit'],
+		// 			'keterangan' => $item_jurnal['keterangan'],
+		// 			'no_transaksi' => $id_payment_paid,
+		// 			'jenis_transaksi' => 'Refill Pettycash',
+		// 			'id_divisi' => $item_jurnal['id_divisi'],
+		// 			'nm_divisi' => $item_jurnal['nm_divisi'],
+		// 			'created_by' => $this->auth->user_id(),
+		// 			'created_date' => date('Y-m-d')
+		// 		];
 
-				$no_jurnal++;
-				// }
-			}
-		}
+		// 		$no_jurnal++;
+		// 		// }
+		// 	}
+		// }
 
-		if (!empty($arr_jurnal)) {
-			$insert_jurnal = $this->db->insert_batch('tr_jurnal', $arr_jurnal);
-			if (!$insert_jurnal) {
-				print_r($this->db->error($insert_jurnal));
-				exit;
-			}
-		}
+		// if (!empty($arr_jurnal)) {
+		// 	$insert_jurnal = $this->db->insert_batch('tr_jurnal', $arr_jurnal);
+		// 	if (!$insert_jurnal) {
+		// 		print_r($this->db->error($insert_jurnal));
+		// 		exit;
+		// 	}
+		// }
 
 		if ($this->db->trans_status() === false) {
 			$this->db->trans_rollback();

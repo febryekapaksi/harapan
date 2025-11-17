@@ -108,7 +108,7 @@ foreach ($results['result_payment'] as $item) {
 							<option value="">- Bank -</option>
 							<?php
 							foreach ($results['list_bank'] as $item_bank) {
-								echo '<option value="' . $item_bank->id . '">(' . $item_bank->rekening . ' a/n ' . $item_bank->nama . ') - ' . $item_bank->nama_bank . '</option>';
+								echo '<option value="' . $item_bank->no_perkiraan . '">(' . $item_bank->no_perkiraan . ') - ' . $item_bank->nama . '</option>';
 							}
 							?>
 						</select>
@@ -370,35 +370,70 @@ foreach ($results['result_payment'] as $item) {
 			<br><br>
 
 			<div class="col-md-12">
-				<h3>Jurnal</h3>
-				<table class="table table-striped">
-					<thead class="bg-primary">
-						<tr>
-							<th class="text-center">Tanggal Jurnal</th>
-							<th class="text-center">Nama Company</th>
-							<th class="text-center">Divisi</th>
-							<th class="text-center">COA</th>
-							<th class="text-center">Nama Account</th>
-							<th class="text-center">Keterangan</th>
-							<th class="text-center">Debit</th>
-							<th class="text-center">Kredit</th>
-						</tr>
-					</thead>
-					<tbody class="tbody_jurnal"></tbody>
-					<tfoot class="bg-primary">
-						<tr>
-							<th colspan="6" class="text-center">Balancing</th>
-							<th class="text-right th_ttl_debit_jurnal">0</th>
-							<th class="text-right th_ttl_kredit_jurnal">0</th>
-						</tr>
-					</tfoot>
-				</table>
+				<h4>Informasi Jurnal</h4>
+				<div class="table-responsive">
+					<!-- <table class="table table-striped">
+						<thead class="bg-primary">
+							<tr>
+								<th class="text-center">Tanggal Jurnal</th>
+								<th class="text-center">Nama Company</th>
+								<th class="text-center">Divisi</th>
+								<th class="text-center">COA</th>
+								<th class="text-center">Nama Account</th>
+								<th class="text-center">Keterangan</th>
+								<th class="text-center">Debit</th>
+								<th class="text-center">Kredit</th>
+							</tr>
+						</thead>
+						<tbody class="tbody_jurnal"></tbody>
+						<tfoot class="bg-primary">
+							<tr>
+								<th colspan="6" class="text-center">Balancing</th>
+								<th class="text-right th_ttl_debit_jurnal">0</th>
+								<th class="text-right th_ttl_kredit_jurnal">0</th>
+							</tr>
+						</tfoot>
+					</table> -->
+
+					<table class="table table-bordered table-hover">
+						<thead bgcolor='#9acfea'>
+							<tr>
+								<th>
+									<center>Tanggal</center>
+								</th>
+								<th>
+									<center>Tipe </center>
+								</th>
+								<th>
+									<center>No. COA</center>
+								</th>
+								<th>
+									<center>Nama. COA</center>
+								</th>
+								<th>
+									<center>Debit</center>
+								</th>
+								<th>
+									<center>Kredit</center>
+								</th>
+							</tr>
+						</thead>
+						<tbody class="tbody_jurnal"></tbody>
+						<tfoot bgcolor='#9acfea'>
+							<tr>
+								<th colspan="4" class="text-right">TOTAL</th>
+								<th class="text-right th_ttl_debit_jurnal">0</th>
+								<th class="text-right th_ttl_kredit_jurnal">0</th>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
 			</div>
 
-			<br><br>
+			<br>
 
 			<div class="col-md-12 <?= $hide_table_jurnal_petty_cash ?>">
-				<h3>Jurnal Refill Pettycash</h3>
+				<h4>Informasi Jurnal Refill Pettycash</h4>
 				<table class="table table-striped">
 					<thead class="bg-primary">
 						<tr>
@@ -526,7 +561,7 @@ foreach ($results['result_payment'] as $item) {
 	</div> -->
 		<div class="box-footer">
 			<div class="form-group">
-				<div class="col-sm-offset-2 col-sm-10">
+				<div class="text-center">
 					<button type="submit" name="simpan-com" class="btn btn-success btn-sm stsview" id="simpan-com"><i class="fa fa-save">&nbsp;</i>Submit</button>
 					<a href="<?= base_url() ?>pembayaran_material/payment_list" class="btn btn-warning btn-sm"><i class="fa fa-reply">&nbsp;</i>Kembali</a>
 				</div>
