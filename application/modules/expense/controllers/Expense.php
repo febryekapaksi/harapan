@@ -1095,7 +1095,6 @@ class Expense extends Admin_Controller
 	public function save()
 	{
 		$post = $this->input->post();
-
 		$id             		= $this->input->post("id");
 		$tgl_doc  				= $this->input->post("tgl_doc");
 		$no_doc		    		= $this->input->post("no_doc");
@@ -2225,13 +2224,30 @@ class Expense extends Admin_Controller
 	{
 		$data = $this->Expense_model->GetDataHeader($id);
 		$data_detail	= $this->Expense_model->GetDataDetail($data->no_doc);
-		$data_budget = $this->All_model->GetComboBudget('', 'EXPENSE', date('Y'));
+		$data_budget = $this->All_model->GetPettyCashComboCoa($data->pettycash);
 		$data_pc = $this->All_model->GetOneTable('ms_petty_cash', '', 'nama');
+		$data_kasbon_pr_pet = $this->db->get_where('tr_kasbon', ['metode_pembayaran' => 2, 'id_expense_pett_pr_non_po' => null])->result();
+
+		$data_penggantian_kasbon = $this->db->query("
+			SELECT
+				a.*
+			FROM
+				tr_expense a
+			WHERE
+				a.status = '1' AND
+				a.jumlah <> 0 AND
+				(a.tipe_penggantian = 1 OR a.tipe_pengembalian = 1) AND
+				a.pettycash IS NULL AND
+				a.expense_id_kembalian IS NULL
+			ORDER BY a.id ASC
+		")->result();
 		$this->template->set('data_pc', $data_pc);
 		$this->template->set('data_budget', $data_budget);
 		$this->template->set('data_detail', $data_detail);
 		$this->template->set('status', $this->status);
 		$this->template->set('data', $data);
+		$this->template->set('data_kasbon_pr_pet', $data_kasbon_pr_pet);
+		$this->template->set('data_penggantian_kasbon', $data_penggantian_kasbon);
 		$this->template->set('stsview', 'view');
 		$this->template->page_icon('fa fa-list');
 		$this->template->render('form_pc');
