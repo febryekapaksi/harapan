@@ -92,13 +92,13 @@ $budgets = 0;
 							foreach ($data_pc as $record) {
 								$selected = '';
 								if (isset($data->pettycash)) {
-									if ($record->nama == $data->pettycash) {
+									if ($record->id == $data->pettycash) {
 										$selected = ' selected';
 										$budgets = $record->budget;
 										$datacombocoa = $record->coa;
 									}
 								}
-								echo '<option value="' . $record->nama . '" ' . $selected . ' data-budget="' . $record->budget . '" data-approval="' . $record->approval . '" data-coa="' . $record->coa . '">' . $record->nama . '</option>';
+								echo '<option value="' . $record->id . '" ' . $selected . ' data-budget="' . $record->budget . '" data-approval="' . $record->approval . '" data-coa="' . $record->coa . '">' . $record->nama . '</option>';
 							}
 							?>
 						</select>

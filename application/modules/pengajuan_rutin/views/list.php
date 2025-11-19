@@ -55,16 +55,16 @@ $ENABLE_DELETE  = has_permission('Pengajuan_Pembayaran_Rutin.Delete');
 								<td class="text-right"><?= number_format($record->nilai_total, 2) ?></td>
 								<td><?= $record->tanggal_doc ?></td>
 								<td class="text-center">
-									<?php 
-										if($record->sts_reject == '1' && $record->status == '0'){
-											echo '<div class="badge bg-red">Reject</div>';
-										}else{
-											if($record->status == '1'){
-												echo '<div class="badge bg-green">Approved</div>';
-											}else{
-												echo '<div class="badge bg-yellow">Waiting Approval</div>';
-											}
+									<?php
+									if ($record->sts_reject == '1' && $record->status == '0') {
+										echo '<div class="badge bg-red">Reject</div>';
+									} else {
+										if ($record->status == '1') {
+											echo '<div class="badge bg-green">Approved</div>';
+										} else {
+											echo '<div class="badge bg-yellow">Waiting Approval</div>';
 										}
+									}
 									?>
 								</td>
 								<td><?= ($record->status < 1 && $record->sts_reject == 1) ? $record->reject_ket : null ?></td>
@@ -89,7 +89,7 @@ $ENABLE_DELETE  = has_permission('Pengajuan_Pembayaran_Rutin.Delete');
 			</table>
 		</div>
 
-		<div class="table-responsive col-md-12">
+		<div class="table-responsive col-md-12" hidden>
 			<table id="mytabledata2" class="table table-bordered table-striped">
 				<thead>
 					<tr>
@@ -122,16 +122,16 @@ $ENABLE_DELETE  = has_permission('Pengajuan_Pembayaran_Rutin.Delete');
 								<td><?= $record->tanggal ?></td>
 								<td class="text-right"><?= number_format($record->nilai) ?></td>
 								<td class="text-center">
-									<?php 
-										if($record->sts_reject == '1' && $record->status == '0'){
-											echo '<div class="badge bg-red">Reject</div>';
-										}else{
-											if($record->status == '1'){
-												echo '<div class="badge bg-green">Approved</div>';
-											}else{
-												echo '<div class="badge bg-yellow">Waiting Approval</div>';
-											}
+									<?php
+									if ($record->sts_reject == '1' && $record->status == '0') {
+										echo '<div class="badge bg-red">Reject</div>';
+									} else {
+										if ($record->status == '1') {
+											echo '<div class="badge bg-green">Approved</div>';
+										} else {
+											echo '<div class="badge bg-yellow">Waiting Approval</div>';
 										}
+									}
 									?>
 								</td>
 								<td><?= ($record->status < 1 && $record->sts_reject == 1) ? $record->reject_ket : null ?></td>
