@@ -531,7 +531,7 @@ class All_model extends BF_Model
 
 	function GetPettyCashComboCoa($tipe)
 	{
-		$datacoa = $this->db->query("select coa from ms_petty_cash where nama = '" . $tipe . "'")->row();
+		$datacoa = $this->db->query("select coa from ms_petty_cash where id = '" . $tipe . "'")->row();
 		$coabudget = str_ireplace(";", "','", $datacoa->coa);
 		$combos = array();
 		$results = $this->db->query("select * from " . DBACC . ".coa_master where no_perkiraan in ('" . $coabudget . "')")->result();

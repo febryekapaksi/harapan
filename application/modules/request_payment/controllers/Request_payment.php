@@ -49,6 +49,7 @@ class Request_payment extends Admin_Controller
 	public function save_request()
 	{
 		$status	= $this->input->post("status");
+
 		$this->db->trans_begin();
 		if (!empty($status)) {
 			foreach ($status as $val) {
@@ -2657,7 +2658,7 @@ class Request_payment extends Admin_Controller
 		} else {
 			$this->db->trans_commit();
 
-			$this->Request_payment_model->copy_to_payment();
+			// $this->Request_payment_model->copy_to_payment();
 
 			$valid = 1;
 			$msg = 'Data has been processed !';
