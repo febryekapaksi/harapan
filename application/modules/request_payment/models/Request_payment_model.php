@@ -798,6 +798,7 @@ class Request_payment_model extends BF_Model
             ];
 
             if ($item['tipe'] == 'expense') {
+                $get_expense = $this->db->get_where('tr_expense', ['no_doc' => $item['no_doc']])->row();
                 $get_expense_detail = $this->db->get_where('tr_expense_detail', ['no_doc' => $item['no_doc']])->result_array();
 
                 foreach ($get_expense_detail as $item_expense) {
@@ -839,13 +840,6 @@ class Request_payment_model extends BF_Model
                         'modified_on'     => date("Y-m-d h:i:s"),
                     ];
 
-                    $updateExpense[] = [
-                        'id'             => $item_expense['id'],
-                        'status'         => '3',
-                        'modified_by'     => $this->auth->user_name(),
-                        'modified_on'     => date("Y-m-d h:i:s"),
-                    ];
-
                     // if ($item_expense['id_kasbon'] != null) {
                     //     $Harga[]            = $item_expense['kurang_bayar'];
                     // } else {
@@ -858,6 +852,13 @@ class Request_payment_model extends BF_Model
 
                     $no2++;
                 }
+
+                $updateExpense[] = [
+                    'id'             => $get_expense->id,
+                    'status'         => '3',
+                    'modified_by'     => $this->auth->user_name(),
+                    'modified_on'     => date("Y-m-d h:i:s"),
+                ];
             }
 
             if ($item['tipe'] == 'kasbon') {
@@ -1031,7 +1032,7 @@ class Request_payment_model extends BF_Model
             $this->db->insert_batch('payment_approve_details', $arr_detail);
         }
 
-        if (!empty($updateDetail)) {
+        if (!empty($updateExpense)) {
             $this->db->update_batch('tr_expense', $updateExpense, 'id');
         }
 
