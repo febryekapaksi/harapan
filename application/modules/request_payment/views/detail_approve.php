@@ -20,7 +20,7 @@ if ($type == 'expense') {
 	$bank_id = $header->bank_id;
 	$accnumber = $header->accnumber;
 	$accname = $header->accname;
-} elseif ($type == 'transportasi') {
+} elseif ($type == 'transport') {
 	$keterangan = 'Transportasi';
 	$no_doc = $header->no_doc;
 	$tgl_doc = $header->tgl_doc;
@@ -321,7 +321,7 @@ if ($type == 'expense') {
 								<?php
 								}
 								?>
-							<?php elseif ($type == 'transportasi') :
+							<?php elseif ($type == 'transport') :
 								$gTotal += ($dtl->jumlah_kasbon + $data_req_payment['admin_bank'] - $data_req_payment['total_pph']); ?>
 								<tr>
 									<td><?= $n; ?></td>

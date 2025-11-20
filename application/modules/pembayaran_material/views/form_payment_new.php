@@ -432,7 +432,7 @@ foreach ($results['result_payment'] as $item) {
 
 			<br>
 
-			<div class="col-md-12 <?= $hide_table_jurnal_petty_cash ?>">
+			<!-- <div class="col-md-12 <?= $hide_table_jurnal_petty_cash ?> hidden">
 				<h4>Informasi Jurnal Refill Pettycash</h4>
 				<table class="table table-striped">
 					<thead class="bg-primary">
@@ -518,7 +518,7 @@ foreach ($results['result_payment'] as $item) {
 						</tr>
 					</tfoot>
 				</table>
-			</div>
+			</div> -->
 		</div>
 		<!-- <div class="box-footer">
 		<input type="hidden" name="total" id="total" value="<?= round($total); ?>" />
@@ -576,7 +576,7 @@ foreach ($results['result_payment'] as $item) {
 
 <script>
 	set_jurnal();
-	set_jurnal_refill();
+	// set_jurnal_refill();
 
 	$(document).ready(function() {
 		// $('.supplier').chosen();
@@ -675,26 +675,26 @@ foreach ($results['result_payment'] as $item) {
 		})
 	}
 
-	function set_jurnal_refill() {
-		var id_payment = $('.id_payment').val();
-		var bank = $('.bank').val();
+	// function set_jurnal_refill() {
+	// 	var id_payment = $('.id_payment').val();
+	// 	var bank = $('.bank').val();
 
-		$.ajax({
-			type: 'post',
-			url: siteurl + active_controller + 'set_jurnal_refill',
-			data: {
-				'id_payment': id_payment,
-				'bank': bank
-			},
-			cache: false,
-			dataType: 'json',
-			success: function(result) {
-				$('.tbody_jurnal_refill_pettycash').html(result.hasil);
-				$('.ttl_debit_refill').html(number_format(result.ttl_debit));
-				$('.ttl_kredit_refill').html(number_format(result.ttl_kredit));
-			}
-		});
-	}
+	// 	$.ajax({
+	// 		type: 'post',
+	// 		url: siteurl + active_controller + 'set_jurnal_refill',
+	// 		data: {
+	// 			'id_payment': id_payment,
+	// 			'bank': bank
+	// 		},
+	// 		cache: false,
+	// 		dataType: 'json',
+	// 		success: function(result) {
+	// 			$('.tbody_jurnal_refill_pettycash').html(result.hasil);
+	// 			$('.ttl_debit_refill').html(number_format(result.ttl_debit));
+	// 			$('.ttl_kredit_refill').html(number_format(result.ttl_kredit));
+	// 		}
+	// 	});
+	// }
 
 	$(document).on('change', '.change_nilai_pph', function() {
 		var id = $(this).data('id');

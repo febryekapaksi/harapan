@@ -692,7 +692,7 @@ class Expense extends Admin_Controller
 		$this->template->set('stsview', '');
 		$this->template->set('list_detail_pr_kasbon', $get_pr_detail_kasbon);
 		$this->template->set('list_coa_kasbon', $list_coa_kasbon);
-		$this->template->title('Kasbon Form');
+		$this->template->title('Edit Kasbon');
 		$this->template->page_icon('fa fa-list');
 		$this->template->render('kasbon_form');
 	}

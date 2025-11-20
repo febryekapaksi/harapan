@@ -104,7 +104,7 @@ $metode_pembayaran = (isset($data)) ? $data->metode_pembayaran : 1;
 						</div>
 						<label class="col-sm-2 control-label">COA</label>
 						<div class="col-sm-4">
-							<select name="coa" class="form-control chosen_select" id="coa" required>
+							<select name="coa" class="form-control" id=" coa" required>
 								<option value="" disabled selected>- Pilih COA -</option>
 								<?php foreach ($list_coa_kasbon as $c): ?>
 									<option value="<?= $c->no_perkiraan ?>"
