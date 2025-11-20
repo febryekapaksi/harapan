@@ -12,7 +12,7 @@ $count_pembayaran_po = 0;
 $count_direct_payment = 0;
 
 foreach ($data as $item) :
-    if ($item->tipe == 'transportasi') {
+    if ($item->tipe == 'transport') {
         $count_transport += 1;
     }
     if ($item->tipe == 'kasbon') {
@@ -177,7 +177,7 @@ endforeach;
                         <tbody>
                             <?php
                             foreach ($data as $item_transportasi) :
-                                if ($item_transportasi->tipe == 'transportasi') {
+                                if ($item_transportasi->tipe == 'transport') {
                                     echo '<tr>';
                                     echo '<td>' . $item_transportasi->no_doc . '</td>';
                                     echo '<td>' . $item_transportasi->nama . '</td>';

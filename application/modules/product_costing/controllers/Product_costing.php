@@ -277,13 +277,33 @@ class Product_costing extends Admin_Controller
         $tokoList = $this->db->order_by('urutan', 'asc')->get('master_persentase')->result_array();
 
         // Ambil semua kalkulasi dari DB
-        $rows = $this->db->get('master_kalkulasi_price_list')->result_array();
+        $rows = $this->db
+            ->select('
+                        mkp.*,          
+                        ni4.code_lv4
+                    ')
+            ->from('master_kalkulasi_price_list mkp')
+            ->join('new_inventory_4 ni4', 'ni4.code_lv4 = mkp.id_product', 'left')
+            ->where('ni4.deleted_date', null)
+            ->where('ni4.deleted_by', null)
+            ->get()
+            ->result_array();
 
         // Ambil data dropship dari tabel product_costing
         $costing = $this->db
-            ->select('id, product_name, dropship_price, dropship_tempo')
-            ->where('status', 'A')
-            ->get('product_costing')
+            ->select('
+                    pc.id,
+                    pc.product_name,
+                    pc.dropship_price,
+                    pc.dropship_tempo,
+                    ni4.code_lv4
+                    ')
+            ->from('product_costing pc')
+            ->join('new_inventory_4 ni4', 'ni4.code_lv4 = pc.code_lv4', 'left')
+            ->where('pc.status', 'A')
+            ->where('ni4.deleted_date', null)
+            ->where('ni4.deleted_by', null)
+            ->get()
             ->result_array();
 
         // Buat mapping dropship berdasarkan product_name

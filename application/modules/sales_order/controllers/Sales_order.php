@@ -39,12 +39,30 @@ class Sales_order extends Admin_Controller
     }
     $penawaran_detail = $this->db->get_where('penawaran_detail', ['id_penawaran' => $id_penawaran])->result_array();
 
+    $products = $this->db
+      ->select('
+                    pc.id,
+                    pc.product_name,
+                    pc.propose_price,
+                    pc.harga_beli,
+                    pc.dropship_price,
+                    pc.dropship_tempo,
+                    ni4.code_lv4
+                    ')
+      ->from('product_costing pc')
+      ->join('new_inventory_4 ni4', 'ni4.code_lv4 = pc.code_lv4', 'left')
+      ->where('pc.status', 'A')
+      ->where('ni4.deleted_date', null)
+      ->where('ni4.deleted_by', null)
+      ->get()
+      ->result_array();
+
     // Kirim data ke view
     $data = [
       'penawaran'         => $penawaran,
       'penawaran_detail'  => $penawaran_detail,
       'customers'         => $this->db->get('master_customers')->result_array(),
-      'products'          => $this->db->get('product_costing')->result_array(),
+      'products'          => $products,
       'payment_terms'     => $this->db->where('group_by', 'top invoice')->where('sts', 'Y')->get('list_help')->result_array(),
       'mode'              => 'add',
     ];
@@ -95,6 +113,25 @@ class Sales_order extends Admin_Controller
     $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $so['id_penawaran']])->row_array();
     // $penawaran_detail = $this->db->get_where('penawaran_detail', ['id_penawaran' => $so['id_penawaran']])->result_array();
 
+    $products = $this->db
+      ->select('
+                    pc.id,
+                    pc.product_name,
+                    pc.propose_price,
+                    pc.harga_beli,
+                    pc.dropship_price,
+                    pc.dropship_tempo,
+                    ni4.code_lv4
+                    ')
+      ->from('product_costing pc')
+      ->join('new_inventory_4 ni4', 'ni4.code_lv4 = pc.code_lv4', 'left')
+      ->where('pc.status', 'A')
+      ->where('ni4.deleted_date', null)
+      ->where('ni4.deleted_by', null)
+      ->get()
+      ->result_array();
+
+
     // Kirim data ke view
     $data = [
       'so'                => $so,
@@ -102,7 +139,7 @@ class Sales_order extends Admin_Controller
       'penawaran'         => $penawaran,
       // 'penawaran_detail'  => $penawaran_detail,
       'customers'         => $this->db->get('master_customers')->result_array(),
-      'products'          => $this->db->get('product_costing')->result_array(),
+      'products'          => $products,
       'payment_terms'     => $this->db->where('group_by', 'top invoice')->where('sts', 'Y')->get('list_help')->result_array(),
       'mode'              => 'edit',
     ];
