@@ -232,7 +232,7 @@ class Request_payment extends Admin_Controller
 		}
 
 		/* Transportasi */
-		if (isset($type) && $type == 'transportasi') {
+		if (isset($type) && $type == 'transport') {
 			$data 			= $this->db->get_where('tr_transport_req', ['id' => $id])->row();
 			$data_detail	= $this->db->get_where('tr_transport', ['no_req' => $data->no_doc])->result();
 		}
@@ -315,7 +315,7 @@ class Request_payment extends Admin_Controller
 		}
 
 		/* Transportasi */
-		if (isset($type) && $type == 'transportasi') {
+		if (isset($type) && $type == 'transport') {
 			$data 			= $this->db->get_where('tr_transport_req', ['id' => $id])->row();
 			$data_detail	= $this->db->get_where('tr_transport', ['no_req' => $data->no_doc])->result();
 		}
@@ -717,7 +717,7 @@ class Request_payment extends Admin_Controller
 				$Harga[] 		= $nilai;
 			}
 
-			if ($Data['tipe'] == 'transportasi') {
+			if ($Data['tipe'] == 'transport') {
 				$dtl 				= $this->db->get_where('tr_transport', ['id' => $detail['id']])->row();
 				$ArrDetail[] 		= [
 					'id' 			=> $id_detail,
@@ -903,7 +903,7 @@ class Request_payment extends Admin_Controller
 				}
 			}
 
-			if ($Data['tipe'] == 'transportasi') {
+			if ($Data['tipe'] == 'transport') {
 				$this->db->insert_batch('payment_approve_details', $ArrDetail);
 				$this->db->update_batch('tr_transport', $updateDetail, 'id');
 
@@ -1021,7 +1021,7 @@ class Request_payment extends Admin_Controller
 						'app_checker' => null
 					]);
 
-					if ($post['tipe'] == "transportasi") {
+					if ($post['tipe'] == "transport") {
 						$this->db->update('tr_transport_req', ['sts_reject' => 0, 'sts_reject_manage' => 0], ['no_doc' => $post['no_doc']]);
 						$this->db->update('tr_transport', ['req_payment' => 1], ['id' => $item['id']]);
 					}
@@ -1117,7 +1117,7 @@ class Request_payment extends Admin_Controller
 
 					$this->All_model->dataUpdate('payment_approve', $data, array('id' => $val));
 
-					if ($tipe[$keys] == 'transportasi') {
+					if ($tipe[$keys] == 'transport') {
 						$coa = '';
 						$rec = $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' and menu='" . $tipe[$keys] . "'")->row();
 						if (!empty($rec)) {

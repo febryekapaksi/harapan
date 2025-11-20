@@ -36,7 +36,24 @@ class Penawaran_dropship extends Admin_Controller
             ->get('master_customers')
             ->result_array();
 
-        $data['products'] = $this->db->get_where('product_costing', ['status' => 'A'])->result_array();
+        $data['products'] = $this->db
+            ->select('
+                    pc.id,
+                    pc.product_name,
+                    pc.propose_price,
+                    pc.harga_beli,
+                    pc.dropship_price,
+                    pc.dropship_tempo,
+                    ni4.code_lv4
+                    ')
+            ->from('product_costing pc')
+            ->join('new_inventory_4 ni4', 'ni4.code_lv4 = pc.code_lv4', 'left')
+            ->where('pc.status', 'A')
+            ->where('ni4.deleted_date', null)
+            ->where('ni4.deleted_by', null)
+            ->get()
+            ->result_array();
+
         $payment_terms = $this->db
             ->where('group_by', 'top invoice')
             ->where('sts', 'Y')
@@ -63,7 +80,24 @@ class Penawaran_dropship extends Admin_Controller
 
         // Data customer dan produk (jika diperlukan untuk select)
         $data['customers'] = $this->db->get('master_customers')->result_array();
-        $data['products'] = $this->db->get('product_costing')->result_array();
+        $data['products'] = $this->db
+            ->select('
+                    pc.id,
+                    pc.product_name,
+                    pc.propose_price,
+                    pc.harga_beli,
+                    pc.dropship_price,
+                    pc.dropship_tempo,
+                    ni4.code_lv4
+                    ')
+            ->from('product_costing pc')
+            ->join('new_inventory_4 ni4', 'ni4.code_lv4 = pc.code_lv4', 'left')
+            ->where('pc.status', 'A')
+            ->where('ni4.deleted_date', null)
+            ->where('ni4.deleted_by', null)
+            ->get()
+            ->result_array();
+
         $data['payment_terms'] = $this->db->where('group_by', 'top invoice')->where('sts', 'Y')->get('list_help')->result_array();
 
         // Kirim data ke view
