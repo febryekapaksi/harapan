@@ -313,11 +313,20 @@ class Penerimaan_cash_model extends BF_Model
 			2 => 'a.nm_customer',
 		];
 
+		$user_id = $this->auth->user_id();
+
+		$applyFilterByUser = function () use ($user_id) {
+			if ($user_id != 7) {
+				$this->db->where('a.created_by', $user_id);
+			}
+		};
+
 		// === 1. Total Data
 		$this->db->select('a.kd_pembayaran');
 		$this->db->from('tr_invoice_payment a');
 		$this->db->where('a.tipe_bayar', 'CASH');
 		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		$applyFilterByUser();
 		$totalData = $this->db->count_all_results();
 
 		// === 2. Total Filtered
@@ -332,6 +341,7 @@ class Penerimaan_cash_model extends BF_Model
 			$this->db->or_like('c.invoiced', $like);
 			$this->db->group_end();
 		}
+		$applyFilterByUser();
 		$totalFiltered = $this->db->count_all_results();
 
 		// === 3. Ambil Data Paginasi
@@ -344,6 +354,7 @@ class Penerimaan_cash_model extends BF_Model
 		$this->db->from('tr_invoice_payment a');
 		$this->db->where('a.tipe_bayar', 'CASH');
 		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		$applyFilterByUser();
 		if ($like) {
 			$this->db->group_start();
 			$this->db->like('a.kd_pembayaran', $like);

@@ -104,7 +104,7 @@ foreach ($results['result_payment'] as $item) {
 					<td width="15%" style="">Pilih Bank</td>
 					<td width="5%" class="text-center">:</td>
 					<td width="25%">
-						<select name="bank" id="" class="form-control form-control-sm bank" onchange="set_jurnal_refill('<?= $results['id_payment'] ?>')">
+						<select name="bank" id="" class="form-control form-control-sm bank">
 							<option value="">- Bank -</option>
 							<?php
 							foreach ($results['list_bank'] as $item_bank) {
@@ -576,7 +576,7 @@ foreach ($results['result_payment'] as $item) {
 
 <script>
 	set_jurnal();
-	// set_jurnal_refill();
+	set_jurnal_refill();
 
 	$(document).ready(function() {
 		// $('.supplier').chosen();
@@ -675,26 +675,26 @@ foreach ($results['result_payment'] as $item) {
 		})
 	}
 
-	// function set_jurnal_refill() {
-	// 	var id_payment = $('.id_payment').val();
-	// 	var bank = $('.bank').val();
+	function set_jurnal_refill() {
+		var id_payment = $('.id_payment').val();
+		var bank = $('.bank').val();
 
-	// 	$.ajax({
-	// 		type: 'post',
-	// 		url: siteurl + active_controller + 'set_jurnal_refill',
-	// 		data: {
-	// 			'id_payment': id_payment,
-	// 			'bank': bank
-	// 		},
-	// 		cache: false,
-	// 		dataType: 'json',
-	// 		success: function(result) {
-	// 			$('.tbody_jurnal_refill_pettycash').html(result.hasil);
-	// 			$('.ttl_debit_refill').html(number_format(result.ttl_debit));
-	// 			$('.ttl_kredit_refill').html(number_format(result.ttl_kredit));
-	// 		}
-	// 	});
-	// }
+		$.ajax({
+			type: 'post',
+			url: siteurl + active_controller + 'set_jurnal_refill',
+			data: {
+				'id_payment': id_payment,
+				'bank': bank
+			},
+			cache: false,
+			dataType: 'json',
+			success: function(result) {
+				$('.tbody_jurnal_refill_pettycash').html(result.hasil);
+				$('.ttl_debit_refill').html(number_format(result.ttl_debit));
+				$('.ttl_kredit_refill').html(number_format(result.ttl_kredit));
+			}
+		});
+	}
 
 	$(document).on('change', '.change_nilai_pph', function() {
 		var id = $(this).data('id');
