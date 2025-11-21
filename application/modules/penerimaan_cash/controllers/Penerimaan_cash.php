@@ -39,13 +39,18 @@ class Penerimaan_cash extends Admin_Controller
 
 	public function add()
 	{
+		$user_id = $this->auth->user_id();
 		// Ambil daftar customer dari invoice yang masih aktif
-		$this->db->select('c.id_customer, c.name_customer, c.npwp, c.telephone, c.fax, c.address_office, a.id_so');
+		$this->db->select('c.id_customer, c.name_customer, c.npwp, c.telephone, c.fax, c.address_office, a.id_so, c.id_karyawan as id_sales');
 		$this->db->from('tr_invoice_sales a');
 		// $this->db->join('sales_order b', 'b.no_so = a.id_so', 'left');
 		$this->db->join('master_customers c', 'c.id_customer = a.id_customer', 'left');
+		$this->db->join('users u', 'u.employee_id = c.id_karyawan', 'left');
 		$this->db->where('c.deleted_by IS NULL');
 		$this->db->where('a.sts', 1);
+		if ($user_id != 7) {
+			$this->db->where('u.id_user', $user_id);
+		}
 		$this->db->group_by('c.id_customer');
 		$customers = $this->db->get()->result();
 

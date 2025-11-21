@@ -30,10 +30,19 @@ class Penawaran extends Admin_Controller
 
     public function add()
     {
+        $user_id = $this->auth->user_id();
+        $this->db
+            ->from('master_customers c')
+            ->join('users u', 'u.employee_id = c.id_karyawan', 'left')
+            ->where('c.deleted', 0)
+            ->where('c.deleted_by', null);
+
+        if ($user_id != 7) {
+            $this->db->where('u.id_user', $user_id);
+        }
+
         $data['customers'] = $this->db
-            ->where('deleted', 0)
-            ->where('deleted_by', null)
-            ->get('master_customers')
+            ->get()
             ->result_array();
 
         $data['products'] = $this->db

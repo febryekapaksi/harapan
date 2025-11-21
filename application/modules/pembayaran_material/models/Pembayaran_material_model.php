@@ -1272,7 +1272,7 @@ class Pembayaran_material_model extends BF_Model
 		$ttl_kredit = 0;
 
 		foreach ($get_payment as $item_payment) {
-			if ($item_payment->tipe == 'transportasi' || $item_payment->tipe == 'transport') {
+			if ($item_payment->tipe == 'transport') {
 				$this->db->select('b.title_id');
 				$this->db->from('tr_transport_req a');
 				$this->db->join('users b', 'b.nm_lengkap = a.created_by');
