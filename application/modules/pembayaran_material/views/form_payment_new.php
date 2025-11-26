@@ -290,8 +290,10 @@ foreach ($results['result_payment'] as $item) {
 					' . number_format($item->jumlah, 2) . '
 					</td>';
 						echo '<td>';
-						echo '<select name="dt[' . $no . '][tipe_pph]" class="form-control form-control-sm chosen">';
-						echo '<option value="1">PPH 21</option>';
+						echo '<select name="dt[' . $no . '][tipe_pph]" class="form-control form-control-sm chosen tipe_pph_' . $item->id . '">';
+						echo '<option disabled selected>Pilih PPh</option>';
+						echo '<option value="1">PPh 23</option>';
+						echo '<option value="2">PPh 4(2)</option>';
 						echo '</select>';
 						echo '</td>';
 						echo '<td>';
