@@ -254,10 +254,12 @@ class Pembayaran_material_model extends BF_Model
 		$bank_charge = str_replace(',', '', $post['bank_charge']);
 		$bank = $post['bank'];
 		$payment_bank = $post['payment_bank'];
+		$bank_charge = $post['bank_charge'];
 
 		$hasil_jurnal = '';
 		$ttl_debit = 0;
 		$ttl_kredit = 0;
+		$ttl_nilai = 0;
 
 		$this->db->select('a.*');
 		$this->db->from('payment_approve a');
@@ -279,6 +281,7 @@ class Pembayaran_material_model extends BF_Model
 
 				$debit = $item_payment->jumlah;
 				$kredit = str_replace(',', '', $payment_bank);
+				$charge = str_replace(',', '', $bank_charge);
 
 				// baris 1
 				$no_jurnal = 1;
@@ -305,8 +308,115 @@ class Pembayaran_material_model extends BF_Model
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '<td class="text-right">';
+				$hasil_jurnal .= number_format($debit);
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-right">';
+				$hasil_jurnal .= '0';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="0">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '</tr>';
+				$no_jurnal++;
+
+				// baris 2
+				$hasil_jurnal .= '<tr>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= date('d/m/Y');
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= 'BUK';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tipe]" value="BUK">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= '7201-01-02';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="7201-01-02">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= 'Biaya Adm Bank & Buku Cek/Giro';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="Biaya Adm Bank & Buku Cek/Giro">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-right">';
 				$hasil_jurnal .= '0';
 				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="0">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-right">';
+				$hasil_jurnal .= number_format($charge);
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $charge . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '</tr>';
+				$no_jurnal++;
+
+				//baris 3
+				$hasil_jurnal .= '<tr>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= date('d/m/Y');
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= 'BUK';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tipe]" value="BUK">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= $coa_bank->no_coa;
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="' . $coa_bank->no_coa . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= $coa_bank->nm_coa;
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-right">';
+				$hasil_jurnal .= '0';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="0">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-right">';
+				$hasil_jurnal .= number_format($kredit);
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '</tr>';
+
+				//baris 3
+				$hasil_jurnal .= '<tr>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= date('d/m/Y');
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= 'BUK';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tipe]" value="BUK">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= $coa_bank->no_coa;
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="' . $coa_bank->no_coa . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-center">';
+				$hasil_jurnal .= $coa_bank->nm_coa;
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-right">';
+				$hasil_jurnal .= number_format($charge);
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $charge . '">';
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '<td class="text-right">';
@@ -316,144 +426,54 @@ class Pembayaran_material_model extends BF_Model
 
 				$hasil_jurnal .= '</tr>';
 
-				// baris 2
-				$no_jurnal_2 = $no_jurnal + 1;
-				$hasil_jurnal .= '<tr>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= date('d/m/Y');
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= 'BUK';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][tipe]" value="BUK">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= '7002-02';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][coa]" value="7002-02">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= 'Biaya Adm Bank & Buku Cek/Giro';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][nm_coa]" value="Biaya Adm Bank & Buku Cek/Giro">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-right">';
-				$hasil_jurnal .= '0';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][debit]" value="0">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-right">';
-				$hasil_jurnal .= '0';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][kredit]" value="0">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '</tr>';
-
-				//baris 3
-				$no_jurnal_3 = $no_jurnal_2 + 1;
-				$hasil_jurnal .= '<tr>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= date('d/m/Y');
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_3 . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= 'BUK';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_3 . '][tipe]" value="BUK">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= $coa_bank->no_coa;
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_3 . '][coa]" value="' . $coa_bank->no_coa . '">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= $coa_bank->nm_coa;
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_3 . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-right">';
-				$hasil_jurnal .= '0';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_3 . '][debit]" value="0">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-right">';
-				$hasil_jurnal .= number_format($kredit);
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_3 . '][kredit]" value="' . $kredit . '">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '</tr>';
-
-				//baris 4
-				$no_jurnal_4 = $no_jurnal_3 + 1;
-				$hasil_jurnal .= '<tr>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= date('d/m/Y');
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_4 . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= 'BUK';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_4 . '][tipe]" value="BUK">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= $item_payment->accnumber;
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_4 . '][coa]" value="' . $item_payment->accnumber . '">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= $item_payment->bank_id;
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_4 . '][nm_coa]" value="' . $item_payment->bank_id . '">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-right">';
-				$hasil_jurnal .= number_format($debit);
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_4 . '][debit]" value="' . $debit . '">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-right">';
-				$hasil_jurnal .= '0';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_4 . '][kredit]" value="0">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '</tr>';
-
-
 				$ttl_debit += $debit;
-				$ttl_kredit += $kredit;
+				$ttl_kredit += $kredit + $charge;
+				$no_jurnal++;
 			endif;
 
 			if ($item_payment->tipe == 'transport') {
+				// ambil detail transport untuk biaya bensin,tol, parkir
+				$get_transport = $this->db->get_where('tr_transport', ['no_req' => $item_payment->no_doc])->row();
+
 				// ambil coa bank
 				$this->accounting->select('a.no_perkiraan as no_coa, a.nama as nm_coa');
 				$this->accounting->from('coa_master a');
 				$this->accounting->where_in('a.no_perkiraan', $bank);
 				$coa_bank = $this->accounting->get()->row();
 
+				$debit = $item_payment->jumlah;
+				$kredit = str_replace(',', '', $payment_bank);
+				$charge = str_replace(',', '', $bank_charge);
+
 				$arr_coa_jurnal = [
 					'6103-01-01',
 					'6103-01-02',
 					'6103-01-03',
-					'7201-01-02',
 				];
 
-				$this->accounting->select('a.no_perkiraan as no_coa, a.nama as nm_coa');
-				$this->accounting->from('coa_master a');
-				$this->accounting->where_in('a.no_perkiraan', $arr_coa_jurnal);
-				$get_coa_jurnal = $this->accounting->get()->result();
+				$arr_coa_nm = [
+					'Biaya BBM Pengiriman',
+					'Biaya Tol',
+					'Biaya Parkir',
+				];
 
-				$debit = $item_payment->jumlah;
+				$bbm    = $get_transport->bensin;
+				$tol    = $get_transport->tol;
+				$parkir = $get_transport->parkir;
 
-				$kredit = str_replace(',', '', $payment_bank);
+				// array nilai sesuai urutan COA
+				$arr_nilai = [
+					$bbm,
+					$tol,
+					$parkir,
+				];
 
 				$no_jurnal = 1;
-				foreach ($get_coa_jurnal as $item_coa) {
+				foreach ($arr_coa_jurnal as $i => $no_coa) {
+
+					$nm_coa = $arr_coa_nm[$i];
+					$nilai  = $arr_nilai[$i];
+
 					$hasil_jurnal .= '<tr>';
 
 					$hasil_jurnal .= '<td class="text-center">';
@@ -467,18 +487,18 @@ class Pembayaran_material_model extends BF_Model
 					$hasil_jurnal .= '</td>';
 
 					$hasil_jurnal .= '<td class="text-center">';
-					$hasil_jurnal .= $item_coa->no_coa;
-					$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="' . $item_coa->no_coa . '">';
+					$hasil_jurnal .= $no_coa;
+					$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="' . $no_coa . '">';
 					$hasil_jurnal .= '</td>';
 
 					$hasil_jurnal .= '<td class="text-center">';
-					$hasil_jurnal .= $item_coa->nm_coa;
-					$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $item_coa->nm_coa . '">';
+					$hasil_jurnal .= $nm_coa;
+					$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nm_coa . '">';
 					$hasil_jurnal .= '</td>';
 
 					$hasil_jurnal .= '<td class="text-right">';
-					$hasil_jurnal .= '0';
-					$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="0">';
+					$hasil_jurnal .= number_format($nilai, 0, ',', '.');
+					$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $nilai . '">';
 					$hasil_jurnal .= '</td>';
 
 					$hasil_jurnal .= '<td class="text-right">';
@@ -488,9 +508,11 @@ class Pembayaran_material_model extends BF_Model
 
 					$hasil_jurnal .= '</tr>';
 
+					$ttl_nilai += $nilai;
 					$no_jurnal++;
-				};
+				}
 
+				// Jurnal Adm Bank
 				$no_jurnal_1 = $no_jurnal + 1;
 				$hasil_jurnal .= '<tr>';
 
@@ -505,13 +527,13 @@ class Pembayaran_material_model extends BF_Model
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= $coa_bank->no_coa;
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_1 . '][coa]" value="' . $coa_bank->no_coa . '">';
+				$hasil_jurnal .= '7201-01-02';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_1 . '][coa]" value="7201-01-02">';
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= $coa_bank->nm_coa;
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_1 . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
+				$hasil_jurnal .= 'Biaya Adm Bank & Buku Cek/Giro';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_1 . '][nm_coa]" value="Biaya Adm Bank & Buku Cek/Giro">';
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '<td class="text-right">';
@@ -520,12 +542,13 @@ class Pembayaran_material_model extends BF_Model
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '<td class="text-right">';
-				$hasil_jurnal .= number_format($kredit);
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_1 . '][kredit]" value="' . $kredit . '">';
+				$hasil_jurnal .= number_format($charge);
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_1 . '][kredit]" value="' . $charge . '">';
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '</tr>';
 
+				// Jurnal Bank Pembayaran
 				$no_jurnal_2 = $no_jurnal_1 + 1;
 				$hasil_jurnal .= '<tr>';
 
@@ -540,29 +563,29 @@ class Pembayaran_material_model extends BF_Model
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= '1101-02-05';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][coa]" value="1101-02-05">';
+				$hasil_jurnal .= $coa_bank->no_coa;
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][coa]" value="' . $coa_bank->no_coa . '">';
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '<td class="text-center">';
-				$hasil_jurnal .= 'BCA WA RP OPC KLIK (084-524-2033) (28)';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][nm_coa]" value="BCA WA RP OPC KLIK (084-524-2033) (28)">';
-				$hasil_jurnal .= '</td>';
-
-				$hasil_jurnal .= '<td class="text-right">';
-				$hasil_jurnal .= number_format($debit);
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][debit]" value="' . $debit . '">';
+				$hasil_jurnal .= $coa_bank->nm_coa;
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '<td class="text-right">';
 				$hasil_jurnal .= '0';
-				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][kredit]" value="0">';
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][debit]" value="0">';
+				$hasil_jurnal .= '</td>';
+
+				$hasil_jurnal .= '<td class="text-right">';
+				$hasil_jurnal .= number_format($kredit);
+				$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][kredit]" value="' . $kredit . '">';
 				$hasil_jurnal .= '</td>';
 
 				$hasil_jurnal .= '</tr>';
 
-				$ttl_debit += $debit;
-				$ttl_kredit += $kredit;
+				$ttl_debit += $ttl_nilai;
+				$ttl_kredit += $kredit + $charge;
 			}
 
 			if ($item_payment->tipe == 'expense') {
@@ -570,7 +593,7 @@ class Pembayaran_material_model extends BF_Model
 				$get_expense = $this->db->get_where('tr_expense', ['no_doc' => $item_payment->no_doc])->row();
 
 				// Ambil detail expense
-				$this->db->select('coa');
+				$this->db->select('coa, total_harga');
 				$this->db->from('tr_expense_detail');
 				$this->db->where('no_doc', $item_payment->no_doc);
 				$detail = $this->db->get()->result_array();
@@ -598,6 +621,7 @@ class Pembayaran_material_model extends BF_Model
 
 				$debit = $item_payment->jumlah;
 				$kredit = str_replace(',', '', $payment_bank);
+				$charge = str_replace(',', '', $bank_charge);
 
 				if (!empty($get_expense->pettycash)) {
 					$no_jurnal = 1;
@@ -753,10 +777,9 @@ class Pembayaran_material_model extends BF_Model
 					$ttl_kredit += $kredit;
 				} else {
 					if (!empty($get_expense->exp_inv_po)) {
-
 						$get_inv_po = $this->db->get_where('tr_invoice_po', ['id' => $get_expense->no_doc])->row();
 						$get_po = $this->db->get_where('tr_purchase_order', ['no_surat' => $get_inv_po->no_po])->row();
-						$get_top_po = $this->db->get_where('tr_top_po', ['id' => $get_inv_po->id_top])->row();
+						// $get_top_po = $this->db->get_where('tr_top_po', ['id' => $get_inv_po->id_top])->row();
 
 						if ($get_po->tipe == 'pr depart') {
 							$get_detail_po = $this->db->get_where('dt_trans_po', ['no_po' => $get_po->no_po])->row();
@@ -794,265 +817,419 @@ class Pembayaran_material_model extends BF_Model
 								$id_company = (!empty($get_company)) ? $get_company->id : '';
 								$nm_company = (!empty($get_company)) ? $get_company->nm_company : '';
 							}
-						}
-
-						if ($get_top_po->group_top == '75' || $get_top_po->group_top == '76') {
-							$coa_bank = '';
-							if (!empty($bank)) {
-								$get_coa_bank = $this->db->get_where('ms_bank', ['id' => $bank])->row();
-
-								$coa_bank = (!empty($get_coa_bank)) ? $get_coa_bank->coa_bank : '';
-							}
-
-							$arr_coa_jurnal = ['2010-10-0', '7010-20-5'];
-							if (!empty($coa_bank)) {
-								$arr_coa_jurnal[] = $coa_bank;
-							}
-
+						} else {
+							// ini untuk jurnal pembayaran PO yang masuk ke expense
 							$this->accounting->select('a.no_perkiraan as no_coa, a.nama as nm_coa');
 							$this->accounting->from('coa_master a');
-							$this->accounting->where_in('a.no_perkiraan', $arr_coa_jurnal);
-							$get_coa_jurnal = $this->accounting->get()->result();
+							$this->accounting->where_in('a.no_perkiraan', $bank);
+							$coa_bank = $this->accounting->get()->row();
 
-							$no_jurnal = 0;
-							foreach ($get_coa_jurnal as $item_coa) {
+							$no_jurnal = 1;
+							//baris ke 1
+							$hasil_jurnal .= '<tr>';
 
-								$id_coa = $item_coa->no_coa;
-								$nm_coa = $item_coa->nm_coa;
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= date('d/m/Y');
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+							$hasil_jurnal .= '</td>';
 
-								$debit = 0;
-								$kredit = 0;
-								if ($item_coa->no_coa == '2010-10-0') {
-									$no_jurnal++;
-									$debit = $item_payment->jumlah;
-									$kredit = 0;
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= 'BUK';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tipe]" value="BUK">';
+							$hasil_jurnal .= '</td>';
 
-									$keterangan = $nm_coa . ' - ' . $item_payment->id;
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= '2104-01-01';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="2104-01-01">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<tr>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= 'Hutang Pembelian Belum Ditagih';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="Hutang Pembelian Belum Ditagih">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= date('d F Y');
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-right">';
+							$hasil_jurnal .= number_format($debit);
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_company;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_company]" value="' . $id_company . '">';
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_company]" value="' . $nm_company . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-right">';
+							$hasil_jurnal .= '0';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="0">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_div;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_div]" value="' . $id_div . '">';
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_div]" value="' . $nm_div . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '</tr>';
+							$no_jurnal++;
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $id_coa;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_coa]" value="' . $id_coa . '">';
-									$hasil_jurnal .= '</td>';
+							//baris kedua
+							$hasil_jurnal .= '<tr>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_coa;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nm_coa . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= date('d/m/Y');
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $keterangan;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="' . $keterangan . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= 'BUK';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tipe]" value="BUK">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-right">';
-									$hasil_jurnal .= number_format($debit);
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= '7201-01-02';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="7201-01-02">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-right">';
-									$hasil_jurnal .= number_format($kredit);
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= 'Biaya Adm Bank & Buku Cek/Giro';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="Biaya Adm Bank & Buku Cek/Giro">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '</tr>';
+							$hasil_jurnal .= '<td class="text-right">';
+							$hasil_jurnal .= '0';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="0">';
+							$hasil_jurnal .= '</td>';
 
-									$ttl_debit += $debit;
-									$ttl_kredit += $kredit;
-								}
-								if ($item_coa->no_coa == '7010-20-5' && $bank_charge > 0) {
-									$no_jurnal++;
-									$kredit = 0;
-									$debit = $bank_charge;
+							$hasil_jurnal .= '<td class="text-right">';
+							$hasil_jurnal .= number_format($charge);
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $charge . '">';
+							$hasil_jurnal .= '</td>';
 
-									$keterangan = $nm_coa . ' - ' . $item_payment->id;
+							$hasil_jurnal .= '</tr>';
+							$no_jurnal++;
 
-									$hasil_jurnal .= '<tr>';
+							//baris ketiga
+							$hasil_jurnal .= '<tr>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= date('d F Y');
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= date('d/m/Y');
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_company;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_company]" value="' . $id_company . '">';
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_company]" value="' . $nm_company . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= 'BUK';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tipe]" value="BUK">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_div;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_div]" value="' . $id_div . '">';
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_div]" value="' . $nm_div . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= $coa_bank->no_coa;
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="' . $coa_bank->no_coa . '">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $id_coa;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_coa]" value="' . $id_coa . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= $coa_bank->nm_coa;
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_coa;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nm_coa . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-right">';
+							$hasil_jurnal .= '0';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="0">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $keterangan;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="' . $keterangan . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-right">';
+							$hasil_jurnal .= number_format($kredit);
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-right">';
-									$hasil_jurnal .= number_format($debit);
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '</tr>';
 
-									$hasil_jurnal .= '<td class="text-right">';
-									$hasil_jurnal .= number_format($kredit);
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
-									$hasil_jurnal .= '</td>';
+							//baris keempat
+							$hasil_jurnal .= '<tr>';
 
-									$hasil_jurnal .= '</tr>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= date('d/m/Y');
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+							$hasil_jurnal .= '</td>';
 
-									$ttl_debit += $debit;
-									$ttl_kredit += $kredit;
-								}
-								if ($item_coa->no_coa == $coa_bank && $bank_charge > 0) {
-									$no_jurnal++;
-									$kredit = $bank_charge;
-									$debit = 0;
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= 'BUK';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tipe]" value="BUK">';
+							$hasil_jurnal .= '</td>';
 
-									$keterangan = $nm_coa . ' - ' . $item_payment->id;
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= $coa_bank->no_coa;
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="' . $coa_bank->no_coa . '">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<tr>';
+							$hasil_jurnal .= '<td class="text-center">';
+							$hasil_jurnal .= $coa_bank->nm_coa;
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= date('d F Y');
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-right">';
+							$hasil_jurnal .= number_format($charge);
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $charge . '">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_company;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_company]" value="' . $id_company . '">';
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_company]" value="' . $nm_company . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '<td class="text-right">';
+							$hasil_jurnal .= '0';
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="0">';
+							$hasil_jurnal .= '</td>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_div;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_div]" value="' . $id_div . '">';
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_div]" value="' . $nm_div . '">';
-									$hasil_jurnal .= '</td>';
+							$hasil_jurnal .= '</tr>';
 
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $id_coa;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_coa]" value="' . $id_coa . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_coa;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nm_coa . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $keterangan;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="' . $keterangan . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-right">';
-									$hasil_jurnal .= number_format($debit);
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-right">';
-									$hasil_jurnal .= number_format($kredit);
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '</tr>';
-
-									$ttl_debit += $debit;
-									$ttl_kredit += $kredit;
-								}
-								if ($item_coa->no_coa == $coa_bank && $payment_bank > 0) {
-									$no_jurnal++;
-									$kredit = ($payment_bank + $bank_charge);
-									$debit = 0;
-
-									$keterangan = $nm_coa . ' - ' . $item_payment->id;
-
-									$hasil_jurnal .= '<tr>';
-
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= date('d F Y');
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_company;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_company]" value="' . $id_company . '">';
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_company]" value="' . $nm_company . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_div;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_div]" value="' . $id_div . '">';
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_div]" value="' . $nm_div . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $id_coa;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_coa]" value="' . $id_coa . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $nm_coa;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nm_coa . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-center">';
-									$hasil_jurnal .= $keterangan;
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="' . $keterangan . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-right">';
-									$hasil_jurnal .= number_format($debit);
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '<td class="text-right">';
-									$hasil_jurnal .= number_format($kredit);
-									$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
-									$hasil_jurnal .= '</td>';
-
-									$hasil_jurnal .= '</tr>';
-
-									$ttl_debit += $debit;
-									$ttl_kredit += $kredit;
-								}
-							}
+							$ttl_debit += $debit;
+							$ttl_kredit += $kredit + $charge;
+							$no_jurnal++;
 						}
+
+						// if ($get_top_po->group_top == '75' || $get_top_po->group_top == '76') {
+						// 	$coa_bank = '';
+						// 	if (!empty($bank)) {
+						// 		$get_coa_bank = $this->db->get_where('ms_bank', ['id' => $bank])->row();
+
+						// 		$coa_bank = (!empty($get_coa_bank)) ? $get_coa_bank->coa_bank : '';
+						// 	}
+
+						// 	$arr_coa_jurnal = ['2010-10-0', '7010-20-5'];
+						// 	if (!empty($coa_bank)) {
+						// 		$arr_coa_jurnal[] = $coa_bank;
+						// 	}
+
+						// 	$this->accounting->select('a.no_perkiraan as no_coa, a.nama as nm_coa');
+						// 	$this->accounting->from('coa_master a');
+						// 	$this->accounting->where_in('a.no_perkiraan', $arr_coa_jurnal);
+						// 	$get_coa_jurnal = $this->accounting->get()->result();
+
+						// 	$no_jurnal = 0;
+						// 	foreach ($get_coa_jurnal as $item_coa) {
+
+						// 		$id_coa = $item_coa->no_coa;
+						// 		$nm_coa = $item_coa->nm_coa;
+
+						// 		$debit = 0;
+						// 		$kredit = 0;
+						// 		if ($item_coa->no_coa == '2010-10-0') {
+						// 			$no_jurnal++;
+						// 			$debit = $item_payment->jumlah;
+						// 			$kredit = 0;
+
+						// 			$keterangan = $nm_coa . ' - ' . $item_payment->id;
+
+						// 			$hasil_jurnal .= '<tr>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= date('d F Y');
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_company;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_company]" value="' . $id_company . '">';
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_company]" value="' . $nm_company . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_div;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_div]" value="' . $id_div . '">';
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_div]" value="' . $nm_div . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $id_coa;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_coa]" value="' . $id_coa . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_coa;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nm_coa . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $keterangan;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="' . $keterangan . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-right">';
+						// 			$hasil_jurnal .= number_format($debit);
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-right">';
+						// 			$hasil_jurnal .= number_format($kredit);
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '</tr>';
+
+						// 			$ttl_debit += $debit;
+						// 			$ttl_kredit += $kredit;
+						// 		}
+						// 		if ($item_coa->no_coa == '7010-20-5' && $bank_charge > 0) {
+						// 			$no_jurnal++;
+						// 			$kredit = 0;
+						// 			$debit = $bank_charge;
+
+						// 			$keterangan = $nm_coa . ' - ' . $item_payment->id;
+
+						// 			$hasil_jurnal .= '<tr>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= date('d F Y');
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_company;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_company]" value="' . $id_company . '">';
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_company]" value="' . $nm_company . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_div;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_div]" value="' . $id_div . '">';
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_div]" value="' . $nm_div . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $id_coa;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_coa]" value="' . $id_coa . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_coa;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nm_coa . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $keterangan;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="' . $keterangan . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-right">';
+						// 			$hasil_jurnal .= number_format($debit);
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-right">';
+						// 			$hasil_jurnal .= number_format($kredit);
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '</tr>';
+
+						// 			$ttl_debit += $debit;
+						// 			$ttl_kredit += $kredit;
+						// 		}
+						// 		if ($item_coa->no_coa == $coa_bank && $bank_charge > 0) {
+						// 			$no_jurnal++;
+						// 			$kredit = $bank_charge;
+						// 			$debit = 0;
+
+						// 			$keterangan = $nm_coa . ' - ' . $item_payment->id;
+
+						// 			$hasil_jurnal .= '<tr>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= date('d F Y');
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_company;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_company]" value="' . $id_company . '">';
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_company]" value="' . $nm_company . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_div;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_div]" value="' . $id_div . '">';
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_div]" value="' . $nm_div . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $id_coa;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_coa]" value="' . $id_coa . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_coa;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nm_coa . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $keterangan;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="' . $keterangan . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-right">';
+						// 			$hasil_jurnal .= number_format($debit);
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-right">';
+						// 			$hasil_jurnal .= number_format($kredit);
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '</tr>';
+
+						// 			$ttl_debit += $debit;
+						// 			$ttl_kredit += $kredit;
+						// 		}
+						// 		if ($item_coa->no_coa == $coa_bank && $payment_bank > 0) {
+						// 			$no_jurnal++;
+						// 			$kredit = ($payment_bank + $bank_charge);
+						// 			$debit = 0;
+
+						// 			$keterangan = $nm_coa . ' - ' . $item_payment->id;
+
+						// 			$hasil_jurnal .= '<tr>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= date('d F Y');
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_company;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_company]" value="' . $id_company . '">';
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_company]" value="' . $nm_company . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_div;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_div]" value="' . $id_div . '">';
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_div]" value="' . $nm_div . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $id_coa;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][id_coa]" value="' . $id_coa . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $nm_coa;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nm_coa . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-center">';
+						// 			$hasil_jurnal .= $keterangan;
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="' . $keterangan . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-right">';
+						// 			$hasil_jurnal .= number_format($debit);
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '<td class="text-right">';
+						// 			$hasil_jurnal .= number_format($kredit);
+						// 			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $kredit . '">';
+						// 			$hasil_jurnal .= '</td>';
+
+						// 			$hasil_jurnal .= '</tr>';
+
+						// 			$ttl_debit += $debit;
+						// 			$ttl_kredit += $kredit;
+						// 		}
+						// 	}
+						// }
 					} else {
 						$no_jurnal = 1;
 						foreach ($detail as $row) {
 							$coa       = $row['coa'];
 							$nama_coa  = isset($coa_map[$coa]) ? $coa_map[$coa] : null;
+							$debit_detail = $row['total_harga'];
 
 							$hasil_jurnal .= '<tr>';
 
@@ -1077,8 +1254,8 @@ class Pembayaran_material_model extends BF_Model
 							$hasil_jurnal .= '</td>';
 
 							$hasil_jurnal .= '<td class="text-right">';
-							$hasil_jurnal .= '0';
-							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="0">';
+							$hasil_jurnal .= number_format($debit_detail);
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit_detail . '">';
 							$hasil_jurnal .= '</td>';
 
 							$hasil_jurnal .= '<td class="text-right">';
@@ -1119,8 +1296,8 @@ class Pembayaran_material_model extends BF_Model
 						$hasil_jurnal .= '</td>';
 
 						$hasil_jurnal .= '<td class="text-right">';
-						$hasil_jurnal .= '0';
-						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="0">';
+						$hasil_jurnal .= number_format($charge);
+						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][kredit]" value="' . $charge . '">';
 						$hasil_jurnal .= '</td>';
 
 						$hasil_jurnal .= '</tr>';
@@ -1161,45 +1338,8 @@ class Pembayaran_material_model extends BF_Model
 
 						$hasil_jurnal .= '</tr>';
 
-
-						// baris paling bawah 
-						$no_jurnal_2 = $no_jurnal_1 + 1;
-						$hasil_jurnal .= '<tr>';
-
-						$hasil_jurnal .= '<td class="text-center">';
-						$hasil_jurnal .= date('d/m/Y');
-						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2 . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
-						$hasil_jurnal .= '</td>';
-
-						$hasil_jurnal .= '<td class="text-center">';
-						$hasil_jurnal .= 'BUK';
-						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2  . '][tipe]" value="BUK">';
-						$hasil_jurnal .= '</td>';
-
-						$hasil_jurnal .= '<td class="text-center">';
-						$hasil_jurnal .= $item_payment->accnumber;
-						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2  . '][coa]" value="' . $coa_bank->no_coa . '">';
-						$hasil_jurnal .= '</td>';
-
-						$hasil_jurnal .= '<td class="text-center">';
-						$hasil_jurnal .= $item_payment->bank_id;
-						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2  . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
-						$hasil_jurnal .= '</td>';
-
-						$hasil_jurnal .= '<td class="text-right">';
-						$hasil_jurnal .= number_format($debit);
-						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2  . '][debit]" value="' . $debit . '">';
-						$hasil_jurnal .= '</td>';
-
-						$hasil_jurnal .= '<td class="text-right">';
-						$hasil_jurnal .= '0';
-						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal_2  . '][kredit]" value="0">';
-						$hasil_jurnal .= '</td>';
-
-						$hasil_jurnal .= '</tr>';
-
 						$ttl_debit += $debit;
-						$ttl_kredit += $kredit;
+						$ttl_kredit += $kredit + $charge;
 					}
 				}
 			}

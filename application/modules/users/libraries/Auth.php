@@ -30,6 +30,11 @@ class Auth
         return isset($this->user['id_user']) ? $this->user['id_user'] : '';
     }
 
+    public function department_id()
+    {
+        return isset($this->user['department_id']) ? $this->user['department_id'] : '';
+    }
+
     public function user_name()
     {
         return $this->user['username'];

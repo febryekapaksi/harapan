@@ -1,8 +1,8 @@
 <?php
-$req_payment_po = ($total_incoming - $total_dp);
-if ($req_payment_po < 1) {
-    $req_payment_po = 0;
-}
+// $req_payment_po = ($total_incoming - $total_dp);
+// if ($req_payment_po < 1) {
+//     $req_payment_po = 0;
+// }
 ?>
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <input type="hidden" name="tipe_req" value="inc">
@@ -208,7 +208,7 @@ if ($req_payment_po < 1) {
                             LEFT JOIN tr_pr_detail_kasbon c ON c.id_kasbon = b.no_ipp AND c.id_detail = a.id_material
                             LEFT JOIN rutin_non_planning_detail d ON d.id = a.id_material
                         WHERE
-                            a.kode_trans = '".$id_incoming."' AND b.category = 'incoming non rutin'
+                            a.kode_trans = '" . $id_incoming . "' AND b.category = 'incoming non rutin'
                         GROUP BY a.id
 
                         UNION ALL
