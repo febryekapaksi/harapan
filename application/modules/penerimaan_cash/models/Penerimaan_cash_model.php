@@ -314,9 +314,10 @@ class Penerimaan_cash_model extends BF_Model
 		];
 
 		$user_id = $this->auth->user_id();
+		$department_id = $this->auth->department_id();
 
-		$applyFilterByUser = function () use ($user_id) {
-			if ($user_id != 7) {
+		$applyFilterByUser = function () use ($user_id, $department_id) {
+			if ($user_id != 7  && $department_id != 3) {
 				$this->db->where('a.created_by', $user_id);
 			}
 		};

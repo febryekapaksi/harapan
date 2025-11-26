@@ -228,6 +228,7 @@ class Pembayaran_material extends Admin_Controller
 			'list_mata_uang' => $get_mata_uang,
 			'jurnal_refill_petty_cash' => $jurnal_refill_petty_cash
 		];
+
 		$this->template->set('results', $data);
 		$this->template->render('form_payment_new');
 	}

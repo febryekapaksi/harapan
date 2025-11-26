@@ -382,6 +382,10 @@ class Purchase_order_payment extends Admin_Controller
 	public function save_invoice()
 	{
 		$post = $this->input->post();
+		echo '<pre>';
+		print_r($post);
+		echo '</pre>';
+		die();
 
 		$config['upload_path'] = './uploads/invoice'; //path folder
 		$config['allowed_types'] = '*'; //type yang dapat diakses bisa anda sesuaikan
@@ -402,9 +406,7 @@ class Purchase_order_payment extends Admin_Controller
 
 		$no_po = $post['no_po'];
 		$no_po1 = $post['nomor_po'];
-
-		// print_r($no_po);
-		// exit;
+		$kurs = str_replace(',', '', $post['kurs']);
 
 		$no_invoice = $this->Pr_model->generate_no_invoice();
 
@@ -414,7 +416,7 @@ class Purchase_order_payment extends Admin_Controller
 
 			$insert_invoice = $this->db->insert('tr_invoice_po', [
 				'id' => $no_invoice,
-				'no_po' => $post['nomor_po'],
+				'no_po' => $post['no_po'],
 				'curr' => $post['currency'],
 				'invoice_date' => $post['invoice_date'],
 				'value_dp' => str_replace(',', '', $post['value_dp']),
@@ -1008,7 +1010,7 @@ class Purchase_order_payment extends Admin_Controller
 			'kdcab'				=> '101',
 			'jenis'			    => 'JV',
 			'keterangan'		=> $keterangan,
-			'user_id'			=> $Username,
+			'user_id'			=> $this->auth->user_id(),
 			'ho_valid'			=> '',
 		);
 		$insert_javh = $this->db->insert(DBACC . '.javh', $dataJVhead);
@@ -2247,6 +2249,7 @@ class Purchase_order_payment extends Admin_Controller
 			'nilai_req_payment' => $nilai_req_payment,
 			'no_po' => $arr_no_po
 		];
+
 
 		$this->template->set('results', $data);
 		$this->template->render('add_inc');
