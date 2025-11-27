@@ -139,15 +139,12 @@ foreach ($results['result_payment'] as $item) {
 					<td width="25%">
 						<input type="text" name="kurs_payment" id="" class="form-control form-control-sm text-right auto_num">
 					</td>
+					<td width="15%" style="">Payment Bank Charge</td>
+					<td width="5%" class="text-center">:</td>
+					<td width="25%">
+						<input type="text" name="payment_bank_charge" id="" class="form-control form-control-sm text-right input_payment_bank_charge auto_num" value="0">
+					</td>
 				</tr>
-				<!-- <tr>
-				<td colspan="3"></td>
-				<td width="15%" style="">Kurs</td>
-				<td width="5%" class="text-center">:</td>
-				<td width="25%">
-					<input type="text" name="kurs" id="" class="form-control form-control-sm text-right auto_num" value="0">
-				</td>
-			</tr> -->
 			</table>
 		</div>
 		<div class="box-body">
@@ -634,19 +631,29 @@ foreach ($results['result_payment'] as $item) {
 		var total_pph = parseFloat($('.total_pph').val());
 		var total_ppn = parseFloat($('.total_ppn').val());
 		var total_payment_bank = $('.input_payment_bank').val();
+		var total_payment_bank_charge = $('.input_payment_bank_charge').val();
+
 		if (total_payment_bank !== '') {
 			total_payment_bank = total_payment_bank.split(',').join('');
 			total_payment_bank = parseFloat(total_payment_bank);
 		} else {
 			total_payment_bank = 0;
 		}
+
+		if (total_payment_bank_charge !== '') {
+			total_payment_bank_charge = total_payment_bank_charge.split(',').join('');
+			total_payment_bank_charge = parseFloat(total_payment_bank_charge);
+		} else {
+			total_payment_bank_charge = 0;
+		}
+
 		var bank_charge = $('.bank_charge').val();
 		if (bank_charge !== '') {
 			bank_charge = bank_charge.split(',').join('');
 			bank_charge = parseFloat(bank_charge);
 		}
 
-		var kontrol = parseFloat(total_payment_bank - total_payment - total_ppn + total_pph + bank_charge);
+		var kontrol = parseFloat(total_payment_bank - total_payment - total_ppn + total_pph) - parseFloat(bank_charge) + parseFloat(total_payment_bank_charge);
 
 		$('.kontrol_col').html(number_format(kontrol, 2));
 		$('.kontrol').val(kontrol);
@@ -655,6 +662,7 @@ foreach ($results['result_payment'] as $item) {
 	function set_jurnal() {
 		var id_payment = $('.id_payment').val();
 		var payment_bank = $('.input_payment_bank').val()
+		var payment_bank_charge = $('.input_payment_bank_charge').val()
 		var bank_charge = $('.bank_charge').val();
 		var bank = $('.bank').val();
 
@@ -664,6 +672,7 @@ foreach ($results['result_payment'] as $item) {
 			data: {
 				'id_payment': id_payment,
 				'payment_bank': payment_bank,
+				'payment_bank_charge': payment_bank_charge,
 				'bank_charge': bank_charge,
 				'bank': bank
 			},
@@ -794,6 +803,26 @@ foreach ($results['result_payment'] as $item) {
 		var selisih = parseFloat(total_payment - nilai_payment_bank);
 
 		$('.selisih_col').html(number_format(selisih, 2));
+
+		hitung_kontrol();
+		set_jurnal();
+	});
+
+	$(document).on('change', '.input_payment_bank_charge', function() {
+		var nilai_payment_bank_charge = $(this).val();
+		console.log(nilai_payment_bank_charge)
+		if (nilai_payment_bank_charge !== '') {
+			nilai_payment_bank_charge = nilai_payment_bank_charge.split(',').join('');
+			nilai_payment_bank_charge = parseFloat(nilai_payment_bank_charge);
+		} else {
+			nilai_payment_bank_charge = 0;
+		}
+
+		// var total_payment = $('.total_payment').val();
+
+		// var selisih = parseFloat(total_payment - nilai_payment_bank_charge);
+
+		// $('.selisih_col').html(number_format(selisih, 2));
 
 		hitung_kontrol();
 		set_jurnal();
