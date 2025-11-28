@@ -15,7 +15,8 @@ class Surat_jalan_pabrik extends Admin_Controller
 
         $this->load->library(array('upload', 'Image_lib'));
         $this->load->model(array(
-            'Surat_jalan_pabrik/surat_jalan_pabrik_model'
+            'Surat_jalan_pabrik/surat_jalan_pabrik_model',
+            'jurnal_nomor/Jurnal_model',
         ));
 
         date_default_timezone_set('Asia/Bangkok');
@@ -285,18 +286,16 @@ class Surat_jalan_pabrik extends Admin_Controller
     public function confirm()
     {
         $post = $this->input->post();
-
         $detail = $post['detail'];
 
         $id_sj = $post['id'];
         $tgl_diterima = $post['tgl_diterima'];
         $penerima = $post['penerima'];
         $no_surat_jalan = $post['no_surat_jalan'];
+        $no_delivery = $post['no_delivery'];
         $sanitized_sj = str_replace(['/', '\\'], '_', $no_surat_jalan);
 
-        // Inisialisasi
         $status = 'CONFIRM';
-
         $ArrUpdate = [
             'tgl_diterima' => $tgl_diterima,
             'penerima'     => $penerima,
@@ -304,14 +303,13 @@ class Surat_jalan_pabrik extends Admin_Controller
             'updated_at'   => date('Y-m-d H:i:s'),
         ];
 
-        //untuk dokumen
+        // ✅ Upload file dokumen jika ada
         if (!empty($_FILES['file_dokumen']['name'])) {
             $config['upload_path']   = './assets/confirm_sj/';
             $config['allowed_types'] = '*';
             $config['max_size']      = 2048;
-            $config['file_name']     = 'bukti_confirm_sj_pabrik_' . $sanitized_sj;
+            $config['file_name']     = 'bukti_confirm_sj_gudang_' . $sanitized_sj;
 
-            // $this->load->library('upload', $config);
             $this->upload->initialize($config);
 
             if (!$this->upload->do_upload('file_dokumen')) {
@@ -320,15 +318,13 @@ class Surat_jalan_pabrik extends Admin_Controller
                 return;
             } else {
                 $uploadData = $this->upload->data();
-                $filename = $uploadData['file_name'];
-
-                // Tambahkan ke $ArrUpdate
-                $ArrUpdate['file_dokumen'] = $filename;
+                $ArrUpdate['file_dokumen'] = $uploadData['file_name'];
             }
         }
 
-        // Logika penentuan status berdasarkan detail
         $ArrDetail = [];
+        $arr_kartu_stok = [];
+
         foreach ($detail as $key => $value) {
             $qty_delivery = (int) $value['qty_delivery'];
             $qty_terkirim = (int) $value['qty_terkirim'];
@@ -336,23 +332,126 @@ class Surat_jalan_pabrik extends Admin_Controller
             $qty_hilang   = (int) $value['qty_hilang'];
             $id_detail    = $value['id_detail'];
             $total        = $qty_terkirim + $qty_retur + $qty_hilang;
+            $id_product   = $value['id_product'];
+            $qty_lebih    = isset($value['qty_lebih']) ? $value['qty_lebih'] : 0;
 
-            $ArrDetail[$key] = [
-                'id_product'    => $value['id_product'],
-                'id_so_det'     => $value['id_so_det'],
-                'qty_terkirim'  => $qty_terkirim,
-                'qty_retur'     => $qty_retur,
-                'qty_hilang'    => $qty_hilang
+            $data_detail = [
+                'id'           => $id_detail,
+                'id_product'   => $id_product,
+                // 'id_so_det'    => $value['id_so_det'],
+                'qty_terkirim' => $qty_terkirim,
+                'qty_retur'    => $qty_retur,
+                'qty_hilang'   => $qty_hilang,
+                'qty_lebih'    => $qty_lebih,
             ];
 
             if ($qty_retur > 0 || $total !== $qty_delivery) {
                 $status = 'RETUR';
             }
+
+            if ($qty_hilang > 0 || $total !== $qty_delivery) {
+                $status = 'HILANG';
+            }
+
+            if ($qty_retur > 0 || $qty_hilang > 0) {
+                $data_detail['reason'] = $value['reason'];
+
+                // Handle upload per barang retur
+                if (!empty($_FILES['detail']['name'][$key]['file_bukti'])) {
+                    $_FILES['file_temp']['name']     = $_FILES['detail']['name'][$key]['file_bukti'];
+                    $_FILES['file_temp']['type']     = $_FILES['detail']['type'][$key]['file_bukti'];
+                    $_FILES['file_temp']['tmp_name'] = $_FILES['detail']['tmp_name'][$key]['file_bukti'];
+                    $_FILES['file_temp']['error']    = $_FILES['detail']['error'][$key]['file_bukti'];
+                    $_FILES['file_temp']['size']     = $_FILES['detail']['size'][$key]['file_bukti'];
+
+                    $config_retur['upload_path']   = './assets/confirm_sj/';
+                    $config_retur['allowed_types'] = '*';
+                    $config_retur['max_size']      = 2048;
+                    $config_retur['file_name']     = 'retur_' . $sanitized_sj . '_' . $key;
+
+                    $this->upload->initialize($config_retur);
+
+                    if ($this->upload->do_upload('file_temp')) {
+                        $upload_data = $this->upload->data();
+                        $data_detail['file_bukti'] = $upload_data['file_name'];
+                    } else {
+                        echo json_encode([
+                            'status' => 0,
+                            'pesan'  => 'Upload file retur gagal: ' . $this->upload->display_errors()
+                        ]);
+                        return;
+                    }
+                }
+            }
+
+            $ArrDetail[] = $data_detail;
+
+            $this->db->where([
+                'no_delivery' => $no_delivery,
+                'id_so_det'   => $value['id_so_det']
+            ])->update('spk_delivery_detail', [
+                'qty_delivery' => $qty_terkirim
+            ]);
+
+            $current = $this->db->select('qty_delivery, qty_order, qty_terkirim')
+                ->get_where('sales_order_detail', ['id' => $value['id_so_det']])
+                ->row();
+
+            $new_qty_terkirim = $current->qty_terkirim + $qty_terkirim;
+            if ($new_qty_terkirim <= $current->qty_delivery) {
+                $this->db->set('qty_terkirim', 'qty_terkirim + ' . (int) $qty_terkirim, FALSE);
+                $this->db->where('id', $value['id_so_det']);
+                $this->db->update('sales_order_detail');
+            }
+
+            $stok = $this->db->get_where('warehouse_stock', [
+                'code_lv4' => $id_product
+            ])->row_array();
+
+            if ($stok && $qty_terkirim > 0) {
+                $arr_kartu_stok[] = [
+                    'no_transaksi'      => $no_surat_jalan,
+                    'transaksi'         => "Delivery",
+                    'tgl_transaksi'     => $tgl_diterima,
+                    'code_lv4'          => $id_product,
+                    'nm_product'        => $stok['nm_product'],
+                    'qty'               => floatval($stok['qty_stock']),
+                    'qty_book'          => floatval($stok['qty_booking']),
+                    'qty_free'          => floatval($stok['qty_free']),
+                    'qty_transaksi'     => $qty_terkirim * -1,
+                    'qty_akhir'         => floatval($stok['qty_stock']) - $qty_terkirim,
+                    'qty_book_akhir'    => floatval($stok['qty_booking']),
+                    'qty_free_akhir'    => floatval($stok['qty_free']),
+                    'harga_stok'        => floatval($stok['harga_beli'])
+                ];
+            }
+
+            if ($qty_lebih > 0) {
+                $this->db->set('qty_stock', 'qty_stock + ' . $qty_lebih, FALSE);
+                $this->db->where('code_lv4', $id_product);
+                $this->db->update('warehouse_stock');
+
+                // Simpan ke kartu_stok
+                $arr_kartu_stok[] = [
+                    'no_transaksi'      => $no_surat_jalan,
+                    'transaksi'         => "Retur Lebih",
+                    'tgl_transaksi'     => $tgl_diterima,
+                    'code_lv4'          => $id_product,
+                    'nm_product'        => $stok ? $stok['nm_product'] : '-',
+                    'qty'               => $stok ? floatval($stok['qty_stock']) : 0,
+                    'qty_book'          => $stok ? floatval($stok['qty_booking']) : 0,
+                    'qty_free'          => $stok ? floatval($stok['qty_free']) : 0,
+                    'qty_transaksi'     => $qty_lebih,
+                    'qty_akhir'         => $stok ? floatval($stok['qty_stock']) + $qty_lebih : $qty_lebih,
+                    'qty_book_akhir'    => $stok ? floatval($stok['qty_booking']) : 0,
+                    'qty_free_akhir'    => $stok ? floatval($stok['qty_free']) : 0,
+                    'harga_stok'        => $stok ? floatval($stok['harga_beli']) : 0
+                ];
+            }
         }
 
         $ArrUpdate['status'] = $status;
 
-        // Simpan ke database
         $this->db->trans_start();
 
         $this->db->update('surat_jalan', $ArrUpdate, ['id' => $id_sj]);
@@ -362,10 +461,78 @@ class Surat_jalan_pabrik extends Admin_Controller
                 'qty_terkirim' => $row['qty_terkirim'],
                 'qty_retur'    => $row['qty_retur'],
                 'qty_hilang'   => $row['qty_hilang'],
-            ], [
-                'id'      => $id_detail,
-            ]);
+                'qty_lebih'    => $row['qty_lebih'],
+                'reason'       => isset($row['reason']) ? $row['reason'] : null,
+                'file_bukti'   => isset($row['file_bukti']) ? $row['file_bukti'] : null,
+            ], ['id' => $row['id']]);
         }
+
+        if (!empty($arr_kartu_stok)) {
+            $this->db->insert_batch('kartu_stok', $arr_kartu_stok);
+        }
+
+        //SYAMSUDIN 16-09-2025 JURNAL
+
+        $tgl_inv  = date('Y-m-d');
+        $keterangan  = "Confirm Surat Jalan" . $no_surat_jalan;
+        $type        = $no_surat_jalan;
+        $reff        = $no_surat_jalan;
+        $no_req      = $no_surat_jalan;
+        $no_po       = $no_surat_jalan;
+        $total       = round($this->input->post('debet[0]'));
+        $jenis       = $this->input->post('jenis');
+        $tipe_jurnal       = $this->input->post('tipe');
+        $jenis_jurnal       = $this->input->post('jenis_jurnal');
+
+        $total_po           = round($this->input->post('debet[0]'));
+        $Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
+
+
+        $Bln             = substr($tgl_inv, 5, 2);
+        $Thn             = substr($tgl_inv, 0, 4);
+
+
+        $dataJVhead = array(
+            'nomor'             => $Nomor_JV,
+            'tgl'                 => $tgl_inv,
+            'jml'                => $total,
+            'koreksi_no'        => '-',
+            'kdcab'                => '101',
+            'jenis'                => 'JV',
+            'keterangan'         => $keterangan,
+            'bulan'                => $Bln,
+            'tahun'                => $Thn,
+            'user_id'            => $this->auth->user_id(),
+            'memo'                => '',
+            'tgl_jvkoreksi'        => $tgl_inv,
+            'ho_valid'            => ''
+        );
+
+        $this->db->insert(DBACC . '.javh', $dataJVhead);
+
+        for ($i = 0; $i < count($this->input->post('type')); $i++) {
+            $tipe = $this->input->post('type')[$i];
+            $perkiraan = $this->input->post('no_coa')[$i];
+            $noreff = $no_po;
+
+            $datadetail = array(
+                'tipe'            => $this->input->post('type')[$i],
+                'nomor'           => $Nomor_JV,
+                'tanggal'         => $this->input->post('tgl_jurnal')[$i],
+                'no_perkiraan'    => $this->input->post('no_coa')[$i],
+                'keterangan'      =>  $keterangan,
+                'no_reff'        => $no_po,
+                'debet'          => round($this->input->post('debet')[$i]),
+                'kredit'         => round($this->input->post('kredit')[$i]),
+                'created_by'      => $this->auth->user_id(),
+                'created_on'      => date('Y-m-d H:i:s')
+            );
+            $this->db->insert(DBACC . '.jurnal', $datadetail);
+        }
+
+        $Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
+        $this->db->query($Qry_Update_Cabang_acc);
+
         $this->db->trans_complete();
 
         if ($this->db->trans_status() === FALSE) {
