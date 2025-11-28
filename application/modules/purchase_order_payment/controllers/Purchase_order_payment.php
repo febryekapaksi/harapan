@@ -382,10 +382,10 @@ class Purchase_order_payment extends Admin_Controller
 	public function save_invoice()
 	{
 		$post = $this->input->post();
-		echo '<pre>';
-		print_r($post);
-		echo '</pre>';
-		die();
+		// echo '<pre>';
+		// print_r($post);
+		// echo '</pre>';
+		// die();
 
 		$config['upload_path'] = './uploads/invoice'; //path folder
 		$config['allowed_types'] = '*'; //type yang dapat diakses bisa anda sesuaikan

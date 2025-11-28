@@ -7,11 +7,7 @@ if (!empty($results['jurnal_refill_petty_cash'])) {
 $kode_supplier = [];
 $nm_supplier = [];
 
-
-
 foreach ($results['result_payment'] as $item) {
-
-
 
 	$get_rec_invoice = $this->db->get_where('tr_invoice_po', ['id' => $item->no_doc])->row();
 
