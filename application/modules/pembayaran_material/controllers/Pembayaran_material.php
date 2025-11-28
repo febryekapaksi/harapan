@@ -229,6 +229,11 @@ class Pembayaran_material extends Admin_Controller
 			'jurnal_refill_petty_cash' => $jurnal_refill_petty_cash
 		];
 
+		// echo '<pre>';
+		// print_r($data);
+		// echo '</pre>';
+		// die();
+
 		$this->template->set('results', $data);
 		$this->template->render('form_payment_new');
 	}
@@ -1278,11 +1283,12 @@ class Pembayaran_material extends Admin_Controller
 		$this->db->trans_start();
 
 		$get_coa_bank = $this->db->get_where(DBACC . '.coa_master', ['no_perkiraan' => $post['bank']])->row();
+
 		$nm_coa_bank = '';
 		$kode_bank = '';
 		if (!empty($get_coa_bank)) {
 			$nm_coa_bank = $get_coa_bank->nama;
-			$kode_bank = $get_coa_bank->kode_bank;
+			$kode_bank = $get_coa_bank->no_perkiraan;
 		}
 
 		$id_payment_paid = $this->Pembayaran_material_model->generate_id_payment_paid($kode_bank, $post['tgl_bayar']);
@@ -1343,7 +1349,7 @@ class Pembayaran_material extends Admin_Controller
 
 		if (!empty($post['dt'])) {
 			foreach ($post['dt'] as $detail) {
-				$tipe_pph = ($detail['tipe_pph'] == 1) ? 'PPH 23' : 'PPH 22';
+				$tipe_pph = isset($detail['tipe_pph']) ? $detail['tipe_pph'] : null;
 
 				$this->db->where('id', $detail['id_payment']);
 				$update_payment_detail = $this->db->update('payment_approve', [
@@ -1360,32 +1366,30 @@ class Pembayaran_material extends Admin_Controller
 			}
 		}
 
-		$arr_jurnal = [];
-		$no_jurnal = 1;
-		if (isset($post['jurnal_ls'])) {
-			foreach ($post['jurnal_ls'] as $item_jurnal) {
-				$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
+		// $arr_jurnal = [];
+		// $no_jurnal = 1;
+		// if (isset($post['jurnal_ls'])) {
+		// 	foreach ($post['jurnal_ls'] as $item_jurnal) {
+		// 		$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
 
-				$arr_jurnal[] = [
-					'no_jurnal' => $id_jurnal,
-					'tgl_jurnal' => date('Y-m-d'),
-					'coa' => $item_jurnal['coa'],
-					'nm_coa' => $item_jurnal['nm_coa'],
-					'debit' => $item_jurnal['debit'],
-					'kredit' => $item_jurnal['kredit'],
-					'keterangan' => $item_jurnal['keterangan'],
-					'no_transaksi' => $id_payment_paid,
-					'jenis_transaksi' => 'Payment',
-					'id_divisi' => $item_jurnal['id_divisi'],
-					'nm_divisi' => $item_jurnal['nm_divisi'],
-					'created_by' => $this->auth->user_id(),
-					'created_date' => date('Y-m-d')
-				];
-
-				$no_jurnal++;
-				// }
-			}
-		}
+		// 		$arr_jurnal[] = [
+		// 			'no_jurnal' => $id_jurnal,
+		// 			'tgl_jurnal' => date('Y-m-d'),
+		// 			'coa' => $item_jurnal['coa'],
+		// 			'nm_coa' => $item_jurnal['nm_coa'],
+		// 			'debit' => $item_jurnal['debit'],
+		// 			'kredit' => $item_jurnal['kredit'],
+		// 			'keterangan' => $item_jurnal['keterangan'],
+		// 			'no_transaksi' => $id_payment_paid,
+		// 			'jenis_transaksi' => 'Payment',
+		// 			'id_divisi' => $item_jurnal['id_divisi'],
+		// 			'nm_divisi' => $item_jurnal['nm_divisi'],
+		// 			'created_by' => $this->auth->user_id(),
+		// 			'created_date' => date('Y-m-d')
+		// 		];
+		// 		$no_jurnal++;
+		// 	}
+		// }
 
 		// if (isset($post['jurnal_refill_pettycash'])) {
 		// 	foreach ($post['jurnal_refill_pettycash'] as $item_jurnal) {
@@ -1423,183 +1427,183 @@ class Pembayaran_material extends Admin_Controller
 		// 	}
 		// }
 
+		// AUTO JURNAL 
+
+		$no_payment = $post['id_payment'];
+
+		if ($post['mata_uang'] == 'IDR') {
+			$jenis_jurnal = 'BUK20';
+			$kurs         = 1;
+			$selisih      = 0;
+			$hutang       = (str_replace(',', '', $post['total_payment']) * $kurs) + (str_replace(',', '', $detail['nilai_ppn']) * $kurs);
+		} else {
+			$jenis_jurnal = 'BUK21';
+			$kurs         = str_replace(',', '', $post['kurs_payment']);
+			$selisih      = $kurs - $kurs_invoice;
+			$hutang       = (str_replace(',', '', $post['total_payment']) * $kurs_invoice) + (str_replace(',', '', $detail['nilai_ppn']) * $kurs_invoice);
+		}
+
+		$bank_coa     = $post['bank'];
+		$no_request   = $post['id_payment'];
+		$keterangan   = $post['keterangan_pembayaran'];
+		$bankcharge   = (str_replace(',', '', $post['bank_charge'])) * $kurs;
+		$bank_nilai   = (str_replace(',', '', $post['payment_bank'])) * $kurs;
+		$ap           = str_replace(',', '', $post['total_payment']);
+		$selisihkurs  = $selisih * $ap;
+
+		if ($selisihkurs < 0) {
+			$selisihdebet  = 0;
+			$selisihkredit = $selisihkurs * (-1);
+		} elseif ($selisihkurs > 0) {
+			$selisihdebet  = $selisihkurs;
+			$selisihkredit = 0;
+		}
+
+		$nomor_jurnal = $nomor_jurnal = $jenis_jurnal . $no_payment . rand(100, 999);
+		$payment_date = $post['tgl_bayar'];
+		$id_supplier = $post['supplier_input'];
+		$nm_supplier = $post['nm_supplier_input'];
+		$no_reff     = $post['id_payment'];
+		$Username    = $this->auth->user_id();
+
+		$datajurnal1 = $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' order by parameter_no")->result();
+		$det_Jurnaltes1 = array();
+		// foreach ($datajurnal1 as $rec) {
+		// 	if ($rec->parameter_no == "1") {
+		// 		$det_Jurnaltes1[] = array(
+		// 			'nomor' => $nomor_jurnal,
+		// 			'tanggal' => $payment_date,
+		// 			'tipe' => 'BUK',
+		// 			'no_perkiraan' => $bank_coa,
+		// 			'keterangan' => $no_request . '. ' . $keterangan,
+		// 			'no_request' => $id_payment_paid,
+		// 			'kredit' => ($bank_nilai),
+		// 			'debet' => 0,
+		// 			'no_reff' => $no_request,
+		// 			'jenis_jurnal' => $jenis_jurnal,
+		// 			'nocust' => $id_supplier,
+		// 			'stspos' => '1'
+		// 		);
+		// 	}
+		// 	if ($rec->parameter_no == "2") {
+		// 		$det_Jurnaltes1[] = array(
+		// 			'nomor' => $nomor_jurnal,
+		// 			'tanggal' => $payment_date,
+		// 			'tipe' => 'BUK',
+		// 			'no_perkiraan' => $rec->no_perkiraan,
+		// 			'keterangan' => $no_request . '. ' . $keterangan,
+		// 			'no_request' => $id_payment_paid,
+		// 			'kredit' => 0,
+		// 			'debet' => $hutang,
+		// 			'no_reff' => $no_request,
+		// 			'jenis_jurnal' => $jenis_jurnal,
+		// 			'nocust' => $id_supplier,
+		// 			'stspos' => '1'
+		// 		);
+		// 	}
+
+		// 	if ($rec->parameter_no == "4") {
+		// 		$det_Jurnaltes1[] = array(
+		// 			'nomor' => $nomor_jurnal,
+		// 			'tanggal' => $payment_date,
+		// 			'tipe' => 'BUK',
+		// 			'no_perkiraan' => $rec->no_perkiraan,
+		// 			'keterangan' => $no_request . '. ' . $keterangan,
+		// 			'no_request' => $id_payment_paid,
+		// 			'kredit' => 0,
+		// 			'debet' => $bankcharge,
+		// 			'no_reff' => $no_request,
+		// 			'jenis_jurnal' => $jenis_jurnal,
+		// 			'nocust' => $id_supplier,
+		// 			'stspos' => '1'
+		// 		);
+		// 	}
+
+		// 	if ($jenis_jurnal = 'BUK004') {
+		// 		if ($rec->parameter_no == "5") {
+		// 			$det_Jurnaltes1[] = array(
+		// 				'nomor' => $nomor_jurnal,
+		// 				'tanggal' => $payment_date,
+		// 				'tipe' => 'BUK',
+		// 				'no_perkiraan' => $rec->no_perkiraan,
+		// 				'keterangan' => $no_request . '. ' . $keterangan,
+		// 				'no_request' => $id_payment_paid,
+		// 				'kredit' => $selisihkredit,
+		// 				'debet' => $selisihdebet,
+		// 				'no_reff' => $no_request,
+		// 				'jenis_jurnal' => $jenis_jurnal,
+		// 				'nocust' => $id_supplier,
+		// 				'stspos' => '1'
+		// 			);
+		// 		}
+		// 	}
+		// }
+		// $this->db->insert_batch('jurnaltras', $det_Jurnaltes1);
+
+		//auto jurnal
+		$tanggal = $payment_date;
+		$Bln	= substr($tanggal, 5, 2);
+		$Thn	= substr($tanggal, 0, 4);
+		$Nomor_JV = $this->Jurnal_model->get_no_buk('101', $tanggal);
+		$total = 0;
+		foreach ($det_Jurnaltes1 as $vals) {
+			$datadetail = array(
+				'tipe'			=> 'BUK',
+				'nomor'			=> $Nomor_JV,
+				'tanggal'		=> $tanggal,
+				'no_perkiraan'	=> $vals['no_perkiraan'],
+				'keterangan'	=> $vals['keterangan'],
+				'no_reff'		=> $vals['no_reff'],
+				'debet'			=> $vals['debet'],
+				'kredit'		=> $vals['kredit'],
+			);
+			$total = ($total + $vals['debet']);
+			$this->db->insert(DBACC . '.jurnal', $datadetail);
+		}
+
+		$keterangan		= 'Pembayaran ' . $no_reff;
+		$dataJVhead = array(
+			'nomor' 	    	=> $Nomor_JV,
+			'tgl'	         	=> $tanggal,
+			'jml'	            => $total,
+			'jenis_ap'	        => 'V',
+			'bayar_kepada'		=> $nm_supplier,
+			'kdcab'				=> '101',
+			'jenis_reff' 		=> 'BUK',
+			'no_reff' 			=> $no_reff,
+			'note'				=> $keterangan,
+			'user_id'			=> $Username,
+			'ho_valid'			=> '',
+		);
+
+		$this->db->insert(DBACC . '.japh', $dataJVhead);
+		$Qry_Update_Cabang_acc	 = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobuk=nobuk + 1 WHERE nocab='101'";
+		$this->db->query($Qry_Update_Cabang_acc);
+
+		$data_coa 	= $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' and parameter_no='3'")->row();
+		$datahutang = array(
+			'tipe'       	 => 'BUK',
+			'nomor'       	 => $Nomor_JV,
+			'tanggal'        => $tanggal,
+			'no_perkiraan'   => $data_coa->no_perkiraan,
+			'keterangan'     => $keterangan,
+			'no_reff'     	 => $no_reff,
+			'debet'      	 => $hutang,
+			'kredit'         => 0,
+			'id_supplier'    => $id_supplier,
+			'nama_supplier'  => $nm_supplier,
+			'no_request'     => $no_request,
+		);
+		$this->db->insert('tr_kartu_hutang', $datahutang);
+
+		//end auto jurnal
+
 		if ($this->db->trans_status() === false) {
 			$this->db->trans_rollback();
 			$valid = 0;
 			$pesan = 'Maaf, data gagal dibayar !';
 		} else {
 			$this->db->trans_commit();
-			// $no_payment = $post['id_payment'];
-
-			// if ($post['mata_uang'] == 'IDR') {
-			// 	$jenis_jurnal = 'BUK001';
-			// 	$kurs         = 1;
-			// 	$selisih      = 0;
-			// 	$hutang       = (str_replace(',', '', $post['total_payment']) * $kurs) + (str_replace(',', '', $detail['nilai_ppn']) * $kurs);
-			// } else {
-			// 	$jenis_jurnal = 'BUK004';
-			// 	$kurs         = str_replace(',', '', $post['kurs_payment']);
-			// 	$selisih      = $kurs - $kurs_invoice;
-			// 	$hutang       = (str_replace(',', '', $post['total_payment']) * $kurs_invoice) + (str_replace(',', '', $detail['nilai_ppn']) * $kurs_invoice);
-			// }
-
-			// $bank_coa     = $post['bank'];
-			// $no_request   = $post['id_payment'];
-			// $keterangan   = $post['keterangan_pembayaran'];
-			// $bankcharge   = (str_replace(',', '', $post['bank_charge'])) * $kurs;
-			// $bank_nilai   = (str_replace(',', '', $post['payment_bank'])) * $kurs;
-			// $ap           = str_replace(',', '', $post['total_payment']);
-			// $selisihkurs  = $selisih * $ap;
-
-			// if ($selisihkurs < 0) {
-			// 	$selisihdebet  = 0;
-			// 	$selisihkredit = $selisihkurs * (-1);
-			// } elseif ($selisihkurs > 0) {
-			// 	$selisihdebet  = $selisihkurs;
-			// 	$selisihkredit = 0;
-			// }
-
-			// $nomor_jurnal = $nomor_jurnal = $jenis_jurnal . $no_payment . rand(100, 999);
-			// $payment_date = $post['tgl_bayar'];
-			// $id_supplier = $post['supplier_input'];
-			// $nm_supplier = $post['nm_supplier_input'];
-			// $no_reff     = $post['id_payment'];
-			// $Username    = $this->auth->user_id();
-
-			// $datajurnal1 = $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' order by parameter_no")->result();
-			// $det_Jurnaltes1 = array();
-			// foreach ($datajurnal1 as $rec) {
-			// 	if ($rec->parameter_no == "1") {
-			// 		$det_Jurnaltes1[] = array(
-			// 			'nomor' => $nomor_jurnal,
-			// 			'tanggal' => $payment_date,
-			// 			'tipe' => 'BUK',
-			// 			'no_perkiraan' => $bank_coa,
-			// 			'keterangan' => $no_request . '. ' . $keterangan,
-			// 			'no_request' => $id_payment_paid,
-			// 			'kredit' => ($bank_nilai),
-			// 			'debet' => 0,
-			// 			'no_reff' => $no_request,
-			// 			'jenis_jurnal' => $jenis_jurnal,
-			// 			'nocust' => $id_supplier,
-			// 			'stspos' => '1'
-			// 		);
-			// 	}
-			// 	if ($rec->parameter_no == "2") {
-			// 		$det_Jurnaltes1[] = array(
-			// 			'nomor' => $nomor_jurnal,
-			// 			'tanggal' => $payment_date,
-			// 			'tipe' => 'BUK',
-			// 			'no_perkiraan' => $rec->no_perkiraan,
-			// 			'keterangan' => $no_request . '. ' . $keterangan,
-			// 			'no_request' => $id_payment_paid,
-			// 			'kredit' => 0,
-			// 			'debet' => $hutang,
-			// 			'no_reff' => $no_request,
-			// 			'jenis_jurnal' => $jenis_jurnal,
-			// 			'nocust' => $id_supplier,
-			// 			'stspos' => '1'
-			// 		);
-			// 	}
-
-			// 	if ($rec->parameter_no == "4") {
-			// 		$det_Jurnaltes1[] = array(
-			// 			'nomor' => $nomor_jurnal,
-			// 			'tanggal' => $payment_date,
-			// 			'tipe' => 'BUK',
-			// 			'no_perkiraan' => $rec->no_perkiraan,
-			// 			'keterangan' => $no_request . '. ' . $keterangan,
-			// 			'no_request' => $id_payment_paid,
-			// 			'kredit' => 0,
-			// 			'debet' => $bankcharge,
-			// 			'no_reff' => $no_request,
-			// 			'jenis_jurnal' => $jenis_jurnal,
-			// 			'nocust' => $id_supplier,
-			// 			'stspos' => '1'
-			// 		);
-			// 	}
-
-			// 	if ($jenis_jurnal = 'BUK004') {
-			// 		if ($rec->parameter_no == "5") {
-			// 			$det_Jurnaltes1[] = array(
-			// 				'nomor' => $nomor_jurnal,
-			// 				'tanggal' => $payment_date,
-			// 				'tipe' => 'BUK',
-			// 				'no_perkiraan' => $rec->no_perkiraan,
-			// 				'keterangan' => $no_request . '. ' . $keterangan,
-			// 				'no_request' => $id_payment_paid,
-			// 				'kredit' => $selisihkredit,
-			// 				'debet' => $selisihdebet,
-			// 				'no_reff' => $no_request,
-			// 				'jenis_jurnal' => $jenis_jurnal,
-			// 				'nocust' => $id_supplier,
-			// 				'stspos' => '1'
-			// 			);
-			// 		}
-			// 	}
-			// }
-			// $this->db->insert_batch('jurnaltras', $det_Jurnaltes1);
-
-			// //auto jurnal
-			// $tanggal = $payment_date;
-			// $Bln	= substr($tanggal, 5, 2);
-			// $Thn	= substr($tanggal, 0, 4);
-			// $Nomor_JV = $this->Jurnal_model->get_no_buk('101', $tanggal);
-			// $total = 0;
-			// foreach ($det_Jurnaltes1 as $vals) {
-			// 	$datadetail = array(
-			// 		'tipe'			=> 'BUK',
-			// 		'nomor'			=> $Nomor_JV,
-			// 		'tanggal'		=> $tanggal,
-			// 		'no_perkiraan'	=> $vals['no_perkiraan'],
-			// 		'keterangan'	=> $vals['keterangan'],
-			// 		'no_reff'		=> $vals['no_reff'],
-			// 		'debet'			=> $vals['debet'],
-			// 		'kredit'		=> $vals['kredit'],
-			// 	);
-			// 	$total = ($total + $vals['debet']);
-			// 	$this->db->insert(DBACC . '.jurnal', $datadetail);
-			// }
-
-			// $keterangan		= 'Pembayaran ' . $no_reff;
-			// $dataJVhead = array(
-			// 	'nomor' 	    	=> $Nomor_JV,
-			// 	'tgl'	         	=> $tanggal,
-			// 	'jml'	            => $total,
-			// 	'jenis_ap'	        => 'V',
-			// 	'bayar_kepada'		=> $nm_supplier,
-			// 	'kdcab'				=> '101',
-			// 	'jenis_reff' 		=> 'BUK',
-			// 	'no_reff' 			=> $no_reff,
-			// 	'note'				=> $keterangan,
-			// 	'user_id'			=> $Username,
-			// 	'ho_valid'			=> '',
-			// );
-
-			// $this->db->insert(DBACC . '.japh', $dataJVhead);
-			// $Qry_Update_Cabang_acc	 = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobuk=nobuk + 1 WHERE nocab='101'";
-			// $this->db->query($Qry_Update_Cabang_acc);
-
-			// $data_coa 	= $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' and parameter_no='3'")->row();
-			// $datahutang = array(
-			// 	'tipe'       	 => 'BUK',
-			// 	'nomor'       	 => $Nomor_JV,
-			// 	'tanggal'        => $tanggal,
-			// 	'no_perkiraan'   => $data_coa->no_perkiraan,
-			// 	'keterangan'     => $keterangan,
-			// 	'no_reff'     	 => $no_reff,
-			// 	'debet'      	 => $hutang,
-			// 	'kredit'         => 0,
-			// 	'id_supplier'    => $id_supplier,
-			// 	'nama_supplier'  => $nm_supplier,
-			// 	'no_request'     => $no_request,
-			// );
-			// $this->db->insert('tr_kartu_hutang', $datahutang);
-
-			// //end auto jurnal
-
-			// // }
-
 			$valid = 1;
 			$pesan = 'Selamat, data telah berhasil dibayar !';
 		}
