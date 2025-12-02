@@ -156,7 +156,7 @@ if ($type == 'expense') {
 									<td><?= $dtl->tanggal; ?></td>
 									<td><?= $dtl->qty; ?></td>
 									<td><?= $data_req_payment['currency']; ?></td>
-									<td class="text-left">
+									<!-- <td class="text-left">
 										<table class="w-100">
 											<tr>
 												<td>Nilai Pengajuan</td>
@@ -187,7 +187,8 @@ if ($type == 'expense') {
 												</td>
 											</tr>
 										</table>
-									</td>
+									</td> -->
+									<td class="text-right"><?= number_format($dtl->expense) ?></td>
 									<td class="text-center">
 										<?php
 
@@ -527,7 +528,7 @@ if ($type == 'expense') {
 				<tfoot>
 					<tr class="bg-blue">
 						<th colspan="6" class="text-right">Total</th>
-						<th class="text-right"><?= number_format($gTotal); ?></th>
+						<th class="text-right"><?= number_format($data_req_payment['jumlah'], 2); ?></th>
 						<th colspan="3" class="text-center"></th>
 					</tr>
 				</tfoot>
