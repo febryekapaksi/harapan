@@ -406,6 +406,9 @@ foreach ($results['result_payment'] as $item) {
 									<center>Nama. COA</center>
 								</th>
 								<th>
+									<center>Keterangan</center>
+								</th>
+								<th>
 									<center>Debit</center>
 								</th>
 								<th>
@@ -416,7 +419,7 @@ foreach ($results['result_payment'] as $item) {
 						<tbody class="tbody_jurnal"></tbody>
 						<tfoot bgcolor='#9acfea'>
 							<tr>
-								<th colspan="4" class="text-right">TOTAL</th>
+								<th colspan="5" class="text-right">TOTAL</th>
 								<th class="text-right th_ttl_debit_jurnal">0</th>
 								<th class="text-right th_ttl_kredit_jurnal">0</th>
 							</tr>

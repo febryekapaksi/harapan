@@ -203,10 +203,29 @@ class Request_payment_model extends BF_Model
         return $data;
     }
 
+    // public function GetListDataJurnal()
+    // {
+    //     $data    = $this->db->query("SELECT no_jurnal,tgl_jurnal,coa,sts,sum(kredit) as total, no_transaksi FROM tr_jurnal group by no_jurnal order by no_jurnal desc")->result();
+    //     return $data;
+    // }
+
     public function GetListDataJurnal()
     {
-        $data    = $this->db->query("SELECT nomor,tanggal,tipe,no_reff,stspos,sum(kredit) as total FROM jurnal group by nomor order by nomor desc")->result();
-        return $data;
+        $sql = "
+        SELECT 
+            p.id_payment,
+            p.keperluan,
+            p.payment_bank AS total,
+            j.no_jurnal,
+            MAX(j.tgl_jurnal) AS tgl_jurnal,
+            MIN(j.sts) AS sts
+        FROM payment_approve p
+        INNER JOIN tr_jurnal j 
+            ON j.no_transaksi = p.id_payment
+        GROUP BY p.id_payment, p.payment_bank
+        ORDER BY p.id_payment DESC
+        ";
+        return $this->db->query($sql)->result();
     }
 
     function generate_id_detail($no = null)

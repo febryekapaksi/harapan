@@ -123,7 +123,7 @@ if ($type == 'expense') {
 					<tr>
 						<th width="5">#</th>
 						<th class="exclass">COA</th>
-						<th class="exclass">Barang/Jasa</th>
+						<th class="exclass">Barang/Jasa & Keterangan</th>
 						<th>Tanggal Transaksi</th>
 						<th class="exclass">Jumlah</th>
 						<th class="exclass">Currency</th>
@@ -150,14 +150,12 @@ if ($type == 'expense') {
 									$harga = $dtl->kasbon * -1;
 								}
 
-
-
 								$gTotal += ($data_req_payment['jumlah'] + $data_req_payment['admin_bank'] - $data_req_payment['total_pph']); ?>
 								<tr>
 									<td><?= $n; ?></td>
 									<td><?= $coa . ' - ' . $nm_coa; ?></td>
-									<td><?= $dtl->deskripsi; ?> <?= (isset($dtl->id_kasbon) && $dtl->id_kasbon !== '') ? "<b>(Kasbon)</b>" : null ?></td>
-									<td><?= $dtl->tanggal; ?></td>
+									<td style="min-width: 100px;"><?= $dtl->keterangan; ?> <?= (isset($dtl->id_kasbon) && $dtl->id_kasbon !== '') ? "<b>(Kasbon)</b>" : null ?></td>
+									<td><?= date('d-M-Y', strtotime($dtl->tanggal)) ?></td>
 									<td><?= $dtl->qty; ?></td>
 									<td><?= $data_req_payment['currency']; ?></td>
 									<!-- <td class="text-left">
@@ -192,7 +190,7 @@ if ($type == 'expense') {
 											</tr>
 										</table>
 									</td> -->
-									<td class="text-right"><?= number_format($dtl->expense) ?></td>
+									<td class="text-right" style="min-width: 100px;"><?= number_format($dtl->expense) ?></td>
 									<td class="text-center">
 										<?php
 
