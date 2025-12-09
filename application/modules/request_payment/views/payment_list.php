@@ -53,9 +53,9 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 							if ($record->tipe == 'kasbon') {
 								$get_kasbon = $this->db->get_where('tr_kasbon', array('no_doc' => $record->no_doc))->row();
 
-								if ($get_kasbon->no_kasbon_consultant !== null) {
-									$no_doc = $get_kasbon->no_kasbon_consultant;
-								}
+								// if ($get_kasbon->no_kasbon_consultant !== null) {
+								// 	$no_doc = $get_kasbon->no_kasbon_consultant;
+								// }
 
 								$check_detail = $this->db->get_where('tr_pr_detail_kasbon', ['id_kasbon' => $record->no_doc])->result();
 								if (count($check_detail)) {

@@ -1,4 +1,8 @@
-<?php if (!defined('BASEPATH')) exit('No direct script access allowed');
+<?php
+
+use FontLib\Table\Type\post;
+
+if (!defined('BASEPATH')) exit('No direct script access allowed');
 
 /*
  * @author Harboens
@@ -1388,88 +1392,91 @@ class Request_payment extends Admin_Controller
 	public function payment_jurnal_list()
 	{
 		$results = $this->Request_payment_model->GetListDataJurnal();
+
 		$this->template->set('results', $results);
 		$this->template->title('Payment Jurnal');
 		$this->template->render('list_jurnal');
 	}
 	public function view_jurnal($id)
 	{
-		$data = $this->db->query("select * from jurnal where nomor='" . $id . "' order by kredit,debet,no_perkiraan")->result();
+		$data = $this->db->query("select * from tr_jurnal where no_transaksi='" . $id . "' order by no_jurnal")->result();
 		$data_coa = $this->All_model->GetCoaCombo();
-		$results = $this->Request_payment_model->GetListDataPayment('status=1');
+		$no_transaksi = $id;
+		// $results = $this->Request_payment_model->GetListDataPayment('status=1');
 		$this->template->set('data', $data);
 		$this->template->set('datacoa', $data_coa);
-		$this->template->set('results', $results);
+		$this->template->set('no_transaksi', $no_transaksi);
+
+		// $this->template->set('results', $results);
 		$this->template->set('status', 'view');
 		$this->template->title('Payment Jurnal');
 		$this->template->render('form_jurnal');
 	}
 	public function edit_jurnal($id)
 	{
-		$data = $this->db->query("select * from jurnal where nomor='" . $id . "' order by kredit,debet,no_perkiraan")->result();
+		$data = $this->db->query("select * from tr_jurnal where no_transaksi='" . $id . "' order by no_jurnal")->result();
 		$data_coa = $this->All_model->GetCoaCombo();
-		$results = $this->Request_payment_model->GetListDataPayment('status=1');
+		$no_transaksi = $id;
+		// $results = $this->Request_payment_model->GetListDataPayment('status=1');
 		$this->template->set('data', $data);
 		$this->template->set('datacoa', $data_coa);
+		$this->template->set('no_transaksi', $no_transaksi);
 		$this->template->set('status', 'edit');
 		$this->template->title('Payment Jurnal');
 		$this->template->render('form_jurnal');
 	}
 	public function jurnal_save()
 	{
-		$id = $this->input->post("id");
-		$no_perkiraan = $this->input->post("no_perkiraan");
-		$keterangan = $this->input->post("keterangan");
-		$debet = $this->input->post("debet");
-		$kredit = $this->input->post("kredit");
-
-		$tanggal		= $this->input->post('tanggal');
+		$id 			= $this->input->post("id");
+		$no_perkiraan 	= $this->input->post("no_perkiraan");
+		$keterangan 	= $this->input->post("keterangan");
+		$debit 			= $this->input->post("debit");
+		$kredit 		= $this->input->post("kredit");
+		$tanggal		= $this->input->post('tgl_jurnal');
 		$tipe			= $this->input->post('tipe');
-		$no_reff        = $this->input->post('no_reff');
-		$no_request		= $this->input->post('no_request');
-		$jenis_jurnal	= $this->input->post('jenis_jurnal');
-		$nocust         = $this->input->post('nocust');
+
 		$total			= 0;
-		$total_po		= $this->input->post('total_po');
-		$Bln 			= substr($tanggal, 5, 2);
-		$Thn 			= substr($tanggal, 0, 4);
-		$Nomor_JV = $this->Jurnal_model->get_no_buk('101');
-		$session = $this->session->userdata('app_session');
-		$data_session	= $this->session->userdata;
+		$Nomor_JV 		= $this->Jurnal_model->get_no_buk('101');
+		$no_transaksi 	= $this->input->post("no_transaksi");
+		$tgl_jurnal  	= date('Y-m-d');
 
 		$this->db->trans_begin();
 		for ($i = 0; $i < count($id); $i++) {
 			$dataheader =  array(
-				'stspos' => "1",
-				'no_perkiraan' => $no_perkiraan[$i],
+				'sts' => "1",
+				'coa' => $no_perkiraan[$i],
 				'keterangan' => $keterangan[$i],
-				'debet' => $debet[$i],
+				'debit' => $debit[$i],
 				'kredit' => $kredit[$i]
 			);
-			$total = ($total + $debet[$i]);
-			$this->All_model->DataUpdate('jurnal', $dataheader, array('id' => $id[$i]));
+			$total = ($total + $debit[$i]);
+
+			$this->All_model->DataUpdate('tr_jurnal', $dataheader, array('id' => $id[$i]));
 
 			$datadetail = array(
-				'tipe'        	=> $tipe,
-				'nomor'       	=> $Nomor_JV,
-				'tanggal'     	=> $tanggal,
-				'no_reff'     	=> $no_reff,
+				'tipe'        	=> $tipe[$i],
+				'nomor'       	=> $Nomor_JV[$i],
+				'tanggal'     	=> $tanggal[$i],
+				'no_reff'     	=> $no_transaksi,
 				'no_perkiraan'	=> $no_perkiraan[$i],
 				'keterangan' 	=> $keterangan[$i],
-				'debet' 		=> $debet[$i],
-				'kredit' 		=> $kredit[$i]
+				'debet' 		=> $debit[$i],
+				'kredit' 		=> $kredit[$i],
+				'created_on'	=> date('Y-m-d H:i:s'),
+				'created_by'	=> $this->auth->user_id()
 			);
+
 			$this->db->insert(DBACC . '.jurnal', $datadetail);
 		}
 
-		$keterangan	= 'Payment';
+		$keterangan	= 'Payment ' . $no_transaksi;
 		$dataJVhead = array(
 			'nomor' 	    	=> $Nomor_JV,
-			'tgl'	         	=> $tanggal,
+			'tgl'	         	=> $tgl_jurnal,
 			'jml'	            => $total,
 			'kdcab'				=> '101',
 			'jenis_reff'	    => 'BUK',
-			'no_reff' 		    => $no_reff,
+			'no_reff' 		    => $no_transaksi,
 			'jenis_ap'			=> 'V',
 			'note'				=> $keterangan,
 			'user_id'			=> $this->auth->user_name(),
