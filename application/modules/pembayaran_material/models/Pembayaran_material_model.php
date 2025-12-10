@@ -111,6 +111,7 @@ class Pembayaran_material_model extends BF_Model
 
 			$no = (0 + $start);
 			foreach ($get_data as $item) {
+				$no++;
 				$no_incoming = [];
 				$no_po = [];
 				$nm_supplier = [];
