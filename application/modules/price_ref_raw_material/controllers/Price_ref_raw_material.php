@@ -36,7 +36,8 @@ class Price_ref_raw_material extends Admin_Controller
 
     $where = [
       'deleted_date' => NULL,
-      'category' => 'product'
+      'category' => 'product',
+      'status_app' => 'Y'
     ];
     $listData = $this->Price_ref_raw_material_model->get_data($where);
 
