@@ -1455,7 +1455,7 @@ class Request_payment extends Admin_Controller
 
 			$datadetail = array(
 				'tipe'        	=> $tipe[$i],
-				'nomor'       	=> $Nomor_JV[$i],
+				'nomor'       	=> $Nomor_JV,
 				'tanggal'     	=> $tanggal[$i],
 				'no_reff'     	=> $no_transaksi,
 				'no_perkiraan'	=> $no_perkiraan[$i],
