@@ -1726,6 +1726,7 @@ class Purchase_order_payment extends Admin_Controller
 					tr_incoming_check a
 				WHERE
 					a.checked = "Y"
+					AND a.inc_inv_create IS NULL
 
 				UNION ALL
 
@@ -2094,6 +2095,7 @@ class Purchase_order_payment extends Admin_Controller
 		}
 
 		$total_invoice = 0;
+		$base = 0;
 		$get_ttl_invoice = $this->db->query("
 			SELECT
 				c.qty_oke as qty_oke,
@@ -2146,8 +2148,12 @@ class Purchase_order_payment extends Admin_Controller
 				c.category = 'incoming asset'
 		")->result();
 
-		// print_r($this->db->error($get_ttl_invoice));
-		// exit;
+		// echo '<pre>';
+		// print_r($this->db->last_query());
+		// print_r($get_ttl_invoice);
+		// echo '</pre>';
+		// die();
+
 		foreach ($get_ttl_invoice as $item_ttl_invoice) {
 			$total_invoice += ($item_ttl_invoice->hargasatuan * $item_ttl_invoice->qty_oke);
 		}
@@ -2226,7 +2232,9 @@ class Purchase_order_payment extends Admin_Controller
 			}
 		}
 
-		$nilai_ppn = ((($total_invoice * $kurs_terima_barang) - $uang_muka_idr) * 11 / 100);
+		$base       = ($total_invoice * $kurs_terima_barang) - $uang_muka_idr;
+		$nilai_ppn  = $base * 11 / 111;
+		// $nilai_ppn = ((($total_invoice * $kurs_terima_barang) - $uang_muka_idr) * 11 / 100);
 		if ($ppn_asli <= 0) {
 			$nilai_ppn = 0;
 		}
@@ -2245,7 +2253,6 @@ class Purchase_order_payment extends Admin_Controller
 			'nilai_req_payment' => $nilai_req_payment,
 			'no_po' => $arr_no_po
 		];
-
 
 		$this->template->set('results', $data);
 		$this->template->render('add_inc');
