@@ -229,11 +229,6 @@ class Pembayaran_material extends Admin_Controller
 			'jurnal_refill_petty_cash' => $jurnal_refill_petty_cash
 		];
 
-		// echo '<pre>';
-		// print_r($data);
-		// echo '</pre>';
-		// die();
-
 		$this->template->set('results', $data);
 		$this->template->render('form_payment_new');
 	}

@@ -836,6 +836,7 @@ class Request_payment extends Admin_Controller
 
 		$header['jumlah'] 	= array_sum($Harga);
 		$header['status'] 	= '1';
+		$header['tgl_bayar'] = $header['tanggal'];
 
 		$this->db->trans_rollback();
 		$this->db->trans_begin();
