@@ -31,12 +31,12 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 						<th>#</th>
 						<th>No Dokumen</th>
 						<th>Request By</th>
-						<th>Tanggal</th>
+						<th>Tanggal Pengajuan</th>
 						<th>Keperluan</th>
 						<th>Tipe</th>
 						<th>Nilai Pengajuan</th>
 						<th>Diajukan Oleh</th>
-						<th>Tanggal Pengajuan</th>
+						<th>Tanggal Request Pembayaran</th>
 						<th>Dibayar Oleh</th>
 						<th>Tanggal Pembayaran</th>
 						<th>Status</th>
@@ -95,7 +95,7 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 
 							$diajukan_oleh = (isset($list_tgl_pengajuan_pembayaran[$record->no_doc])) ? $list_tgl_pengajuan_pembayaran[$record->no_doc]['diajukan_oleh'] : '';
 
-							$this->db->select('c.nm_lengkap, a.created_on');
+							$this->db->select('c.nm_lengkap, a.created_on, b.tgl_bayar');
 							$this->db->from('tr_payment_paid a');
 							$this->db->join('payment_approve b', 'b.id_payment = a.id', 'left');
 							$this->db->join('users c', 'c.id_user = a.created_by', 'left');
@@ -103,21 +103,21 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 							$get_payment_details = $this->db->get()->row();
 
 							$dibayar_oleh = (!empty($get_payment_details)) ? $get_payment_details->nm_lengkap : '';
-							$tgl_pembayaran = (!empty($get_payment_details)) ? $get_payment_details->created_on : '';
+							$tgl_pembayaran = (!empty($get_payment_details)) ? $get_payment_details->tgl_bayar : '';
 
 							$numb++; ?>
 							<tr>
 								<td><?= $numb; ?></td>
 								<td><?= $no_doc ?></td>
 								<td><?= $nmuser ?></td>
-								<td><?= $record->tgl_doc ?></td>
+								<td><?= date('d M Y', strtotime($record->tgl_doc)) ?></td>
 								<td><?= $record->keperluan ?></td>
 								<td><?= $record->tipe ?></td>
 								<td><?= (($record->tipe == 'expense' and $record->id_kasbon != null and $record->kurang_bayar > 0) ? number_format($record->kurang_bayar) : number_format($record->jumlah)) ?></td>
 								<td class="text-center"><?= $diajukan_oleh ?></td>
-								<td class="text-center"><?= $tgl_pengajuan ?></td>
+								<td class="text-center"><?= date('d M Y', strtotime($tgl_pengajuan)) ?></td>
 								<td class="text-center"><?= $dibayar_oleh ?></td>
-								<td class="text-center"><?= $tgl_pembayaran ?></td>
+								<td class="text-center"><?= date('d M Y', strtotime($tgl_pembayaran)) ?></td>
 								<td>
 									<?php
 									$get_payment = $this->db->get_where('payment_approve', ['no_doc' => $record->no_doc, 'tgl_bayar <>' => null])->result();
