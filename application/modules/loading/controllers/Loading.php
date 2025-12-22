@@ -366,6 +366,7 @@ class Loading extends Admin_Controller
             s.no_delivery,
             s.no_so,
             s.pengiriman,
+            s.notes,
             so.nama_sales,
             DATE_FORMAT(s.tanggal_spk, "%d %M %Y") AS tanggal_spk,
             c.name_customer,
@@ -378,10 +379,10 @@ class Loading extends Admin_Controller
             (p.weight * d.qty_belum_muat) AS jumlah_berat
         ')
             ->from('spk_delivery_detail d')
-            ->join('spk_delivery s', 's.no_delivery = d.no_delivery')
-            ->join('sales_order so', 'so.no_so = s.no_so')
-            ->join('master_customers c', 'c.id_customer = s.id_customer')
-            ->join('new_inventory_4 p', 'p.code_lv4 = d.id_product')
+            ->join('spk_delivery s', 's.no_delivery = d.no_delivery', 'left')
+            ->join('sales_order so', 'so.no_so = s.no_so', 'left')
+            ->join('master_customers c', 'c.id_customer = s.id_customer', 'left')
+            ->join('new_inventory_4 p', 'p.code_lv4 = d.id_product', 'left')
             // ->join('loading_delivery_detail l', 'l.id_spk_detail = d.id', 'left') // per item, bukan per delivery
             ->where('s.pengiriman', "Gudang")
             ->where('d.qty_belum_muat >', 0)

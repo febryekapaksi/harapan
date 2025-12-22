@@ -152,13 +152,6 @@
                 <tbody>
                     <?php
 
-                    // $this->db->select('a.*, b.qty as qty_po, b.hargasatuan, c.no_surat');
-                    // $this->db->from('tr_incoming_check_detail a');
-                    // $this->db->join('dt_trans_po b', 'b.id = a.id_po_detail');
-                    // $this->db->join('tr_purchase_order c', 'c.no_po = b.no_po');
-                    // $this->db->where('a.kode_trans', $id_incoming);
-                    // $get_detail_inc = $this->db->get()->result();
-
                     $get_detail_inc = $this->db->query("
                         SELECT
                             e.qty_oke as qty_order,   
