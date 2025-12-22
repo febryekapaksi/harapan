@@ -1721,7 +1721,7 @@ class Purchase_order_payment extends Admin_Controller
 					a.no_ipp as no_ipp,
 					a.inc_inv_create as inc_inv_create,
 					a.tanggal as tanggal,
-					"incoming material" as tipe_incoming
+					"incoming product" as tipe_incoming
 				FROM
 					tr_incoming_check a
 				WHERE
@@ -1791,7 +1791,6 @@ class Purchase_order_payment extends Admin_Controller
 		}
 
 		$get_supplier = $this->db->get('new_supplier')->result();
-
 
 		$this->template->set('list_inc', $get_list_inc);
 		$this->template->set('no_po', $no_po);
@@ -2148,11 +2147,7 @@ class Purchase_order_payment extends Admin_Controller
 				c.category = 'incoming asset'
 		")->result();
 
-		// echo '<pre>';
-		// print_r($this->db->last_query());
-		// print_r($get_ttl_invoice);
-		// echo '</pre>';
-		// die();
+
 
 		foreach ($get_ttl_invoice as $item_ttl_invoice) {
 			$total_invoice += ($item_ttl_invoice->hargasatuan * $item_ttl_invoice->qty_oke);
@@ -2253,6 +2248,11 @@ class Purchase_order_payment extends Admin_Controller
 			'nilai_req_payment' => $nilai_req_payment,
 			'no_po' => $arr_no_po
 		];
+
+		echo '<pre>';
+		print_r($data);
+		echo '</pre>';
+		die();
 
 		$this->template->set('results', $data);
 		$this->template->render('add_inc');
