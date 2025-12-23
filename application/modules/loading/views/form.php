@@ -399,10 +399,15 @@ $isApproval = (isset($mode) && $mode == 'approval');
                         // Skip jika id_spk_detail sudah pernah dipilih
                         if (selectedIds.includes(item.id.toString())) return;
 
+                        const notesHtml = (item.notes && item.notes.trim() !== "") ?
+                            ` <span class='badge bg-yellow'>${item.notes}</span>` :
+                            "";
+
+
                         if (item.no_delivery !== currentSpk) {
                             html += `
                                     <tr class="spk-header" data-spk="${item.no_delivery}" style="background-color:#f0f0f0; font-weight:bold;">
-                                        <td colspan="8">No SPK : ${item.no_delivery} / Sales : ${item.nama_sales}</td>
+                                        <td colspan="8">No SPK : ${item.no_delivery} / Sales : ${item.nama_sales} ${notesHtml}</td>
                                     </tr>
                                 `;
                             currentSpk = item.no_delivery;
