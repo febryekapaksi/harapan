@@ -1,13 +1,13 @@
 <?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
-class Retur_produk extends Admin_Controller
+class Retur_credit_note extends Admin_Controller
 {
     //Permission
-    protected $viewPermission   = 'Retur_produk.View';
-    protected $addPermission    = 'Retur_produk.Add';
-    protected $managePermission = 'Retur_produk.Manage';
-    protected $deletePermission = 'Retur_produk.Delete';
+    protected $viewPermission   = 'Retur_credit_note.View';
+    protected $addPermission    = 'Retur_credit_note.Add';
+    protected $managePermission = 'Retur_credit_note.Manage';
+    protected $deletePermission = 'Retur_credit_note.Delete';
 
     public function __construct()
     {
@@ -15,7 +15,7 @@ class Retur_produk extends Admin_Controller
 
         $this->load->library(array('upload', 'Image_lib'));
         $this->load->model(array(
-            'Retur_produk/Retur_produk_model'
+            'Retur_credit_note/Retur_credit_note_model'
         ));
 
         date_default_timezone_set('Asia/Bangkok');
@@ -23,58 +23,60 @@ class Retur_produk extends Admin_Controller
 
     public function index()
     {
-        $this->template->title('Retur Produk');
-        $this->template->page_icon('fa fa-truck');
+        $this->template->title('Retur Credit Note');
+        $this->template->page_icon('fa fa-clipboard');
         $this->template->render('index');
     }
 
-    public function data_side_retur()
+    public function data_side_inv()
     {
-        $this->Retur_produk_model->data_side_retur();
+        $this->Retur_credit_note_model->data_side_inv();
     }
 
     public function add($id)
     {
         $sql = "
                 SELECT 
-                    sj.no_surat_jalan, 
-                    sj.no_so, 
+                    i.id_invoice, 
+                    i.id_billing, 
+                    i.id_so, 
                     sj.pengiriman, 
-                    so.id_customer, 
-                    mc.name_customer
-                FROM surat_jalan sj
-                JOIN sales_order so ON sj.no_so = so.no_so
-                JOIN master_customers mc ON so.id_customer = mc.id_customer
-                WHERE sj.id = ?
-                ORDER BY sj.no_surat_jalan DESC
+                    i.id_customer, 
+                    i.nm_customer
+                FROM tr_invoice_sales i
+                JOIN surat_jalan sj ON i.id_billing = sj.no_surat_jalan
+                WHERE i.id_invoice = ?
+                ORDER BY i.id_invoice DESC
             ";
-        $sj = $this->db->query($sql, [$id])->row_array();
+        $inv = $this->db->query($sql, [$id])->row_array();
 
         $sql2 = "
             SELECT 
+                dt.id_so, 
                 sjd.id_so_det, 
-                sjd.id_product, 
-                sjd.product as nm_product, 
-                sjd.qty as qty_order, 
-                sjd.qty_terkirim, 
-                sjd.qty_retur, 
-                sod.harga_penawaran as harga,
-                (sjd.qty_retur * sod.harga_penawaran) as total
-            FROM surat_jalan_detail sjd
-            JOIN sales_order_detail sod ON sjd.id_so_det = sod.id
-            WHERE sjd.id_sj = ?
-            AND sjd.qty_retur != 0
-            ORDER BY sjd.id_so_det;
+                dt.id_penawaran, 
+                dt.id_delivery, 
+                dt.id_produk, 
+                dt.nm_produk, 
+                round(dt.qty) as qty, 
+                dt.harga, 
+                round(dt.qty * dt.harga) as total
+            FROM tr_invoice_sales_detail dt
+            JOIN surat_jalan_detail sjd 
+                ON dt.id_delivery   = sjd.no_surat_jalan
+                AND dt.id_produk    = sjd.id_product
+            WHERE dt.id_invoice = ?
+            ORDER BY dt.id_invoice;
         ";
         $detail = $this->db->query($sql2, [$id])->result_array();
 
         $data = [
-            'sj' => $sj,
+            'inv' => $inv,
             'detail' => $detail,
         ];
 
-        $this->template->title('Request Retur');
-        $this->template->page_icon('fa fa-truck');
+        $this->template->title('Request Credit Note');
+        $this->template->page_icon('fa fa-clipboard');
         $this->template->render('form', $data);
     }
 
@@ -88,9 +90,9 @@ class Retur_produk extends Admin_Controller
         // UNTUK BUAT NOMOR RETUR
         $Ym = date('ym');
         if ($tipe == 'Pabrik') {
-            $SQL = "SELECT MAX(no_retur) as maxM FROM tr_retur WHERE no_retur LIKE 'RT/P/{$Ym}/%'";
+            $SQL = "SELECT MAX(no_retur) as maxM FROM tr_retur WHERE no_retur LIKE 'CN/P/{$Ym}/%'";
         }
-        $SQL = "SELECT MAX(no_retur) as maxM FROM tr_retur WHERE no_retur LIKE 'RT/G/{$Ym}/%'";
+        $SQL = "SELECT MAX(no_retur) as maxM FROM tr_retur WHERE no_retur LIKE 'CN/G/{$Ym}/%'";
         $result = $this->db->query($SQL)->result_array();
         $angkaUrut = $result[0]['maxM'];
 
@@ -105,15 +107,15 @@ class Retur_produk extends Admin_Controller
         $formatUrut = sprintf('%04s', $urutan);
 
         if ($tipe == 'Pabrik') {
-            $no_retur = "RT/P/{$Ym}/{$formatUrut}";
+            $no_retur = "CN/P/{$Ym}/{$formatUrut}";
         }
-        $no_retur = "RT/G/{$Ym}/{$formatUrut}";
-        $no_surat_jalan = $post['no_surat_jalan'];
+        $no_retur = "CN/G/{$Ym}/{$formatUrut}";
+        $no_surat_jalan = $post['id_billing'];
 
         $ArrHeader = [
             'no_retur'         => $no_retur,
             'no_surat_jalan'   => $no_surat_jalan,
-            'no_so'            => $post['no_so'],
+            'no_so'            => $post['id_so'],
             'id_customer'      => $post['id_customer'],
             'nm_customer'      => $post['nm_customer'],
             'alasan'           => $post['alasan'],
@@ -123,7 +125,7 @@ class Retur_produk extends Admin_Controller
             'created_by'       => $this->auth->user_id(),
             'created_date'     => date('Y-m-d H:i:s'),
             'status'           => 1,
-            'jenis_retur'      => 1
+            'jenis_retur'      => 2
         ];
 
         // Prepare Detail
@@ -133,9 +135,9 @@ class Retur_produk extends Admin_Controller
                 'no_retur'        => $no_retur,
                 'no_surat_jalan'  => $no_surat_jalan,
                 'id_so_det'       => $value['id_so_det'],
-                'id_product'      => $value['id_product'],
-                'nm_product'      => $value['nm_product'],
-                'qty_retur'       => $value['qty_retur'],
+                'id_product'      => $value['id_produk'],
+                'nm_product'      => $value['nm_produk'],
+                'qty_retur'       => $value['qty'],
                 'alasan'          => $value['alasan_retur'],
                 'harga'           => str_replace(',', '', $value['harga']),
                 'total'           => str_replace(',', '', $value['total']),
@@ -281,5 +283,33 @@ class Retur_produk extends Admin_Controller
                 'status' => 1
             ]);
         }
+    }
+
+    public function view($id)
+    {
+        $sql = "
+                SELECT *
+                FROM tr_retur r
+                WHERE r.id = ?
+                ORDER BY r.id DESC
+            ";
+        $inv = $this->db->query($sql, [$id])->row_array();
+
+        $sql2 = "
+            SELECT *
+            FROM tr_retur_detail dt
+            WHERE dt.no_retur = ?
+            ORDER BY dt.no_retur;
+        ";
+        $detail = $this->db->query($sql2, [$inv['no_retur']])->result_array();
+
+        $data = [
+            'inv' => $inv,
+            'detail' => $detail,
+        ];
+
+        $this->template->title('Request Credit Note');
+        $this->template->page_icon('fa fa-clipboard');
+        $this->template->render('form', $data);
     }
 }
