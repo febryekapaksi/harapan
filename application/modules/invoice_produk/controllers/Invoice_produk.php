@@ -415,13 +415,9 @@ class Invoice_produk extends Admin_Controller
 			$data = [
 				'tipe_billing' => $tipe_billing,
 				'id_billing' => $id,
+				'id_invoice' => $id_invoice,
 				'no_so' => $no_so,
-				// 'list_other_cost' => $get_other_cost,
 				'list_so_detail' => $get_so_detail,
-				// 'persen_dp' => $persen_dp,
-				// 'persen_retensi' => $persen_retensi,
-				// 'persen_jaminan' => $persen_jaminan,
-				// 'currency' => $get_penawaran->currency,
 				'persen_ppn' => $get_penawaran->ppn,
 				'data_so' => $get_so,
 				'data_penawaran' => $get_penawaran,
@@ -708,6 +704,31 @@ class Invoice_produk extends Admin_Controller
 		}
 	}
 
+	public function cancel_invoice()
+	{
+		$post = $this->input->post();
+
+		$id_invoice = $post['id_invoice'];
+
+		$ArrHeader = [
+			'updated_by' 	=> $this->auth->user_id(),
+			'updated_on' 	=> date('Y-m-d H:i:s'),
+			'is_cancel'		=> 1
+		];
+
+		$this->db->trans_begin();
+
+		$this->db->update('tr_invoice_sales', $ArrHeader, ['id_invoice' => $id_invoice]);
+
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			echo json_encode(['status' => false, 'message' => 'Gagal membatalkan Invoice.']);
+		} else {
+			$this->db->trans_commit();
+			echo json_encode(['status' => true, 'message' => 'Invoice berhasil dibatalkan.']);
+		}
+	}
+
 	public function change_tab()
 	{
 		$tipe = $this->input->post('tipe');
@@ -846,7 +867,7 @@ class Invoice_produk extends Admin_Controller
 
 			// Query + filter tanggal
 			$this->db
-				->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.created_on, sj.created_at')
+				->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.created_on, i.is_cancel, sj.created_at')
 				->from('surat_jalan sj')
 				->join('tr_invoice_sales i', 'sj.no_surat_jalan = i.id_billing AND i.tipe_billing="delivery"', 'left')
 				->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
@@ -854,6 +875,7 @@ class Invoice_produk extends Admin_Controller
 				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
 				->where('sj.status !=', 'ON DELIVER')
 				->where('sj.status IS NOT NULL')
+				// ->where('i.is_cancel IS NULL')
 				->order_by('sj.created_at', 'DESC', false);
 
 			// Pakai tanggal invoice jika ada, fallback ke tanggal SJ (ganti sj.created_on ke kolom tanggal SJ-mu jika berbeda)
@@ -940,16 +962,20 @@ class Invoice_produk extends Admin_Controller
 				$edit = '<button type="button" class="btn btn-sm btn-success create_invoice_modal" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" title="Create"><i class="fa fa-check"></i></button>';
 
 				$check_invoice_dp = $this->db->get_where('tr_invoice_sales', ['id_billing' => $item->no_surat_jalan, 'tipe_billing' => 'delivery'])->num_rows();
-				if ($check_invoice_dp > 0) {
-					$get_invoice_dp = $this->db->get_where('tr_invoice_sales', ['id_billing' => $item->no_surat_jalan, 'tipe_billing' => 'delivery'])->row();
-
-					$view = '<button type="button" class="btn btn-sm btn-info view_invoice_modal_delivery" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '"><i class="fa fa-eye"></i></button>';
-
-					$print = '<a href="invoice_produk/print_invoice_delivery/' .  $get_invoice_dp->id_invoice . '" target="_blank" class="btn btn-sm btn-primary print_invoice_delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '" title="Print Invoice"><i class="fa fa-print"></i></a>';
-
-					$button = $view . ' ' . $print;
+				if ($item->is_cancel != null) {
+					$button = '<span class="badge bg-red">Credit Note</span>';
 				} else {
-					$button = $edit;
+					if ($check_invoice_dp > 0) {
+						$get_invoice_dp = $this->db->get_where('tr_invoice_sales', ['id_billing' => $item->no_surat_jalan, 'tipe_billing' => 'delivery'])->row();
+
+						$view = '<button type="button" class="btn btn-sm btn-info view_invoice_modal_delivery" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '"><i class="fa fa-eye"></i></button>';
+
+						$print = '<a href="invoice_produk/print_invoice_delivery/' .  $get_invoice_dp->id_invoice . '" target="_blank" class="btn btn-sm btn-primary print_invoice_delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '" title="Print Invoice"><i class="fa fa-print"></i></a>';
+
+						$button = $view . ' ' . $print;
+					} else {
+						$button = $edit;
+					}
 				}
 
 				$hasil .=	 '<td class="text-center">

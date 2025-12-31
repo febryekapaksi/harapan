@@ -2,6 +2,7 @@
 $id_so = $results['no_so'];
 $id_billing = $results['id_billing'];
 $tipe_billing = $results['tipe_billing'];
+$id_invoice = isset($results['id_invoice']) ? $results['id_invoice'] : null;
 ?>
 <!-- <div class="col-md-6">
     <div class="form-group">
@@ -178,6 +179,7 @@ $tipe_billing = $results['tipe_billing'];
 <input type="hidden" class="nm_customer" name="nm_customer" value="<?= $results['data_penawaran']->name_customer ?>">
 <input type="hidden" class="total_harga_beli" name="total_harga_beli" value="<?= $grand_total_beli ?>">
 <input type="hidden" class="tipe_billing" name="tipe_billing" value="<?= $tipe_billing ?>">
+<input type="hidden" class="id_invoice" name="id_invoice" value="<?= $id_invoice ?>">
 <input type="hidden" class="no_so" name="no_so" value="<?= $id_so ?>">
 <input type="hidden" class="id_billing" name="id_billing" value="<?= $id_billing ?>">
 <input type="hidden" class="tipe_so" name="tipe_so" value="<?= $results['data_so']->tipe_so ?>">
@@ -227,10 +229,10 @@ $tipe_billing = $results['tipe_billing'];
             <td><input type="text" id="no_coa1" name="no_coa[]" value="1102-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet1" name="debet[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
-                <input type="text" id="debet21" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control" readonly />
+                <input type="text" id="debet21" name="debet2[]" value="<?= $total_tagihan ?>" class="form-control text-right" readonly />
             </td>
             <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
-                <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+                <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control text-right" readonly />
             </td>
 
         </tr>
@@ -240,10 +242,10 @@ $tipe_billing = $results['tipe_billing'];
             <td><input type="text" id="no_coa2" name="no_coa[]" value="2102-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Uang Muka Penjualan" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
-                <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+                <input type="text" id="debet22" name="debet2[]" value="0" class="form-control text-right" readonly />
             </td>
             <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
-                <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+                <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control text-right" readonly />
             </td>
 
         </tr>
@@ -253,10 +255,10 @@ $tipe_billing = $results['tipe_billing'];
             <td><input type="text" id="no_coa3" name="no_coa[]" value="2103-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa3" name="nama_coa[]" value="PPN Keluaran" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
-                <input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
+                <input type="text" id="debet23" name="debet2[]" value="0" class="form-control text-right" readonly />
             </td>
             <td><input type="hidden" id="kredit3" name="kredit[]" value="<?= round($nilai_ppn, 0) ?>" class="form-control" readonly />
-                <input type="text" id="kredit23" name="kredit2[]" value="<?= round($nilai_ppn, 0) ?>" class="form-control" readonly />
+                <input type="text" id="kredit23" name="kredit2[]" value="<?= round($nilai_ppn, 0) ?>" class="form-control text-right" readonly />
             </td>
 
         </tr>
@@ -266,10 +268,10 @@ $tipe_billing = $results['tipe_billing'];
             <td><input type="text" id="no_coa4" name="no_coa[]" value="4101-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa4" name="nama_coa[]" value="PENDAPATAN PENJUALAN Produk" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet4" name="debet[]" value="0" class="form-control" readonly />
-                <input type="text" id="debet24" name="debet2[]" value="0" class="form-control" readonly />
+                <input type="text" id="debet24" name="debet2[]" value="0" class="form-control text-right" readonly />
             </td>
             <td><input type="hidden" id="kredit4" name="kredit[]" value="<?= round($excludeppn, 0) ?>" class="form-control" readonly />
-                <input type="text" id="kredit24" name="kredit2[]" value="<?= round($excludeppn, 0) ?>" class="form-control" readonly />
+                <input type="text" id="kredit24" name="kredit2[]" value="<?= round($excludeppn, 0) ?>" class="form-control text-right" readonly />
             </td>
 
         </tr>
@@ -279,10 +281,10 @@ $tipe_billing = $results['tipe_billing'];
             <td><input type="text" id="no_coa5" name="no_coa[]" value="5101-01-01" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa5" name="nama_coa[]" value="HPP" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet5" name="debet[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="debet25" name="debet2[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
+                <input type="text" id="debet25" name="debet2[]" value="<?= $grand_total_beli ?>" class="form-control text-right" readonly />
             </td>
             <td><input type="hidden" id="kredit5" name="kredit[]" value="0" class="form-control" readonly />
-                <input type="text" id="kredit25" name="kredit2[]" value="0" class="form-control" readonly />
+                <input type="text" id="kredit25" name="kredit2[]" value="0" class="form-control text-right" readonly />
             </td>
 
         </tr>
@@ -292,21 +294,21 @@ $tipe_billing = $results['tipe_billing'];
             <td><input type="text" id="no_coa6" name="no_coa[]" value="1104-01-03" class="form-control" readonly /></td>
             <td><input type="text" id="nama_coa6" name="nama_coa[]" value="Persediaan Barang In Customer" class="form-control" readonly /></td>
             <td><input type="hidden" id="debet6" name="debet[]" value="0" class="form-control" readonly />
-                <input type="text" id="debet26" name="debet2[]" value="0" class="form-control" readonly />
+                <input type="text" id="debet26" name="debet2[]" value="0" class="form-control text-right" readonly />
             </td>
             <td><input type="hidden" id="kredit6" name="kredit[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="kredit26" name="kredit2[]" value="<?= $grand_total_beli ?>" class="form-control" readonly />
+                <input type="text" id="kredit26" name="kredit2[]" value="<?= $grand_total_beli ?>" class="form-control text-right" readonly />
             </td>
 
         </tr>
 
         <tr bgcolor='#DCDCDC'>
-            <td colspan="3" align="right"><b>TOTAL</b></td>
+            <td colspan="4" align="right"><b>TOTAL</b></td>
             <td align="right"><input type="hidden" id="total" name="total" value="<?= $total_tagihan + $grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="total31" name="total3" value="<?= $total_tagihan + $grand_total_beli  ?>" class="form-control" readonly />
+                <input type="text" id="total31" name="total3" value="<?= $total_tagihan + $grand_total_beli  ?>" class="form-control text-right" readonly />
             </td>
             <td align="right"><input type="hidden" id="total2" name="total2" value="<?= round($nilai_ppn, 0) + round($excludeppn, 0) + $grand_total_beli ?>" class="form-control" readonly />
-                <input type="text" id="total41" name="total4" value="<?= round($nilai_ppn, 0) + round($excludeppn, 0) + $grand_total_beli ?>" class="form-control" readonly />
+                <input type="text" id="total41" name="total4" value="<?= round($nilai_ppn, 0) + round($excludeppn, 0) + $grand_total_beli ?>" class="form-control text-right" readonly />
             </td>
 
         </tr>

@@ -105,7 +105,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 
 						$edit = '<button type="button" class="btn btn-sm btn-success create_invoice_modal" data-no_so="' . $item->no_so . '" data-id="' . $item->id . '" data-tipe_billing="dp" title="Create"><i class="fa fa-check"></i></button>';
 
-						$view = '<button type="button" class="btn btn-sm btn-info view_invoice_modal" data-no_so="' . $item->no_so . '" data-id="' . $item->id . '" data-tipe_billing="dp"><i class="fa fa-eye"></i></button>';
+						$view = '<button type="button" class="btn btn-sm btn-info view_invoice_modal"  data-no_so="' . $item->no_so . '" data-id="' . $item->id . '" data-tipe_billing="dp"><i class="fa fa-eye"></i></button>';
 
 						$print = '<a href="invoice_produk/print_invoice_dp/' . $id_invoice . '" class="btn btn-sm btn-primary print_invoice_dp" target="_blank" data-id_invoice="' . $id_invoice . '" title="Print Invoice"><i class="fa fa-print"></i></a>';
 
@@ -160,14 +160,17 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 				<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
 				<h4 class="modal-title" id="myModalLabel">View Invoice</h4>
 			</div>
-			<div class="modal-body" id="ModalView2">
-				...
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-danger" data-dismiss="modal">
-					<span class="glyphicon glyphicon-remove"></span> Close
-				</button>
-			</div>
+			<form action="" id="frm-view">
+				<div class="modal-body" id="ModalView2">
+					...
+				</div>
+				<div class="modal-footer">
+					<button type="submit" id="cancelInvoice" class="btn btn-warning"><i class="fa fa-ban"></i> Cancel Invoice</button>
+					<button type="button" class="btn btn-danger" data-dismiss="modal">
+						<span class="glyphicon glyphicon-remove"></span> Close
+					</button>
+				</div>
+			</form>
 		</div>
 	</div>
 </div>
@@ -339,6 +342,50 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 							});
 						} else {
 							swal('Failed!', 'Invoice has not been created!', 'warning');
+						}
+					},
+					error: function() {
+						swal('Error!', 'Please try again later!', 'error');
+					}
+				});
+			}
+		});
+	});
+
+	$(document).on('submit', '#frm-view', function(e) {
+		e.preventDefault();
+
+		const form = document.getElementById('frm-view');
+		const formData = new FormData(form);
+
+		swal({
+			title: "Warning!",
+			text: "Are you sure to cancel this invoice?",
+			type: "warning",
+			showCancelButton: true,
+			confirmButtonText: "Yes, Cancel Invoice",
+			confirmButtonColor: "#00a65a",
+			cancelButtonColor: "#c9302c"
+		}, function(confirm) {
+			if (confirm) {
+				$.ajax({
+					type: 'POST',
+					url: siteurl + active_controller + 'cancel_invoice',
+					data: formData,
+					contentType: false,
+					processData: false,
+					dataType: 'json',
+					success: function(result) {
+						if (result.status) {
+							swal({
+								title: 'Success!',
+								text: result.message,
+								type: 'success'
+							}, function() {
+								window.location.href = siteurl + active_controller;
+							});
+						} else {
+							swal('Failed!', 'Invoice has not been canceled!', 'warning');
 						}
 					},
 					error: function() {
