@@ -308,8 +308,8 @@ class Retur_credit_note extends Admin_Controller
             'detail' => $detail,
         ];
 
-        $this->template->title('Request Credit Note');
+        $this->template->title('View Credit Note');
         $this->template->page_icon('fa fa-clipboard');
-        $this->template->render('form', $data);
+        $this->template->render('view', $data);
     }
 }
