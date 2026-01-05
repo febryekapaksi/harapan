@@ -1410,8 +1410,8 @@ function move_warehouse_adjustment($ArrUpdateStock = null, $id_gudang_dari = nul
 				$ArrHist[$key]['qty_stock_akhir'] 	= $rest_pusat[0]->qty_stock - $value;
 				$ArrHist[$key]['qty_booking_awal'] 	= $rest_pusat[0]->qty_booking;
 				$ArrHist[$key]['qty_booking_akhir'] = $rest_pusat[0]->qty_booking;
-				$ArrHist[$key]['qty_rusak_awal'] 	= $rest_pusat[0]->qty_rusak;
-				$ArrHist[$key]['qty_rusak_akhir'] 	= $rest_pusat[0]->qty_rusak;
+				// $ArrHist[$key]['qty_rusak_awal'] 	= $rest_pusat[0]->qty_rusak;
+				// $ArrHist[$key]['qty_rusak_akhir'] 	= $rest_pusat[0]->qty_rusak;
 				$ArrHist[$key]['no_ipp'] 			= $kode_trans;
 				$ArrHist[$key]['jumlah_mat'] 		= $value;
 				$ArrHist[$key]['ket'] 				= 'pengurangan gudang ' . $keterangan;
@@ -1421,7 +1421,7 @@ function move_warehouse_adjustment($ArrUpdateStock = null, $id_gudang_dari = nul
 				$restMat	= $CI->db->get_where('new_inventory_4', array('code_lv4' => $key))->result();
 
 				$ArrStockInsert[$key]['id_material'] 	= $key;
-				$ArrStockInsert[$key]['nm_material'] 	= $restMat[0]->nama;
+				$ArrStockInsert[$key]['nm_product'] 	= $restMat[0]->nama;
 				$ArrStockInsert[$key]['id_gudang'] 		= $id_gudang_dari;
 				$ArrStockInsert[$key]['kd_gudang'] 		= $kd_gudang_dari;
 				$ArrStockInsert[$key]['qty_stock'] 		= 0 - $value;
@@ -1465,7 +1465,7 @@ function move_warehouse_adjustment($ArrUpdateStock = null, $id_gudang_dari = nul
 				$ArrStock2[$key]['update_date'] 	= $dateTime;
 
 				$ArrHist2[$key]['id_material'] 		= $key;
-				$ArrHist2[$key]['nm_material'] 		= $rest_pusat[0]->nm_material;
+				$ArrHist2[$key]['nm_material'] 		= $rest_pusat[0]->nm_product;
 				$ArrHist2[$key]['id_gudang'] 		= $id_gudang_ke;
 				$ArrHist2[$key]['kd_gudang'] 		= $kd_gudang_ke;
 				$ArrHist2[$key]['id_gudang_dari'] 	= $id_gudang_dari;
@@ -1481,8 +1481,8 @@ function move_warehouse_adjustment($ArrUpdateStock = null, $id_gudang_dari = nul
 
 				$ArrHist2[$key]['qty_booking_awal'] = $rest_pusat[0]->qty_booking;
 				$ArrHist2[$key]['qty_booking_akhir'] = $rest_pusat[0]->qty_booking;
-				$ArrHist2[$key]['qty_rusak_awal'] 	= $rest_pusat[0]->qty_rusak;
-				$ArrHist2[$key]['qty_rusak_akhir'] 	= $rest_pusat[0]->qty_rusak;
+				// $ArrHist2[$key]['qty_rusak_awal'] 	= $rest_pusat[0]->qty_rusak;
+				// $ArrHist2[$key]['qty_rusak_akhir'] 	= $rest_pusat[0]->qty_rusak;
 				$ArrHist2[$key]['no_ipp'] 			= $kode_trans;
 				$ArrHist2[$key]['jumlah_mat'] 		= $value;
 				if ($keterangan == 'minus') {
@@ -1497,7 +1497,7 @@ function move_warehouse_adjustment($ArrUpdateStock = null, $id_gudang_dari = nul
 				$restMat	= $CI->db->get_where('new_inventory_4', array('code_lv4' => $key))->result();
 
 				$ArrStockInsert2[$key]['id_material'] 	= $key;
-				$ArrStockInsert2[$key]['nm_material'] 	= $restMat[0]->nama;
+				$ArrStockInsert2[$key]['nm_product'] 	= $restMat[0]->nama;
 				$ArrStockInsert2[$key]['id_gudang'] 	= $id_gudang_ke;
 				$ArrStockInsert2[$key]['kd_gudang'] 	= $kd_gudang_ke;
 				if ($keterangan == 'minus') {
@@ -1542,15 +1542,6 @@ function move_warehouse_adjustment($ArrUpdateStock = null, $id_gudang_dari = nul
 		}
 	}
 
-	// print_r($ArrStock);
-	// print_r($ArrHist);
-	// print_r($ArrStockInsert);
-	// print_r($ArrHistInsert);
-	// print_r($ArrStock2);
-	// print_r($ArrHist2);
-	// print_r($ArrStockInsert2);
-	// print_r($ArrHistInsert2);
-	// exit;
 
 	if (!empty($ArrStock)) {
 		$CI->db->update_batch('warehouse_stock', $ArrStock, 'id');

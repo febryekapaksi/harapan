@@ -57,15 +57,11 @@
 				</div>
 			</div>
 			<div class='form-group row'>
-				<label class='label-control col-sm-2'><b>Material Name <span class='text-red'>*</span></b></label>
+				<label class='label-control col-sm-2'><b>Product Name <span class='text-red'>*</span></b></label>
 				<div class='col-sm-4'>
 					<select name='id_material' id='id_material' class='form-control select2'>
 						<option value='0'>Select Product</option>
-						<?php
-						foreach ($product as $val => $valx) {
-							echo "<option value='" . $valx['id_material'] . "'>" . strtoupper($valx['nm_product']) . "</option>";
-						}
-						?>
+
 					</select>
 				</div>
 				<label class='label-control col-sm-2'><b>Qty <span class='text-red'>*</span></b></label>
