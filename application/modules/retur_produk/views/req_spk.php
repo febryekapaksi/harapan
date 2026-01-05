@@ -12,6 +12,7 @@
                             <div class="col-md-8">
                                 <input type="text" id="no_so" name="no_so" class="form-control" value="<?= $retur['no_so'] ?>" readonly>
                                 <input type="hidden" name="tipe" value="<?= $retur['tipe'] ?>">
+                                <input type="hidden" name="no_retur" value="<?= $retur['no_retur'] ?>">
                             </div>
                         </div>
 

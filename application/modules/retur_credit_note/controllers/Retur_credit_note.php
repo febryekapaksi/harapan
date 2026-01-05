@@ -116,6 +116,7 @@ class Retur_credit_note extends Admin_Controller
             'no_retur'         => $no_retur,
             'no_surat_jalan'   => $no_surat_jalan,
             'no_so'            => $post['id_so'],
+            'id_invoice'       => $post['id_invoice'],
             'id_customer'      => $post['id_customer'],
             'nm_customer'      => $post['nm_customer'],
             'alasan'           => $post['alasan'],
