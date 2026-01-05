@@ -37,7 +37,7 @@ class Adjustment extends Admin_Controller
 
     history("View index adjustment material");
     $this->template->page_icon('fa fa-cubes');
-    $this->template->title('Adjusment Stok');
+    $this->template->title('Adjusment Product');
     $this->template->render('index', $data);
   }
 
@@ -72,7 +72,7 @@ class Adjustment extends Admin_Controller
 
       $Ym       = date('ym');
 
-      $srcMtr        = "SELECT MAX(kode_trans) as maxP FROM warehouse_adjustment WHERE kode_trans LIKE 'TRA" . $Ym . "%' ";
+      $srcMtr        = "SELECT MAX(kode_trans) as maxP FROM warehouse_adjustment WHERE kode_trans LIKE 'ADJ" . $Ym . "%' ";
       $resultMtr    = $this->db->query($srcMtr)->result_array();
       $angkaUrut2    = $resultMtr[0]['maxP'];
       $urutan2      = (int)substr($angkaUrut2, 7, 4);
@@ -135,11 +135,11 @@ class Adjustment extends Admin_Controller
         $id_gudang_ke   = $id_gudang_ke;
       }
 
-      echo '<pre>';
-      print_r($ArrHeader);
-      print_r($ArrDetail);
-      echo '</pre>';
-      die();
+      // echo '<pre>';
+      // print_r($ArrHeader);
+      // print_r($ArrDetail);
+      // echo '</pre>';
+      // die();
 
       $this->db->trans_start();
       $this->db->insert('warehouse_adjustment', $ArrHeader);
@@ -171,7 +171,8 @@ class Adjustment extends Admin_Controller
         'product'    => $product,
       );
 
-      $this->template->title('Add Adjustment');
+      $this->template->page_icon('fa fa-edit');
+      $this->template->title('Form Adjustment');
       $this->template->render('add', $data);
     }
   }
@@ -264,10 +265,10 @@ class Adjustment extends Admin_Controller
   public function list_material()
   {
 
-    $Q_result  = $this->db->order_by('nama', 'asc')->get_where('new_inventory_4', array('category' => 'material', 'deleted_date' => NULL))->result();
-    $option = "<option value='0'>Select Material</option>";
+    $Q_result  = $this->db->order_by('nm_product', 'asc')->get_where('warehouse_stock')->result();
+    $option = "<option value='0'>Select Product</option>";
     foreach ($Q_result as $row) {
-      $option .= "<option value='" . $row->code_lv4 . "'>" . $row->nama . "</option>";
+      $option .= "<option value='" . $row->id_material . "'>" . $row->nm_product . "</option>";
     }
     echo json_encode(array(
       'option' => $option
