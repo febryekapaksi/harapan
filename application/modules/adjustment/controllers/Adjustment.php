@@ -78,7 +78,7 @@ class Adjustment extends Admin_Controller
       $urutan2      = (int)substr($angkaUrut2, 7, 4);
       $urutan2++;
       $urut2        = sprintf('%04s', $urutan2);
-      $kode_trans    = "TRA" . $Ym . $urut2;
+      $kode_trans    = "ADJ" . $Ym . $urut2;
 
       $nm_material  = get_name('new_inventory_4', 'nama', 'code_lv4', $id_material);
 
@@ -135,9 +135,11 @@ class Adjustment extends Admin_Controller
         $id_gudang_ke   = $id_gudang_ke;
       }
 
-      // print_r($ArrHeader);
-      // print_r($ArrDetail);
-      // exit;
+      echo '<pre>';
+      print_r($ArrHeader);
+      print_r($ArrDetail);
+      echo '</pre>';
+      die();
 
       $this->db->trans_start();
       $this->db->insert('warehouse_adjustment', $ArrHeader);
@@ -157,7 +159,7 @@ class Adjustment extends Admin_Controller
           'status'  => 1
         );
         move_warehouse_adjustment($ArrStock, $id_gudang_dari, $id_gudang_ke, $kode_trans, $adjustment_type);
-        history("Adjustment material " . $adjustment_type . " : " . $kode_trans);
+        history("Adjustment product " . $adjustment_type . " : " . $kode_trans);
       }
       echo json_encode($Arr_Data);
     } else {
