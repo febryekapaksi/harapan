@@ -84,7 +84,7 @@ class Adjustment extends Admin_Controller
 
       $ArrHeader = array(
         'kode_trans'         => $kode_trans,
-        'category'           => 'adjustment material',
+        'category'           => 'adjustment product',
         'tanggal'           => date('Y-m-d'),
         'adjustment_type'   => $adjustment_type,
         'jumlah_mat'         => $qty_oke,
@@ -162,9 +162,11 @@ class Adjustment extends Admin_Controller
       echo json_encode($Arr_Data);
     } else {
 
-      $gudang  = $this->db->order_by('urut', 'asc')->get_where('warehouse', array('desc !=' => 'stok', 'status' => 'Y'))->result_array();
+      $gudang  = $this->db->order_by('urut', 'asc')->get_where('warehouse', array('desc' => 'product', 'status' => 'Y'))->result_array();
+      $product = $this->db->order_by('nm_product', 'asc')->get_where('warehouse_stock')->result_array();
       $data = array(
         'gudang'    => $gudang,
+        'product'    => $product,
       );
 
       $this->template->title('Add Adjustment');
