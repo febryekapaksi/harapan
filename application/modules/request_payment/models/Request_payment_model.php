@@ -1083,8 +1083,8 @@ class Request_payment_model extends BF_Model
             $list_tgl_pengajuan_pembayaran[$item_payment->no_doc] = [
                 'diajukan_oleh' => $item_payment->created_by,
                 'dibayar_oleh' => $item_payment->by_pay,
-                'tgl_pengajuan' => $item_payment->tgl_pembayaran,
-                'tgl_pembayaran' => $item_payment->tgl_pembayaran
+                'tgl_pengajuan' => $item_payment->tgl_pengajuan,
+                'tgl_pembayaran' => $item_payment->tgl_pengajuan
             ];
         }
 
