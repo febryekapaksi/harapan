@@ -178,6 +178,8 @@ class Request_payment_model extends BF_Model
         FROM tr_pengajuan_rutin a 
         JOIN tr_pengajuan_rutin_detail b ON a.no_doc = b.no_doc 
         JOIN users c ON a.created_by = c.id_user
+
+        ORDER BY tgl_doc DESC, ids DESC
     ")->result();
 
         return $data;
