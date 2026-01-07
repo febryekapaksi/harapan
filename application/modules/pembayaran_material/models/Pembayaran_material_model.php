@@ -673,6 +673,7 @@ class Pembayaran_material_model extends BF_Model
 				$kredit = str_replace(',', '', $payment_bank);
 				$charge = str_replace(',', '', $bank_charge);
 				$payment_charge = str_replace(',', '', $payment_bank_charge);
+				$informasi = $get_expense->informasi;
 
 				if (!empty($get_expense->pettycash)) {
 					$no_jurnal = 1;
@@ -1345,6 +1346,11 @@ class Pembayaran_material_model extends BF_Model
 							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $nama_coa . '">';
 							$hasil_jurnal .= '</td>';
 
+							$hasil_jurnal .= '<td>';
+							$hasil_jurnal .= $informasi;
+							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="' . $informasi . '">';
+							$hasil_jurnal .= '</td>';
+
 							$hasil_jurnal .= '<td class="text-right">';
 							$hasil_jurnal .= number_format($debit_detail);
 							$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="' . $debit_detail . '">';
@@ -1373,13 +1379,18 @@ class Pembayaran_material_model extends BF_Model
 						$hasil_jurnal .= '</td>';
 
 						$hasil_jurnal .= '<td class="text-center">';
-						$hasil_jurnal .= '7002-02';
-						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="7002-02">';
+						$hasil_jurnal .= '7201-01-02';
+						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][coa]" value="7201-01-02">';
 						$hasil_jurnal .= '</td>';
 
 						$hasil_jurnal .= '<td class="text-center">';
 						$hasil_jurnal .= 'Biaya Adm Bank & Buku Cek/Giro';
 						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="Biaya Adm Bank & Buku Cek/Giro">';
+						$hasil_jurnal .= '</td>';
+
+						$hasil_jurnal .= '<td>';
+						$hasil_jurnal .= 'Biaya Admin';
+						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="Biaya Admin">';
 						$hasil_jurnal .= '</td>';
 
 						$hasil_jurnal .= '<td class="text-right">';
@@ -1418,6 +1429,11 @@ class Pembayaran_material_model extends BF_Model
 						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
 						$hasil_jurnal .= '</td>';
 
+						$hasil_jurnal .= '<td>';
+						$hasil_jurnal .= 'Biaya Expense : ' . $item_payment->no_doc;
+						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="Biaya Expense : ' . $item_payment->no_doc . '">';
+						$hasil_jurnal .= '</td>';
+
 						$hasil_jurnal .= '<td class="text-right">';
 						$hasil_jurnal .= '0';
 						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][debit]" value="0">';
@@ -1453,6 +1469,11 @@ class Pembayaran_material_model extends BF_Model
 						$hasil_jurnal .= '<td class="text-center">';
 						$hasil_jurnal .= $coa_bank->nm_coa;
 						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][nm_coa]" value="' . $coa_bank->nm_coa . '">';
+						$hasil_jurnal .= '</td>';
+
+						$hasil_jurnal .= '<td>';
+						$hasil_jurnal .= 'Pembayaran Biaya Admin';
+						$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][keterangan]" value="Pembayaran Biaya Admin">';
 						$hasil_jurnal .= '</td>';
 
 						$hasil_jurnal .= '<td class="text-right">';
