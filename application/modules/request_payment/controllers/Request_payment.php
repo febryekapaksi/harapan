@@ -43,6 +43,10 @@ class Request_payment extends Admin_Controller
 	{
 		$data = $this->Request_payment_model->GetListDataPaymentList();
 		$list_tgl_pengajuan_pembayaran = $this->Request_payment_model->get_payment_paid();
+		// echo '<pre>';
+		// print_r($data);
+		// echo '</pre>';
+		// die();
 
 		$this->template->set('data', $data);
 		$this->template->set('list_tgl_pengajuan_pembayaran', $list_tgl_pengajuan_pembayaran);
@@ -836,7 +840,7 @@ class Request_payment extends Admin_Controller
 
 		$header['jumlah'] 	= array_sum($Harga);
 		$header['status'] 	= '1';
-		$header['tgl_bayar'] = $header['tanggal'];
+		// $header['tgl_bayar'] = $header['tanggal'];
 
 		$this->db->trans_rollback();
 		$this->db->trans_begin();

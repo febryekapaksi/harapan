@@ -91,9 +91,8 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 								}
 							}
 
-							$tgl_pengajuan = (isset($list_tgl_pengajuan_pembayaran[$record->no_doc])) ? $list_tgl_pengajuan_pembayaran[$record->no_doc]['tgl_pengajuan'] : '';
-
 							$diajukan_oleh = (isset($list_tgl_pengajuan_pembayaran[$record->no_doc])) ? $list_tgl_pengajuan_pembayaran[$record->no_doc]['diajukan_oleh'] : '';
+							$tgl_pengajuan = (isset($list_tgl_pengajuan_pembayaran[$record->no_doc])) ? $list_tgl_pengajuan_pembayaran[$record->no_doc]['tgl_pengajuan'] : '';
 
 							$this->db->select('c.nm_lengkap, a.created_on, b.tgl_bayar');
 							$this->db->from('tr_payment_paid a');
@@ -115,22 +114,13 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 								<td><?= $record->tipe ?></td>
 								<td><?= (($record->tipe == 'expense' and $record->id_kasbon != null and $record->kurang_bayar > 0) ? number_format($record->kurang_bayar) : number_format($record->jumlah)) ?></td>
 								<td class="text-center"><?= $diajukan_oleh ?></td>
-								<td class="text-center">
-									<?php
-									$get_payment = $this->db->get_where('payment_approve', ['no_doc' => $record->no_doc, 'tgl_bayar <>' => null])->result();
-									if (!empty($get_payment)) {
-										echo date('d M Y', strtotime($tgl_pengajuan));
-									} else {
-										'';
-									}
-									?>
-								</td>
+								<td class="text-center"><?= date('d M Y', strtotime($tgl_pengajuan)) ?></td>
 								<td class="text-center"><?= $dibayar_oleh ?></td>
 								<td class="text-center">
 									<?php
 									$get_payment = $this->db->get_where('payment_approve', ['no_doc' => $record->no_doc, 'tgl_bayar <>' => null])->result();
 									if (!empty($get_payment)) {
-										echo date('d M Y', strtotime($tgl_pengajuan));
+										echo date('d M Y', strtotime($tgl_pembayaran));
 									} else {
 										'';
 									}
