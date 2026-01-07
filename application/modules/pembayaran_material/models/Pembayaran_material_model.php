@@ -167,7 +167,7 @@ class Pembayaran_material_model extends BF_Model
 				$hasil[] = [
 					'no' => $no,
 					'no_dokumen' => $item->no_doc,
-					'tgl' => date('d F Y', strtotime($item->created_on)),
+					'tgl' => date('d F Y', strtotime($item->tanggal)),
 					'keperluan' => $item->keperluan,
 					'currency' => $item->currency,
 					'total_invoice' => number_format($item->jumlah),
