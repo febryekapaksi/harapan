@@ -1740,6 +1740,8 @@ class Purchase_order_payment extends Admin_Controller
 					warehouse_adjustment a
 				WHERE
 					a.category = "incoming stok" OR a.category = "incoming non rutin" OR a.category = "incoming asset"
+
+				ORDER BY tanggal DESC
 			')->result_array();
 
 		$no_po = [];
