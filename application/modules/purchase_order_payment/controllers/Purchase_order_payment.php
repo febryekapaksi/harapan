@@ -2249,11 +2249,6 @@ class Purchase_order_payment extends Admin_Controller
 			'no_po' => $arr_no_po
 		];
 
-		echo '<pre>';
-		print_r($data);
-		echo '</pre>';
-		die();
-
 		$this->template->set('results', $data);
 		$this->template->render('add_inc');
 	}
