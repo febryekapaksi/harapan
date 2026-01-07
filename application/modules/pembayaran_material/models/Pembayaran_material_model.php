@@ -84,7 +84,7 @@ class Pembayaran_material_model extends BF_Model
 		$hasil = [];
 
 		if ($jenis_payment == 1) {
-			$this->db->select('a.id, a.created_on, a.no_doc, a.currency, a.jumlah, a.keperluan, b.created_by as requestor');
+			$this->db->select('a.id, a.tanggal, a.no_doc, a.currency, a.jumlah, a.keperluan, b.created_by as requestor');
 			$this->db->from('payment_approve a');
 			$this->db->join('tr_expense b', 'b.no_doc = a.no_doc');
 			$this->db->where('a.status <>', 2);
@@ -98,7 +98,7 @@ class Pembayaran_material_model extends BF_Model
 				$this->db->or_like('a.jumlah', $search['value'], 'both');
 				$this->db->group_end();
 			}
-			$this->db->order_by('a.created_on', 'desc');
+			$this->db->order_by('a.tanggal', 'desc');
 			$this->db->group_by('a.id');
 
 			$db_clone = clone $this->db;
@@ -176,7 +176,7 @@ class Pembayaran_material_model extends BF_Model
 				];
 			}
 		} else {
-			$this->db->select('a.id, a.created_on, a.no_doc, a.currency, a.jumlah, a.keperluan, a.tipe');
+			$this->db->select('a.id, a.tanggal, a.no_doc, a.currency, a.jumlah, a.keperluan, a.tipe');
 			$this->db->from('payment_approve a');
 			$this->db->join('tr_expense b', 'b.no_doc = a.no_doc', 'left');
 			$this->db->join('tr_kasbon c', 'c.no_doc = a.no_doc', 'left');
@@ -189,7 +189,7 @@ class Pembayaran_material_model extends BF_Model
 			if (!empty($search['value'])) {
 				$this->db->group_start();
 				$this->db->like('a.no_doc', $search['value'], 'both');
-				$this->db->or_like('a.created_on', $search['value'], 'both');
+				$this->db->or_like('a.tanggal', $search['value'], 'both');
 				$this->db->or_like('a.keperluan', $search['value'], 'both');
 				$this->db->or_like('a.currency', $search['value'], 'both');
 				$this->db->or_like('a.jumlah', $search['value'], 'both');
@@ -198,7 +198,7 @@ class Pembayaran_material_model extends BF_Model
 				$this->db->or_like('d.created_by', $search['value'], 'both');
 				$this->db->group_end();
 			}
-			$this->db->order_by('a.created_on', 'desc');
+			$this->db->order_by('a.tanggal', 'desc');
 			$this->db->group_by('a.id');
 
 			$db_clone = clone $this->db;
@@ -239,7 +239,7 @@ class Pembayaran_material_model extends BF_Model
 				$hasil[] = [
 					'no' => $no,
 					'no_dokumen' => $item->no_doc,
-					'tgl' => date('d F Y', strtotime($item->created_on)),
+					'tgl' => date('d F Y', strtotime($item->tanggal)),
 					'keperluan' => $item->keperluan,
 					'currency' => $item->currency,
 					'total_invoice' => number_format($item->jumlah),
