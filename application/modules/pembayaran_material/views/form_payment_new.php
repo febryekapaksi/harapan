@@ -10,6 +10,7 @@ $nm_supplier = [];
 foreach ($results['result_payment'] as $item) {
 
 	$get_rec_invoice = $this->db->get_where('tr_invoice_po', ['id' => $item->no_doc])->row();
+	$tgl_pengajuan = $item->tanggal;
 
 	if (!empty($get_rec_invoice)) {
 		if (strpos($get_rec_invoice->no_po, 'TRS1') !== false) {
@@ -73,7 +74,7 @@ foreach ($results['result_payment'] as $item) {
 					<td width="15%" style="">Tgl Bayar</td>
 					<td width="5%" class="text-center">:</td>
 					<td width="25%">
-						<input type="date" name="tgl_bayar" id="" class="form-control form-control-sm tgl_bayar" value="<?= $item->tgl_bayar ?>">
+						<input type="date" name="tgl_bayar" id="" class="form-control form-control-sm tgl_bayar" value="<?= $tgl_pengajuan ?>" required>
 					</td>
 					<td width="15%" style="">Supplier</td>
 					<td width="5%" class="text-center">:</td>
