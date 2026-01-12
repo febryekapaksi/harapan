@@ -221,21 +221,39 @@ class Request_payment_model extends BF_Model
     public function GetListDataJurnal()
     {
         $sql = "
-        SELECT 
-            p.id_payment,
-            p.keperluan,
-            p.payment_bank AS total,
-            j.no_jurnal,
-            MAX(j.tgl_jurnal) AS tgl_jurnal,
-            MIN(j.sts) AS sts
-        FROM payment_approve p
-        INNER JOIN tr_jurnal j 
-            ON j.no_transaksi = p.id_payment
-        GROUP BY p.id_payment, p.payment_bank
-        ORDER BY p.id_payment DESC
-        ";
+    SELECT
+        pp.id AS id_payment,
+        pa.keperluan,
+        pa.total,
+        ja.no_jurnal,
+        ja.tgl_jurnal,
+        ja.sts
+    FROM tr_payment_paid pp
+    LEFT JOIN (
+        SELECT
+            id_payment,
+            GROUP_CONCAT(keperluan ORDER BY keperluan SEPARATOR ' | ') AS keperluan,
+            SUM(payment_bank) AS total
+        FROM payment_approve
+        WHERE id_payment IS NOT NULL AND id_payment <> ''
+        GROUP BY id_payment
+    ) pa ON pa.id_payment = pp.id
+    LEFT JOIN (
+        SELECT
+            no_transaksi,
+            MIN(no_jurnal) AS no_jurnal,
+            MAX(tgl_jurnal) AS tgl_jurnal,
+            MIN(sts) AS sts
+        FROM tr_jurnal
+        WHERE jenis_transaksi = 'Payment'
+        GROUP BY no_transaksi
+    ) ja ON ja.no_transaksi = pp.id
+    ORDER BY pp.id DESC
+    ";
+
         return $this->db->query($sql)->result();
     }
+
 
     function generate_id_detail($no = null)
     {
