@@ -1269,38 +1269,228 @@ class Pembayaran_material extends Admin_Controller
 		]);
 	}
 
+	// public function save_payment()
+	// {
+	// 	$post = $this->input->post();
+
+	// 	$payment_bank = str_replace(',', '', $post['payment_bank']);
+
+	// 	$this->db->trans_start();
+
+	// 	$get_coa_bank = $this->db->get_where(DBACC . '.coa_master', ['no_perkiraan' => $post['bank']])->row();
+
+	// 	$nm_coa_bank = '';
+	// 	$kode_bank = '';
+	// 	if (!empty($get_coa_bank)) {
+	// 		$nm_coa_bank = $get_coa_bank->nama;
+	// 		$kode_bank = $get_coa_bank->no_perkiraan;
+	// 	}
+
+	// 	$id_payment_paid = $this->Pembayaran_material_model->generate_id_payment_paid($kode_bank, $post['tgl_bayar']);
+
+	// 	$config['upload_path'] = 'assets/expense/';
+	// 	$config['allowed_types'] = '*';
+	// 	$config['remove_spaces'] = TRUE;
+	// 	$config['encrypt_name'] = TRUE;
+	// 	$filenames = '';
+
+	// 	if (!empty($_FILES['upload_doc']['name'])) {
+	// 		$_FILES['file']['name'] = $_FILES['upload_doc']['name'];
+	// 		$_FILES['file']['type'] = $_FILES['upload_doc']['type'];
+	// 		$_FILES['file']['tmp_name'] = $_FILES['upload_doc']['tmp_name'];
+	// 		$_FILES['file']['error'] = $_FILES['upload_doc']['error'];
+	// 		$_FILES['file']['size'] = $_FILES['upload_doc']['size'];
+	// 		// $this->load->library('upload', $config);
+	// 		$this->upload->initialize($config);
+	// 		if ($this->upload->do_upload('file')) {
+	// 			$uploadData = $this->upload->data();
+	// 			$filenames = $uploadData['file_name'];
+	// 		}
+	// 	}
+
+	// 	$insert_payment_paid = $this->db->insert('tr_payment_paid', [
+	// 		'id' => $id_payment_paid,
+	// 		'bank_charge' => str_replace(',', '', $post['bank_charge']),
+	// 		'created_by' => $this->auth->user_id(),
+	// 		'created_on' => date('Y-m-d H:i:s')
+	// 	]);
+	// 	if (!$insert_payment_paid) {
+	// 		print_r($this->db->error($insert_payment_paid));
+	// 		exit;
+	// 	}
+
+	// 	$this->db->where_in('id', explode(',', $post['id_payment']));
+	// 	$update_payment1 = $this->db->update('payment_approve', [
+	// 		'id_payment' => $id_payment_paid,
+	// 		'tgl_bayar' => $post['tgl_bayar'],
+	// 		'supplier' => $post['supplier_input'],
+	// 		'keterangan_pembayaran' => $post['keterangan_pembayaran'],
+	// 		'coa_bank' => $post['bank'],
+	// 		'nm_coa_bank' => $nm_coa_bank,
+	// 		'mata_uang' => $post['mata_uang'],
+	// 		'payment_bank' => str_replace(',', '', $post['payment_bank']),
+	// 		'total_payment' => $post['total_payment'],
+	// 		'selisih' => ($post['total_payment'] - $payment_bank),
+	// 		'status' => 2,
+	// 		'link_doc' => $filenames,
+	// 		'id_supplier' => $post['supplier_input'],
+	// 		'nm_supplier' => $post['nm_supplier_input'],
+	// 		'kurs_payment' => str_replace(',', '', $post['kurs_payment'])
+	// 	]);
+	// 	if (!$update_payment1) {
+	// 		print_r($this->db->error($update_payment1));
+	// 		exit;
+	// 	}
+
+	// 	if (!empty($post['dt'])) {
+	// 		foreach ($post['dt'] as $detail) {
+	// 			$tipe_pph = isset($detail['tipe_pph']) ? $detail['tipe_pph'] : null;
+
+	// 			$this->db->where('id', $detail['id_payment']);
+	// 			$update_payment_detail = $this->db->update('payment_approve', [
+	// 				'total_ppn' => str_replace(',', '', $detail['nilai_ppn']),
+	// 				'total_pph' => str_replace(',', '', $detail['nilai_pph']),
+	// 				'tipe_pph' => $tipe_pph
+	// 			]);
+
+	// 			$kurs_invoice = $detail['kurs_invoice'];
+	// 			if (!$update_payment_detail) {
+	// 				print_r($this->db->error($update_payment_detail));
+	// 				exit;
+	// 			}
+	// 		}
+	// 	}
+
+	// 	$arr_jurnal = [];
+	// 	if (isset($post['jurnal_ls'])) {
+	// 		$no_jurnal = 1;
+	// 		foreach ($post['jurnal_ls'] as $item_jurnal) {
+	// 			$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
+
+	// 			$arr_jurnal[] = [
+	// 				'no_jurnal' => $id_jurnal,
+	// 				'tgl_jurnal' => date('Y-m-d'),
+	// 				'tipe' => $item_jurnal['tipe'],
+	// 				'coa' => $item_jurnal['coa'],
+	// 				'nm_coa' => $item_jurnal['nm_coa'],
+	// 				'debit' => $item_jurnal['debit'],
+	// 				'kredit' => $item_jurnal['kredit'],
+	// 				'keterangan' => $item_jurnal['keterangan'],
+	// 				'no_transaksi' => $id_payment_paid,
+	// 				'jenis_transaksi' => 'Payment',
+	// 				'created_by' => $this->auth->user_id(),
+	// 				'created_date' => date('Y-m-d')
+	// 			];
+	// 			$no_jurnal++;
+	// 		}
+	// 	}
+
+	// 	if (!empty($arr_jurnal)) {
+	// 		$insert_jurnal = $this->db->insert_batch('tr_jurnal', $arr_jurnal);
+	// 		if (!$insert_jurnal) {
+	// 			print_r($this->db->error($insert_jurnal));
+	// 			exit;
+	// 		}
+	// 	}
+
+	// 	if ($this->db->trans_status() === false) {
+	// 		$this->db->trans_rollback();
+	// 		$valid = 0;
+	// 		$pesan = 'Maaf, data gagal dibayar !';
+	// 	} else {
+	// 		$this->db->trans_commit();
+	// 		$valid = 1;
+	// 		$pesan = 'Selamat, data telah berhasil dibayar !';
+	// 	}
+
+	// 	echo json_encode([
+	// 		'status' => $valid,
+	// 		'pesan' => $pesan
+	// 	]);
+	// }
+
 	public function save_payment()
 	{
 		$post = $this->input->post();
 
-		$payment_bank = str_replace(',', '', $post['payment_bank']);
+		// -------- helper parsing uang (format: 880,888.00) --------
+		$money = function ($v) {
+			if ($v === null || $v === '') return 0.0;
+			// kasus umum kamu: ribuan pakai koma, desimal titik
+			$v = str_replace(',', '', (string)$v);
+			return (float)$v;
+		};
 
-		$this->db->trans_start();
-
-		$get_coa_bank = $this->db->get_where(DBACC . '.coa_master', ['no_perkiraan' => $post['bank']])->row();
-
-		$nm_coa_bank = '';
-		$kode_bank = '';
-		if (!empty($get_coa_bank)) {
-			$nm_coa_bank = $get_coa_bank->nama;
-			$kode_bank = $get_coa_bank->no_perkiraan;
+		// -------- parse input --------
+		$ids = array_values(array_filter(array_map('trim', explode(',', ($post['id_payment'] ?? '')))));
+		if (empty($ids)) {
+			echo json_encode(['status' => 0, 'pesan' => 'ID payment kosong.']);
+			return;
 		}
 
-		$id_payment_paid = $this->Pembayaran_material_model->generate_id_payment_paid($kode_bank, $post['tgl_bayar']);
+		$tgl_bayar            = $post['tgl_bayar'] ?? date('Y-m-d');
+		$bank_coa             = $post['bank'] ?? '';
+		$payment_bank         = $money($post['payment_bank'] ?? 0);          // transfer utama
+		$payment_bank_charge  = $money($post['payment_bank_charge'] ?? 0);   // transfer admin
+		$bank_charge          = $money($post['bank_charge'] ?? 0);           // biaya admin (debit biaya)
+		$kurs_payment         = $money($post['kurs_payment'] ?? 0);
+		$mata_uang            = $post['mata_uang'] ?? null;
+		$keterangan_pembayaran = $post['keterangan_pembayaran'] ?? null;
 
-		$config['upload_path'] = 'assets/expense/';
+		$supplier_id   = $post['supplier_input'] ?? null;
+		$supplier_name = $post['nm_supplier_input'] ?? null;
+
+		if ($bank_coa === '') {
+			echo json_encode(['status' => 0, 'pesan' => 'COA bank wajib diisi.']);
+			return;
+		}
+
+		// -------- ambil COA bank --------
+		$get_coa_bank = $this->db->get_where(DBACC . '.coa_master', ['no_perkiraan' => $bank_coa])->row();
+		$nm_coa_bank  = $get_coa_bank->nama ?? '';
+		$kode_bank    = $get_coa_bank->no_perkiraan ?? $bank_coa;
+
+		// -------- ambil baris detail yang dibayar (2 dokumen / dst) --------
+		$this->db->select('id, tipe, no_doc, jumlah');
+		$this->db->from('payment_approve');
+		$this->db->where_in('id', $ids);
+		$rows = $this->db->get()->result();
+
+		if (empty($rows)) {
+			echo json_encode(['status' => 0, 'pesan' => 'Data payment_approve tidak ditemukan.']);
+			return;
+		}
+
+		$total_doc = 0;
+		foreach ($rows as $r) $total_doc += (float)$r->jumlah;
+
+		// OPTIONAL: validasi agar user tidak salah input payment_bank
+		if (abs($total_doc - $payment_bank) > 0.5) {
+			echo json_encode([
+				'status' => 0,
+				'pesan'  => 'Nilai Payment Bank tidak sama dengan total dokumen. Total dokumen: ' . number_format($total_doc, 0, ',', '.') .
+					' | Payment Bank: ' . number_format($payment_bank, 0, ',', '.')
+			]);
+			return;
+		}
+
+		// kontrol batch (debit = total_doc + bank_charge ; kredit = payment_bank + payment_bank_charge)
+		$selisih_total = ($total_doc + $bank_charge) - ($payment_bank + $payment_bank_charge);
+
+		// -------- upload --------
+		$config['upload_path']   = 'assets/expense/';
 		$config['allowed_types'] = '*';
 		$config['remove_spaces'] = TRUE;
-		$config['encrypt_name'] = TRUE;
-		$filenames = '';
+		$config['encrypt_name']  = TRUE;
 
+		$filenames = '';
 		if (!empty($_FILES['upload_doc']['name'])) {
-			$_FILES['file']['name'] = $_FILES['upload_doc']['name'];
-			$_FILES['file']['type'] = $_FILES['upload_doc']['type'];
+			$_FILES['file']['name']     = $_FILES['upload_doc']['name'];
+			$_FILES['file']['type']     = $_FILES['upload_doc']['type'];
 			$_FILES['file']['tmp_name'] = $_FILES['upload_doc']['tmp_name'];
-			$_FILES['file']['error'] = $_FILES['upload_doc']['error'];
-			$_FILES['file']['size'] = $_FILES['upload_doc']['size'];
-			// $this->load->library('upload', $config);
+			$_FILES['file']['error']    = $_FILES['upload_doc']['error'];
+			$_FILES['file']['size']     = $_FILES['upload_doc']['size'];
+
 			$this->upload->initialize($config);
 			if ($this->upload->do_upload('file')) {
 				$uploadData = $this->upload->data();
@@ -1308,312 +1498,145 @@ class Pembayaran_material extends Admin_Controller
 			}
 		}
 
-		$insert_payment_paid = $this->db->insert('tr_payment_paid', [
-			'id' => $id_payment_paid,
-			'bank_charge' => str_replace(',', '', $post['bank_charge']),
-			'created_by' => $this->auth->user_id(),
-			'created_on' => date('Y-m-d H:i:s')
-		]);
-		if (!$insert_payment_paid) {
-			print_r($this->db->error($insert_payment_paid));
-			exit;
-		}
+		// -------- transaksi --------
+		$this->db->trans_begin();
 
-		$this->db->where_in('id', explode(',', $post['id_payment']));
-		$update_payment1 = $this->db->update('payment_approve', [
-			'id_payment' => $id_payment_paid,
-			'tgl_bayar' => $post['tgl_bayar'],
-			'supplier' => $post['supplier_input'],
-			'keterangan_pembayaran' => $post['keterangan_pembayaran'],
-			'coa_bank' => $post['bank'],
-			'nm_coa_bank' => $nm_coa_bank,
-			'mata_uang' => $post['mata_uang'],
-			'payment_bank' => str_replace(',', '', $post['payment_bank']),
-			'total_payment' => $post['total_payment'],
-			'selisih' => ($post['total_payment'] - $payment_bank),
-			'status' => 2,
-			'link_doc' => $filenames,
-			'id_supplier' => $post['supplier_input'],
-			'nm_supplier' => $post['nm_supplier_input'],
-			'kurs_payment' => str_replace(',', '', $post['kurs_payment'])
-		]);
-		if (!$update_payment1) {
-			print_r($this->db->error($update_payment1));
-			exit;
-		}
+		try {
+			// 1) buat ID header batch
+			$id_payment_paid = $this->Pembayaran_material_model->generate_id_payment_paid($kode_bank, $tgl_bayar);
 
-		if (!empty($post['dt'])) {
-			foreach ($post['dt'] as $detail) {
-				$tipe_pph = isset($detail['tipe_pph']) ? $detail['tipe_pph'] : null;
+			// 2) insert HEADER (1x)
+			$ok = $this->db->insert('tr_payment_paid', [
+				'id'                  => $id_payment_paid,
+				'tgl_bayar'           => $tgl_bayar,
+				'coa_bank'            => $bank_coa,
+				'nm_coa_bank'         => $nm_coa_bank,
 
-				$this->db->where('id', $detail['id_payment']);
-				$update_payment_detail = $this->db->update('payment_approve', [
-					'total_ppn' => str_replace(',', '', $detail['nilai_ppn']),
-					'total_pph' => str_replace(',', '', $detail['nilai_pph']),
-					'tipe_pph' => $tipe_pph
+				'mata_uang'           => $mata_uang,
+				'kurs_payment'        => $kurs_payment,
+
+				'payment_bank'        => $payment_bank,
+				'payment_bank_charge' => $payment_bank_charge,
+				'bank_charge'         => $bank_charge,
+
+				'total_doc'           => $total_doc,
+				'selisih_total'       => $selisih_total,
+
+				'keterangan_pembayaran' => $keterangan_pembayaran,
+				'supplier'            => $supplier_id,
+				'nm_supplier'         => $supplier_name,
+				'link_doc'            => $filenames,
+
+				'created_by'          => $this->auth->user_id(),
+				'created_on'          => date('Y-m-d H:i:s'),
+			]);
+			if (!$ok) throw new Exception('Insert tr_payment_paid gagal: ' . json_encode($this->db->error()));
+
+			// 3) update DETAIL batch metadata (banyak baris)
+			$update = [
+				'id_payment'            => $id_payment_paid,
+				'tgl_bayar'             => $tgl_bayar,
+				'keterangan_pembayaran' => $keterangan_pembayaran,
+				'coa_bank'              => $bank_coa,
+				'nm_coa_bank'           => $nm_coa_bank,
+				'mata_uang'             => $mata_uang,
+				'kurs_payment'          => $kurs_payment,
+				'status'                => 2,
+				'link_doc'              => $filenames,
+			];
+
+			// jangan overwrite supplier kalau memang kosong di form (karena expense bisa tanpa supplier)
+			if (!empty($supplier_id)) {
+				$update['supplier']    = $supplier_id;
+				$update['id_supplier'] = $supplier_id;
+				$update['nm_supplier'] = $supplier_name;
+			}
+
+			$this->db->where_in('id', $ids);
+			$ok = $this->db->update('payment_approve', $update);
+			if (!$ok) throw new Exception('Update payment_approve batch gagal: ' . json_encode($this->db->error()));
+
+			// 4) set nilai PER BARIS (ini yang mencegah dobel di report)
+			foreach ($rows as $r) {
+				$this->db->where('id', $r->id);
+				$ok = $this->db->update('payment_approve', [
+					'total_payment' => (float)$r->jumlah,
+					'payment_bank'  => (float)$r->jumlah,
+					'selisih'       => 0,
 				]);
+				if (!$ok) throw new Exception('Update payment_approve line gagal: ' . json_encode($this->db->error()));
+			}
 
-				$kurs_invoice = $detail['kurs_invoice'];
-				if (!$update_payment_detail) {
-					print_r($this->db->error($update_payment_detail));
-					exit;
+			// 5) update pajak per baris (dt)
+			if (!empty($post['dt']) && is_array($post['dt'])) {
+				foreach ($post['dt'] as $detail) {
+					$id_line = $detail['id_payment'] ?? null;
+					if (!$id_line) continue;
+
+					$tipe_pph = $detail['tipe_pph'] ?? null;
+
+					$this->db->where('id', $id_line);
+					$ok = $this->db->update('payment_approve', [
+						'total_ppn' => $money($detail['nilai_ppn'] ?? 0),
+						'total_pph' => $money($detail['nilai_pph'] ?? 0),
+						'tipe_pph'  => $tipe_pph
+					]);
+					if (!$ok) throw new Exception('Update tax gagal: ' . json_encode($this->db->error()));
 				}
 			}
-		}
 
-		$arr_jurnal = [];
-		if (isset($post['jurnal_ls'])) {
-			$no_jurnal = 1;
-			foreach ($post['jurnal_ls'] as $item_jurnal) {
-				$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
+			// 6) insert jurnal batch (1x) => no_transaksi = id_payment_paid
+			if (!empty($post['jurnal_ls']) && is_array($post['jurnal_ls'])) {
+				$arr_jurnal = [];
+				$no_jurnal = 1;
 
-				$arr_jurnal[] = [
-					'no_jurnal' => $id_jurnal,
-					'tgl_jurnal' => date('Y-m-d'),
-					'tipe' => $item_jurnal['tipe'],
-					'coa' => $item_jurnal['coa'],
-					'nm_coa' => $item_jurnal['nm_coa'],
-					'debit' => $item_jurnal['debit'],
-					'kredit' => $item_jurnal['kredit'],
-					'keterangan' => $item_jurnal['keterangan'],
-					'no_transaksi' => $id_payment_paid,
-					'jenis_transaksi' => 'Payment',
-					// 'id_divisi' => $item_jurnal['id_divisi'],
-					// 'nm_divisi' => $item_jurnal['nm_divisi'],
-					'created_by' => $this->auth->user_id(),
-					'created_date' => date('Y-m-d')
-				];
-				$no_jurnal++;
+				foreach ($post['jurnal_ls'] as $item) {
+					$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
+
+					$arr_jurnal[] = [
+						'no_jurnal'       => $id_jurnal,
+						'tgl_jurnal'      => $item['tanggal_jurnal'] ?? $tgl_bayar, // pakai dari post
+						'tipe'            => $item['tipe'],
+						'coa'             => $item['coa'],
+						'nm_coa'          => $item['nm_coa'],
+						'debit'           => $money($item['debit'] ?? 0),
+						'kredit'          => $money($item['kredit'] ?? 0),
+						'keterangan'      => $item['keterangan'],
+						'no_transaksi'    => $id_payment_paid,
+						'jenis_transaksi' => 'Payment',
+						'created_by'      => $this->auth->user_id(),
+						'created_date'    => date('Y-m-d'),
+					];
+					$no_jurnal++;
+				}
+
+				$ok = $this->db->insert_batch('tr_jurnal', $arr_jurnal);
+				if (!$ok) throw new Exception('Insert jurnal gagal: ' . json_encode($this->db->error()));
 			}
-		}
 
-		// echo '<pre>';
-		// print_r($arr_jurnal);
-		// echo '</pre>';
-		// die();
-
-		// if (isset($post['jurnal_refill_pettycash'])) {
-		// 	foreach ($post['jurnal_refill_pettycash'] as $item_jurnal) {
-		// 		// if (isset($item_jurnal['tanggal_jurnal'])) {
-		// 		$id_jurnal = $this->Pembayaran_material_model->generate_id_invoice_jurnal($no_jurnal);
-
-		// 		$arr_jurnal[] = [
-		// 			'no_jurnal' => $id_jurnal,
-		// 			'tgl_jurnal' => date('Y-m-d'),
-		// 			'coa' => $item_jurnal['no_coa'],
-		// 			'id_company' => $item_jurnal['id_company'],
-		// 			'nm_company' => $item_jurnal['nm_company'],
-		// 			'nm_coa' => $item_jurnal['nm_coa'],
-		// 			'debit' => $item_jurnal['debit'],
-		// 			'kredit' => $item_jurnal['kredit'],
-		// 			'keterangan' => $item_jurnal['keterangan'],
-		// 			'no_transaksi' => $id_payment_paid,
-		// 			'jenis_transaksi' => 'Refill Pettycash',
-		// 			'id_divisi' => $item_jurnal['id_divisi'],
-		// 			'nm_divisi' => $item_jurnal['nm_divisi'],
-		// 			'created_by' => $this->auth->user_id(),
-		// 			'created_date' => date('Y-m-d')
-		// 		];
-
-		// 		$no_jurnal++;
-		// 		// }
-		// 	}
-		// }
-
-		if (!empty($arr_jurnal)) {
-			$insert_jurnal = $this->db->insert_batch('tr_jurnal', $arr_jurnal);
-			if (!$insert_jurnal) {
-				print_r($this->db->error($insert_jurnal));
-				exit;
+			if ($this->db->trans_status() === FALSE) {
+				throw new Exception('Trans status false');
 			}
-		}
 
-		// AUTO JURNAL 
-
-		// $no_payment = $post['id_payment'];
-
-		// if ($post['mata_uang'] == 'IDR') {
-		// 	$jenis_jurnal = 'BUK20';
-		// 	$kurs         = 1;
-		// 	$selisih      = 0;
-		// 	$hutang       = (str_replace(',', '', $post['total_payment']) * $kurs) + (str_replace(',', '', $detail['nilai_ppn']) * $kurs);
-		// } else {
-		// 	$jenis_jurnal = 'BUK21';
-		// 	$kurs         = str_replace(',', '', $post['kurs_payment']);
-		// 	$selisih      = $kurs - $kurs_invoice;
-		// 	$hutang       = (str_replace(',', '', $post['total_payment']) * $kurs_invoice) + (str_replace(',', '', $detail['nilai_ppn']) * $kurs_invoice);
-		// }
-
-		// $bank_coa     = $post['bank'];
-		// $no_request   = $post['id_payment'];
-		// $keterangan   = $post['keterangan_pembayaran'];
-		// $bankcharge   = (str_replace(',', '', $post['bank_charge'])) * $kurs;
-		// $bank_nilai   = (str_replace(',', '', $post['payment_bank'])) * $kurs;
-		// $ap           = str_replace(',', '', $post['total_payment']);
-		// $selisihkurs  = $selisih * $ap;
-
-		// if ($selisihkurs < 0) {
-		// 	$selisihdebet  = 0;
-		// 	$selisihkredit = $selisihkurs * (-1);
-		// } elseif ($selisihkurs > 0) {
-		// 	$selisihdebet  = $selisihkurs;
-		// 	$selisihkredit = 0;
-		// }
-
-		// $nomor_jurnal = $nomor_jurnal = $jenis_jurnal . $no_payment . rand(100, 999);
-		// $payment_date = $post['tgl_bayar'];
-		// $id_supplier = $post['supplier_input'];
-		// $nm_supplier = $post['nm_supplier_input'];
-		// $no_reff     = $post['id_payment'];
-		// $Username    = $this->auth->user_id();
-
-		// $datajurnal1 = $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' order by parameter_no")->result();
-		// $det_Jurnaltes1 = array();
-		// foreach ($datajurnal1 as $rec) {
-		// 	if ($rec->parameter_no == "1") {
-		// 		$det_Jurnaltes1[] = array(
-		// 			'nomor' => $nomor_jurnal,
-		// 			'tanggal' => $payment_date,
-		// 			'tipe' => 'BUK',
-		// 			'no_perkiraan' => $bank_coa,
-		// 			'keterangan' => $no_request . '. ' . $keterangan,
-		// 			'no_request' => $id_payment_paid,
-		// 			'kredit' => ($bank_nilai),
-		// 			'debet' => 0,
-		// 			'no_reff' => $no_request,
-		// 			'jenis_jurnal' => $jenis_jurnal,
-		// 			'nocust' => $id_supplier,
-		// 			'stspos' => '1'
-		// 		);
-		// 	}
-		// 	if ($rec->parameter_no == "2") {
-		// 		$det_Jurnaltes1[] = array(
-		// 			'nomor' => $nomor_jurnal,
-		// 			'tanggal' => $payment_date,
-		// 			'tipe' => 'BUK',
-		// 			'no_perkiraan' => $rec->no_perkiraan,
-		// 			'keterangan' => $no_request . '. ' . $keterangan,
-		// 			'no_request' => $id_payment_paid,
-		// 			'kredit' => 0,
-		// 			'debet' => $hutang,
-		// 			'no_reff' => $no_request,
-		// 			'jenis_jurnal' => $jenis_jurnal,
-		// 			'nocust' => $id_supplier,
-		// 			'stspos' => '1'
-		// 		);
-		// 	}
-
-		// 	if ($rec->parameter_no == "4") {
-		// 		$det_Jurnaltes1[] = array(
-		// 			'nomor' => $nomor_jurnal,
-		// 			'tanggal' => $payment_date,
-		// 			'tipe' => 'BUK',
-		// 			'no_perkiraan' => $rec->no_perkiraan,
-		// 			'keterangan' => $no_request . '. ' . $keterangan,
-		// 			'no_request' => $id_payment_paid,
-		// 			'kredit' => 0,
-		// 			'debet' => $bankcharge,
-		// 			'no_reff' => $no_request,
-		// 			'jenis_jurnal' => $jenis_jurnal,
-		// 			'nocust' => $id_supplier,
-		// 			'stspos' => '1'
-		// 		);
-		// 	}
-
-		// 	if ($jenis_jurnal = 'BUK004') {
-		// 		if ($rec->parameter_no == "5") {
-		// 			$det_Jurnaltes1[] = array(
-		// 				'nomor' => $nomor_jurnal,
-		// 				'tanggal' => $payment_date,
-		// 				'tipe' => 'BUK',
-		// 				'no_perkiraan' => $rec->no_perkiraan,
-		// 				'keterangan' => $no_request . '. ' . $keterangan,
-		// 				'no_request' => $id_payment_paid,
-		// 				'kredit' => $selisihkredit,
-		// 				'debet' => $selisihdebet,
-		// 				'no_reff' => $no_request,
-		// 				'jenis_jurnal' => $jenis_jurnal,
-		// 				'nocust' => $id_supplier,
-		// 				'stspos' => '1'
-		// 			);
-		// 		}
-		// 	}
-		// }
-		// $this->db->insert_batch('jurnaltras', $det_Jurnaltes1);
-
-		//auto jurnal
-		// $tanggal = $payment_date;
-		// $Bln	= substr($tanggal, 5, 2);
-		// $Thn	= substr($tanggal, 0, 4);
-		// $Nomor_JV = $this->Jurnal_model->get_no_buk('101', $tanggal);
-		// $total = 0;
-		// foreach ($det_Jurnaltes1 as $vals) {
-		// 	$datadetail = array(
-		// 		'tipe'			=> 'BUK',
-		// 		'nomor'			=> $Nomor_JV,
-		// 		'tanggal'		=> $tanggal,
-		// 		'no_perkiraan'	=> $vals['no_perkiraan'],
-		// 		'keterangan'	=> $vals['keterangan'],
-		// 		'no_reff'		=> $vals['no_reff'],
-		// 		'debet'			=> $vals['debet'],
-		// 		'kredit'		=> $vals['kredit'],
-		// 	);
-		// 	$total = ($total + $vals['debet']);
-		// 	$this->db->insert(DBACC . '.jurnal', $datadetail);
-		// }
-
-		// $keterangan		= 'Pembayaran ' . $no_reff;
-		// $dataJVhead = array(
-		// 	'nomor' 	    	=> $Nomor_JV,
-		// 	'tgl'	         	=> $tanggal,
-		// 	'jml'	            => $total,
-		// 	'jenis_ap'	        => 'V',
-		// 	'bayar_kepada'		=> $nm_supplier,
-		// 	'kdcab'				=> '101',
-		// 	'jenis_reff' 		=> 'BUK',
-		// 	'no_reff' 			=> $no_reff,
-		// 	'note'				=> $keterangan,
-		// 	'user_id'			=> $Username,
-		// 	'ho_valid'			=> '',
-		// );
-
-		// $this->db->insert(DBACC . '.japh', $dataJVhead);
-		// $Qry_Update_Cabang_acc	 = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobuk=nobuk + 1 WHERE nocab='101'";
-		// $this->db->query($Qry_Update_Cabang_acc);
-
-		// $data_coa 	= $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' and parameter_no='3'")->row();
-		// $datahutang = array(
-		// 	'tipe'       	 => 'BUK',
-		// 	'nomor'       	 => $Nomor_JV,
-		// 	'tanggal'        => $tanggal,
-		// 	'no_perkiraan'   => $data_coa->no_perkiraan,
-		// 	'keterangan'     => $keterangan,
-		// 	'no_reff'     	 => $no_reff,
-		// 	'debet'      	 => $hutang,
-		// 	'kredit'         => 0,
-		// 	'id_supplier'    => $id_supplier,
-		// 	'nama_supplier'  => $nm_supplier,
-		// 	'no_request'     => $no_request,
-		// );
-		// $this->db->insert('tr_kartu_hutang', $datahutang);
-
-		//end auto jurnal
-
-		if ($this->db->trans_status() === false) {
-			$this->db->trans_rollback();
-			$valid = 0;
-			$pesan = 'Maaf, data gagal dibayar !';
-		} else {
 			$this->db->trans_commit();
-			$valid = 1;
-			$pesan = 'Selamat, data telah berhasil dibayar !';
+			echo json_encode([
+				'status' => 1,
+				'pesan'  => 'Selamat, data telah berhasil dibayar !',
+				'id_payment_paid' => $id_payment_paid,
+				'total_doc' => $total_doc,
+				'selisih_total' => $selisih_total
+			]);
+			return;
+		} catch (Exception $e) {
+			$this->db->trans_rollback();
+			echo json_encode([
+				'status' => 0,
+				'pesan'  => 'Maaf, data gagal dibayar ! ' . $e->getMessage()
+			]);
+			return;
 		}
-
-		echo json_encode([
-			'status' => $valid,
-			'pesan' => $pesan
-		]);
 	}
+
 
 	public function used_choosed_payment()
 	{

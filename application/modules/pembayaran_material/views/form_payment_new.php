@@ -627,34 +627,31 @@ foreach ($results['result_payment'] as $item) {
 	}
 
 	function hitung_kontrol() {
-		var total_payment = parseFloat($('.total_payment').val());
-		var total_pph = parseFloat($('.total_pph').val());
-		var total_ppn = parseFloat($('.total_ppn').val());
+		var total_payment = $('.total_payment').val();
+		var total_pph = $('.total_pph').val();
+		var total_ppn = $('.total_ppn').val();
 		var total_payment_bank = $('.input_payment_bank').val();
 		var total_payment_bank_charge = $('.input_payment_bank_charge').val();
-
-		if (total_payment_bank !== '') {
-			total_payment_bank = total_payment_bank.split(',').join('');
-			total_payment_bank = parseFloat(total_payment_bank);
-		} else {
-			total_payment_bank = 0;
-		}
-
-		if (total_payment_bank_charge !== '') {
-			total_payment_bank_charge = total_payment_bank_charge.split(',').join('');
-			total_payment_bank_charge = parseFloat(total_payment_bank_charge);
-		} else {
-			total_payment_bank_charge = 0;
-		}
-
 		var bank_charge = $('.bank_charge').val();
-		if (bank_charge !== '') {
-			bank_charge = bank_charge.split(',').join('');
-			bank_charge = parseFloat(bank_charge);
-		}
 
-		var kontrol = parseFloat(total_payment_bank - total_payment - total_ppn + total_pph) - parseFloat(bank_charge) + parseFloat(total_payment_bank_charge);
+		// bersihin koma + parse, kalau NaN jadikan 0
+		total_payment = parseFloat(String(total_payment).replace(/,/g, '').trim()) || 0;
+		total_pph = parseFloat(String(total_pph).replace(/,/g, '').trim()) || 0;
+		total_ppn = parseFloat(String(total_ppn).replace(/,/g, '').trim()) || 0;
 
+		total_payment_bank = parseFloat(String(total_payment_bank).replace(/,/g, '').trim()) || 0;
+		total_payment_bank_charge = parseFloat(String(total_payment_bank_charge).replace(/,/g, '').trim()) || 0;
+		bank_charge = parseFloat(String(bank_charge).replace(/,/g, '').trim()) || 0;
+
+		var kontrol = (total_payment_bank - total_payment - total_ppn + total_pph) - bank_charge + total_payment_bank_charge;
+
+		// rounding 2 desimal (biar gak ada -1.49e-8)
+		kontrol = Math.round(kontrol * 100) / 100;
+
+		// toleransi kecil -> paksa 0
+		if (Math.abs(kontrol) < 0.01) kontrol = 0;
+
+		console.log('kontrol:', kontrol);
 		$('.kontrol_col').html(number_format(kontrol, 2));
 		$('.kontrol').val(kontrol);
 	}
