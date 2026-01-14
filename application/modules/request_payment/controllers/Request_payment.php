@@ -2550,9 +2550,10 @@ class Request_payment extends Admin_Controller
 
 		if (!empty($get_added)) {
 			foreach ($get_added as $item) {
-				$tanggal_pembayaran = $post['tanggal_pembayaran_' . $item->no_doc];
-				$kategori = $post['kategori_' . $item->no_doc];
-				$nilai_pengajuan = $post['nilai_pengajuan_' . $item->no_doc];
+				$key = preg_replace('/[^A-Za-z0-9_-]/', '_', $item->no_doc);
+				$tanggal_pembayaran = $post['tanggal_pembayaran_' . $key] ?? null;
+				$kategori           = $post['kategori_' . $key] ?? null;
+				$nilai_pengajuan    = $post['nilai_pengajuan_' . $key] ?? null;
 
 				if ($item->tipe == 'Kasbon') {
 

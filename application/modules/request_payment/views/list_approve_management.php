@@ -160,7 +160,7 @@ endforeach;
             <div class="col-md-12">
                 <div class="col-md-12 list_transportasi" style="display: none;">
                     <h3>Transportasi</h3>
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="table_transportasi" width="100%">
                         <thead>
                             <tr>
                                 <th class="text-center">No Dokument</th>
@@ -218,7 +218,7 @@ endforeach;
                 </div>
                 <div class="col-md-12 list_kasbon" style="display: none;">
                     <h3>Kasbon</h3>
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="table_kasbon" width="100%">
                         <thead>
                             <tr>
                                 <th class="text-center">No Dokument</th>
@@ -310,7 +310,7 @@ endforeach;
                 </div>
                 <div class="col-md-12 list_expense" style="display: none;">
                     <h3>Expense</h3>
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="table_expense" width="100%">
                         <thead>
                             <tr>
                                 <th class="text-center">No Dokument</th>
@@ -379,7 +379,7 @@ endforeach;
                 </div>
                 <div class="col-md-12 list_periodik" style="display: none;">
                     <h3>Periodik</h3>
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="table_periodik" width="100%">
                         <thead>
                             <tr>
                                 <th class="text-center">No Dokument</th>
@@ -437,7 +437,7 @@ endforeach;
                 </div>
                 <div class="col-md-12 list_pembayaran_po" style="display: none;">
                     <h3>Pembayaran PO</h3>
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="table_pembayaran_po" width="100%">
                         <thead>
                             <tr>
                                 <th class="text-center">No Dokumen</th>
@@ -528,7 +528,7 @@ endforeach;
                 </div>
                 <div class="col-md-12 list_direct_payment" style="display: none;">
                     <h3>Direct Payment</h3>
-                    <table class="table table-bordered">
+                    <table class="table table-bordered" id="table_direct_payment" width="100%">
                         <thead>
                             <tr>
                                 <th class="text-center">No Dokument</th>
@@ -622,6 +622,14 @@ endforeach;
     }
     var url_save = siteurl + 'request_payment/save_approval/';
     //Save
+
+    $(document).ready(function() {
+        $('#table_transportasi').dataTable();
+        $('#table_kasbon').dataTable();
+        $('#table_expense').dataTable();
+        $('#table_periodik').dataTable();
+        $('#table_pembayaran_po').dataTable();
+    })
 
     $(document).on("click", ".btn_view_req", function() {
         var val = $(this).data('val');
