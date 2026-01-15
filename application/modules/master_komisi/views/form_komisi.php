@@ -210,7 +210,7 @@
 
             const koefNum = parseFloat(koef) || 0;
 
-            const nilai = (total_ontime_tunggakan * koefNum) / 100;
+            const nilai = total_ontime_tunggakan * (koefNum / 100);
 
             $(`#koefisien_${penjualan}`).val(koefNum.toFixed(2));
             $(`#nilai_komisi_${penjualan}`).val(nilai.toFixed(2));
