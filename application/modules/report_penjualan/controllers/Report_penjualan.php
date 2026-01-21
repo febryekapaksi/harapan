@@ -1132,4 +1132,244 @@ class Report_penjualan extends Admin_Controller
         $objWriter->save("php://output");
         exit;
     }
+
+    // =============================
+    // Report Penjualan Sales per Bulan
+    // =============================
+    public function report_sales_bulanan()
+    {
+        $this->template->page_icon('fa fa-clipboard');
+        $this->template->title('Report Penjualan per Sales');
+        $this->template->render('index_sales_bulanan');
+    }
+
+    public function data_side_report_sales_bulanan()
+    {
+        $tahun = $this->input->post('tahun');
+
+        $data = $this->Report_penjualan_model->get_query_report_sales_bulanan($tahun);
+
+        echo json_encode([
+            'status' => true,
+            'data' => $data
+        ]);
+    }
+
+    public function export_excel_sales_bulanan()
+    {
+        set_time_limit(0);
+        ini_set('memory_limit', '1024M');
+
+        $tahun = $this->input->get('tahun', true);
+        if (empty($tahun)) $tahun = date('Y');
+
+        // ambil data report (2 baris per sales + target cabang)
+        $rows = $this->Report_penjualan_model->get_export_sales_bulanan($tahun);
+
+        $this->load->library("PHPExcel");
+        $objPHPExcel = new PHPExcel();
+        $sheet = $objPHPExcel->getActiveSheet();
+        $sheet->setTitle("Sales Bulanan {$tahun}");
+
+        // ===== STYLE =====
+        $styleTitle = [
+            'font' => ['bold' => true, 'size' => 14, 'color' => ['rgb' => 'B30000']],
+            'alignment' => ['horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER],
+        ];
+
+        $tableHeader = [
+            'font' => ['bold' => true],
+            'alignment' => [
+                'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+                'vertical'   => PHPExcel_Style_Alignment::VERTICAL_CENTER
+            ],
+            'borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THIN]],
+            'fill' => ['type' => PHPExcel_Style_Fill::FILL_SOLID, 'color' => ['rgb' => 'D9EDF7']]
+        ];
+
+        $tableBody = [
+            'borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THIN]],
+            'alignment' => ['vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER]
+        ];
+
+        $rowTotalCabang = [
+            'font' => ['bold' => true],
+            'borders' => ['allborders' => ['style' => PHPExcel_Style_Border::BORDER_THIN]],
+            'fill' => ['type' => PHPExcel_Style_Fill::FILL_SOLID, 'color' => ['rgb' => 'FFF2CC']] // kuning
+        ];
+
+        // ===== JUDUL =====
+        $sheet->setCellValue('A1', "Report Penjualan per Sales Tahun {$tahun}");
+        $sheet->mergeCells('A1:O1');
+        $sheet->getStyle('A1:O1')->applyFromArray($styleTitle);
+
+        $sheet->setCellValue('A2', "Periode: Tahun {$tahun}");
+        $sheet->mergeCells('A2:O2');
+
+        // ===== HEADER KOLOM =====
+        $sheet->setCellValue('A4', 'Nama Sales');
+        $sheet->setCellValue('B4', 'Type');
+
+        $sheet->setCellValue('C4', 'Jan');
+        $sheet->setCellValue('D4', 'Feb');
+        $sheet->setCellValue('E4', 'Mar');
+        $sheet->setCellValue('F4', 'Apr');
+        $sheet->setCellValue('G4', 'Mei');
+        $sheet->setCellValue('H4', 'Jun');
+        $sheet->setCellValue('I4', 'Jul');
+        $sheet->setCellValue('J4', 'Agu');
+        $sheet->setCellValue('K4', 'Sep');
+        $sheet->setCellValue('L4', 'Okt');
+        $sheet->setCellValue('M4', 'Nov');
+        $sheet->setCellValue('N4', 'Des');
+        $sheet->setCellValue('O4', 'T Score');
+
+        $sheet->getStyle('A4:O4')->applyFromArray($tableHeader);
+
+        // kolom width
+        $sheet->getColumnDimension('A')->setWidth(22);
+        $sheet->getColumnDimension('B')->setWidth(22);
+
+        foreach (range('C', 'O') as $col) {
+            $sheet->getColumnDimension($col)->setWidth(14);
+        }
+
+        $sheet->freezePane('A5');
+
+        // ===== ISI DATA =====
+        $rowNum = 5;
+
+        // untuk merge nama sales per 2 baris
+        $currentSales = null;
+        $startSalesRow = null;
+
+        if (!empty($rows)) {
+            foreach ($rows as $r) {
+
+                // normalisasi object/array
+                $nama_sales = isset($r->nama_sales) ? $r->nama_sales : $r['nama_sales'];
+                $tipe       = isset($r->tipe) ? $r->tipe : $r['tipe'];
+
+                $jan = isset($r->jan) ? $r->jan : $r['jan'];
+                $feb = isset($r->feb) ? $r->feb : $r['feb'];
+                $mar = isset($r->mar) ? $r->mar : $r['mar'];
+                $apr = isset($r->apr) ? $r->apr : $r['apr'];
+                $mei = isset($r->mei) ? $r->mei : $r['mei'];
+                $jun = isset($r->jun) ? $r->jun : $r['jun'];
+                $jul = isset($r->jul) ? $r->jul : $r['jul'];
+                $agu = isset($r->agu) ? $r->agu : $r['agu'];
+                $sep = isset($r->sep) ? $r->sep : $r['sep'];
+                $okt = isset($r->okt) ? $r->okt : $r['okt'];
+                $nov = isset($r->nov) ? $r->nov : $r['nov'];
+                $des = isset($r->des) ? $r->des : $r['des'];
+                $t_score = isset($r->t_score) ? $r->t_score : $r['t_score'];
+
+                // detect baris total cabang
+                $isTotalCabang = (strtoupper(trim($nama_sales)) === 'TARGET CABANG');
+
+                // kalau sales berubah → merge 2 baris sebelumnya
+                if ($currentSales !== null && $nama_sales !== '' && $nama_sales !== $currentSales) {
+                    if ($startSalesRow !== null) {
+                        $endRow = $rowNum - 1;
+                        if ($endRow > $startSalesRow) {
+                            $sheet->mergeCells("A{$startSalesRow}:A{$endRow}");
+                        }
+                        $sheet->setCellValue("A{$startSalesRow}", strtoupper($currentSales));
+                        $sheet->getStyle("A{$startSalesRow}")->getAlignment()
+                            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+                    }
+                    $startSalesRow = $rowNum;
+                }
+
+                // group pertama
+                if ($currentSales === null && $nama_sales !== '') {
+                    $currentSales = $nama_sales;
+                    $startSalesRow = $rowNum;
+                }
+
+                // update currentSales kalau ketemu nama baru (selain blank)
+                if ($nama_sales !== '') {
+                    $currentSales = $nama_sales;
+                }
+
+                // isi cell
+                $sheet->setCellValue("A{$rowNum}", ''); // nanti diisi pas merge
+                $sheet->setCellValue("B{$rowNum}", $tipe);
+
+                $sheet->setCellValueExplicit("C{$rowNum}", (float)$jan, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("D{$rowNum}", (float)$feb, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("E{$rowNum}", (float)$mar, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("F{$rowNum}", (float)$apr, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("G{$rowNum}", (float)$mei, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("H{$rowNum}", (float)$jun, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("I{$rowNum}", (float)$jul, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("J{$rowNum}", (float)$agu, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("K{$rowNum}", (float)$sep, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("L{$rowNum}", (float)$okt, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("M{$rowNum}", (float)$nov, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("N{$rowNum}", (float)$des, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("O{$rowNum}", (float)$t_score, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+
+                // apply style
+                if ($isTotalCabang) {
+                    $sheet->getStyle("A{$rowNum}:O{$rowNum}")->applyFromArray($rowTotalCabang);
+                } else {
+                    $sheet->getStyle("A{$rowNum}:O{$rowNum}")->applyFromArray($tableBody);
+                }
+
+                // format angka kanan
+                $sheet->getStyle("C{$rowNum}:O{$rowNum}")
+                    ->getNumberFormat()
+                    ->setFormatCode('#,##0');
+
+                $sheet->getStyle("C{$rowNum}:O{$rowNum}")
+                    ->getAlignment()
+                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+                $sheet->getStyle("B{$rowNum}")
+                    ->getAlignment()
+                    ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_LEFT);
+
+                $rowNum++;
+            }
+
+            // merge group terakhir
+            if ($startSalesRow !== null) {
+                $endRow = $rowNum - 1;
+                if ($endRow > $startSalesRow) {
+                    $sheet->mergeCells("A{$startSalesRow}:A{$endRow}");
+                }
+                $sheet->setCellValue("A{$startSalesRow}", strtoupper($currentSales));
+                $sheet->getStyle("A{$startSalesRow}")->getAlignment()
+                    ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+            }
+
+            // garis atas tebal untuk total cabang (opsional)
+            $sheet->getStyle("A{$rowNum}:O{$rowNum}")
+                ->getBorders()
+                ->getTop()
+                ->setBorderStyle(PHPExcel_Style_Border::BORDER_MEDIUM);
+        } else {
+            $sheet->setCellValue("A{$rowNum}", 'Tidak ada data');
+            $sheet->mergeCells("A{$rowNum}:O{$rowNum}");
+            $sheet->getStyle("A{$rowNum}:O{$rowNum}")->applyFromArray($tableBody);
+            $sheet->getStyle("A{$rowNum}:O{$rowNum}")->getAlignment()
+                ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        }
+
+        // ===== OUTPUT =====
+        $filename = "Report_Penjualan_Per_Sales_{$tahun}.xls";
+        $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+
+        ob_end_clean();
+        header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+        header("Cache-Control: no-store, no-cache, must-revalidate");
+        header("Cache-Control: post-check=0, pre-check=0", false);
+        header("Pragma: no-cache");
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+
+        $objWriter->save("php://output");
+        exit;
+    }
 }

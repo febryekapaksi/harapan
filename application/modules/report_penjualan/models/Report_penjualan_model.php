@@ -1001,4 +1001,362 @@ class Report_penjualan_model extends BF_Model
 
         return $this->db->get()->result();
     }
+
+    // =============================
+    // Report Target Sales per Bulan
+    // =============================
+    public function data_side_report_sales_bulanan()
+    {
+        $requestData = $_REQUEST;
+
+        $tahun = $requestData['tahun'] ?? date('Y');
+
+        $result = $this->get_query_report_sales_bulanan($tahun);
+
+        echo json_encode([
+            "status" => true,
+            "data" => $result
+        ]);
+    }
+
+    public function get_query_report_sales_bulanan($tahun)
+    {
+        // =========================
+        // A) TARGET dari target_penjualan
+        // =========================
+        $targetRows = $this->db->select("
+            tp.id_karyawan,
+            tp.nm_karyawan,
+            tp.jan, tp.feb, tp.mar, tp.apr, tp.mei, tp.jun,
+            tp.jul, tp.agu, tp.sep, tp.okt, tp.nov, tp.des
+        ", false)
+            ->from("target_penjualan tp")
+            ->get()
+            ->result_array();
+
+        // jadikan map supaya gampang merge
+        $targetMap = [];
+        foreach ($targetRows as $t) {
+            $targetMap[$t['id_karyawan']] = $t;
+        }
+
+        // =========================
+        // B) ACTUAL dari tr_invoice_sales (pivot per bulan)
+        // =========================
+        $this->db->select("
+        c.id_karyawan,
+        SUM(CASE WHEN MONTH(i.delivery_date)=1  THEN i.grand_total ELSE 0 END) AS jan,
+        SUM(CASE WHEN MONTH(i.delivery_date)=2  THEN i.grand_total ELSE 0 END) AS feb,
+        SUM(CASE WHEN MONTH(i.delivery_date)=3  THEN i.grand_total ELSE 0 END) AS mar,
+        SUM(CASE WHEN MONTH(i.delivery_date)=4  THEN i.grand_total ELSE 0 END) AS apr,
+        SUM(CASE WHEN MONTH(i.delivery_date)=5  THEN i.grand_total ELSE 0 END) AS mei,
+        SUM(CASE WHEN MONTH(i.delivery_date)=6  THEN i.grand_total ELSE 0 END) AS jun,
+        SUM(CASE WHEN MONTH(i.delivery_date)=7  THEN i.grand_total ELSE 0 END) AS jul,
+        SUM(CASE WHEN MONTH(i.delivery_date)=8  THEN i.grand_total ELSE 0 END) AS agu,
+        SUM(CASE WHEN MONTH(i.delivery_date)=9  THEN i.grand_total ELSE 0 END) AS sep,
+        SUM(CASE WHEN MONTH(i.delivery_date)=10 THEN i.grand_total ELSE 0 END) AS okt,
+        SUM(CASE WHEN MONTH(i.delivery_date)=11 THEN i.grand_total ELSE 0 END) AS nov,
+        SUM(CASE WHEN MONTH(i.delivery_date)=12 THEN i.grand_total ELSE 0 END) AS des
+    ", false);
+
+        $this->db->from("tr_invoice_sales i");
+        $this->db->join("master_customers c", "c.id_customer = i.id_customer", "left");
+
+        // filter tahun / tanggal
+        $this->db->where("YEAR(i.delivery_date)", $tahun);
+
+        if (!empty($tgl_dari)) {
+            $this->db->where("DATE(i.delivery_date) >=", $tgl_dari);
+        }
+        if (!empty($tgl_sampai)) {
+            $this->db->where("DATE(i.delivery_date) <=", $tgl_sampai);
+        }
+
+        // optional: invoice cancel tidak dihitung
+        $this->db->where("IFNULL(i.is_cancel,0) =", 0);
+
+        $this->db->group_by("c.id_karyawan");
+
+        $actualRows = $this->db->get()->result_array();
+
+        $actualMap = [];
+        foreach ($actualRows as $a) {
+            $actualMap[$a['id_karyawan']] = $a;
+        }
+
+        // =========================
+        // C) MERGE + bentuk 2 baris per sales
+        // =========================
+        $months = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
+
+        $resultRows = [];
+
+        // total cabang (target + actual)
+        $totalTarget = array_fill_keys($months, 0);
+        $totalActual = array_fill_keys($months, 0);
+
+        foreach ($targetMap as $id_karyawan => $t) {
+
+            // ambil actual kalau ada, kalau tidak 0 semua
+            $a = $actualMap[$id_karyawan] ?? array_merge(['id_karyawan' => $id_karyawan], array_fill_keys($months, 0));
+
+            // --- HITUNG TSCORE
+            $t_score_target = 0;
+            $t_score_actual = 0;
+
+            foreach ($months as $m) {
+                $t_score_target += (float)$t[$m];
+                $t_score_actual += (float)$a[$m];
+
+                $totalTarget[$m] += (float)$t[$m];
+                $totalActual[$m] += (float)$a[$m];
+            }
+
+            // BARIS 1: TARGET
+            $resultRows[] = [
+                'nama_sales' => strtoupper($t['nm_karyawan']),
+                'tipe' => 'Target',
+                'jan' => (float)$t['jan'],
+                'feb' => (float)$t['feb'],
+                'mar' => (float)$t['mar'],
+                'apr' => (float)$t['apr'],
+                'mei' => (float)$t['mei'],
+                'jun' => (float)$t['jun'],
+                'jul' => (float)$t['jul'],
+                'agu' => (float)$t['agu'],
+                'sep' => (float)$t['sep'],
+                'okt' => (float)$t['okt'],
+                'nov' => (float)$t['nov'],
+                'des' => (float)$t['des'],
+                't_score' => (float)$t_score_target
+            ];
+
+            // BARIS 2: ACTUAL
+            $resultRows[] = [
+                'nama_sales' => '', // biar tampil kayak excel (nama cuma sekali)
+                'tipe' => 'Actual (based on invoice)',
+                'jan' => (float)$a['jan'],
+                'feb' => (float)$a['feb'],
+                'mar' => (float)$a['mar'],
+                'apr' => (float)$a['apr'],
+                'mei' => (float)$a['mei'],
+                'jun' => (float)$a['jun'],
+                'jul' => (float)$a['jul'],
+                'agu' => (float)$a['agu'],
+                'sep' => (float)$a['sep'],
+                'okt' => (float)$a['okt'],
+                'nov' => (float)$a['nov'],
+                'des' => (float)$a['des'],
+                't_score' => (float)$t_score_actual
+            ];
+        }
+
+        // =========================
+        // D) TOTAL CABANG (baris bawah)
+        // =========================
+        $totalTargetScore = array_sum($totalTarget);
+        $totalActualScore = array_sum($totalActual);
+
+        $resultRows[] = [
+            'nama_sales' => 'Target Cabang',
+            'tipe' => 'Target',
+            'jan' => $totalTarget['jan'],
+            'feb' => $totalTarget['feb'],
+            'mar' => $totalTarget['mar'],
+            'apr' => $totalTarget['apr'],
+            'mei' => $totalTarget['mei'],
+            'jun' => $totalTarget['jun'],
+            'jul' => $totalTarget['jul'],
+            'agu' => $totalTarget['agu'],
+            'sep' => $totalTarget['sep'],
+            'okt' => $totalTarget['okt'],
+            'nov' => $totalTarget['nov'],
+            'des' => $totalTarget['des'],
+            't_score' => $totalTargetScore
+        ];
+
+        $resultRows[] = [
+            'nama_sales' => '',
+            'tipe' => 'Actual (based on invoice)',
+            'jan' => $totalActual['jan'],
+            'feb' => $totalActual['feb'],
+            'mar' => $totalActual['mar'],
+            'apr' => $totalActual['apr'],
+            'mei' => $totalActual['mei'],
+            'jun' => $totalActual['jun'],
+            'jul' => $totalActual['jul'],
+            'agu' => $totalActual['agu'],
+            'sep' => $totalActual['sep'],
+            'okt' => $totalActual['okt'],
+            'nov' => $totalActual['nov'],
+            'des' => $totalActual['des'],
+            't_score' => $totalActualScore
+        ];
+
+        return $resultRows;
+    }
+
+    public function get_export_sales_bulanan($tahun = 2025)
+    {
+        // =========================
+        // A) TARGET dari target_penjualan
+        // =========================
+        $targetRows = $this->db->select("
+        tp.id_karyawan,
+        tp.nm_karyawan,
+        tp.jan, tp.feb, tp.mar, tp.apr, tp.mei, tp.jun,
+        tp.jul, tp.agu, tp.sep, tp.okt, tp.nov, tp.des
+    ", false)
+            ->from("target_penjualan tp")
+            ->order_by("tp.nm_karyawan", "asc")
+            ->get()
+            ->result_array();
+
+        $targetMap = [];
+        foreach ($targetRows as $t) {
+            $targetMap[$t['id_karyawan']] = $t;
+        }
+
+        // =========================
+        // B) ACTUAL dari tr_invoice_sales (per sales per bulan)
+        // =========================
+        $this->db->select("
+        c.id_karyawan,
+        SUM(CASE WHEN MONTH(i.delivery_date)=1  THEN i.grand_total ELSE 0 END) AS jan,
+        SUM(CASE WHEN MONTH(i.delivery_date)=2  THEN i.grand_total ELSE 0 END) AS feb,
+        SUM(CASE WHEN MONTH(i.delivery_date)=3  THEN i.grand_total ELSE 0 END) AS mar,
+        SUM(CASE WHEN MONTH(i.delivery_date)=4  THEN i.grand_total ELSE 0 END) AS apr,
+        SUM(CASE WHEN MONTH(i.delivery_date)=5  THEN i.grand_total ELSE 0 END) AS mei,
+        SUM(CASE WHEN MONTH(i.delivery_date)=6  THEN i.grand_total ELSE 0 END) AS jun,
+        SUM(CASE WHEN MONTH(i.delivery_date)=7  THEN i.grand_total ELSE 0 END) AS jul,
+        SUM(CASE WHEN MONTH(i.delivery_date)=8  THEN i.grand_total ELSE 0 END) AS agu,
+        SUM(CASE WHEN MONTH(i.delivery_date)=9  THEN i.grand_total ELSE 0 END) AS sep,
+        SUM(CASE WHEN MONTH(i.delivery_date)=10 THEN i.grand_total ELSE 0 END) AS okt,
+        SUM(CASE WHEN MONTH(i.delivery_date)=11 THEN i.grand_total ELSE 0 END) AS nov,
+        SUM(CASE WHEN MONTH(i.delivery_date)=12 THEN i.grand_total ELSE 0 END) AS des
+    ", false);
+
+        $this->db->from("tr_invoice_sales i");
+        $this->db->join("master_customers c", "c.id_customer = i.id_customer", "left");
+        $this->db->where("YEAR(i.delivery_date)", $tahun);
+        $this->db->where("IFNULL(i.is_cancel,0) =", 0);
+
+        // hanya customer yg punya sales
+        $this->db->where("c.id_karyawan >", 0);
+
+        $this->db->group_by("c.id_karyawan");
+
+        $actualRows = $this->db->get()->result_array();
+
+        $actualMap = [];
+        foreach ($actualRows as $a) {
+            $actualMap[$a['id_karyawan']] = $a;
+        }
+
+        // =========================
+        // C) Build output 2 baris per sales + total cabang
+        // =========================
+        $months = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
+
+        $resultRows = [];
+
+        $totalTarget = array_fill_keys($months, 0);
+        $totalActual = array_fill_keys($months, 0);
+
+        foreach ($targetMap as $id_karyawan => $t) {
+
+            $a = $actualMap[$id_karyawan] ?? array_merge(['id_karyawan' => $id_karyawan], array_fill_keys($months, 0));
+
+            $t_score_target = 0;
+            $t_score_actual = 0;
+
+            foreach ($months as $m) {
+                $t_score_target += (float)$t[$m];
+                $t_score_actual += (float)$a[$m];
+
+                $totalTarget[$m] += (float)$t[$m];
+                $totalActual[$m] += (float)$a[$m];
+            }
+
+            // TARGET row
+            $resultRows[] = (object)[
+                'nama_sales' => $t['nm_karyawan'],
+                'tipe' => 'Target',
+                'jan' => (float)$t['jan'],
+                'feb' => (float)$t['feb'],
+                'mar' => (float)$t['mar'],
+                'apr' => (float)$t['apr'],
+                'mei' => (float)$t['mei'],
+                'jun' => (float)$t['jun'],
+                'jul' => (float)$t['jul'],
+                'agu' => (float)$t['agu'],
+                'sep' => (float)$t['sep'],
+                'okt' => (float)$t['okt'],
+                'nov' => (float)$t['nov'],
+                'des' => (float)$t['des'],
+                't_score' => (float)$t_score_target
+            ];
+
+            // ACTUAL row
+            $resultRows[] = (object)[
+                'nama_sales' => '',
+                'tipe' => 'Actual (based on invoice)',
+                'jan' => (float)$a['jan'],
+                'feb' => (float)$a['feb'],
+                'mar' => (float)$a['mar'],
+                'apr' => (float)$a['apr'],
+                'mei' => (float)$a['mei'],
+                'jun' => (float)$a['jun'],
+                'jul' => (float)$a['jul'],
+                'agu' => (float)$a['agu'],
+                'sep' => (float)$a['sep'],
+                'okt' => (float)$a['okt'],
+                'nov' => (float)$a['nov'],
+                'des' => (float)$a['des'],
+                't_score' => (float)$t_score_actual
+            ];
+        }
+
+        // TOTAL CABANG
+        $totalTargetScore = array_sum($totalTarget);
+        $totalActualScore = array_sum($totalActual);
+
+        $resultRows[] = (object)[
+            'nama_sales' => 'Target Cabang',
+            'tipe' => 'Target',
+            'jan' => $totalTarget['jan'],
+            'feb' => $totalTarget['feb'],
+            'mar' => $totalTarget['mar'],
+            'apr' => $totalTarget['apr'],
+            'mei' => $totalTarget['mei'],
+            'jun' => $totalTarget['jun'],
+            'jul' => $totalTarget['jul'],
+            'agu' => $totalTarget['agu'],
+            'sep' => $totalTarget['sep'],
+            'okt' => $totalTarget['okt'],
+            'nov' => $totalTarget['nov'],
+            'des' => $totalTarget['des'],
+            't_score' => $totalTargetScore
+        ];
+
+        $resultRows[] = (object)[
+            'nama_sales' => '',
+            'tipe' => 'Actual (based on invoice)',
+            'jan' => $totalActual['jan'],
+            'feb' => $totalActual['feb'],
+            'mar' => $totalActual['mar'],
+            'apr' => $totalActual['apr'],
+            'mei' => $totalActual['mei'],
+            'jun' => $totalActual['jun'],
+            'jul' => $totalActual['jul'],
+            'agu' => $totalActual['agu'],
+            'sep' => $totalActual['sep'],
+            'okt' => $totalActual['okt'],
+            'nov' => $totalActual['nov'],
+            'des' => $totalActual['des'],
+            't_score' => $totalActualScore
+        ];
+
+        return $resultRows;
+    }
 }
