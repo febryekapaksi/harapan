@@ -4,7 +4,7 @@
 			<tr>
 				<td class="text-left" style='vertical-align:middle;' width='15%'>No PO</td>
 				<td class="text-left" style='vertical-align:middle;' width='2%'>:</td>
-				<td class="text-left" style='vertical-align:middle;'><?= $no_surat; ?></td>
+				<td class="text-left" style='vertical-align:middle;'><?= is_array($no_surat) ? implode(', ', $no_surat) : $no_surat ?></td>
 				<td class="text-left" style='vertical-align:middle;' width='15%'>No PR</td>
 				<td class="text-left" style='vertical-align:middle;' width='2%'>:</td>
 				<td class="text-left" style='vertical-align:middle;'><?= $no_pr; ?></td>
@@ -28,15 +28,15 @@
 	foreach ($exp_no_ipp as $no_ipp) {
 
 		$this->db->select('a.*, b.no_surat, c.konversi, d.code as satuan, e.code as packing');
-        $this->db->from('tr_incoming_check_detail a');
-        $this->db->join('tr_purchase_order b', 'b.no_po LIKE CONCAT("%",a.no_ipp,"%")', 'left');
+		$this->db->from('tr_incoming_check_detail a');
+		$this->db->join('tr_purchase_order b', 'b.no_po LIKE CONCAT("%",a.no_ipp,"%")', 'left');
 		$this->db->join('dt_trans_po f', 'f.id = a.id_po_detail', 'left');
-        $this->db->join('new_inventory_4 c', 'c.code_lv4 = a.id_material', 'left');
-        $this->db->join('ms_satuan d', 'd.id = c.id_unit', 'left');
-        $this->db->join('ms_satuan e', 'e.id = c.id_unit_packing', 'left');
-        $this->db->where('a.kode_trans', $kode_trans);
-		$this->db->where('f.no_po', $no_ipp);	
-        $result = $this->db->get()->result_array();
+		$this->db->join('new_inventory_4 c', 'c.code_lv4 = a.id_material', 'left');
+		$this->db->join('ms_satuan d', 'd.id = c.id_unit', 'left');
+		$this->db->join('ms_satuan e', 'e.id = c.id_unit_packing', 'left');
+		$this->db->where('a.kode_trans', $kode_trans);
+		$this->db->where('f.no_po', $no_ipp);
+		$result = $this->db->get()->result_array();
 
 		$get_no_surat = $this->db->select('no_surat')->get_where('tr_purchase_order', ['no_po' => $no_ipp])->row();
 	?>
@@ -119,8 +119,8 @@
 							echo '<a href="' . base_url($checked_incoming['uploaded_file']) . '" class="btn btn-sm btn-primary" target="_blank">Download File</a>';
 						}
 						echo '</td>';
-							echo '<td>' . $checked_incoming['lot_description'] . '</td>';
-							echo '</tr>';
+						echo '<td>' . $checked_incoming['lot_description'] . '</td>';
+						echo '</tr>';
 					endforeach;
 				}
 				?>

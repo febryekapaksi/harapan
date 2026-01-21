@@ -109,8 +109,6 @@ class Incoming_check_model extends BF_Model
         $this->db->group_by('b.no_surat');
         $result_header = $this->db->get()->row_array();
 
-
-
         $get_summary_incoming = $this->db->select('
             a.nm_material,
             a.qty_order,
@@ -130,36 +128,36 @@ class Incoming_check_model extends BF_Model
             $no_surat[] = $item->no_surat;
         }
 
-        $no_surat = implode(', ', $no_surat);
+        if (!is_array($no_surat)) {
+            $no_surat = array_map('trim', explode(',', $no_surat));
+        }
 
-        $no_pr = [];
-        $get_no_pr = $this->db->query("
-                SELECT
-                    d.no_pr as no_pr
-                FROM
-                    dt_trans_po a
-                    JOIN tr_purchase_order b ON b.no_po = a.no_po
-                    JOIN material_planning_base_on_produksi_detail c ON c.id = a.idpr
-                    JOIN material_planning_base_on_produksi d ON d.so_number = c.so_number
-                WHERE
-                    b.no_surat = '" . str_replace(",", "','", str_replace(', ', ',', $no_surat)) . "' AND
-                    (a.tipe IS NULL OR a.tipe = '')
+        $placeholders = implode(',', array_fill(0, count($no_surat), '?'));
+
+        $sql = "
+                SELECT d.no_pr as no_pr
+                FROM dt_trans_po a
+                JOIN tr_purchase_order b ON b.no_po = a.no_po
+                JOIN material_planning_base_on_produksi_detail c ON c.id = a.idpr
+                JOIN material_planning_base_on_produksi d ON d.so_number = c.so_number
+                WHERE b.no_surat IN ($placeholders)
+                AND (a.tipe IS NULL OR a.tipe = '')
                 GROUP BY d.no_pr
 
                 UNION ALL
 
-                SELECT
-                    c.no_pr as no_pr
-                FROM
-                    dt_trans_po a
-                    JOIN tr_purchase_order b ON b.no_po = a.no_po
-                    JOIN rutin_non_planning_detail c ON c.id = a.idpr
-                WHERE
-                    b.no_surat = '" . str_replace(",", "','", str_replace(', ', ',', $no_surat)) . "' AND
-                    a.tipe = 'pr depart'
+                SELECT c.no_pr as no_pr
+                FROM dt_trans_po a
+                JOIN tr_purchase_order b ON b.no_po = a.no_po
+                JOIN rutin_non_planning_detail c ON c.id = a.idpr
+                WHERE b.no_surat IN ($placeholders)
+                AND a.tipe = 'pr depart'
                 GROUP BY c.no_pr
+            ";
+        $params = array_merge($no_surat, $no_surat);
+        $get_no_pr = $this->db->query($sql, $params)->result();
 
-            ")->result();
+        $no_pr = [];
         foreach ($get_no_pr as $item_no_pr) {
             $no_pr[] = $item_no_pr->no_pr;
         }
