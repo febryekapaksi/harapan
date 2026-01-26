@@ -85,7 +85,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="">Request Payment PO</label>
-            <input type="text" name="req_payment_po" id="" class="form-control form-control-sm text-right req_payment_po auto_num">
+            <input type="text" name="req_payment_po" id="" class="form-control form-control-sm text-right req_payment_po auto_num" required>
         </div>
     </div>
     <div class="col-md-6">
