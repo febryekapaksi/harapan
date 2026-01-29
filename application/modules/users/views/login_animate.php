@@ -189,7 +189,7 @@
     <?= form_open($this->uri->uri_string(), ['id' => 'frm_login', 'name' => 'frm_login', 'class' => 'login', 'autocomplete' => 'off']) ?>
 
     <span>
-      <img src="<?= base_url('assets/images/harapan_logo.png'); ?>" width="25%" alt="Logo">
+      <img src="<?= base_url('assets/images/logo_sbf.png'); ?>" width="35%" alt="Logo">
     </span>
 
     <!-- Username -->

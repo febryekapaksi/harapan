@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <title><?= isset($idt->nm_perusahaan) ? $idt->nm_perusahaan : 'not-set'; ?><?= isset($template['title']) ? ' | ' . $template['title'] : ''; ?></title>
-  <link rel="shortcut icon" href="<?php echo base_url('assets/'); ?>images/harapan_logo.png" />
+  <link rel="shortcut icon" href="<?php echo base_url('assets/'); ?>images/logo_sbf_putih.png" />
 
   <!-- Tell the browser to be responsive to screen width -->
   <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
@@ -91,7 +91,7 @@
       <!-- Logo -->
       <a href="<?= site_url(); ?>" class="logo">
         <!-- mini logo for sidebar mini 50x50 pixels -->
-        <span class="logo-mini"><img src="<?php echo base_url('assets/'); ?>images/harapan_logo.png" width="70%"></span>
+        <span class="logo-mini"><img src="<?php echo base_url('assets/'); ?>images/logo_sbf_putih.png" width="70%"></span>
         <!-- logo for regular state and mobile devices -->
         <span class=" logo-lg"><b><?= isset($idt->nm_perusahaan) ? $idt->nm_perusahaan : 'not-set'; ?></b></span>
       </a>
