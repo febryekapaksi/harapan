@@ -112,16 +112,11 @@ class Purchase_order_payment extends Admin_Controller
 		} else {
 			$this->db->select('a.*');
 			$this->db->from('tr_invoice_po a');
-			$this->db->like('a.no_po', 'TR');
+			//$this->db->like('a.no_po', 'TR');
 			$this->db->order_by('a.created_date', 'desc');
 			$get_list_inc = $this->db->get()->result_array();
-			// print_r($this->db->last_query());
-			// exit;
 
 			$get_supplier = $this->db->get('new_supplier')->result();
-
-			// print_r($no_po);
-			// exit;
 
 			$this->template->set('list_inc', $get_list_inc);
 			$this->template->set('list_supplier', $get_supplier);
@@ -376,6 +371,7 @@ class Purchase_order_payment extends Admin_Controller
 
 		$this->template->set('data_invoice', $get_invoice);
 		$this->template->set('no_incoming', $no_incoming);
+
 		$this->template->render('view_inc');
 	}
 
@@ -2250,6 +2246,7 @@ class Purchase_order_payment extends Admin_Controller
 			'nilai_req_payment' => $nilai_req_payment,
 			'no_po' => $arr_no_po
 		];
+
 
 		$this->template->set('results', $data);
 		$this->template->render('add_inc');
