@@ -2100,7 +2100,7 @@ class Purchase_order_payment extends Admin_Controller
 			FROM
 				tr_incoming_check_detail a
 				JOIN dt_trans_po b ON b.id = a.id_po_detail
-				JOIN tr_checked_incoming_detail c ON c.kode_trans = a.kode_trans AND c.id_material = a.id_material
+				JOIN tr_checked_incoming_detail c ON c.kode_trans = a.kode_trans AND c.id_detail = a.id
 			WHERE
 				a.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "')
 			
@@ -2162,7 +2162,7 @@ class Purchase_order_payment extends Admin_Controller
 				tr_incoming_check_detail a
 				JOIN dt_trans_po b ON b.id = a.id_po_detail
 				JOIN tr_purchase_order c ON c.no_po = b.no_po
-				JOIN tr_checked_incoming_detail d ON d.kode_trans = a.kode_trans AND d.id_material = a.id_material
+				JOIN tr_checked_incoming_detail d ON d.kode_trans = a.kode_trans AND d.id_detail = a.id
 			WHERE
 				a.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "')
 		")->result();
@@ -2246,8 +2246,6 @@ class Purchase_order_payment extends Admin_Controller
 			'nilai_req_payment' => $nilai_req_payment,
 			'no_po' => $arr_no_po
 		];
-
-
 		$this->template->set('results', $data);
 		$this->template->render('add_inc');
 	}
