@@ -164,7 +164,7 @@
                             LEFT JOIN dt_trans_po b ON b.id = a.id_po_detail
                             LEFT JOIN tr_purchase_order c ON c.no_po  = b.no_po
                             LEFT JOIN new_inventory_4 d ON d.code_lv4 = a.id_material 
-                            JOIN tr_checked_incoming_detail e ON e.kode_trans = a.kode_trans AND e.id_material = a.id_material
+                            JOIN tr_checked_incoming_detail e ON e.kode_trans = a.kode_trans AND e.id_detail = a.id
                         WHERE
                             a.kode_trans = '" . $id_incoming . "'
                         GROUP BY a.id
