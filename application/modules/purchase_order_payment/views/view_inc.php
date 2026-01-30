@@ -9,7 +9,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="">Nama Supplier</label>
-            <input type="hidden" name="kode_supplier" value="<?= $results['kode_supplier'] ?>">
+            <input type="hidden" name="kode_supplier" value="<?= $data_invoice['id_supplier'] ?>">
             <input type="text" name="nama_supplier" id="" class="form-control form-control-sm nama_supplier" value="<?= $data_invoice['nm_supplier'] ?>" readonly>
         </div>
     </div>
@@ -191,8 +191,6 @@
                         print_r($this->db->error($get_detail_inc));
                         exit;
                     }
-
-
 
                     $no = 1;
                     foreach ($get_detail_inc as $item) {
