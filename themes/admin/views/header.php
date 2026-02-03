@@ -105,6 +105,12 @@
         <!-- Navbar Right Menu -->
         <div class="navbar-custom-menu">
           <ul class="nav navbar-nav">
+            <li>
+              <a href="https://sendigs.com/helpdesk" target="_blank" title="Helpdesk">
+                <i class="fa fa-life-ring"></i>
+                <span class="hidden-xs">Helpdesk</span>
+              </a>
+            </li>
             <!-- Notifications Menu -->
             <!-- 
             <li class="dropdown">
