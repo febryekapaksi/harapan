@@ -118,6 +118,54 @@
 			});
 		});
 
+		$(document).on('click', '.cancel-spk', function(e) {
+			e.preventDefault();
+			var id = $(this).data('id');
+			swal({
+				title: "Are you sure?",
+				text: "Data will be canceled!",
+				type: "warning",
+				showCancelButton: true,
+				confirmButtonClass: "btn-info",
+				confirmButtonText: "Yes",
+				cancelButtonText: "No",
+				closeOnConfirm: false
+			}, function() {
+				$.ajax({
+					type: 'POST',
+					url: siteurl + active_controller + '/cancel_spk',
+					dataType: 'json',
+					data: {
+						'id': id
+					},
+					success: function(data) {
+						if (data.status == '1') {
+							swal({
+								title: "Success",
+								text: data.pesan,
+								type: "success"
+							}, function() {
+								window.location.reload(true);
+							});
+						} else {
+							swal({
+								title: "Error",
+								text: data.pesan,
+								type: "error"
+							});
+						}
+					},
+					error: function() {
+						swal({
+							title: "Error",
+							text: "Error processing!",
+							type: "error"
+						});
+					}
+				});
+			});
+		});
+
 		$(document).on('click', '#printDetailSpk', function() {
 			const printContents = document.getElementById('print-area-loading').innerHTML;
 			const originalContents = document.body.innerHTML;
