@@ -85,6 +85,7 @@ class Spk_delivery_model extends BF_Model
         case 'NOT YET DELIVER':
           $status = 'Waiting Loading';
           $warna = 'blue';
+          $action .= "&nbsp;<a href='javascript:void(0);' data-id='" . $row['no_delivery'] . "' class='btn btn-sm btn-danger cancel-spk' title='Cancel'><i class='fa fa-ban'></i></a>";
           break;
         case 'LOADING':
           $status = 'On Loading';

@@ -258,6 +258,79 @@ class Spk_delivery extends Admin_Controller
   {
     $this->spk_delivery_model->data_side_spk_reprint();
   }
+  public function cancel_spk()
+  {
+    $this->auth->restrict($this->deletePermission);
+
+    $no_delivery = $this->input->post('id'); // <-- ini no_delivery dari data-id
+
+    if (empty($no_delivery)) {
+      echo json_encode([
+        'status' => 0,
+        'pesan'  => 'No Delivery tidak valid.'
+      ]);
+      return;
+    }
+
+    $this->db->trans_begin();
+
+    // Lock header SPK berdasarkan no_delivery
+    $spk = $this->db->query(
+      "SELECT no_delivery, no_so 
+         FROM spk_delivery 
+         WHERE no_delivery = ? 
+         FOR UPDATE",
+      [$no_delivery]
+    )->row_array();
+
+    if (!$spk) {
+      $this->db->trans_rollback();
+      echo json_encode([
+        'status' => 0,
+        'pesan'  => 'Data SPK tidak ditemukan.'
+      ]);
+      return;
+    }
+
+    $no_so = $spk['no_so'];
+
+    // (Opsional tapi bagus) Lock Sales Order juga
+    $this->db->query(
+      "SELECT no_so FROM sales_order WHERE no_so = ? FOR UPDATE",
+      [$no_so]
+    );
+
+    // 1) Update SO dulu: set status_spk menjadi Belum SPK
+    $this->db->update('sales_order', [
+      'status_spk'  => 'Belum SPK',
+      'modified_by' => $this->auth->user_id(),
+      'modified_at' => date('Y-m-d H:i:s'),
+    ], ['no_so' => $no_so]);
+
+    // 2) Hapus detail (child) dulu
+    $this->db->delete('spk_delivery_detail', ['no_delivery' => $no_delivery]);
+
+    // 3) Hapus header (parent)
+    $this->db->delete('spk_delivery', ['no_delivery' => $no_delivery]);
+
+    if ($this->db->trans_status() === FALSE) {
+      $this->db->trans_rollback();
+      echo json_encode([
+        'status' => 0,
+        'pesan'  => 'Failed process data!'
+      ]);
+      return;
+    }
+
+    $this->db->trans_commit();
+    history("Cancel / Delete SPK : " . $no_delivery . " | no_so: " . $no_so);
+
+    echo json_encode([
+      'status' => 1,
+      'pesan'  => 'Success process data!'
+    ]);
+  }
+
 
   //TRASH
 
