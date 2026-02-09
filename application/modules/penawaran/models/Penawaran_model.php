@@ -228,6 +228,7 @@ class Penawaran_model extends BF_Model
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
         $this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left');
+        $this->db->order_by('p.quotation_date', 'desc');
         $this->db->where('p.status !=', 'L');
 
         if ($like_value) {
