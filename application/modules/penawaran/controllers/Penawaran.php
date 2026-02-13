@@ -587,6 +587,7 @@ class Penawaran extends Admin_Controller
             ->from('sales_order s')
             ->where('s.id_customer', $id_customer)
             ->where('s.status', 'A')
+            ->where("(s.status_spk IS NULL OR s.status_spk != 'Belum SPK')", null, false)
             ->get()
             ->row_array();
 
