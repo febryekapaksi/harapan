@@ -1250,11 +1250,12 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
     function updateCreditStatus() {
         const creditLimit = toNumber($('#credit_limit').val());
         const grandTotal = toNumber($('#grand_total').val());
-        const outstanding = toNumber($('#outstanding').val());
+        const so_baru = toNumber($('#so_baru').val());
+        const outstanding_piutang = toNumber($('#outstanding_piutang').val());
 
-        const selisih = (grandTotal + outstanding) - creditLimit
+        const selisih = (grandTotal + so_baru + outstanding_piutang) - creditLimit
 
-        $('#outstanding').val(grandTotal + outstanding);
+        $('#outstanding').val(grandTotal + so_baru);
 
         let status = "";
 
