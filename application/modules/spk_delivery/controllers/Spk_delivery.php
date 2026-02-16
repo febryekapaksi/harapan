@@ -258,11 +258,12 @@ class Spk_delivery extends Admin_Controller
   {
     $this->spk_delivery_model->data_side_spk_reprint();
   }
+
   public function cancel_spk()
   {
     $this->auth->restrict($this->deletePermission);
 
-    $no_delivery = $this->input->post('id'); // <-- ini no_delivery dari data-id
+    $no_delivery = $this->input->post('id');
 
     if (empty($no_delivery)) {
       echo json_encode([
@@ -274,7 +275,7 @@ class Spk_delivery extends Admin_Controller
 
     $this->db->trans_begin();
 
-    // Lock header SPK berdasarkan no_delivery
+    // 1. Ambil data SPK untuk mendapatkan referensi No SO
     $spk = $this->db->query(
       "SELECT no_delivery, no_so 
          FROM spk_delivery 
@@ -294,40 +295,35 @@ class Spk_delivery extends Admin_Controller
 
     $no_so = $spk['no_so'];
 
-    // (Opsional tapi bagus) Lock Sales Order juga
-    $this->db->query(
-      "SELECT no_so FROM sales_order WHERE no_so = ? FOR UPDATE",
-      [$no_so]
-    );
+    // --- PROSES PENGHAPUSAN BERTAHAP ---
 
-    // 1) Update SO dulu: set status_spk menjadi Belum SPK
-    $this->db->update('sales_order', [
-      'status_spk'  => 'Belum SPK',
-      'modified_by' => $this->auth->user_id(),
-      'modified_at' => date('Y-m-d H:i:s'),
-    ], ['no_so' => $no_so]);
-
-    // 2) Hapus detail (child) dulu
+    // 2. Hapus dari level SPK dulu (Detail lalu Header)
     $this->db->delete('spk_delivery_detail', ['no_delivery' => $no_delivery]);
-
-    // 3) Hapus header (parent)
     $this->db->delete('spk_delivery', ['no_delivery' => $no_delivery]);
+
+    // 3. Setelah SPK bersih, baru hapus level Sales Order (Detail lalu Header)
+    $this->db->delete('sales_order_detail', ['no_so' => $no_so]);
+    $this->db->delete('sales_order', ['no_so' => $no_so]);
+
+    // --- PROSES SELESAI ---
 
     if ($this->db->trans_status() === FALSE) {
       $this->db->trans_rollback();
       echo json_encode([
         'status' => 0,
-        'pesan'  => 'Failed process data!'
+        'pesan'  => 'Gagal membatalkan SPK dan menghapus data terkait!'
       ]);
       return;
     }
 
     $this->db->trans_commit();
-    history("Cancel / Delete SPK : " . $no_delivery . " | no_so: " . $no_so);
+
+    // Log history penghapusan
+    history("Cancel SPK & Delete SO Total: " . $no_delivery . " | No SO: " . $no_so);
 
     echo json_encode([
       'status' => 1,
-      'pesan'  => 'Success process data!'
+      'pesan'  => 'Berhasil! SPK dan Sales Order terkait telah dihapus sepenuhnya.'
     ]);
   }
 
