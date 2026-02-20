@@ -37,7 +37,7 @@ class Penawaran extends Admin_Controller
             ->where('c.deleted', 0)
             ->where('c.deleted_by', null);
 
-        if ($user_id != 7) {
+        if ($user_id != 7 && $user_id != 94 && $user_id != 95) {
             $this->db->where('u.id_user', $user_id);
         }
 
