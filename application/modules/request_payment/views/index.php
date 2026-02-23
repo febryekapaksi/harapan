@@ -108,6 +108,7 @@ $ENABLE_VIEW    = has_permission('Request_Payment.View');
 <script type="text/javascript">
 	DataTables();
 	load_all_party();
+	reset_data();
 
 	// change_tab('transport');
 
