@@ -284,12 +284,20 @@ $ENABLE_VIEW    = has_permission('Request_Payment.View');
 	$(document).on('click', '.pilih_data', function() {
 		var val_pilih = $(this).val();
 		var kategori = $(this).data('kategori');
+		// Ambil input tanggal yang spesifik untuk baris ini
+		var inputTanggal = $('input[name="tanggal_pembayaran_' + val_pilih + '"]');
 
-		var isChecked = $('input[value="' + val_pilih + '"]').is(':checked');
+		var isChecked = $(this).is(':checked'); // Lebih simpel pakai $(this)
 
 		var wdo = 1;
 		if (!isChecked) {
 			wdo = 0;
+			// Jika batal pilih: hapus required dan kosongkan nilai
+			inputTanggal.prop('required', false);
+			inputTanggal.val('');
+		} else {
+			// Jika dipilih: aktifkan required
+			inputTanggal.prop('required', true);
 		}
 
 		$.ajax({
@@ -302,7 +310,11 @@ $ENABLE_VIEW    = has_permission('Request_Payment.View');
 			},
 			cache: false,
 			success: function(result) {
-
+				swal({
+					type: 'success',
+					title: 'Sukses !',
+					text: 'Berhasil ubah data !'
+				})
 			},
 			error: function(result) {
 				swal({
@@ -310,19 +322,37 @@ $ENABLE_VIEW    = has_permission('Request_Payment.View');
 					title: 'Error !',
 					text: 'Please try again later !'
 				});
+				// Kembalikan status checkbox jika ajax gagal (opsional tapi bagus untuk UX)
+				$(this).prop('checked', !isChecked);
 			}
-		})
-	})
+		});
+	});
 
 	//Save
 	$('#frm_data').on('submit', function(e) {
 		e.preventDefault();
 
+		let adaYangDipilih = $('.pilih_data:checked').length;
+
+		// 1. Validasi Utama: Harus ada yang dipilih
+		if (adaYangDipilih === 0) {
+			swal({
+				type: 'warning',
+				title: 'Warning !',
+				text: 'Pilih Minimal satu data !'
+			});
+			return false; // MENGHENTIKAN fungsi di sini agar swal berikutnya tidak muncul
+		}
+
+		// 2. Jika lolos validasi, baru tampilkan konfirmasi
 		swal({
 			type: 'warning',
 			title: 'Are you sure ?',
 			text: 'The data you choose will be processed !',
-			showCancelButton: true
+			showCancelButton: true,
+			confirmButtonColor: "#DD6B55",
+			confirmButtonText: "Yes, process it!",
+			closeOnConfirm: false // Biar tidak langsung tutup saat klik OK
 		}, function(next) {
 			if (next) {
 				var formdata = $('#frm_data').serialize();
@@ -332,109 +362,36 @@ $ENABLE_VIEW    = has_permission('Request_Payment.View');
 					data: formdata,
 					dataType: 'json',
 					cache: false,
+					beforeSend: function() {
+						// Opsional: disable tombol biar ga double click
+					},
 					success: function(result) {
 						if (result.status == '1') {
 							swal({
 								type: 'success',
 								title: 'Success !',
 								text: result.msg
-							}, function(lanjut) {
-								if (lanjut) {
-									DataTables();
-								}
+							}, function() {
+								DataTables(); // Refresh tabel
 							});
 						} else {
 							swal({
 								type: 'warning',
 								title: 'Failed !',
 								text: result.msg
-							}, function(lanjut) {
-								if (lanjut) {
-									DataTables();
-								}
 							});
 						}
 					},
-					error: function(result) {
+					error: function() {
 						swal({
 							type: 'error',
 							title: 'Error !',
 							text: 'Please try again later !'
 						});
 					}
-				})
+				});
 			}
 		});
-
-		// var errors = "";
-
-		// var checked_item = $('input[name="pilih"]:checked').length;
-		// if (errors == "" && checked_item > 0) {
-		// 	swal({
-		// 			title: "Anda Yakin?",
-		// 			text: "Data Akan Disimpan!",
-		// 			type: "info",
-		// 			showCancelButton: true,
-		// 			confirmButtonText: "Ya, simpan!",
-		// 			cancelButtonText: "Tidak!",
-		// 			closeOnConfirm: false,
-		// 			closeOnCancel: true
-		// 		},
-		// 		function(isConfirm) {
-		// 			if (isConfirm) {
-		// 				var formdata = new FormData($('#frm_data')[0]);
-		// 				$.ajax({
-		// 					url: url_save,
-		// 					dataType: "json",
-		// 					type: 'POST',
-		// 					data: formdata,
-		// 					processData: false,
-		// 					contentType: false,
-		// 					success: function(msg) {
-		// 						if (msg['save'] == '1') {
-		// 							swal({
-		// 								title: "Sukses!",
-		// 								text: "Data Berhasil Di Update",
-		// 								type: "success",
-		// 								timer: 1500,
-		// 								showConfirmButton: false
-		// 							});
-		// 							window.location.href = window.location.href;
-		// 						} else {
-		// 							swal({
-		// 								title: "Gagal!",
-		// 								text: "Data Gagal Di Update",
-		// 								type: "error",
-		// 								timer: 1500,
-		// 								showConfirmButton: false
-		// 							});
-		// 						};
-		// 						console.log(msg);
-		// 					},
-		// 					error: function(msg) {
-		// 						swal({
-		// 							title: "Gagal!",
-		// 							text: "Ajax Data Gagal Di Proses",
-		// 							type: "error",
-		// 							timer: 1500,
-		// 							showConfirmButton: false
-		// 						});
-		// 						console.log(msg);
-		// 					}
-		// 				});
-		// 			}
-		// 		});
-		// } else {
-		// 	if (checked_item < 1) {
-		// 		errors = 'Please check at least 1 data before you update it !';
-		// 	}
-		// 	swal({
-		// 		title: 'Error !',
-		// 		text: errors,
-		// 		type: 'error'
-		// 	});
-		// 	return false;
-		// }
 	});
 
 	function DataTables() {
