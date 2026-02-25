@@ -314,7 +314,7 @@ $ENABLE_VIEW    = has_permission('Request_Payment.View');
 				swal({
 					type: 'success',
 					title: 'Sukses !',
-					text: 'Berhasil ubah data !'
+					text: 'Berhasil pilih data !'
 				})
 			},
 			error: function(result) {
