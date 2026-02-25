@@ -196,7 +196,7 @@ class Surat_jalan_model extends BF_Model
             $nestedData[] = "<div class='text-center'>" . $row['qty_retur'] . "</div>";
             // 🔽 Tambahkan kolom file bukti
             if (!empty($row['file_bukti'])) {
-                $url = base_url('assets/confirm_sj/' . $row['file_bukti']);
+                $url = base_url('uploads/confirm_sj/' . $row['file_bukti']);
                 $fileLink = "<a href='{$url}' target='_blank' class='btn btn-xs btn-info'><i class='fa fa-file'></i> Lihat File</a>";
             } else {
                 $fileLink = "<span class='text-muted'>-</span>";

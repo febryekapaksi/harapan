@@ -77,12 +77,12 @@
 							if ($record->doc_file != '') {
 								if (strpos($record->doc_file, 'pdf', 0) > 1) {
 									$gambar .= '<div class="col-md-12">
-					<iframe src="' . base_url('assets/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-							 Presss me: <a href="' . base_url('assets/expense/' . $record->doc_file) . '">Download PDF</a>
+					<iframe src="' . base_url('uploads/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
+							 Presss me: <a href="' . base_url('uploads/expense/' . $record->doc_file) . '">Download PDF</a>
 					</iframe>
 					<br />' . $record->no_doc . '</div>';
 								} else {
-									$gambar .= '<img src="' . base_url("assets/expense/" . $record->doc_file) . '" width="500"><br />';
+									$gambar .= '<img src="' . base_url("uploads/expense/" . $record->doc_file) . '" width="500"><br />';
 								}
 							}
 

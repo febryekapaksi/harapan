@@ -60,7 +60,7 @@ $metode_pembayaran = (isset($data)) ? $data->metode_pembayaran : 1;
                             <span class="pull-right">
                                 <?php
                                 if (isset($data->doc_file)) {
-                                    echo ($data->doc_file != '' ? '<a href="' . base_url('assets/expense/' . $data->doc_file) . '" download target="_blank"><i class="fa fa-download"></i></a>' : '');
+                                    echo ($data->doc_file != '' ? '<a href="' . base_url('uploads/expense/' . $data->doc_file) . '" download target="_blank"><i class="fa fa-download"></i></a>' : '');
                                 }
                                 ?>
                             </span>
@@ -72,7 +72,7 @@ $metode_pembayaran = (isset($data)) ? $data->metode_pembayaran : 1;
                             <span class="pull-right">
                                 <?php
                                 if (isset($data->doc_file_2)) {
-                                    echo ($data->doc_file_2 != '' ? '<a href="' . base_url('assets/expense/' . $data->doc_file_2) . '" download target="_blank"><i class="fa fa-download"></i></a>' : '');
+                                    echo ($data->doc_file_2 != '' ? '<a href="' . base_url('uploads/expense/' . $data->doc_file_2) . '" download target="_blank"><i class="fa fa-download"></i></a>' : '');
                                 }
                                 ?>
                             </span>
@@ -252,26 +252,26 @@ $metode_pembayaran = (isset($data)) ? $data->metode_pembayaran : 1;
                         if ($data->doc_file != '') {
                             if (strpos($data->doc_file, 'pdf', 0) > 1) {
                                 echo '<div class="col-md-12">
-						<iframe src="' . base_url('assets/expense/' . $data->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-								 <a href="' . base_url('assets/expense/' . $data->doc_file) . '">Download PDF</a>
+						<iframe src="' . base_url('uploads/expense/' . $data->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
+								 <a href="' . base_url('uploads/expense/' . $data->doc_file) . '">Download PDF</a>
 						</iframe>
 						<br />' . $data->no_doc . '</div>';
                             } else {
-                                if (file_exists('assets/expense' . $data->doc_file)) {
-                                    echo '<div class="col-md-12"><a href="' . base_url('assets/expense/' . $data->doc_file) . '" target="_blank"><img src="' . base_url('assets/expense/' . $data->doc_file) . '" class="img-responsive"></a><br />' . $data->no_doc . '</div>';
+                                if (file_exists('uploads/expense' . $data->doc_file)) {
+                                    echo '<div class="col-md-12"><a href="' . base_url('uploads/expense/' . $data->doc_file) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $data->doc_file) . '" class="img-responsive"></a><br />' . $data->no_doc . '</div>';
                                 }
                             }
                         }
                         if ($data->doc_file_2 != '') {
                             if (strpos($data->doc_file_2, 'pdf', 0) > 1) {
                                 echo '<div class="col-md-12">
-						<iframe src="' . base_url('./assets/expense/' . $data->doc_file_2) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-								 <a href="' . base_url('assets/expense/' . $data->doc_file_2) . '">Download PDF</a>
+						<iframe src="' . base_url('./uploads/expense/' . $data->doc_file_2) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
+								 <a href="' . base_url('uploads/expense/' . $data->doc_file_2) . '">Download PDF</a>
 						</iframe>
 						<br />' . $data->no_doc . '</div>';
                             } else {
-                                if (file_exists('./assets/expense' . $data->doc_file2)) {
-                                    echo '<div class="col-md-12"><a href="' . base_url('assets/expense/' . $data->doc_file_2) . '" target="_blank"><img src="' . base_url('assets/expense/' . $data->doc_file_2) . '" class="img-responsive"></a><br />' . $data->no_doc . '</div>';
+                                if (file_exists('./uploads/expense' . $data->doc_file2)) {
+                                    echo '<div class="col-md-12"><a href="' . base_url('uploads/expense/' . $data->doc_file_2) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $data->doc_file_2) . '" class="img-responsive"></a><br />' . $data->no_doc . '</div>';
                                 }
                             }
                         }

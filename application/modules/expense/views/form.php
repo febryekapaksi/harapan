@@ -197,12 +197,12 @@ if (!isset($data->departement)) {
 									if ($record->doc_file != '') {
 										if (strpos($record->doc_file, 'pdf', 0) > 1) {
 											$gambar .= '<div class="col-md-12">
-								<iframe src="' . base_url('assets/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-										 <a href="' . base_url('assets/expense/' . $record->doc_file) . '">Download PDF</a>
+								<iframe src="' . base_url('uploads/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
+										 <a href="' . base_url('uploads/expense/' . $record->doc_file) . '">Download PDF</a>
 								</iframe>
 								<br />' . $record->no_doc . '</div>';
 										} else {
-											$gambar .= '<div class="col-md-4"><a href="' . base_url('assets/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('assets/expense/' . $record->doc_file) . '" class="img-responsive"></a><br />' . $record->no_doc . '</div>';
+											$gambar .= '<div class="col-md-4"><a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $record->doc_file) . '" class="img-responsive"></a><br />' . $record->no_doc . '</div>';
 										}
 									}
 									$total_expense = ($total_expense + ($record->expense));

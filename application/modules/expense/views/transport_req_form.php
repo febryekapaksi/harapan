@@ -125,19 +125,19 @@ $dept = $datauser->department_id;
 										<td class="divide"><?= $record->km_awal; ?></td>
 										<td class="divide"><?= $record->km_akhir; ?></td>
 										<td class="divide"><?= ($record->km_akhir - $record->km_awal); ?></td>
-										<td><span class="pull-right"><?= ($record->doc_file != '' ? '<a href="' . base_url('assets/expense/' . $record->doc_file) . '" target="_blank"><i class="fa fa-download"></i></a>' : '') ?></span>
+										<td><span class="pull-right"><?= ($record->doc_file != '' ? '<a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank"><i class="fa fa-download"></i></a>' : '') ?></span>
 										</td>
 									</tr>
 							<?php
 									if ($record->doc_file != '') {
 										if (strpos($record->doc_file, 'pdf', 0) > 1) {
 											$gambar .= '<div class="col-md-12">
-								<iframe src="' . base_url('assets/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-										 Presss me: <a href="' . base_url('assets/expense/' . $record->doc_file) . '">Download PDF</a>
+								<iframe src="' . base_url('uploads/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
+										 Presss me: <a href="' . base_url('uploads/expense/' . $record->doc_file) . '">Download PDF</a>
 								</iframe>
 								<br />' . $record->no_doc . '</div>';
 										} else {
-											$gambar .= '<div class="col-md-3"><a href="' . base_url('assets/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('assets/expense/' . $record->doc_file) . '" class="img-responsive"></a><br />' . $record->no_doc . '</div>';
+											$gambar .= '<div class="col-md-3"><a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $record->doc_file) . '" class="img-responsive"></a><br />' . $record->no_doc . '</div>';
 										}
 									}
 
@@ -363,7 +363,7 @@ $dept = $datauser->department_id;
 						Rows += "<td>";
 						Rows += "<span class='pull-right'>";
 						if (data[i].doc_file != '') {
-							Rows += "<a href='<?= base_url('assets/expense/') ?>" + data[i].doc_file + "' target='_blank'><i class='fa fa-download'></i></a></span>";
+							Rows += "<a href='<?= base_url('uploads/expense/') ?>" + data[i].doc_file + "' target='_blank'><i class='fa fa-download'></i></a></span>";
 						}
 						Rows += "</td>";
 						Rows += "</tr>";

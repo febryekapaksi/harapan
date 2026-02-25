@@ -349,7 +349,7 @@ class Incoming_departemen extends Admin_Controller
 
 			$file_name = NULL;
 			if (!empty($_FILES["upload_doc"]["name"])) {
-				$config['upload_path'] = './assets/expense/';
+				$config['upload_path'] = './uploads/expense/';
 				$config['allowed_types'] = '*';
 				$config['remove_spaces'] = TRUE;
 				$config['encrypt_name'] = TRUE;
