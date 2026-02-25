@@ -179,7 +179,7 @@ class Non_rutin extends Admin_Controller
 			$file_name = NULL;
 			if (!empty($_FILES["upload_spk"]["name"])) {
 
-				$config['upload_path'] = './assets/pr/';
+				$config['upload_path'] = './uploads/pr/';
 				$config['allowed_types'] = '*';
 				$config['remove_spaces'] = TRUE;
 				$config['encrypt_name'] = TRUE;
