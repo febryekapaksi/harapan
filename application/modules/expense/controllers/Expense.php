@@ -141,7 +141,7 @@ class Expense extends Admin_Controller
 		$metode_pembayaran	= 1;
 
 		$this->db->trans_begin();
-		$config['upload_path'] = 'assets/expense/';
+		$config['upload_path'] = 'uploads/expense/';
 		$config['allowed_types'] = '*';
 		$config['remove_spaces'] = TRUE;
 		$config['encrypt_name'] = TRUE;
@@ -1166,7 +1166,7 @@ class Expense extends Admin_Controller
 					// proses update jika ada id_detail
 					if ($id_detail[$keys] !== '') {
 						if ($qty[$keys] > 0) {
-							$config['upload_path'] = './assets/expense/';
+							$config['upload_path'] = './uploads/expense/';
 							$config['allowed_types'] = '*';
 							$config['remove_spaces'] = TRUE;
 							$config['encrypt_name'] = TRUE;
@@ -1272,7 +1272,7 @@ class Expense extends Admin_Controller
 					// proses insert karena tidak ada id_detail
 					else {
 						if ($qty[$keys] > 0) {
-							$config['upload_path'] = './assets/expense/';
+							$config['upload_path'] = './uploads/expense/';
 							$config['allowed_types'] = '*';
 							$config['remove_spaces'] = TRUE;
 							$config['encrypt_name'] = TRUE;
@@ -1392,7 +1392,7 @@ class Expense extends Admin_Controller
 		else {
 			$no_doc = $this->All_model->GetAutoGenerate('format_expense');
 
-			$uploadDirectory = "./assets/expense/";
+			$uploadDirectory = "./uploads/expense/";
 			$pathBonBukti = [];
 			$pathBuktiPengembalian = [];
 
@@ -1476,7 +1476,7 @@ class Expense extends Admin_Controller
 				foreach ($detail_id as $keys => $val) {
 					$no_doc			= $no_doc;
 					if ($qty[$keys] > 0) {
-						$config['upload_path'] = './assets/expense/';
+						$config['upload_path'] = './uploads/expense/';
 						$config['allowed_types'] = '*';
 						$config['remove_spaces'] = TRUE;
 						$config['encrypt_name'] = TRUE;
@@ -1898,7 +1898,7 @@ class Expense extends Admin_Controller
 		$msg = '';
 
 		$this->db->trans_begin();
-		$config['upload_path'] = 'assets/expense/';
+		$config['upload_path'] = 'uploads/expense/';
 		$config['allowed_types'] = 'jpg|jpeg|png|pdf';
 		// $config['max_size'] = 5120000;
 		$config['remove_spaces'] = TRUE;
@@ -2882,14 +2882,14 @@ class Expense extends Admin_Controller
 		if (!empty($get_pr_dept)) {
 			if (!empty($get_pr_dept->document)) {
 				$doc_file = 'assets/pr/' . $get_pr_dept->document;
-				$to_doc_file = 'assets/expense/' . $get_pr_dept->document;
+				$to_doc_file = 'uploads/expense/' . $get_pr_dept->document;
 				$file_name = $get_pr_dept->document;
 			}
 		}
 		if (!empty($get_pr_asset)) {
 			if (!empty($get_pr_asset->dokumen_pendukung)) {
 				$doc_file = 'uploads/pr_asset/' . $get_pr_asset->dokumen_pendukung;
-				$to_doc_file = 'assets/expense/' . $get_pr_asset->dokumen_pendukung;
+				$to_doc_file = 'uploads/expense/' . $get_pr_asset->dokumen_pendukung;
 				$file_name = $get_pr_asset->dokumen_pendukung;
 			}
 		}

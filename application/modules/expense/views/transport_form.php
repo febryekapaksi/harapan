@@ -80,15 +80,15 @@
 							<span class="pull-right"><?php
 														$gambar = '';
 														if (isset($data->doc_file)) {
-															echo ($data->doc_file != '' ? '<a href="' . base_url('assets/expense/' . $data->doc_file) . '" download target="_blank"><i class="fa fa-download"></i></a>' : '');
+															echo ($data->doc_file != '' ? '<a href="' . base_url('uploads/expense/' . $data->doc_file) . '" download target="_blank"><i class="fa fa-download"></i></a>' : '');
 															if (strpos($data->doc_file, 'pdf', 0) > 1) {
 																$gambar .= '<div class="col-md-12">
-								<iframe src="' . base_url('assets/expense/' . $data->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-										 <a href="' . base_url('assets/expense/' . $data->doc_file) . '">Download PDF</a>
+								<iframe src="' . base_url('uploads/expense/' . $data->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
+										 <a href="' . base_url('uploads/expense/' . $data->doc_file) . '">Download PDF</a>
 								</iframe>
 								<br />' . $data->no_doc . '</div>';
 															} else {
-																$gambar .= '<div class="col-md-12"><a href="' . base_url('assets/expense/' . $data->doc_file) . '" target="_blank"><img src="' . base_url('assets/expense/' . $data->doc_file) . '" class="img-responsive"></a><br />' . $data->no_doc . '</div>';
+																$gambar .= '<div class="col-md-12"><a href="' . base_url('uploads/expense/' . $data->doc_file) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $data->doc_file) . '" class="img-responsive"></a><br />' . $data->no_doc . '</div>';
 															}
 														}
 														?>

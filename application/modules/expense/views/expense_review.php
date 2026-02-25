@@ -169,7 +169,7 @@ $readonly = 'readonly';
 												<?php if ($tekskasbon == '') { ?>
 												<?php } ?>
 											</div>
-											<span class="pull-right"><?= ($record->doc_file != '' ? '<a href="' . base_url('assets/expense/' . $record->doc_file) . '" download target="_blank"><i class="fa fa-download"></i></a>' : '') ?></span>
+											<span class="pull-right"><?= ($record->doc_file != '' ? '<a href="' . base_url('uploads/expense/' . $record->doc_file) . '" download target="_blank"><i class="fa fa-download"></i></a>' : '') ?></span>
 										</td>
 										<th scope="row" align='center'></th>
 									</tr>
@@ -177,12 +177,12 @@ $readonly = 'readonly';
 									if ($record->doc_file != '') {
 										if (strpos($record->doc_file, 'pdf', 0) > 1) {
 											$gambar .= '<div class="col-md-12">
-								<iframe src="' . base_url('assets/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-										 <a href="' . base_url('assets/expense/' . $record->doc_file) . '">Download PDF</a>
+								<iframe src="' . base_url('uploads/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
+										 <a href="' . base_url('uploads/expense/' . $record->doc_file) . '">Download PDF</a>
 								</iframe>
 								<br />' . $record->no_doc . '</div>';
 										} else {
-											$gambar .= '<div class="col-md-4"><a href="' . base_url('assets/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('assets/expense/' . $record->doc_file) . '" class="img-responsive"></a><br />' . $record->no_doc . '</div>';
+											$gambar .= '<div class="col-md-4"><a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $record->doc_file) . '" class="img-responsive"></a><br />' . $record->no_doc . '</div>';
 										}
 									}
 									$total_expense = ($total_expense + ($record->expense));
@@ -211,7 +211,7 @@ $readonly = 'readonly';
 								<td colspan="9" id="transfer-area" class="<?= $hidetransfer ?>">
 									<div class="col-md-3">
 										<input type="hidden" name="transferfile" id="transferfile" value="<?= (isset($data->transfer_file) ? $data->transfer_file : ''); ?>">
-										Bukti transfer : <input type='file' name='transfer_file'> <?= (isset($data->transfer_file) ? '<a href="' . base_url('assets/expense/' . $data->transfer_file) . '">' . $data->transfer_file . '</a>' : '') ?>
+										Bukti transfer : <input type='file' name='transfer_file'> <?= (isset($data->transfer_file) ? '<a href="' . base_url('uploads/expense/' . $data->transfer_file) . '">' . $data->transfer_file . '</a>' : '') ?>
 									</div>
 									<div class="col-md-4">
 										Pilih Bank : <br />
@@ -330,7 +330,7 @@ $readonly = 'readonly';
 										});
 										window.location.reload();
 									} else {
-										if(msg['valid'] == 2) {
+										if (msg['valid'] == 2) {
 											swal({
 												title: "Gagal!",
 												text: "Sisa pengembalian melebihi nilai expense !",
@@ -338,7 +338,7 @@ $readonly = 'readonly';
 												timer: 1500,
 												showConfirmButton: false
 											});
-										}else{
+										} else {
 											swal({
 												title: "Gagal!",
 												text: "Data Gagal Di Setujui",

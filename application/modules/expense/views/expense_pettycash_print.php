@@ -57,11 +57,11 @@
                                 <td align="right"><?= number_format($record->expense); ?></td>
                             </tr>
                     <?php
-                            if ($record->doc_file != '' && file_exists('assets/expense/' . $record->doc_file)) {
+                            if ($record->doc_file != '' && file_exists('uploads/expense/' . $record->doc_file)) {
                                 if (strpos($record->doc_file, 'pdf', 0) > 1) {
-                                    $gambar .= '<iframe src="' . base_url('assets/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0"></iframe><br /><br />';
+                                    $gambar .= '<iframe src="' . base_url('uploads/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0"></iframe><br /><br />';
                                 } else {
-                                    $gambar .= '<img src="' . base_url() . 'assets/expense/' . $record->doc_file . '" width="500"><br />';
+                                    $gambar .= '<img src="' . base_url() . 'uploads/expense/' . $record->doc_file . '" width="500"><br />';
                                 }
                             }
                             $total_expense = ($total_expense + ($record->expense));

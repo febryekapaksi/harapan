@@ -305,7 +305,7 @@ class Surat_jalan_pabrik extends Admin_Controller
 
         // ✅ Upload file dokumen jika ada
         if (!empty($_FILES['file_dokumen']['name'])) {
-            $config['upload_path']   = './assets/confirm_sj/';
+            $config['upload_path']   = './uploads/confirm_sj/';
             $config['allowed_types'] = '*';
             $config['max_size']      = 2048;
             $config['file_name']     = 'bukti_confirm_sj_gudang_' . $sanitized_sj;
@@ -364,7 +364,7 @@ class Surat_jalan_pabrik extends Admin_Controller
                     $_FILES['file_temp']['error']    = $_FILES['detail']['error'][$key]['file_bukti'];
                     $_FILES['file_temp']['size']     = $_FILES['detail']['size'][$key]['file_bukti'];
 
-                    $config_retur['upload_path']   = './assets/confirm_sj/';
+                    $config_retur['upload_path']   = './uploads/confirm_sj/';
                     $config_retur['allowed_types'] = '*';
                     $config_retur['max_size']      = 2048;
                     $config_retur['file_name']     = 'retur_' . $sanitized_sj . '_' . $key;
