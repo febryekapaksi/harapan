@@ -412,7 +412,7 @@ class Surat_jalan extends Admin_Controller
         // ✅ Upload file dokumen jika ada (di luar transaksi DB)
         if (!empty($_FILES['file_dokumen']['name'])) {
             $config = [
-                'upload_path'   => './assets/confirm_sj/',
+                'upload_path'   => './uploads/confirm_sj/',
                 'allowed_types' => '*',
                 'max_size'      => 2048,
                 'file_name'     => 'bukti_confirm_sj_gudang_' . $sanitized_sj
@@ -507,7 +507,7 @@ class Surat_jalan extends Admin_Controller
                 ];
 
                 $config_retur = [
-                    'upload_path'   => './assets/confirm_sj/',
+                    'upload_path'   => './uploads/confirm_sj/',
                     'allowed_types' => '*',
                     'max_size'      => 2048,
                     'file_name'     => 'retur_' . $sanitized_sj . '_' . $key
