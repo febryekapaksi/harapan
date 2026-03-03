@@ -846,6 +846,9 @@ class Invoice_produk extends Admin_Controller
 							<button id="btnResetDelivery" class="btn btn-default btn-sm">
 								Reset
 							</button>
+							<button id="btnExportDelivery" class="btn btn-success btn-sm">
+								<i class="fa fa-file-excel-o"></i> Export Excel
+							</button>
 						</div>
 					</div>
 				';
@@ -856,6 +859,7 @@ class Invoice_produk extends Admin_Controller
 						<th class="text-center">No. DO</th>
 						<th class="text-center">No. SO</th>
 						<th class="text-center">Tgl. Kirim</th>
+						<th class="text-center">No. Invoice</th>
 						<th class="text-center">Tgl. Invoice</th>
 						<th class="text-center">Nama Customer</th>
 						<th class="text-center">Nominal Invoice</th>
@@ -867,7 +871,7 @@ class Invoice_produk extends Admin_Controller
 
 			// Query + filter tanggal
 			$this->db
-				->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.created_on, i.is_cancel, sj.created_at')
+				->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.id_invoice, i.created_on, i.is_cancel, sj.created_at')
 				->from('surat_jalan sj')
 				->join('tr_invoice_sales i', 'sj.no_surat_jalan = i.id_billing AND i.tipe_billing="delivery"', 'left')
 				->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
@@ -955,6 +959,7 @@ class Invoice_produk extends Admin_Controller
 				$hasil .= '<td class="text-center">' . $item->no_surat_jalan . '</td>';
 				$hasil .= '<td class="text-center">' . $item->no_so . '</td>';
 				$hasil .= '<td class="text-center">' . date('d/M/Y', strtotime($item->delivery_date)) . '</td>';
+				$hasil .= '<td class="text-center">' . $item->id_invoice . '</td>';
 				$hasil .= '<td class="text-center">' . $tanggal . '</td>';
 				$hasil .= '<td class="text-left">' . $item->name_customer . '</td>';
 				$hasil .= '<td class="text-right">' . number_format($nominal_invoice, 2) . '</td>';
@@ -1420,5 +1425,151 @@ class Invoice_produk extends Admin_Controller
 
 		ob_end_clean();
 		$html2pdf->Output('Invoice Jaminan.pdf', 'I');
+	}
+
+	public function export_excel_delivery()
+	{
+		// 1) Ambil parameter filter
+		$start = $this->input->get('start', true);
+		$end   = $this->input->get('end', true);
+
+		// 2) Query Data (Sama dengan logika tabel Anda)
+		$this->db
+			->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.id_invoice, i.created_on, i.is_cancel, sj.created_at')
+			->from('surat_jalan sj')
+			->join('tr_invoice_sales i', 'sj.no_surat_jalan = i.id_billing AND i.tipe_billing="delivery"', 'left')
+			->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
+			->join('sales_order b', 'b.no_so = sj.no_so', 'left')
+			->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
+			->where('sj.status !=', 'ON DELIVER')
+			->where('sj.status IS NOT NULL')
+			->order_by('sj.created_at', 'DESC');
+
+		if ($start && $end) {
+			$this->db->where("DATE(i.created_on) >=", $start);
+			$this->db->where("DATE(i.created_on) <=", $end);
+		} elseif ($start) {
+			$this->db->where("DATE(i.created_on) >=", $start);
+		} elseif ($end) {
+			$this->db->where("DATE(i.created_on) <=", $end);
+		}
+
+		$rows = $this->db->get()->result();
+
+		if (empty($rows)) {
+			echo "<script>alert('Data tidak ditemukan'); window.history.back();</script>";
+			return;
+		}
+
+		// 3) Setup PHPExcel
+		set_time_limit(0);
+		ini_set('memory_limit', '1024M');
+
+		$this->load->library('PHPExcel');
+		// PHPExcel_Cell::setValueBinder(new PHPExcel_Cell_AdvancedValueBinder());
+
+		$xls   = new PHPExcel();
+		$sheet = $xls->getActiveSheet();
+
+		// Judul
+		$periode = ($start && $end) ? $start . ' s/d ' . $end : 'Semua Data';
+		$sheet->setCellValue('A1', 'REPORT INVOICE DELIVERY - ' . $periode);
+		$sheet->mergeCells('A1:F2');
+
+		// Header Kolom
+		$headers = [
+			'A' => 'No. DO',
+			'B' => 'No. SO',
+			'C' => 'Tgl. Kirim',
+			'D' => 'No. Invoice',
+			'E' => 'Tgl. Invoice',
+			'F' => 'Nama Customer',
+			'G' => 'Nominal Invoice',
+		];
+
+		$rowHeader = 4;
+		foreach ($headers as $col => $label) {
+			$sheet->setCellValue($col . $rowHeader, $label);
+			$sheet->getColumnDimension($col)->setAutoSize(true);
+		}
+
+		// 4) Isi Data
+		$r = $rowHeader + 1;
+		foreach ($rows as $item) {
+
+			// --- LOGIKA HITUNG NOMINAL (Sama dengan di view Anda) ---
+			$get_hitung = $this->db->query("
+            SELECT sjd.qty_terkirim AS qty, sod.harga_penawaran
+            FROM surat_jalan_detail sjd
+            LEFT JOIN sales_order_detail sod ON sod.id = sjd.id_so_det
+            WHERE sjd.no_surat_jalan = '" . $item->no_surat_jalan . "'
+        ")->result();
+
+			$subtotal = 0;
+			foreach ($get_hitung as $h) {
+				$subtotal += round(($h->harga_penawaran * $h->qty), -2);
+			}
+
+			// Cek SJ Pertama untuk Freight
+			$get_sj_pertama = $this->db->select('no_surat_jalan')->from('surat_jalan')
+				->where('no_so', $item->no_so)->order_by('delivery_date', 'ASC')->order_by('id', 'ASC')->limit(1)->get()->row();
+
+			$freight = 0;
+			$diskon_khusus = 0;
+			if ($get_sj_pertama && $get_sj_pertama->no_surat_jalan === $item->no_surat_jalan) {
+				$f_data = $this->db->select('b.freight, b.diskon_khusus')->from('sales_order a')
+					->join('penawaran b', 'b.id_penawaran = a.id_penawaran')->where('a.no_so', $item->no_so)->get()->row();
+				$freight = $f_data ? $f_data->freight : 0;
+				$diskon_khusus = $f_data ? $f_data->diskon_khusus : 0;
+			}
+
+			$includeppn = $subtotal - $diskon_khusus;
+			$excludeppn = ($includeppn + $freight) / 1.11;
+			$dpp = $excludeppn * 11 / 12;
+			$ppn = $dpp * 12 / 100;
+			$nominal_invoice = ($excludeppn + $ppn);
+			// -------------------------------------------------------
+
+			// Tulis ke Excel
+			$sheet->setCellValueExplicit('A' . $r, (string)$item->no_surat_jalan, PHPExcel_Cell_DataType::TYPE_STRING);
+			$sheet->setCellValueExplicit('B' . $r, (string)$item->no_so, PHPExcel_Cell_DataType::TYPE_STRING);
+
+			// Format Tanggal (numeric excel serial)
+			if (!empty($item->delivery_date)) {
+				$tgl_kirim = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($item->delivery_date));
+				$sheet->setCellValueExplicit('C' . $r, $tgl_kirim, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+				$sheet->getStyle('C' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+			} else {
+				$sheet->setCellValueExplicit('C' . $r, '', PHPExcel_Cell_DataType::TYPE_STRING);
+			}
+
+			$sheet->setCellValueExplicit('D' . $r, (string)$item->id_invoice, PHPExcel_Cell_DataType::TYPE_STRING);
+
+			if (!empty($item->created_on)) {
+				$tgl_inv = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($item->created_on));
+				$sheet->setCellValueExplicit('E' . $r, $tgl_inv, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+				$sheet->getStyle('E' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+			} else {
+				$sheet->setCellValueExplicit('E' . $r, '', PHPExcel_Cell_DataType::TYPE_STRING);
+			}
+
+			$sheet->setCellValueExplicit('F' . $r, (string)$item->name_customer, PHPExcel_Cell_DataType::TYPE_STRING);
+
+			$sheet->setCellValueExplicit('G' . $r, (float)$nominal_invoice, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+			$sheet->getStyle('G' . $r)->getNumberFormat()->setFormatCode('#,##0.00');
+
+			$r++;
+		}
+
+		$sheet->setTitle('Invoice Delivery');
+
+		// 5) Output
+		$writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+		ob_end_clean();
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="Invoice_Delivery_' . date('Ymd_His') . '.xls"');
+		header('Cache-Control: max-age=0');
+		$writer->save('php://output');
+		exit;
 	}
 }
