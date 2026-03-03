@@ -1,6 +1,18 @@
 <?php
-header("Content-type: application/vnd-ms-excel");
-header("Content-Disposition: attachment; filename=Excel Payment List (" . date('d F Y', strtotime($tgl_from)) . " - " . date('d F Y', strtotime($tgl_to)) . ") - " . $bank . ".xls");
+$label_from = !empty($tgl_from) ? date('d F Y', strtotime($tgl_from)) : 'All';
+$label_to   = !empty($tgl_to) ? date('d F Y', strtotime($tgl_to)) : 'All';
+
+$filename = "Excel Payment List ({$label_from} - {$label_to}).xls";
+
+// bersihkan output buffer jika ada
+if (ob_get_length()) {
+    ob_end_clean();
+}
+
+header("Content-Type: application/vnd.ms-excel; charset=UTF-8");
+header("Content-Disposition: attachment; filename=\"{$filename}\"");
+header("Pragma: no-cache");
+header("Expires: 0");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -12,7 +24,7 @@ header("Content-Disposition: attachment; filename=Excel Payment List (" . date('
 </head>
 
 <body>
-
+    <h5><span class="text-center">Excel Payment List (<?= $label_from ?> - <?= $label_to ?>)</span></h5>
     <table class="table table-bordered" id="myTable" border="1">
         <thead>
             <tr>
@@ -62,7 +74,8 @@ header("Content-Disposition: attachment; filename=Excel Payment List (" . date('
                     }
                     if ($get_request_payment->status == '1' || $get_request_payment->status == '2') {
                         $get_payment_approve = $this->db->get_where('payment_approve', ['no_doc' => $item->no_doc])->row();
-                        if (count($get_payment_approve) > 0) {
+
+                        if (!empty($get_payment_approve) && isset($get_payment_approve->status)) {
                             if ($get_payment_approve->status == '2') {
                                 echo '<div class="badge bg-green text-light">Paid</div>';
                             } else {
