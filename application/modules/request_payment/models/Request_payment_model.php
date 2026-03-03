@@ -356,79 +356,374 @@ class Request_payment_model extends BF_Model
         $this->template->render('search_payment_list');
     }
 
-    public function excel_payment_list($tgl_from = '', $tgl_to = '', $bank = '')
+    public function excel_payment_list($tgl_from = '', $tgl_to = '')
     {
+        set_time_limit(0);
+        ini_set('memory_limit', '1024M');
+
+        // =========================
+        // 1) Build filter tanggal
+        // =========================
         $filter_tgl1 = '';
         $filter_tgl2 = '';
         $filter_tgl3 = '';
         $filter_tgl4 = '';
         $filter_tgl5 = '';
 
-        $filter_bank1 = '';
-        $filter_bank2 = '';
+        // escape manual (lebih aman dari concat mentah)
+        $esc_from = ($tgl_from !== '') ? $this->db->escape($tgl_from) : "''";
+        $esc_to   = ($tgl_to !== '') ? $this->db->escape($tgl_to) : "''";
 
         if ($tgl_from !== '' && $tgl_to !== '') {
-            $filter_tgl1 = " AND a.tgl_doc BETWEEN '" . $tgl_from . "' AND '" . $tgl_to . "'";
-            $filter_tgl2 = " AND a.tgl_doc BETWEEN '" . $tgl_from . "' AND '" . $tgl_to . "'";
-            $filter_tgl3 = " AND a.tgl_doc BETWEEN '" . $tgl_from . "' AND '" . $tgl_to . "'";
-            $filter_tgl4 = " AND a.tanggal_doc BETWEEN '" . $tgl_from . "' AND '" . $tgl_to . "'";
-            $filter_tgl5 = " AND a.tanggal_doc BETWEEN '" . $tgl_from . "' AND '" . $tgl_to . "'";
+            $filter_tgl1 = " AND a.tgl_doc BETWEEN {$esc_from} AND {$esc_to}";
+            $filter_tgl2 = " AND a.tgl_doc BETWEEN {$esc_from} AND {$esc_to}";
+            $filter_tgl3 = " AND a.tgl_doc BETWEEN {$esc_from} AND {$esc_to}";
+            $filter_tgl4 = " AND a.tanggal_doc BETWEEN {$esc_from} AND {$esc_to}";
+            $filter_tgl5 = " AND a.tanggal_doc BETWEEN {$esc_from} AND {$esc_to}";
         } else {
             if ($tgl_from !== '' && $tgl_to == '') {
-                $filter_tgl1 = " AND a.tgl_doc >= '" . $tgl_from . "'";
-                $filter_tgl2 = " AND a.tgl_doc >= '" . $tgl_from . "'";
-                $filter_tgl3 = " AND a.tgl_doc >= '" . $tgl_from . "'";
-                $filter_tgl4 = " AND a.tanggal_doc >= '" . $tgl_from . "'";
-                $filter_tgl5 = " AND a.tanggal_doc >= '" . $tgl_from . "'";
+                $filter_tgl1 = " AND a.tgl_doc >= {$esc_from}";
+                $filter_tgl2 = " AND a.tgl_doc >= {$esc_from}";
+                $filter_tgl3 = " AND a.tgl_doc >= {$esc_from}";
+                $filter_tgl4 = " AND a.tanggal_doc >= {$esc_from}";
+                $filter_tgl5 = " AND a.tanggal_doc >= {$esc_from}";
             } else if ($tgl_from == '' && $tgl_to !== '') {
-                $filter_tgl1 = " AND a.tgl_doc <= '" . $tgl_to . "'";
-                $filter_tgl2 = " AND a.tgl_doc <= '" . $tgl_to . "'";
-                $filter_tgl3 = " AND a.tgl_doc <= '" . $tgl_to . "'";
-                $filter_tgl4 = " AND a.tanggal_doc <= '" . $tgl_to . "'";
-                $filter_tgl5 = " AND a.tanggal_doc <= '" . $tgl_to . "'";
+                $filter_tgl1 = " AND a.tgl_doc <= {$esc_to}";
+                $filter_tgl2 = " AND a.tgl_doc <= {$esc_to}";
+                $filter_tgl3 = " AND a.tgl_doc <= {$esc_to}";
+                $filter_tgl4 = " AND a.tanggal_doc <= {$esc_to}";
+                $filter_tgl5 = " AND a.tanggal_doc <= {$esc_to}";
             }
         }
 
-        if ($bank !== '') {
-            $filter_bank1 = ' AND b.bank_name LIKE "%' . $bank . '%"';
-            $filter_bank2 = ' AND d.bank_name LIKE "%' . $bank . '%"';
-        }
+        // =========================
+        // 2) Ambil data payment list (UNION)
+        // =========================
+        $sql = "
+        SELECT * FROM (
+            SELECT 
+                a.id as ids,
+                a.no_doc,
+                a.nama,
+                a.tgl_doc,
+                'Transportasi' as keperluan,
+                'transportasi' as tipe,
+                a.jumlah_expense as jumlah,
+                NULL as tanggal,
+                a.no_doc as id,
+                a.bank_id,
+                a.accnumber,
+                a.accname
+            FROM tr_transport_req a
+            WHERE a.id != '' {$filter_tgl1}
+            GROUP BY a.no_doc
 
-        $data    = $this->db->query("SELECT a.id as ids,a.no_doc,a.nama,a.tgl_doc,'Transportasi' as keperluan, 'transportasi' as tipe,a.jumlah_expense as jumlah,null as tanggal,a.no_doc as id, a.bank_id, a.accnumber, a.accname FROM tr_transport_req a LEFT JOIN request_payment b ON b.no_doc = a.no_doc WHERE a.id != '' " . $filter_tgl1 . " " . $filter_bank1 . "
-        GROUP BY a.no_doc
-		union all
-		SELECT a.id as ids,a.no_doc,a.nama,a.tgl_doc,a.keperluan, 'kasbon' as tipe,a.jumlah_kasbon as jumlah,null as tanggal,a.no_doc as id, a.bank_id, a.accnumber, a.accname FROM tr_kasbon a LEFT JOIN request_payment b ON b.no_doc = a.no_doc WHERE a.id != '' " . $filter_tgl2 . " " . $filter_bank1 . "
-        GROUP BY a.no_doc
-		union all
-		SELECT a.id as ids,a.no_doc,a.nama,a.tgl_doc,a.informasi as keperluan, 'expense' as tipe,a.jumlah,null as tanggal,a.no_doc as id, a.bank_id, a.accnumber, a.accname FROM tr_expense a LEFT JOIN request_payment b ON b.no_doc = a.no_doc WHERE a.jumlah >= 0 " . $filter_tgl3 . " " . $filter_bank1 . "
-        GROUP BY a.no_doc
-		union all
-		SELECT a.id as ids,a.no_doc,a.pic nama,a.tanggal_doc as tgl_doc,a.info as keperluan, 'nonpo' as tipe,a.nilai_request jumlah,null as tanggal,a.no_doc as id, a.bank_id, a.accnumber, a.accname FROM tr_non_po_header a LEFT JOIN request_payment b ON b.no_doc = a.no_doc  WHERE a.id != '' " . $filter_tgl4 . " " . $filter_bank1 . "
-        GROUP BY a.no_doc
-		union all
-		SELECT b.id as ids,a.no_doc,c.nm_lengkap nama,a.tanggal_doc as tgl_doc,b.nama as keperluan, 'periodik' as tipe,b.nilai jumlah,null as tanggal,a.no_doc as id, b.bank_id, b.accnumber, b.accname FROM tr_pengajuan_rutin a join tr_pengajuan_rutin_detail b on a.no_doc=b.no_doc join users c on a.created_by=c.id_user left join request_payment d ON d.no_doc = a.no_doc WHERE b.id != '' " . $filter_tgl5 . " " . $filter_bank2 . "
+            UNION ALL
 
-		")->result();
+            SELECT 
+                a.id as ids,
+                a.no_doc,
+                a.nama,
+                a.tgl_doc,
+                a.keperluan,
+                'kasbon' as tipe,
+                a.jumlah_kasbon as jumlah,
+                NULL as tanggal,
+                a.no_doc as id,
+                a.bank_id,
+                a.accnumber,
+                a.accname
+            FROM tr_kasbon a
+            WHERE a.id != '' {$filter_tgl2}
+            GROUP BY a.no_doc
 
+            UNION ALL
+
+            SELECT 
+                a.id as ids,
+                a.no_doc,
+                a.nama,
+                a.tgl_doc,
+                a.informasi as keperluan,
+                'expense' as tipe,
+                a.jumlah,
+                NULL as tanggal,
+                a.no_doc as id,
+                a.bank_id,
+                a.accnumber,
+                a.accname
+            FROM tr_expense a
+            WHERE a.jumlah >= 0 {$filter_tgl3}
+            GROUP BY a.no_doc
+
+            UNION ALL
+
+            SELECT 
+                a.id as ids,
+                a.no_doc,
+                a.pic as nama,
+                a.tanggal_doc as tgl_doc,
+                a.info as keperluan,
+                'nonpo' as tipe,
+                a.nilai_request as jumlah,
+                NULL as tanggal,
+                a.no_doc as id,
+                a.bank_id,
+                a.accnumber,
+                a.accname
+            FROM tr_non_po_header a
+            WHERE a.id != '' {$filter_tgl4}
+            GROUP BY a.no_doc
+
+            UNION ALL
+
+            SELECT 
+                b.id as ids,
+                a.no_doc,
+                c.nm_lengkap as nama,
+                a.tanggal_doc as tgl_doc,
+                b.nama as keperluan,
+                'periodik' as tipe,
+                b.nilai as jumlah,
+                NULL as tanggal,
+                a.no_doc as id,
+                b.bank_id,
+                b.accnumber,
+                b.accname
+            FROM tr_pengajuan_rutin a
+            JOIN tr_pengajuan_rutin_detail b ON a.no_doc = b.no_doc
+            JOIN users c ON a.created_by = c.id_user
+            WHERE b.id != '' {$filter_tgl5}
+        ) z
+        ORDER BY z.tgl_doc ASC, z.no_doc ASC
+    ";
+
+        $data = $this->db->query($sql)->result();
+
+        // =========================
+        // 3) Prefetch data status (lebih cepat, hindari query di loop)
+        // =========================
         $list_tgl_pengajuan_pembayaran = [];
-        $get_payment_approve = $this->db->select('no_doc, created_by, pay_by, DATE_FORMAT(created_on, "%d %M %Y") as tgl_pengajuan, IF(pay_on IS NULL, "", DATE_FORMAT(pay_on, "%d %M %Y")) as tgl_pembayaran')->get('payment_approve')->result();
-        foreach ($get_payment_approve as $item_payment) {
-            $list_tgl_pengajuan_pembayaran[$item_payment->no_doc] = [
-                'diajukan_oleh' => $item_payment->created_by,
-                'dibayar_oleh' => $item_payment->pay_by,
-                'tgl_pengajuan' => $item_payment->tgl_pengajuan,
-                'tgl_pembayaran' => $item_payment->tgl_pembayaran
-            ];
+        $request_payment_map = [];
+        $payment_approve_map = [];
+
+        $no_docs = [];
+        foreach ($data as $d) {
+            if (!empty($d->no_doc)) {
+                $no_docs[] = $d->no_doc;
+            }
+        }
+        $no_docs = array_values(array_unique($no_docs));
+
+        if (!empty($no_docs)) {
+            // request_payment
+            $get_request_payment = $this->db
+                ->where_in('no_doc', $no_docs)
+                ->get('request_payment')
+                ->result();
+
+            foreach ($get_request_payment as $rp) {
+                $request_payment_map[$rp->no_doc] = $rp;
+            }
+
+            // payment_approve (untuk tanggal + status paid)
+            $get_payment_approve = $this->db
+                ->select('
+                no_doc,
+                status,
+                created_by,
+                pay_by,
+                DATE_FORMAT(created_on, "%d %M %Y") as tgl_pengajuan,
+                IF(pay_on IS NULL, "", DATE_FORMAT(pay_on, "%d %M %Y")) as tgl_pembayaran
+            ')
+                ->where_in('no_doc', $no_docs)
+                ->get('payment_approve')
+                ->result();
+
+            foreach ($get_payment_approve as $pa) {
+                $payment_approve_map[$pa->no_doc] = $pa;
+                $list_tgl_pengajuan_pembayaran[$pa->no_doc] = [
+                    'diajukan_oleh'  => $pa->created_by,
+                    'dibayar_oleh'   => $pa->pay_by,
+                    'tgl_pengajuan'  => $pa->tgl_pengajuan,
+                    'tgl_pembayaran' => $pa->tgl_pembayaran
+                ];
+            }
         }
 
-        $dataa = [
-            'tgl_from' => $tgl_from,
-            'tgl_to' => $tgl_to,
-            'bank' => $bank,
-            'data_payment_list' => $data,
-            'list_tgl_pengajuan_pembayaran' => $list_tgl_pengajuan_pembayaran
+        // =========================
+        // 4) Setup PHPExcel
+        // =========================
+        $this->load->library('PHPExcel');
+        // PHPExcel_Cell::setValueBinder(new PHPExcel_Cell_AdvancedValueBinder());
+
+        $xls   = new PHPExcel();
+        $sheet = $xls->getActiveSheet();
+        $sheet->setTitle('Payment List');
+
+        $label_from = !empty($tgl_from) ? date('d F Y', strtotime($tgl_from)) : 'All';
+        $label_to   = !empty($tgl_to) ? date('d F Y', strtotime($tgl_to)) : 'All';
+
+        // Title
+        $sheet->setCellValue('A1', 'Excel Payment List (' . $label_from . ' - ' . $label_to . ')');
+        $sheet->mergeCells('A1:L2');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()
+            ->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER)
+            ->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+        // Header tabel
+        $headers = [
+            'A4' => '#',
+            'B4' => 'No Dokumen',
+            'C4' => 'Request By',
+            'D4' => 'Tanggal',
+            'E4' => 'Keperluan',
+            'F4' => 'Tipe',
+            'G4' => 'Nilai Pengajuan',
+            'H4' => 'Diajukan Oleh',
+            'I4' => 'Tanggal Pengajuan',
+            'J4' => 'Dibayar Oleh',
+            'K4' => 'Tanggal Pembayaran',
+            'L4' => 'Status',
         ];
-        $this->load->view('excel_payment_list', $dataa);
+
+        foreach ($headers as $cell => $label) {
+            $sheet->setCellValue($cell, $label);
+        }
+
+        $sheet->getStyle('A4:L4')->getFont()->setBold(true);
+        $sheet->getStyle('A4:L4')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A4:L4')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A4:L4')->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('D9EAD3');
+
+        // Lebar kolom
+        $sheet->getColumnDimension('A')->setWidth(6);
+        $sheet->getColumnDimension('B')->setWidth(22);
+        $sheet->getColumnDimension('C')->setWidth(22);
+        $sheet->getColumnDimension('D')->setWidth(14);
+        $sheet->getColumnDimension('E')->setWidth(35);
+        $sheet->getColumnDimension('F')->setWidth(14);
+        $sheet->getColumnDimension('G')->setWidth(18);
+        $sheet->getColumnDimension('H')->setWidth(18);
+        $sheet->getColumnDimension('I')->setWidth(18);
+        $sheet->getColumnDimension('J')->setWidth(18);
+        $sheet->getColumnDimension('K')->setWidth(18);
+        $sheet->getColumnDimension('L')->setWidth(14);
+
+        // =========================
+        // 5) Isi data
+        // =========================
+        $row = 5;
+        $no  = 1;
+
+        foreach ($data as $item) {
+            $tgl_pengajuan = isset($list_tgl_pengajuan_pembayaran[$item->no_doc]) ? $list_tgl_pengajuan_pembayaran[$item->no_doc]['tgl_pengajuan'] : '';
+            $tgl_pembayaran = isset($list_tgl_pengajuan_pembayaran[$item->no_doc]) ? $list_tgl_pengajuan_pembayaran[$item->no_doc]['tgl_pembayaran'] : '';
+            $diajukan_oleh = isset($list_tgl_pengajuan_pembayaran[$item->no_doc]) ? $list_tgl_pengajuan_pembayaran[$item->no_doc]['diajukan_oleh'] : '';
+            $dibayar_oleh = isset($list_tgl_pengajuan_pembayaran[$item->no_doc]) ? $list_tgl_pengajuan_pembayaran[$item->no_doc]['dibayar_oleh'] : '';
+
+            // Tentukan status (string, bukan badge HTML)
+            $status_label = 'New';
+
+            $get_request_payment = isset($request_payment_map[$item->no_doc]) ? $request_payment_map[$item->no_doc] : null;
+            if (!empty($get_request_payment)) {
+                if ((string)$get_request_payment->status === '0') {
+                    $status_label = 'Process';
+                } elseif (in_array((string)$get_request_payment->status, ['1', '2'], true)) {
+                    $get_payment_approve = isset($payment_approve_map[$item->no_doc]) ? $payment_approve_map[$item->no_doc] : null;
+
+                    if (!empty($get_payment_approve) && isset($get_payment_approve->status)) {
+                        $status_label = ((string)$get_payment_approve->status === '2') ? 'Paid' : 'Approved';
+                    } else {
+                        $status_label = 'Approved';
+                    }
+                }
+            } else {
+                // cek reject dari tabel asal (fallback, mengikuti logic lama)
+                $get_sts_reject = null;
+                if ($item->tipe == 'transportasi') {
+                    $get_sts_reject = $this->db->select('sts_reject')->get_where('tr_transport_req', ['no_doc' => $item->no_doc])->row();
+                } elseif ($item->tipe == 'kasbon') {
+                    $get_sts_reject = $this->db->select('sts_reject')->get_where('tr_kasbon', ['no_doc' => $item->no_doc])->row();
+                } elseif ($item->tipe == 'expense') {
+                    $get_sts_reject = $this->db->select('sts_reject')->get_where('tr_expense', ['no_doc' => $item->no_doc])->row();
+                } elseif ($item->tipe == 'nonpo') {
+                    $get_sts_reject = $this->db->select('sts_reject')->get_where('tr_non_po_header', ['no_doc' => $item->no_doc])->row();
+                } elseif ($item->tipe == 'periodik') {
+                    // jika tabel periodik punya sts_reject di header, ganti tabel ini sesuai schema kamu
+                    $get_sts_reject = $this->db->select('sts_reject')->get_where('tr_pengajuan_rutin', ['no_doc' => $item->no_doc])->row();
+                }
+
+                if (!empty($get_sts_reject) && isset($get_sts_reject->sts_reject) && (string)$get_sts_reject->sts_reject === '1') {
+                    $status_label = 'Rejected';
+                } else {
+                    $status_label = 'New';
+                }
+            }
+
+            // Tulis cell
+            // $sheet->setCellValue('A' . $row, $no);
+            $sheet->setCellValueExplicit('A' . $row, (int)$no, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->setCellValue('B' . $row, (string)$item->no_doc);
+            $sheet->setCellValue('C' . $row, (string)$item->nama);
+            $sheet->setCellValue('D' . $row, (string)$item->tgl_doc);
+            $sheet->setCellValue('E' . $row, (string)$item->keperluan);
+            $sheet->setCellValue('F' . $row, (string)$item->tipe);
+
+            $sheet->setCellValueExplicit('G' . $row, (float)$item->jumlah, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('G' . $row)->getNumberFormat()->setFormatCode('#,##0');
+
+            $sheet->setCellValue('H' . $row, (string)$diajukan_oleh);
+            $sheet->setCellValue('I' . $row, (string)$tgl_pengajuan);
+            $sheet->setCellValue('J' . $row, (string)$dibayar_oleh);
+            $sheet->setCellValue('K' . $row, (string)$tgl_pembayaran);
+            $sheet->setCellValue('L' . $row, $status_label);
+
+            $row++;
+            $no++;
+        }
+
+        $lastRow = max(4, $row - 1);
+
+        // =========================
+        // 6) Styling akhir
+        // =========================
+        $sheet->getStyle('A4:L' . $lastRow)->getBorders()->getAllBorders()
+            ->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+
+        $sheet->getStyle('A5:A' . $lastRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('D5:D' . $lastRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('G5:G' . $lastRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+        $sheet->getStyle('H5:L' . $lastRow)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A1:L' . $lastRow)->getAlignment()->setWrapText(true);
+
+        // freeze pane
+        $sheet->freezePane('A5');
+
+        // =========================
+        // 7) Output .xlsx (format terbaru)
+        // =========================
+        $filename = 'Excel Payment List (' . $label_from . ' - ' . $label_to . ').xlsx';
+
+        $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel2007');
+
+        // bersihkan semua output buffer
+        while (ob_get_level() > 0) {
+            @ob_end_clean();
+        }
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        header('Cache-Control: max-age=1');
+        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+        header('Cache-Control: cache, must-revalidate');
+        header('Pragma: public');
+
+        $writer->save('php://output');
+        exit;
     }
 
     // public function generate_no_invoice($kode = '')

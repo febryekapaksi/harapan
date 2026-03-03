@@ -16,137 +16,155 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 		<!-- <div class="col-md-6"> -->
 		<!-- <div class="form-inline"> -->
 		<div class="row">
-
-			<div class="col-md-2">
-				<!-- <button type="button" class="btn btn-sm btn-primary search_data"><i class="fa fa-search"></i> Search</button> -->
-				<button type="button" class="btn btn-sm btn-success excel_data"><i class="fa fa-download"></i> Excel</button>
+			<div class="col-md-3">
+				<label>Tanggal From</label>
+				<input type="date" class="form-control tgl_from" value="<?= date('Y-m-01'); ?>">
 			</div>
-		</div>
-		<!-- </div> -->
-		<!-- </div> -->
-		<div class="col-md-12 table_container">
-			<table id="mytabledata" class="table table-bordered">
-				<thead>
-					<tr>
-						<th>#</th>
-						<th>No Dokumen</th>
-						<th>Request By</th>
-						<th>Tanggal Pengajuan</th>
-						<th>Keperluan</th>
-						<th>Tipe</th>
-						<th>Nilai Pengajuan</th>
-						<th>Diajukan Oleh</th>
-						<th>Tanggal Request Pembayaran</th>
-						<th>Dibayar Oleh</th>
-						<th>Tanggal Pembayaran</th>
-						<th>Status</th>
-					</tr>
-				</thead>
-				<tbody>
-					<?php
-					if (!empty($data)) {
-						$numb = 0;
-						foreach ($data as $record) {
 
-							$nmuser = $record->nama;
-							$no_doc = $record->no_doc;
-							if ($record->tipe == 'kasbon') {
-								$get_kasbon = $this->db->get_where('tr_kasbon', array('no_doc' => $record->no_doc))->row();
+			<div class="col-md-3">
+				<label>Tanggal To</label>
+				<input type="date" class="form-control tgl_to" value="<?= date('Y-m-d'); ?>">
+			</div>
 
-								// if ($get_kasbon->no_kasbon_consultant !== null) {
-								// 	$no_doc = $get_kasbon->no_kasbon_consultant;
-								// }
+			<!-- <div class="col-md-3">
+				<label>Bank</label>
+				<select class="form-control bank">
+					<option value="all">Semua Bank</option>
+					<option value="BCA">BCA</option>
+					<option value="Mandiri">Mandiri</option>
+					<option value="BRI">BRI</option>
+				</select>
+			</div> -->
 
-								$check_detail = $this->db->get_where('tr_pr_detail_kasbon', ['id_kasbon' => $record->no_doc])->result();
-								if (count($check_detail)) {
-									if ($get_kasbon->tipe_pr == 'pr departemen') {
-										$this->db->select('b.nm_lengkap');
-										$this->db->from('rutin_non_planning_header a');
-										$this->db->join('users b', 'b.id_user = a.created_by');
-										$this->db->where('a.no_pr', $get_kasbon->id_pr);
-										$get_single_detail = $this->db->get()->row();
+			<div class="col-md-3" style="margin-top: 25px;">
+				<button type="button" class="btn btn-sm btn-success excel_data">
+					<i class="fa fa-download"></i> Excel
+				</button>
+			</div>
 
-										$nmuser = $get_single_detail->nm_lengkap;
-									}
+			<div class="col-md-12 table_container">
+				<table id="mytabledata" class="table table-bordered">
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>No Dokumen</th>
+							<th>Request By</th>
+							<th>Tanggal Pengajuan</th>
+							<th>Keperluan</th>
+							<th>Tipe</th>
+							<th>Nilai Pengajuan</th>
+							<th>Diajukan Oleh</th>
+							<th>Tanggal Request Pembayaran</th>
+							<th>Dibayar Oleh</th>
+							<th>Tanggal Pembayaran</th>
+							<th>Status</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php
+						if (!empty($data)) {
+							$numb = 0;
+							foreach ($data as $record) {
 
-									if ($get_kasbon->tipe_pr == 'pr stok') {
-										$this->db->select('b.nm_lengkap');
-										$this->db->from('material_planning_base_on_produksi a');
-										$this->db->join('users b', 'b.id_user = a.created_by');
-										$this->db->where('a.no_pr', $get_kasbon->id_pr);
-										$get_single_detail = $this->db->get()->row();
+								$nmuser = $record->nama;
+								$no_doc = $record->no_doc;
+								if ($record->tipe == 'kasbon') {
+									$get_kasbon = $this->db->get_where('tr_kasbon', array('no_doc' => $record->no_doc))->row();
 
-										$nmuser = $get_single_detail->nm_lengkap;
-									}
+									// if ($get_kasbon->no_kasbon_consultant !== null) {
+									// 	$no_doc = $get_kasbon->no_kasbon_consultant;
+									// }
 
-									if ($get_kasbon->tipe_pr == 'pr asset') {
-										$this->db->select('b.nm_lengkap');
-										$this->db->from('tran_pr_header a');
-										$this->db->join('users b', 'b.id_user = a.created_by');
-										$this->db->where('a.no_pr', $get_kasbon->id_pr);
-										$get_single_detail = $this->db->get()->row();
+									$check_detail = $this->db->get_where('tr_pr_detail_kasbon', ['id_kasbon' => $record->no_doc])->result();
+									if (count($check_detail)) {
+										if ($get_kasbon->tipe_pr == 'pr departemen') {
+											$this->db->select('b.nm_lengkap');
+											$this->db->from('rutin_non_planning_header a');
+											$this->db->join('users b', 'b.id_user = a.created_by');
+											$this->db->where('a.no_pr', $get_kasbon->id_pr);
+											$get_single_detail = $this->db->get()->row();
 
-										$nmuser = $get_single_detail->nm_lengkap;
+											$nmuser = $get_single_detail->nm_lengkap;
+										}
+
+										if ($get_kasbon->tipe_pr == 'pr stok') {
+											$this->db->select('b.nm_lengkap');
+											$this->db->from('material_planning_base_on_produksi a');
+											$this->db->join('users b', 'b.id_user = a.created_by');
+											$this->db->where('a.no_pr', $get_kasbon->id_pr);
+											$get_single_detail = $this->db->get()->row();
+
+											$nmuser = $get_single_detail->nm_lengkap;
+										}
+
+										if ($get_kasbon->tipe_pr == 'pr asset') {
+											$this->db->select('b.nm_lengkap');
+											$this->db->from('tran_pr_header a');
+											$this->db->join('users b', 'b.id_user = a.created_by');
+											$this->db->where('a.no_pr', $get_kasbon->id_pr);
+											$get_single_detail = $this->db->get()->row();
+
+											$nmuser = $get_single_detail->nm_lengkap;
+										}
 									}
 								}
+
+								$diajukan_oleh = (isset($list_tgl_pengajuan_pembayaran[$record->no_doc])) ? $list_tgl_pengajuan_pembayaran[$record->no_doc]['diajukan_oleh'] : '';
+								$tgl_pengajuan = (isset($list_tgl_pengajuan_pembayaran[$record->no_doc])) ? $list_tgl_pengajuan_pembayaran[$record->no_doc]['tgl_pengajuan'] : '';
+
+								$this->db->select('c.nm_lengkap, a.created_on, b.tgl_bayar');
+								$this->db->from('tr_payment_paid a');
+								$this->db->join('payment_approve b', 'b.id_payment = a.id', 'left');
+								$this->db->join('users c', 'c.id_user = a.created_by', 'left');
+								$this->db->where('b.no_doc', $record->no_doc);
+								$get_payment_details = $this->db->get()->row();
+
+								$dibayar_oleh = (!empty($get_payment_details)) ? $get_payment_details->nm_lengkap : '';
+								$tgl_pembayaran = (!empty($get_payment_details)) ? $get_payment_details->tgl_bayar : '';
+
+								$numb++; ?>
+								<tr>
+									<td><?= $numb; ?></td>
+									<td><?= $no_doc ?></td>
+									<td><?= $nmuser ?></td>
+									<td><?= date('d M Y', strtotime($record->tgl_doc)) ?></td>
+									<td><?= $record->keperluan ?></td>
+									<td><?= $record->tipe ?></td>
+									<td><?= (($record->tipe == 'expense' and $record->id_kasbon != null and $record->kurang_bayar > 0) ? number_format($record->kurang_bayar) : number_format($record->jumlah)) ?></td>
+									<td class="text-center"><?= $diajukan_oleh ?></td>
+									<td class="text-center"><?= date('d M Y', strtotime($tgl_pengajuan)) ?></td>
+									<td class="text-center"><?= $dibayar_oleh ?></td>
+									<td class="text-center">
+										<?php
+										$get_payment = $this->db->get_where('payment_approve', ['no_doc' => $record->no_doc, 'tgl_bayar <>' => null])->result();
+										if (!empty($get_payment)) {
+											echo date('d M Y', strtotime($tgl_pembayaran));
+										} else {
+											'';
+										}
+										?>
+									</td>
+									<td>
+										<?php
+										$get_payment = $this->db->get_where('payment_approve', ['no_doc' => $record->no_doc, 'tgl_bayar <>' => null])->result();
+
+										if (!empty($get_payment)) {
+											echo '<div class="badge bg-green text-light">Paid</div>';
+										} else {
+											echo '<div class="badge bg-blue">Open</div>';
+										}
+										?>
+									</td>
+								</tr>
+						<?php
 							}
+						}  ?>
 
-							$diajukan_oleh = (isset($list_tgl_pengajuan_pembayaran[$record->no_doc])) ? $list_tgl_pengajuan_pembayaran[$record->no_doc]['diajukan_oleh'] : '';
-							$tgl_pengajuan = (isset($list_tgl_pengajuan_pembayaran[$record->no_doc])) ? $list_tgl_pengajuan_pembayaran[$record->no_doc]['tgl_pengajuan'] : '';
-
-							$this->db->select('c.nm_lengkap, a.created_on, b.tgl_bayar');
-							$this->db->from('tr_payment_paid a');
-							$this->db->join('payment_approve b', 'b.id_payment = a.id', 'left');
-							$this->db->join('users c', 'c.id_user = a.created_by', 'left');
-							$this->db->where('b.no_doc', $record->no_doc);
-							$get_payment_details = $this->db->get()->row();
-
-							$dibayar_oleh = (!empty($get_payment_details)) ? $get_payment_details->nm_lengkap : '';
-							$tgl_pembayaran = (!empty($get_payment_details)) ? $get_payment_details->tgl_bayar : '';
-
-							$numb++; ?>
-							<tr>
-								<td><?= $numb; ?></td>
-								<td><?= $no_doc ?></td>
-								<td><?= $nmuser ?></td>
-								<td><?= date('d M Y', strtotime($record->tgl_doc)) ?></td>
-								<td><?= $record->keperluan ?></td>
-								<td><?= $record->tipe ?></td>
-								<td><?= (($record->tipe == 'expense' and $record->id_kasbon != null and $record->kurang_bayar > 0) ? number_format($record->kurang_bayar) : number_format($record->jumlah)) ?></td>
-								<td class="text-center"><?= $diajukan_oleh ?></td>
-								<td class="text-center"><?= date('d M Y', strtotime($tgl_pengajuan)) ?></td>
-								<td class="text-center"><?= $dibayar_oleh ?></td>
-								<td class="text-center">
-									<?php
-									$get_payment = $this->db->get_where('payment_approve', ['no_doc' => $record->no_doc, 'tgl_bayar <>' => null])->result();
-									if (!empty($get_payment)) {
-										echo date('d M Y', strtotime($tgl_pembayaran));
-									} else {
-										'';
-									}
-									?>
-								</td>
-								<td>
-									<?php
-									$get_payment = $this->db->get_where('payment_approve', ['no_doc' => $record->no_doc, 'tgl_bayar <>' => null])->result();
-
-									if (!empty($get_payment)) {
-										echo '<div class="badge bg-green text-light">Paid</div>';
-									} else {
-										echo '<div class="badge bg-blue">Open</div>';
-									}
-									?>
-								</td>
-							</tr>
-					<?php
-						}
-					}  ?>
-
-				</tbody>
-			</table>
+					</tbody>
+				</table>
+			</div>
 		</div>
 	</div>
-	<!-- /.box-body -->
 </div>
 
 <script src="https://cdn.datatables.net/2.0.7/js/dataTables.min.js"></script>
@@ -248,7 +266,7 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 	$(document).on('click', '.search_data', function() {
 		var tgl_from = $('.tgl_from').val();
 		var tgl_to = $('.tgl_to').val();
-		var bank = $('.bank').val();
+
 
 		$.ajax({
 			type: "POST",
@@ -256,7 +274,7 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 			data: {
 				'tgl_from': tgl_from,
 				'tgl_to': tgl_to,
-				'bank': bank
+				// 'bank': bank
 			},
 			cache: false,
 			beforeSend: function(result) {
@@ -278,10 +296,17 @@ $ENABLE_VIEW    = has_permission('Payment_List.View');
 	});
 
 	$(document).on('click', '.excel_data', function() {
-		var tgl_from = $('.tgl_from').val();
-		var tgl_to = $('.tgl_to').val();
-		var bank = $('.bank').val();
+		var tgl_from = $('.tgl_from').length ? $('.tgl_from').val() : 'all';
+		var tgl_to = $('.tgl_to').length ? $('.tgl_to').val() : 'all';
 
-		window.open(siteurl + active_controller + 'excel_payment_list/' + tgl_from + '/' + tgl_to + '/' + bank, '_blank');
+		if (!tgl_from) tgl_from = 'all';
+		if (!tgl_to) tgl_to = 'all';
+
+		window.open(
+			siteurl + active_controller + 'excel_payment_list/' +
+			encodeURIComponent(tgl_from) + '/' +
+			encodeURIComponent(tgl_to),
+			'_blank'
+		);
 	});
 </script>

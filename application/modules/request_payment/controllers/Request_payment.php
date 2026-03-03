@@ -2234,11 +2234,26 @@ class Request_payment extends Admin_Controller
 
 	public function excel_payment_list()
 	{
-		$tgl_from = $this->uri->segment(3);
-		$tgl_to = $this->uri->segment(4);
-		$bank = $this->uri->segment(5);
+		$tgl_from = urldecode((string)$this->uri->segment(3));
+		$tgl_to   = urldecode((string)$this->uri->segment(4));
 
-		$this->Request_payment_model->excel_payment_list($tgl_from, $tgl_to, $bank);
+		// normalisasi default dari JS (all / undefined)
+		if (in_array($tgl_from, ['all', 'undefined', 'null'], true)) {
+			$tgl_from = '';
+		}
+		if (in_array($tgl_to, ['all', 'undefined', 'null'], true)) {
+			$tgl_to = '';
+		}
+
+		// validasi sederhana format tanggal YYYY-MM-DD
+		if ($tgl_from !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl_from)) {
+			$tgl_from = '';
+		}
+		if ($tgl_to !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $tgl_to)) {
+			$tgl_to = '';
+		}
+
+		$this->Request_payment_model->excel_payment_list($tgl_from, $tgl_to);
 	}
 
 	public function view_receive_invoice()
