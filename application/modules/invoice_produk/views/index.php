@@ -457,4 +457,17 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 		$('#end_date_delivery').val('');
 		change_tab('delivery', null, null);
 	});
+
+	$(document).on('click', '#btnExportDelivery', function(e) {
+		e.preventDefault();
+		var start = $('#start_date_delivery').val();
+		var end = $('#end_date_delivery').val();
+
+		window.open(
+			siteurl + active_controller + 'export_excel_delivery/' +
+			encodeURIComponent(start) + '/' +
+			encodeURIComponent(end),
+			'_blank'
+		);
+	});
 </script>
