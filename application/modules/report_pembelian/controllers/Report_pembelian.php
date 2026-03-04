@@ -27,7 +27,7 @@ class Report_pembelian extends Admin_Controller
     public function index()
     {
         $this->template->page_icon('fa fa-clipboard');
-        $this->template->title('Report Pembelian');
+        $this->template->title('Daftar Faktur Pembelian');
         $this->template->render('index');
     }
 
