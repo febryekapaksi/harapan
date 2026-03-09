@@ -71,6 +71,7 @@ $ENABLE_VIEW    = has_permission('Request_Payment.View');
 						<tr>
 							<th class="text-center">No.</th>
 							<th class="text-center">No. Dokumen</th>
+							<th class="text-center">No. Invoice Supplier</th>
 							<th class="text-center">Request By</th>
 							<th class="text-center">Tanggal</th>
 							<th class="text-center">Keperluan</th>
@@ -412,6 +413,9 @@ $ENABLE_VIEW    = has_permission('Request_Payment.View');
 				},
 				{
 					data: 'no_dokumen',
+				},
+				{
+					data: 'invoice_sup'
 				},
 				{
 					data: 'request_by'

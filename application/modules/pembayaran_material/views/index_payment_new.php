@@ -18,12 +18,13 @@
 					<table class="table table-bordered table-striped" id="mytabledata" width='100%'>
 						<thead>
 							<tr class='bg-blue'>
-								<th class="text-center">No Payment</th>
-								<th class="text-center">No Dokumen</th>
-								<th class="text-center">Tgl Bayar</th>
-								<th class="text-center">Requesto / Supplier</th>
-								<th class="text-center">Nilai Bayar</th>
-								<th class="text-center">Keterangan</th>
+								<th class="text-left">No Payment</th>
+								<th class="text-left">No Dokumen</th>
+								<th class="text-left">Tgl Bayar</th>
+								<th class="text-left">Requesto / Supplier</th>
+								<th class="text-left">No Invoice Supplier</th>
+								<th class="text-right">Nilai Bayar</th>
+								<th class="text-left">Keterangan</th>
 								<th class="text-center" width='110px'>Option</th>
 							</tr>
 						</thead>
@@ -36,12 +37,14 @@
 								foreach ($results as $item) {
 
 									$nm_supplier = $item->nm_supplier;
+									$no_inv_vendor = $item->invoice_no;
 
 									echo '<tr>';
-									echo '<td class="text-center">' . $item->id_payment . '</td>';
-									echo '<td class="text-center">' . $item->no_doc . '</td>';
-									echo '<td class="text-center">' . date('d F Y', strtotime($item->tgl_bayar)) . '</td>';
-									echo '<td class="text-center">' . $nm_supplier . '</td>';
+									echo '<td class="text-left">' . $item->id_payment . '</td>';
+									echo '<td class="text-left">' . $item->no_doc . '</td>';
+									echo '<td class="text-left">' . date('d F Y', strtotime($item->tgl_bayar)) . '</td>';
+									echo '<td class="text-left">' . $nm_supplier . '</td>';
+									echo '<td class="text-left">' . $no_inv_vendor . '</td>';
 									echo '<td class="text-right">' . number_format($item->payment_bank, 2) . '</td>';
 									echo '<td class="text-left">' . $item->keterangan_pembayaran . '</td>';
 									echo '<td>';
