@@ -101,6 +101,7 @@
     <?php
     $invoice = $data_invoice;
     $detail = $data_invoice_detail;
+    $tanggal = (($invoice->created_on != null) ? date('d M Y', strtotime($invoice->created_on)) : '');
     $total = 0;
     ?>
 
@@ -138,8 +139,8 @@
         <tr>
             <td>NPWP</td>
             <td>: <?= $data_customer->npwp ?></td>
-            <td>PO No</td>
-            <td>: <?= $data_so->po_no ?></td>
+            <td>Delivery Date</td>
+            <td>: <?= date('d F Y', strtotime($data_delivery->delivery_date)) ?></td>
         </tr>
         <tr>
             <td>Phone</td>
@@ -153,14 +154,14 @@
                 $dueTs = strtotime('+' . $rawTop . ' days', $baseTs);
             }
             ?>
-            <td>Due Date</td>
-            <td>: <?= date('d F Y', $dueTs); ?></td>
+            <td>Invoice Date</td>
+            <td>: <?= $tanggal ?></td>
         </tr>
         <tr>
             <td>Fax</td>
             <td>: <?= $data_customer->fax ?></td>
-            <td>Delivery Date</td>
-            <td>: <?= date('d F Y', strtotime($data_delivery->delivery_date)) ?></td>
+            <td>Due Date</td>
+            <td>: <?= date('d F Y', $dueTs); ?></td>
         </tr>
     </table>
 
