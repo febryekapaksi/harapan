@@ -624,6 +624,174 @@ class Penawaran_dropship extends Admin_Controller
         }
     }
 
+    public function get_credit_limit()
+    {
+        $id_customer = $this->input->post('id_customer', true);
+
+        if (empty($id_customer)) {
+            echo json_encode(['error' => true, 'message' => 'id_customer kosong']);
+            return;
+        }
+
+        // Ambil kredit limit: join child_customer_rate (alias r) ke kelas (alias k)
+        // Ambil 1 baris terbaru jika ada duplikasi
+        $row = $this->db->select('k.kredit_limit')
+            ->from('child_customer_rate r')
+            ->join('kelas k', 'k.kelas = r.kelas')   // pastikan casing nilai 'kelas' sama
+            ->where('r.id_customer', $id_customer)
+            ->order_by('r.id', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row_array();
+
+        if (!$row) {
+            // fallback jika belum ada kelas atau tidak match
+            echo json_encode(['error' => false, 'kredit_limit' => 0, 'kredit_limit_formatted' => number_format(0, 0, ',', '.')]);
+            return;
+        }
+
+        $limit = (float)$row['kredit_limit'];
+        echo json_encode([
+            'error' => false,
+            'kredit_limit' => $limit,                               // angka mentah
+            'kredit_limit_formatted' => number_format($limit, 0, ',', '.') // string rupiah
+        ]);
+    }
+
+    public function get_info_kredit_limit()
+    {
+        $id_customer = $this->input->post('id_customer');
+
+        if (empty($id_customer)) {
+            echo json_encode(['status' => 0, 'msg' => 'id_customer kosong']);
+            return;
+        }
+
+        // A) Outstanding Piutang
+        $row_piutang = $this->db
+            ->select('SUM(i.piutang) AS outstanding_piutang', false)
+            ->from('tr_invoice_sales i')
+            ->where('i.id_customer', $id_customer)
+            ->where('i.piutang <>', 0)
+            ->get()
+            ->row_array();
+
+        $outstanding = (!empty($row_piutang['outstanding_piutang'])) ? (float)$row_piutang['outstanding_piutang'] : 0;
+
+        // B) SO Baru (status A)
+        $row_so = $this->db
+            ->select('SUM(s.grand_total) AS so_baru', false)
+            ->from('sales_order s')
+            ->where('s.id_customer', $id_customer)
+            ->where('s.status', 'A')
+            ->where("(s.status_spk IS NULL OR s.status_spk != 'Belum SPK')", null, false)
+            ->get()
+            ->row_array();
+
+        $so_baru = (!empty($row_so['so_baru'])) ? (float)$row_so['so_baru'] : 0;
+
+        // C) Kredit Limit terakhir
+        $row_limit = $this->db
+            ->select('k.kredit_limit', false)
+            ->from('child_customer_rate r')
+            ->join('kelas k', 'k.kelas = r.kelas', 'inner')
+            ->where('r.id_customer', $id_customer)
+            ->order_by('r.id', 'DESC')
+            ->limit(1)
+            ->get()
+            ->row_array();
+
+        $kredit_limit = (!empty($row_limit['kredit_limit'])) ? (float)$row_limit['kredit_limit'] : 0;
+
+        // D) Total
+        $total = $outstanding + $so_baru;
+
+        echo json_encode([
+            'status' => 1,
+            'msg' => 'OK',
+            'data' => [
+                'outstanding_piutang' => $outstanding,
+                'so_baru'             => $so_baru,
+                'total'               => $total,
+                'kredit_limit'        => $kredit_limit,
+            ]
+        ]);
+    }
+
+
+    public function get_histori_pembayaran()
+    {
+        $id_customer = $this->input->post('id_customer');
+
+        if (empty($id_customer)) {
+            echo json_encode(['status' => 0, 'msg' => 'id_customer kosong', 'data' => []]);
+            return;
+        }
+
+        $sql = "
+                SELECT
+                i.id_invoice AS no_invoice,
+                DATE_FORMAT(i.jatuh_tempo, '%d/%m/%Y') AS due_date,
+                DATE_FORMAT(MAX(p.tgl_pembayaran), '%d/%m/%Y') AS tanggal_pelunasan,
+                DATEDIFF(MAX(p.tgl_pembayaran), i.jatuh_tempo) AS gap_days
+                FROM tr_invoice_sales i
+                JOIN tr_invoice_payment_detail pd ON pd.no_invoice = i.id_invoice
+                JOIN tr_invoice_payment p ON p.kd_pembayaran = pd.kd_pembayaran
+                WHERE
+                i.id_customer = ?
+                AND pd.sisa_invoice_idr = 0
+                GROUP BY
+                i.id_invoice, i.jatuh_tempo
+                ORDER BY
+                MAX(p.tgl_pembayaran) DESC
+                LIMIT 5
+            ";
+
+        $rows = $this->db->query($sql, [$id_customer])->result_array();
+
+        echo json_encode([
+            'status' => 1,
+            'msg' => 'OK',
+            'data' => $rows
+        ]);
+    }
+
+    public function get_jatuh_tempo()
+    {
+        $id_customer = $this->input->post('id_customer');
+
+        if (empty($id_customer)) {
+            echo json_encode(['status' => 0, 'msg' => 'id_customer kosong', 'data' => []]);
+            return;
+        }
+
+        $sql = "
+        SELECT
+          i.id_invoice,
+          i.id_so,
+          i.id_penawaran,
+          i.id_billing,
+          i.grand_total,
+          i.total_bayar,
+          i.piutang,
+          DATE_FORMAT(i.jatuh_tempo, '%d/%m/%Y') AS jatuh_tempo,
+          i.id_customer
+        FROM tr_invoice_sales i
+        WHERE i.id_customer = ?
+          AND i.piutang != 0
+        ORDER BY i.jatuh_tempo ASC
+        LIMIT 3
+    ";
+
+        $rows = $this->db->query($sql, [$id_customer])->result_array();
+
+        echo json_encode([
+            'status' => 1,
+            'msg' => 'OK',
+            'data' => $rows
+        ]);
+    }
+
     public function data_side_penawaran()
     {
         $this->penawaran_dropship_model->get_json_penawaran();
