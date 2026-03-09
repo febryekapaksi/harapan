@@ -346,7 +346,7 @@ if (!empty($header[0]['app_3']) && $header[0]['app_3'] == '1') {
                                             window.location.href = base_url + active_controller + '/approval_cost_control';
                                         }
                                         if (tingkat_approval == '3') {
-                                            window.location.href = base_url + active_controller + '/approval_management';
+                                            window.location.href = base_url + active_controller;
                                         }
                                     } else {
                                         swal({
