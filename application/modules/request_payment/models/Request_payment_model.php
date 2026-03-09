@@ -787,6 +787,7 @@ class Request_payment_model extends BF_Model
                 z.id,
                 z.no_dokumen,
                 z.request_by,
+                z.invoice_sup,
                 z.tanggal,
                 z.keperluan,
                 z.kategori,
@@ -797,6 +798,7 @@ class Request_payment_model extends BF_Model
                         a.id as id,
                         a.no_doc as no_dokumen,
                         a.created_by as request_by,
+                        "" as invoice_sup,
                         a.tgl_doc as tanggal,
                         b.keperluan as keperluan,
                         "Transport" as kategori,
@@ -819,6 +821,7 @@ class Request_payment_model extends BF_Model
                         a.id as id,
                         a.no_doc as no_dokumen,
                         a.created_by as request_by,
+                        "" as invoice_sup,
                         a.tgl_doc as tanggal,
                         a.keperluan as keperluan,
                         "Kasbon" as kategori,
@@ -840,12 +843,14 @@ class Request_payment_model extends BF_Model
                         a.id as id,
                         a.no_doc as no_dokumen,
                         a.created_by as request_by,
+                        c.invoice_no as invoice_sup,
                         a.tgl_doc as tanggal,
                         a.informasi as keperluan,
                         "Expense" as kategori,
                         a.jumlah as nilai_pengajuan
                     FROM
                         tr_expense a
+                        LEFT JOIN tr_invoice_po c ON c.id = a.no_doc
                     WHERE
                         a.status = "1" AND (
                             a.no_doc LIKE "%' . $this->db->escape_str($search['value']) . '%" OR
@@ -861,6 +866,7 @@ class Request_payment_model extends BF_Model
                         a.id as id,
                         a.no_doc as no_dokumen,
                         c.nm_lengkap as request_by,
+                        "" as invoice_sup,
                         a.tanggal_doc as tgl_doc,
                         a.keterangan as keperluan,
                         "Periodik" as tipe,
@@ -892,6 +898,7 @@ class Request_payment_model extends BF_Model
                 z.id,
                 z.no_dokumen,
                 z.request_by,
+                z.invoice_sup,
                 z.tanggal,
                 z.keperluan,
                 z.kategori,
@@ -902,6 +909,7 @@ class Request_payment_model extends BF_Model
                         a.id as id,
                         a.no_doc as no_dokumen,
                         a.created_by as request_by,
+                        "" as invoice_sup,
                         a.tgl_doc as tanggal,
                         b.keperluan as keperluan,
                         "Transport" as kategori,
@@ -924,6 +932,7 @@ class Request_payment_model extends BF_Model
                         a.id as id,
                         a.no_doc as no_dokumen,
                         a.created_by as request_by,
+                        "" as invoice_sup,
                         a.tgl_doc as tanggal,
                         a.keperluan as keperluan,
                         "Kasbon" as kategori,
@@ -945,12 +954,14 @@ class Request_payment_model extends BF_Model
                         a.id as id,
                         a.no_doc as no_dokumen,
                         a.created_by as request_by,
+                        c.invoice_no as invoice_sup,
                         a.tgl_doc as tanggal,
                         a.informasi as keperluan,
                         "Expense" as kategori,
                         a.jumlah as nilai_pengajuan
                     FROM
                         tr_expense a
+                        LEFT JOIN tr_invoice_po c ON c.id = a.no_doc
                     WHERE
                         a.status = "1" AND (
                             a.no_doc LIKE "%' . $this->db->escape_str($search['value']) . '%" OR
@@ -966,6 +977,7 @@ class Request_payment_model extends BF_Model
                         a.id as id,
                         a.no_doc as no_dokumen,
                         c.nm_lengkap as request_by,
+                        "" as invoice_sup,
                         a.tanggal_doc as tgl_doc,
                         a.keterangan as keperluan,
                         "Periodik" as tipe,
@@ -997,6 +1009,7 @@ class Request_payment_model extends BF_Model
             $no++;
 
             $nmuser = $item->request_by;
+            $invoice_sup = $item->invoice_sup;
             if ($item->kategori == 'Kasbon') {
                 $get_kasbon = $this->db->get_where('tr_kasbon', array('no_doc' => $item->no_dokumen))->row();
                 $check_detail = $this->db->get_where('tr_pr_detail_kasbon', ['id_kasbon' => $item->no_dokumen])->result();
@@ -1048,6 +1061,7 @@ class Request_payment_model extends BF_Model
                 'no' => $no,
                 'no_dokumen' => $item->no_dokumen . ' ' . $btn_print,
                 'request_by' => $nmuser,
+                'invoice_sup' => $invoice_sup,
                 'tanggal' => date('d F Y', strtotime($item->tanggal)),
                 'keperluan' => $item->keperluan,
                 'kategori' => $item->kategori,

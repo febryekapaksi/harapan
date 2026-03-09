@@ -139,9 +139,10 @@ class Pembayaran_material extends Admin_Controller
 		// $results = $this->pembayaran_material_model->get_data_json_request_payment_header("status>0 and tipe='material'");
 		// $results = $this->db->get_where('payment_approve', ['status' => 2])->result();
 		$results = $this->db
-			->select('a.*')
+			->select('a.*, c.invoice_no')
 			->from('payment_approve a')
 			->join('tr_expense b', 'b.no_doc = a.no_doc')
+			->join('tr_invoice_po c', 'c.id = a.no_doc')
 			->where('a.status', 2)
 			->where('b.exp_inv_po', 1)
 			->where('a.id_payment <>', null)
@@ -1428,7 +1429,7 @@ class Pembayaran_material extends Admin_Controller
 			return;
 		}
 
-		$tgl_bayar            = $post['tgl_bayar'] ?? date('Y-m-d');
+		// $tgl_bayar            = $post['tgl_bayar'] ?? date('Y-m-d');
 		$bank_coa             = $post['bank'] ?? '';
 		$payment_bank         = $money($post['payment_bank'] ?? 0);          // transfer utama
 		$payment_bank_charge  = $money($post['payment_bank_charge'] ?? 0);   // transfer admin
@@ -1451,7 +1452,7 @@ class Pembayaran_material extends Admin_Controller
 		$kode_bank    = $get_coa_bank->no_perkiraan ?? $bank_coa;
 
 		// -------- ambil baris detail yang dibayar (2 dokumen / dst) --------
-		$this->db->select('id, tipe, no_doc, jumlah');
+		$this->db->select('id, tipe, no_doc, jumlah, tgl_bayar');
 		$this->db->from('payment_approve');
 		$this->db->where_in('id', $ids);
 		$rows = $this->db->get()->result();
@@ -1459,6 +1460,12 @@ class Pembayaran_material extends Admin_Controller
 		if (empty($rows)) {
 			echo json_encode(['status' => 0, 'pesan' => 'Data payment_approve tidak ditemukan.']);
 			return;
+		}
+
+		if (!empty($post['tgl_bayar'])) {
+			$tgl_bayar = $post['tgl_bayar'];
+		} else {
+			$tgl_bayar = (!empty($rows[0]->tgl_bayar)) ? $rows[0]->tgl_bayar : date('Y-m-d');
 		}
 
 		$total_doc = 0;
