@@ -691,6 +691,15 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 			changeYear: true,
 		});
 
+		var tipePR = $("input[id^='dt_tipe_pr_']").first().val();
+		if (tipePR === 'pr depart' || tipePR === 'pr asset') {
+			$('#toggle_pajak').prop('checked', false);
+			$('.row-pajak').hide();
+		} else {
+			$('#toggle_pajak').prop('checked', true);
+			$('.row-pajak').show();
+		}
+
 		$(document).on('change', '#toggle_pajak', function() {
 			if ($(this).is(':checked')) {
 				$('.row-pajak').fadeIn(); // Muncul jika aktif
