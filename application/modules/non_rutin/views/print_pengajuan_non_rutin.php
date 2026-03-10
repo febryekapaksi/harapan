@@ -122,7 +122,7 @@ $nm_department = $get_department->name;
 
 	<table class="gridtable2" border='1' width='100%' cellpadding='2'>
 		<tr>
-			<td align='center'><b>PT SENTRAL SISTEM</b></td>
+			<td align='center'><b><?= isset($idt->perusahaan) ? $idt->perusahaan : 'not-set'; ?></b></td>
 		</tr>
 		<tr>
 			<td align='center'><b>

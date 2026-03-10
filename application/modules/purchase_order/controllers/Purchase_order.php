@@ -1460,10 +1460,6 @@ class Purchase_order extends Admin_Controller
 	{
 		$this->auth->restrict($this->addPermission);
 		$post = $this->input->post();
-		// echo '<pre>';
-		// print_r($post);
-		// echo '</pre>';
-		// die();
 
 		$tgl  = $post['tanggal'];
 		$code = $this->Pr_model->generate_code($tgl);

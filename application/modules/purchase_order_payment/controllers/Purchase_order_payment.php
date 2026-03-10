@@ -307,6 +307,10 @@ class Purchase_order_payment extends Admin_Controller
 		$get_invoice = $this->db->get_where('tr_invoice_po', ['id' => $id])->row_array();
 		$id_po = str_replace(', ', ',', $get_invoice['no_po']);
 		$no_incoming = explode(',', $id_po);
+		// echo '<pre>';
+		// print_r($no_incoming);
+		// echo '</pre>';
+		// die();
 
 		// print_r("SELECT
 		// 		a.nm_material as nm_material,

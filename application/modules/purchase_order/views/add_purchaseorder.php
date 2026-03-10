@@ -4,6 +4,62 @@ $ENABLE_MANAGE  = has_permission('Purchase_Request.Manage');
 $ENABLE_VIEW    = has_permission('Purchase_Request.View');
 $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 ?>
+<style>
+	/* Container toggle */
+	.switch {
+		position: relative;
+		display: inline-block;
+		width: 50px;
+		height: 24px;
+	}
+
+	/* Sembunyikan checkbox asli */
+	.switch input {
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+
+	/* Slider */
+	.slider {
+		position: absolute;
+		cursor: pointer;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #ccc;
+		transition: .4s;
+	}
+
+	.slider:before {
+		position: absolute;
+		content: "";
+		height: 16px;
+		width: 16px;
+		left: 4px;
+		bottom: 4px;
+		background-color: white;
+		transition: .4s;
+	}
+
+	input:checked+.slider {
+		background-color: #2196F3;
+	}
+
+	input:checked+.slider:before {
+		transform: translateX(26px);
+	}
+
+	/* Rounded sliders */
+	.slider.round {
+		border-radius: 34px;
+	}
+
+	.slider.round:before {
+		border-radius: 50%;
+	}
+</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css" integrity="sha512-yVvxUQV0QESBt1SyZbNJMAwyKvFTLMyXSyBHDO4BG5t7k/Lw34tyqlSDlKIrIENIzCl+RVUNjmCPG+V/GMesRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 <div class="box box-primary">
 	<div class="box-body">
@@ -222,6 +278,13 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 					</div>
 
 					<div class="col-sm-12" style="margin-bottom: 10px;">
+						<div class="text-right">
+							<label class="switch">
+								<input type="checkbox" id="toggle_pajak">
+								<span class="slider round"></span>
+							</label>
+							<label><b>Gunakan Pajak (PPn/DPP)</b></label>
+						</div>
 						<div class="table-responsive">
 							<table class='table table-bordered table-striped'>
 								<thead>
@@ -398,23 +461,17 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 											<input type="text" class="form-control text-right auto_num" id="diskonkhusus" onblur="cariTotal()" name="diskonkhusus">
 										</td>
 									</tr>
-									<tr>
+									<tr class="row-pajak" style="display: none;">
 										<td class="text-right" colspan="10"><b>Total (Exclude PPn)</b></td>
-										<td colspan="2">
-											<input readonly type="text" class="form-control text-right" id="totalexppn" onkeyup required name="totalexppn">
-										</td>
+										<td colspan="2"><input readonly type="text" class="form-control text-right" id="totalexppn" name="totalexppn"></td>
 									</tr>
-									<tr>
+									<tr class="row-pajak" style="display: none;">
 										<td class="text-right" colspan="10"><b>DPP</b></td>
-										<td colspan="2">
-											<input readonly type="text" class="form-control text-right" id="dpp" onkeyup required name="dpp">
-										</td>
+										<td colspan="2"><input readonly type="text" class="form-control text-right" id="dpp" name="dpp"></td>
 									</tr>
-									<tr>
+									<tr class="row-pajak" style="display: none;">
 										<td class="text-right" colspan="10"><b>PPn</b></td>
-										<td colspan="2">
-											<input readonly type="text" class="form-control text-right" id="ppn" onkeyup required name="ppn">
-										</td>
+										<td colspan="2"><input readonly type="text" class="form-control text-right" id="ppn" name="ppn"></td>
 									</tr>
 									<!-- <tr>
 										<td class="text-right" colspan="10"><b>Keterangan</b></td>
@@ -632,6 +689,15 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 			dateFormat: 'yy-mm-dd',
 			changeMonth: true,
 			changeYear: true,
+		});
+
+		$(document).on('change', '#toggle_pajak', function() {
+			if ($(this).is(':checked')) {
+				$('.row-pajak').fadeIn(); // Muncul jika aktif
+			} else {
+				$('.row-pajak').fadeOut(); // Sembunyi jika non-aktif
+			}
+			cariTotal();
 		});
 
 		$(document).on('click', '.checked_point', function() {
@@ -1303,7 +1369,6 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		// });
 	}
 
-
 	function HitungUP(id) {
 		var alloyprice = $("#dt_alloyprice_" + id).val();
 		var fabcost = $("#dt_fabcost_" + id).val();
@@ -1718,35 +1783,37 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 	function cariTotal() {
 		var diskonKhusus = getNum($("#diskonkhusus").val().split(",").join(""));
-		var total = getNum($("#hargatotal").val().split(",").join(""));
 		var totalInPPn = getNum($("#totalinppn").val().split(",").join(""));
-
 		var kirim = getNum($("#kirim").val().split(",").join(""));
-		// var persen_disc = getNum($("#persendisc").val().split(",").join(""));
-		// var disc = getNum($("#totaldisc").val().split(",").join(""));
-		// var persen_ppn = getNum($("#persenppn").val().split(",").join(""));
-		// var ppn = getNum($("#totalppn").val().split(",").join(""));
 
-		// if (persen_disc > 0 && persen_disc !== null) {
-		// 	var disc = parseFloat(total * persen_disc / 100);
-		// 	$("#totaldisc").val(number_format(disc, 2));
-		// }
+		var base = Math.max(0, totalInPPn - diskonKhusus);
+		var subtotal = 0;
 
-		// if (persen_ppn > 0 && persen_ppn !== null) {
-		// 	var ppn = parseFloat((total - disc) * persen_ppn / 100);
-		// 	$("#totalppn").val(number_format(ppn, 2));
-		// }
+		// Cek apakah Toggle Pajak AKTIF
+		var pajakAktif = $('#toggle_pajak').is(':checked');
 
-		var base = Math.max(0, totalInPPn - diskonKhusus)
+		if (pajakAktif) {
+			// Mode Pajak Aktif (Gunakan rumus asli Anda)
+			var exppn = base / 1.11;
+			var dpp = (exppn) * 11 / 12;
+			var ppn = 12 / 100 * (dpp);
+			subtotal = exppn + ppn;
 
-		var exppn = base / 1.11
-		var dpp = (exppn) * 11 / 12
-		var ppn = 12 / 100 * (dpp)
-		var subtotal = exppn + ppn
+			$("#totalexppn").val(number_format(exppn, 2));
+			$("#dpp").val(number_format(dpp, 2));
+			$("#ppn").val(number_format(ppn, 2));
+		} else {
+			// Mode Pajak Mati (Default)
+			subtotal = base;
+
+			$("#totalexppn").val(0);
+			$("#dpp").val(0);
+			$("#ppn").val(0);
+		}
 
 		var grandtotal = kirim + subtotal;
-		$("#kirim").val(number_format(kirim, 2));
 		$("#subtotal").val(number_format(grandtotal, 2));
+		$("#kirim").val(number_format(kirim, 2));
 	}
 
 	function SumDel() {
