@@ -696,7 +696,7 @@ class Non_rutin extends Admin_Controller
 		$mpdf->AddPage();
 		$mpdf->SetFooter($footer);
 		$mpdf->WriteHTML($show);
-		$mpdf->Output('tanda terima rutin ' . $kode_trans . '/' . date('ymdhis') . '.pdf', 'D');
+		$mpdf->Output('PR Department ' . $kode_trans . '/' . date('ymdhis') . '.pdf', 'D');
 
 		// $this->load->view('print_pengajuan_non_rutin', $data);
 		// $html = ob_get_contents();
