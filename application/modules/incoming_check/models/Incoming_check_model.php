@@ -501,425 +501,958 @@ class Incoming_check_model extends BF_Model
         echo json_encode($Arr_Data);
     }
 
+    // public function process_check_material()
+    // {
+    //     $post = $this->input->post();
+
+    //     $this->db->trans_begin();
+
+    //     $get_incoming = $this->db->get_where('tr_incoming_check_detail', ['kode_trans' => $post['kode_trans']])->result_array();
+
+    //     $ttl_all_checked = 0;
+    //     $totalhargabarang = 0;
+
+    //     $valid = 1;
+    //     foreach ($get_incoming as $det_inc) :
+    //         $get_qty_order = $this->db->select('qty')->get_where('dt_trans_po', ['no_po' => $post['no_pox'], 'idmaterial' => $det_inc['id_material']])->row_array();
+
+    //         $this->db->select('a.*, b.code as unit, c.code as packing');
+    //         $this->db->from('new_inventory_4 a');
+    //         $this->db->join('ms_satuan b', 'b.id = a.id_unit', 'left');
+    //         $this->db->join('ms_satuan c', 'c.id = a.id_unit_packing', 'left');
+    //         $this->db->where('a.code_lv4', $det_inc['id_material']);
+    //         $get_material_data = $this->db->get()->row_array();
+
+    //         if ($valid == 1) {
+    //             $get_ttl_qty = $this->db->select('IF(SUM(qty_ng + qty_oke) IS NULL, 0, SUM(qty_ng + qty_oke)) as ttl_qty_checked')->get_where('tr_checked_incoming_detail', ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id']])->row();
+
+    //             if ((int) $get_ttl_qty->ttl_qty_checked > $det_inc['qty_order']) {
+    //                 $valid = 2;
+    //             } else {
+    //                 $qty_awal_stock = 0;
+    //                 $get_stock = $this->db->select('qty_stock')->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row();
+
+    //                 if (!empty($get_stock)) {
+    //                     $qty_awal_stock = $get_stock->qty_stock;
+    //                 }
+
+    //                 $this->db->select('a.id_suplier, b.nama');
+    //                 $this->db->from('tr_purchase_order a');
+    //                 $this->db->join('new_supplier b', 'b.kode_supplier = a.id_suplier', 'left');
+    //                 $this->db->where_in('a.no_po', explode(',', $det_inc['no_ipp']));
+    //                 $get_supplier = $this->db->get()->row();
+
+    //                 $supplier = (!empty($get_supplier)) ? $get_supplier->nama : '';
+    //                 $iDsupplier = (!empty($get_supplier)) ? $get_supplier->id_suplier : '';
+
+    //                 $get_no_po = $this
+    //                     ->db
+    //                     ->query("
+    //                     SELECT 
+    //                         b.no_surat
+    //                     FROM
+    //                         dt_trans_po a
+    //                         LEFT JOIN tr_purchase_order b ON b.no_po = a.no_po
+    //                     WHERE
+    //                         a.id = '" . $det_inc['id_po_detail'] . "'
+    //                 ")
+    //                     ->row();
+
+    //                 $get_check_history = $this->db->get_where('warehouse_history', [
+    //                     'no_ipp' => $post['kode_trans'],
+    //                     'id_material' => $det_inc['id_material'],
+    //                     'id_gudang' => '1',
+    //                     'kd_gudang' => $get_no_po->no_surat . ' | ' . $supplier,
+    //                     'id_gudang_dari' => 1,
+    //                     'kd_gudang_dari' => $get_no_po->no_surat . ' | ' . $supplier,
+    //                     'id_gudang_ke' => 1,
+    //                     'kd_gudang_ke' => 'GUDANG PUSAT'
+    //                 ])->row_array();
+    //                 $get_new_incoming_ttl = $this->db->select('SUM(qty_order) as ttl_new_incoming, SUM(qty_ng) as ttl_new_ng')
+    //                     ->get_where('tr_checked_incoming_detail', [
+    //                         'kode_trans' => $post['kode_trans'],
+    //                         'id_material' => $det_inc['id_material'],
+    //                         'id_detail' => $det_inc['id'],
+    //                         'sts' => '0'
+    //                     ])->row_array();
+
+    //                 $this->db->insert('warehouse_history', [
+    //                     'id_material' => $det_inc['id_material'],
+    //                     'nm_material' => $det_inc['nm_material'],
+    //                     'id_gudang' => 1,
+    //                     'kd_gudang' => $get_no_po->no_surat . ' | ' . $supplier,
+    //                     'id_gudang_dari' => 1,
+    //                     'kd_gudang_dari' => $get_no_po->no_surat . ' | ' . $supplier,
+    //                     'id_gudang_ke' => 1,
+    //                     'kd_gudang_ke' => 'GUDANG PUSAT',
+    //                     'qty_stock_awal' => $qty_awal_stock,
+    //                     'qty_stock_akhir' => ($qty_awal_stock + $get_new_incoming_ttl['ttl_new_incoming']),
+    //                     'no_ipp' => $post['kode_trans'],
+    //                     'jumlah_mat' => $get_new_incoming_ttl['ttl_new_incoming'],
+    //                     'ket' => 'QC Incoming Check',
+    //                     'update_by' => $this->auth->user_id(),
+    //                     'update_date' => date('Y-m-d H:i:s'),
+    //                     'qty_ng' => $get_new_incoming_ttl['ttl_new_ng']
+    //                 ]);
+    //             }
+    //         }
+
+    //         $check_stock = $this->db->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->num_rows();
+    //         $get_warehouse_stock = $this->db->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->row();
+
+    //         if ($check_stock <= 0) {
+    //             $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming, harga, total_harga')
+    //                 ->get_where('tr_checked_incoming_detail', [
+    //                     'kode_trans'    => $post['kode_trans'],
+    //                     'id_material'   => $det_inc['id_material'],
+    //                     'id_detail'     => $det_inc['id'],
+    //                     'sts'           => '0'
+    //                 ])->row_array();
+
+    //             $qty_oke            = $get_new_incoming_ttl['ttl_new_incoming'];
+    //             $costbook           = $get_new_incoming_ttl['harga'];
+    //             $nilai_inventory    = $get_new_incoming_ttl['total_harga'];
+
+    //             $this->db->insert('warehouse_stock', [
+    //                 'id_material'       => $det_inc['id_material'],
+    //                 'nm_product'        => $det_inc['nm_material'],
+    //                 'id_gudang'         => '1',
+    //                 'kd_gudang'         => 'PUS',
+    //                 'incoming'          => $qty_oke,
+    //                 'begining'          => $qty_oke,
+    //                 'qty_stock'         => $qty_oke,
+    //                 'qty_free'          => $qty_oke,
+    //                 'harga_beli'        => $costbook,
+    //                 'total_nilai'       => $nilai_inventory,
+    //                 'update_by'         => $this->auth->user_id(),
+    //                 'update_date'       => date('Y-m-d H:i:s')
+    //             ]);
+
+    //             $this->db->insert('warehouse_stock_per_day', [
+    //                 'id_material'       => $det_inc['id_material'],
+    //                 'nm_material'       => $det_inc['nm_material'],
+    //                 'id_gudang'         => 1,
+    //                 'qty_stock'         => $qty_oke,
+    //                 'hist_date'         => date('Y-m-d H:i:s')
+    //             ]);
+
+    //             $this->db->insert('kartu_stok', [
+    //                 'no_transaksi'      => $post['kode_trans'],
+    //                 'transaksi'         => "Incoming Product",
+    //                 'tgl_transaksi'     => date('Y-m-d H:i:s'),
+    //                 'code_lv4'          => $det_inc['id_material'],
+    //                 'nm_product'        => $det_inc['nm_material'],
+    //                 'qty'               => $qty_oke,
+    //                 'qty_free'          => $qty_oke,
+    //                 'qty_transaksi'     => $qty_oke,
+    //                 'qty_akhir'         => $qty_oke,
+    //                 'qty_free_akhir'    => $qty_oke,
+    //                 'harga_stok'        => $costbook
+    //             ]);
+    //         } else {
+    //             $get_stock = $this->db->select('qty_stock, qty_booking, qty_free, harga_beli')->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->row_array();
+    //             $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming, harga')
+    //                 ->get_where('tr_checked_incoming_detail', [
+    //                     'kode_trans'    => $post['kode_trans'],
+    //                     'id_material'   => $det_inc['id_material'],
+    //                     'id_detail'     => $det_inc['id'],
+    //                     'sts'           => '0'
+    //                 ])->row_array();
+
+    //             $nilai_stock_lama   = $get_stock['qty_stock'] * $get_stock['harga_beli'];
+    //             $nilai_stock_baru   = $get_new_incoming_ttl['ttl_new_incoming'] * $get_new_incoming_ttl['harga'];
+    //             $nilai_stock_total  = $nilai_stock_lama + $nilai_stock_baru;
+    //             $qty_stock_akhir    = $get_new_incoming_ttl['ttl_new_incoming'] + $get_stock['qty_stock'];
+    //             $costbook           = $nilai_stock_total / $qty_stock_akhir;
+    //             $nilai_inventory    = $qty_stock_akhir * $costbook;
+    //             $qty_free           = $get_stock['qty_free'];
+    //             $qty_free_akhir     = $get_new_incoming_ttl['ttl_new_incoming'] + $qty_free;
+
+    //             $this->db->insert('warehouse_stock_per_day', [
+    //                 'id_material'       => $det_inc['id_material'],
+    //                 'nm_material'       => $det_inc['nm_material'],
+    //                 'id_gudang'         => 1,
+    //                 'qty_stock'         => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+    //                 'hist_date'         => date('Y-m-d H:i:s')
+    //             ]);
+
+    //             $this->db->update('warehouse_stock', [
+    //                 'incoming'          => $get_new_incoming_ttl['ttl_new_incoming'],
+    //                 'qty_stock'         => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+    //                 'qty_free'          => $qty_free,
+    //                 'harga_beli'        => $costbook,
+    //                 'total_nilai'       => $nilai_inventory,
+    //                 'update_by'         => $this->auth->user_id(),
+    //                 'update_date'       => date('Y-m-d H:i:s')
+    //             ], [
+    //                 'id_material'       => $det_inc['id_material'],
+    //                 'id_gudang'         => '1',
+    //                 'kd_gudang'         => 'PUS'
+    //             ]);
+
+    //             $this->db->insert('kartu_stok', [
+    //                 'no_transaksi'      => $post['kode_trans'],
+    //                 'transaksi'         => "Incoming Product",
+    //                 'tgl_transaksi'     => date('Y-m-d H:i:s'),
+    //                 'code_lv4'          => $det_inc['id_material'],
+    //                 'nm_product'        => $det_inc['nm_material'],
+    //                 'qty'               => $get_stock['qty_stock'],
+    //                 'qty_book'          => $get_stock['qty_booking'],
+    //                 'qty_free'          => $qty_free,
+    //                 'qty_transaksi'     => $get_new_incoming_ttl['ttl_new_incoming'],
+    //                 'qty_book_akhir'    => $get_stock['qty_booking'],
+    //                 'qty_free_akhir'    => $qty_free_akhir,
+    //                 'qty_akhir'         => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
+    //                 'harga_stok'        => $costbook
+    //             ]);
+    //         }
+    //         $this->db->update('tr_checked_incoming_detail', ['sts' => '1'], ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id'],  'sts' => '0']);
+
+    //         $ttl_all_checked += (float) str_replace(',', '', (string)($post['qty_oke_' . $det_inc['id']] ?? 0)) + (float) str_replace(',', '', (string)($post['qty_ng_'  . $det_inc['id']] ?? 0));
+
+    //         $id_costbook = generate_no_costbook();
+    //         $hargasatuan = 0;
+    //         $get_hargasatuan = $this->db->get_where('dt_trans_po', ['id' => $det_inc['id_po_detail']])->row();
+    //         if (!empty($get_hargasatuan)) {
+    //             $hargasatuan = $get_hargasatuan->hargasatuan;
+    //         }
+
+    //         $value_neraca = 0;
+    //         $get_value_neraca = $this->db->select('a.value_neraca')
+    //             ->from('tr_cost_book a')
+    //             ->where('a.id_material', $det_inc['id_material'])
+    //             ->where('a.id_gudang_ke', 1)
+    //             ->order_by('a.tgl', 'DESC')
+    //             ->get()
+    //             ->row();
+    //         if (!empty($get_value_neraca)) {
+    //             $value_neraca = $get_value_neraca->value_neraca;
+    //         }
+
+    //         $nm_material = '';
+    //         $kode_material = '';
+    //         $get_nm_material = $this->db->select('a.nama as nm_material, a.code as kode_material')
+    //             ->from('new_inventory_4 a')
+    //             ->where('a.code_lv4', $det_inc['id_material'])
+    //             ->get()
+    //             ->row();
+    //         if (!empty($get_nm_material)) {
+    //             $nm_material = $get_nm_material->nm_material;
+    //             $kode_material = $get_nm_material->kode_material;
+    //         }
+
+    //         $nilai_qty = ($get_warehouse_stock->qty_stock + $get_new_incoming_ttl['ttl_new_incoming']);
+
+    //         $arr_warehouse_sub = [];
+    //         $arr_warehouse_prod = [];
+    //         $wgere = ['subgudang', 'stok', 'produksi'];
+
+    //         $get_sub_prod_warehouse = $this->db->query("SELECT id, `desc` FROM warehouse WHERE `desc` IN ('subgudang', 'stok', 'produksi')")->result();
+    //         foreach ($get_sub_prod_warehouse as $item_ware) {
+    //             if ($item_ware->desc == 'subgudang' || $item_ware->desc == 'stok') {
+    //                 $arr_warehouse_sub[] = $item_ware->id;
+    //             } else {
+    //                 $arr_warehouse_prod[] = $item_ware->id;
+    //             }
+    //         }
+
+    //         $ttl_qty_sub = 0;
+    //         $ttl_qty_prod = 0;
+
+    //         $get_ttl_qty_sub = $this->db->query("SELECT SUM(qty_stock) as ttl_qty_sub FROM warehouse_stock WHERE id_material = '" . $det_inc['id_material'] . "' AND id_gudang IN ('" . str_replace(",", "','", implode(',', $arr_warehouse_sub)) . "')")->row();
+    //         if (!empty($get_ttl_qty_sub)) {
+    //             $ttl_qty_sub = $get_ttl_qty_sub->ttl_qty_sub;
+    //         }
+
+    //         $get_ttl_qty_prod = $this->db->query("SELECT SUM(qty_stock) as ttl_qty_prod FROM warehouse_stock WHERE id_material = '" . $det_inc['id_material'] . "' AND id_gudang IN ('" . str_replace(",", "','", implode(',', $arr_warehouse_prod)) . "')")->row();
+    //         if (!empty($get_ttl_qty_prod)) {
+    //             $ttl_qty_prod = $get_ttl_qty_prod->ttl_qty_prod;
+    //         }
+
+    //         $insert_price_book = $this->db->insert('price_book', [
+    //             'id_material' => $det_inc['id_material'],
+    //             'pusat' => $nilai_qty,
+    //             'subgudang' => $ttl_qty_sub,
+    //             'produksi' => $ttl_qty_prod,
+    //             'price_book' => 0,
+    //             'status' => 'Y',
+    //             'kode_trans' => $post['kode_trans'],
+    //             'updated_by' => $this->auth->user_id(),
+    //             'updated_date' => date('Y-m-d H:i:s')
+    //         ]);
+
+    //         $totalhargabarang += $get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan;
+    //     endforeach;
+
+    //     $config['upload_path'] = './uploads/incoming_check'; //path folder
+    //     $config['allowed_types'] = 'gif|jpg|png|jpeg|bmp|pdf|webp'; //type yang dapat diakses bisa anda sesuaikan
+    //     $config['max_size'] = 100000000; // Maximum file size in kilobytes (2MB).
+    //     $config['encrypt_name'] = TRUE; // Encrypt the uploaded file's name.
+    //     $config['remove_spaces'] = TRUE; // Remove spaces from the file name.
+
+    //     $this->load->library('upload', $config);
+    //     $this->upload->initialize($config);
+
+    //     $upload_incoming = '';
+
+    //     $get_sum_material = $this->db->select('IF(SUM(qty_order) IS NULL, 0, SUM(qty_order)) jumlah_mat_check')->get_where('tr_incoming_check_detail', ['kode_trans' => $post['kode_trans']])->row();
+
+    //     $get_checked_val = $this->db->select('IF(SUM(qty_ng + qty_oke) IS NULL, 0 ,SUM(qty_ng + qty_oke)) AS qty_check')->get_where('tr_checked_incoming_detail', ['kode_trans' => $post['kode_trans'], 'sts' => '1'])->row_array();
+
+
+    //     $this->db->update('tr_incoming_check', ['checked' => 'Y', 'file_incoming_check' => $upload_incoming], ['kode_trans' => $post['kode_trans']]);
+
+
+    //     $get_incoming = $this->db->get_where('tr_incoming_check', ['kode_trans' => $post['kode_trans']])->row();
+
+    //     $no_ros       = $post['kode_trans'];
+    //     $kode_trans   = $post['kode_trans'];
+    //     $no_reff      = $post['kode_trans'];
+    //     $no_po        = $post['no_pox'];
+    //     $no_surat     = $post['no_surat'];
+
+
+
+
+    //     //SYAMSUDIN 16-09-2025 JURNAL
+
+    //     $tgl_inv  = date('Y-m-d');
+    //     $keterangan  = "incoming atas po nomor " . $no_po;
+    //     $type        = $post['no_pox'];
+    //     $reff        = $post['kode_trans'];
+    //     $no_req      = $post['no_surat'];
+    //     $total       = round($this->input->post('debet[0]'));
+    //     $jenis       = $this->input->post('jenis');
+    //     $tipe_jurnal       = $this->input->post('tipe');
+    //     $jenis_jurnal       = $this->input->post('jenis_jurnal');
+
+    //     $total_po           = round($this->input->post('debet[0]'));
+    //     $id_vendor          = $iDsupplier;
+    //     $nama_vendor        = $supplier;
+
+    //     $Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
+
+
+    //     $Bln             = substr($tgl_inv, 5, 2);
+    //     $Thn             = substr($tgl_inv, 0, 4);
+
+
+    //     $dataJVhead = array(
+    //         'nomor'             => $Nomor_JV,
+    //         'tgl'                 => $tgl_inv,
+    //         'jml'                => $total,
+    //         'koreksi_no'        => '-',
+    //         'kdcab'                => '101',
+    //         'jenis'                => 'JV',
+    //         'keterangan'         => $keterangan,
+    //         'bulan'                => $Bln,
+    //         'tahun'                => $Thn,
+    //         'user_id'            => $this->auth->user_id(),
+    //         'memo'                => '',
+    //         'tgl_jvkoreksi'        => $tgl_inv,
+    //         'ho_valid'            => ''
+    //     );
+
+    //     $this->db->insert(DBACC . '.javh', $dataJVhead);
+
+    //     for ($i = 0; $i < count($this->input->post('type')); $i++) {
+    //         $tipe = $this->input->post('type')[$i];
+    //         $perkiraan = $this->input->post('no_coa')[$i];
+    //         $noreff = $no_po;
+
+    //         $datadetail = array(
+    //             'tipe'            => $this->input->post('type')[$i],
+    //             'nomor'           => $Nomor_JV,
+    //             'tanggal'         => $this->input->post('tgl_jurnal')[$i],
+    //             'no_perkiraan'    => $this->input->post('no_coa')[$i],
+    //             'keterangan'      =>  $keterangan,
+    //             'no_reff'        => $no_po,
+    //             'debet'          => round($this->input->post('debet')[$i]),
+    //             'kredit'         => round($this->input->post('kredit')[$i]),
+    //             'created_by'      => $this->auth->user_id(),
+    //             'created_on'      => date('Y-m-d H:i:s')
+    //         );
+    //         $this->db->insert(DBACC . '.jurnal', $datadetail);
+    //     }
+
+    //     $Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
+    //     $this->db->query($Qry_Update_Cabang_acc);
+
+
+
+    //     $No_Inv   = $no_po;
+
+    //     $datahutang = array(
+    //         'tipe'            => 'JV',
+    //         'nomor'            => $Nomor_JV,
+    //         'tanggal'        => $tgl_inv,
+    //         'no_perkiraan'  => '1102-01-01',
+    //         'keterangan'    => $keterangan,
+    //         'no_reff'       => $No_Inv,
+    //         'debet'         => 0,
+    //         'kredit'         =>  $total,
+    //         'id_supplier'     => $id_vendor,
+    //         'nama_supplier'   => $nama_vendor,
+
+    //     );
+    //     $this->db->insert('tr_kartu_hutang', $datahutang);
+
+
+    //     if ($this->db->trans_status() === FALSE || $valid == 2) {
+    //         $this->db->trans_rollback();
+    //         $msg = 'Sorry, the incoming material QC process failed!';
+    //         // if ($valid == 0) {
+    //         //     $msg = 'Please make sure All Qty NG and Expired Date input is not empty !';
+    //         // }
+    //         if ($valid == 2) {
+    //             $msg = 'Please make sure Qty NG value is below or same as Incoming Qty !';
+    //         }
+    //         $hasil = [
+    //             'status' => 0,
+    //             'pesan' => $msg
+    //         ];
+    //     } else {
+    //         $this->db->trans_commit();
+    //         $hasil = [
+    //             'status' => 1,
+    //             'pesan' => 'Congratulations, the QC Incoming material process has been successful and the stock has entered the warehouse!'
+    //         ];
+    //     }
+
+    //     echo json_encode($hasil);
+    // }
+
     public function process_check_material()
     {
         $post = $this->input->post();
 
+        // ===== 0) Validasi input minimum =====
+        $kode_trans = trim((string)($post['kode_trans'] ?? ''));
+        $no_po      = trim((string)($post['no_pox'] ?? ''));
+        $no_surat   = trim((string)($post['no_surat'] ?? ''));
+
+        if ($kode_trans === '' || $no_po === '') {
+            echo json_encode(['status' => 0, 'pesan' => 'kode_trans / no_po kosong.']);
+            return;
+        }
+
+        // helper parsing angka dari POST (auto_num, dll)
+        $num = function ($v) {
+            if ($v === null || $v === '') return 0.0;
+            return (float) str_replace(',', '', (string)$v);
+        };
+
         $this->db->trans_begin();
 
-        $get_incoming = $this->db->get_where('tr_incoming_check_detail', ['kode_trans' => $post['kode_trans']])->result_array();
+        try {
+            // ===== 1) Ambil detail incoming =====
+            $incoming_details = $this->db
+                ->get_where('tr_incoming_check_detail', ['kode_trans' => $kode_trans])
+                ->result_array();
 
-        $ttl_all_checked = 0;
-        $totalhargabarang = 0;
+            if (empty($incoming_details)) {
+                throw new Exception('Detail incoming tidak ditemukan.');
+            }
 
-        $valid = 1;
-        foreach ($get_incoming as $det_inc) :
-            $get_qty_order = $this->db->select('qty')->get_where('dt_trans_po', ['no_po' => $post['no_pox'], 'idmaterial' => $det_inc['id_material']])->row_array();
+            // ===== 2) Prefetch: mapping harga satuan PO detail (dt_trans_po) =====
+            $po_detail_ids = array_values(array_unique(array_filter(array_column($incoming_details, 'id_po_detail'))));
+            $harga_po_map = []; // [id_po_detail] => hargasatuan
+            $no_surat_map = []; // [id_po_detail] => no_surat (dari tr_purchase_order)
+            $supplier_from_po = ['id' => '', 'nama' => ''];
 
-            $this->db->select('a.*, b.code as unit, c.code as packing');
-            $this->db->from('new_inventory_4 a');
-            $this->db->join('ms_satuan b', 'b.id = a.id_unit', 'left');
-            $this->db->join('ms_satuan c', 'c.id = a.id_unit_packing', 'left');
-            $this->db->where('a.code_lv4', $det_inc['id_material']);
-            $get_material_data = $this->db->get()->row_array();
+            // ambil supplier dari PO header (lebih konsisten)
+            $po_head = $this->db
+                ->select('a.id_suplier, b.nama')
+                ->from('tr_purchase_order a')
+                ->join('new_supplier b', 'b.kode_supplier = a.id_suplier', 'left')
+                ->where('a.no_po', $no_po)
+                ->get()->row();
 
-            if ($valid == 1) {
-                $get_ttl_qty = $this->db->select('IF(SUM(qty_ng + qty_oke) IS NULL, 0, SUM(qty_ng + qty_oke)) as ttl_qty_checked')->get_where('tr_checked_incoming_detail', ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id']])->row();
+            if (!empty($po_head)) {
+                $supplier_from_po['id']   = $po_head->id_suplier ?? '';
+                $supplier_from_po['nama'] = $po_head->nama ?? '';
+            }
 
-                if ((int) $get_ttl_qty->ttl_qty_checked > $det_inc['qty_order']) {
-                    $valid = 2;
-                } else {
-                    $qty_awal_stock = 0;
-                    $get_stock = $this->db->select('qty_stock')->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row();
+            if (!empty($po_detail_ids)) {
+                $rows_po_det = $this->db
+                    ->select('a.id, a.hargasatuan, b.no_surat')
+                    ->from('dt_trans_po a')
+                    ->join('tr_purchase_order b', 'b.no_po = a.no_po', 'left')
+                    ->where_in('a.id', $po_detail_ids)
+                    ->get()->result();
 
-                    if (!empty($get_stock)) {
-                        $qty_awal_stock = $get_stock->qty_stock;
-                    }
+                foreach ($rows_po_det as $r) {
+                    $harga_po_map[$r->id] = (float)($r->hargasatuan ?? 0);
+                    $no_surat_map[$r->id] = (string)($r->no_surat ?? '');
+                }
+            }
 
-                    $this->db->select('a.id_suplier, b.nama');
-                    $this->db->from('tr_purchase_order a');
-                    $this->db->join('new_supplier b', 'b.kode_supplier = a.id_suplier', 'left');
-                    $this->db->where_in('a.no_po', explode(',', $det_inc['no_ipp']));
-                    $get_supplier = $this->db->get()->row();
+            // ===== 3) Prefetch: master material + satuan =====
+            $material_ids = array_values(array_unique(array_filter(array_column($incoming_details, 'id_material'))));
+            $material_map = []; // [code_lv4] => ['nm'=>..., 'kode'=>..., 'unit'=>..., 'packing'=>...]
+            if (!empty($material_ids)) {
+                $rows_mat = $this->db
+                    ->select('a.code_lv4, a.nama as nm_material, a.code as kode_material, b.code as unit, c.code as packing')
+                    ->from('new_inventory_4 a')
+                    ->join('ms_satuan b', 'b.id = a.id_unit', 'left')
+                    ->join('ms_satuan c', 'c.id = a.id_unit_packing', 'left')
+                    ->where_in('a.code_lv4', $material_ids)
+                    ->get()->result();
 
-                    $supplier = (!empty($get_supplier)) ? $get_supplier->nama : '';
-                    $iDsupplier = (!empty($get_supplier)) ? $get_supplier->id_suplier : '';
+                foreach ($rows_mat as $m) {
+                    $material_map[$m->code_lv4] = [
+                        'nm'      => (string)$m->nm_material,
+                        'kode'    => (string)$m->kode_material,
+                        'unit'    => (string)$m->unit,
+                        'packing' => (string)$m->packing,
+                    ];
+                }
+            }
 
-                    $get_no_po = $this
-                        ->db
-                        ->query("
-                        SELECT 
-                            b.no_surat
-                        FROM
-                            dt_trans_po a
-                            LEFT JOIN tr_purchase_order b ON b.no_po = a.no_po
-                        WHERE
-                            a.id = '" . $det_inc['id_po_detail'] . "'
-                    ")
-                        ->row();
+            // ===== 4) Prefetch: gudang subgudang/stok/produksi (sekali saja) =====
+            $arr_warehouse_sub  = [];
+            $arr_warehouse_prod = [];
 
-                    $get_check_history = $this->db->get_where('warehouse_history', [
-                        'no_ipp' => $post['kode_trans'],
-                        'id_material' => $det_inc['id_material'],
-                        'id_gudang' => '1',
-                        'kd_gudang' => $get_no_po->no_surat . ' | ' . $supplier,
-                        'id_gudang_dari' => 1,
-                        'kd_gudang_dari' => $get_no_po->no_surat . ' | ' . $supplier,
-                        'id_gudang_ke' => 1,
-                        'kd_gudang_ke' => 'GUDANG PUSAT'
-                    ])->row_array();
-                    $get_new_incoming_ttl = $this->db->select('SUM(qty_order) as ttl_new_incoming, SUM(qty_ng) as ttl_new_ng')
-                        ->get_where('tr_checked_incoming_detail', [
-                            'kode_trans' => $post['kode_trans'],
-                            'id_material' => $det_inc['id_material'],
-                            'id_detail' => $det_inc['id'],
-                            'sts' => '0'
-                        ])->row_array();
+            $ware_rows = $this->db
+                ->query("SELECT id, `desc` FROM warehouse WHERE `desc` IN ('subgudang', 'stok', 'produksi')")
+                ->result();
 
+            foreach ($ware_rows as $w) {
+                if ($w->desc === 'subgudang' || $w->desc === 'stok') $arr_warehouse_sub[] = $w->id;
+                if ($w->desc === 'produksi') $arr_warehouse_prod[] = $w->id;
+            }
+
+            // ===== 5) Prefetch: agregasi QC yang masih sts=0 per (id_detail,id_material) =====
+            // Ini penting supaya kita tidak query SUM berkali-kali.
+            $qc_aggr = []; // key "{$id_detail}|{$id_material}" => ['qty_order','qty_oke','qty_ng','harga','total_harga']
+            $qc_rows = $this->db
+                ->select('id_detail, id_material,
+                      SUM(qty_order) as ttl_qty_order,
+                      SUM(qty_oke) as ttl_qty_oke,
+                      SUM(qty_ng) as ttl_qty_ng,
+                      MAX(harga) as harga,
+                      SUM(total_harga) as total_harga', false)
+                ->from('tr_checked_incoming_detail')
+                ->where('kode_trans', $kode_trans)
+                ->where('sts', '0')
+                ->group_by('id_detail, id_material')
+                ->get()->result();
+
+            foreach ($qc_rows as $q) {
+                $k = $q->id_detail . '|' . $q->id_material;
+                $qc_aggr[$k] = [
+                    'qty_order'   => (float)($q->ttl_qty_order ?? 0),
+                    'qty_oke'     => (float)($q->ttl_qty_oke ?? 0),
+                    'qty_ng'      => (float)($q->ttl_qty_ng ?? 0),
+                    'harga'       => (float)($q->harga ?? 0),
+                    'total_harga' => (float)($q->total_harga ?? 0),
+                ];
+            }
+
+            // ===== 6) Validasi: total checked (ng+oke) tidak boleh > qty_order per detail =====
+            foreach ($incoming_details as $det) {
+                $id_detail   = $det['id'];
+                $id_material = $det['id_material'];
+
+                // total yang sudah pernah dicek (sts 0 + 1) untuk id_detail+material
+                $ttl_checked = $this->db
+                    ->select('IFNULL(SUM(qty_ng + qty_oke), 0) as ttl', false)
+                    ->from('tr_checked_incoming_detail')
+                    ->where([
+                        'kode_trans'  => $kode_trans,
+                        'id_material' => $id_material,
+                        'id_detail'   => $id_detail,
+                    ])
+                    ->get()->row();
+
+                $ttl_checked_val = (float)($ttl_checked->ttl ?? 0);
+                $qty_order_inc   = (float)($det['qty_order'] ?? 0);
+
+                if ($ttl_checked_val > $qty_order_inc) {
+                    throw new Exception('Qty NG/OK melebihi Qty Order untuk material ' . $id_material);
+                }
+            }
+
+            // ===== 7) Upload file incoming check (optional) =====
+            $upload_incoming = '';
+            if (!empty($_FILES['upload_doc']['name'])) {
+                $config['upload_path']   = './uploads/incoming_check';
+                $config['allowed_types'] = 'gif|jpg|png|jpeg|bmp|pdf|webp';
+                $config['max_size']      = 100000000;
+                $config['encrypt_name']  = true;
+                $config['remove_spaces'] = true;
+
+                $this->load->library('upload', $config);
+                $this->upload->initialize($config);
+
+                if ($this->upload->do_upload('upload_doc')) {
+                    $uploadData = $this->upload->data();
+                    $upload_incoming = $uploadData['file_name'];
+                }
+                // kalau gagal upload, tidak kita throw. kalau mau wajib, uncomment:
+                // else { throw new Exception($this->upload->display_errors('', '')); }
+            }
+
+            // ===== 8) Proses per material: history + stok + kartu stok + price book =====
+            $totalhargabarang = 0;
+
+            foreach ($incoming_details as $det) {
+                $id_detail   = $det['id'];
+                $id_material = $det['id_material'];
+                $nm_material = $det['nm_material'] ?? ($material_map[$id_material]['nm'] ?? '');
+
+                $keyAggr = $id_detail . '|' . $id_material;
+                $aggr = $qc_aggr[$keyAggr] ?? null;
+
+                // kalau tidak ada qty baru (sts=0) untuk detail ini, skip
+                if (empty($aggr) || ($aggr['qty_order'] <= 0 && $aggr['qty_oke'] <= 0 && $aggr['qty_ng'] <= 0)) {
+                    continue;
+                }
+
+                // stok awal gudang PUS
+                $stockRow = $this->db->select('qty_stock, qty_booking, qty_free, harga_beli')
+                    ->get_where('warehouse_stock', [
+                        'id_material' => $id_material,
+                        'id_gudang'   => '1',
+                        'kd_gudang'   => 'PUS'
+                    ])->row();
+
+                $qty_stock_awal = !empty($stockRow) ? (float)$stockRow->qty_stock : 0.0;
+                $qty_booking    = !empty($stockRow) ? (float)$stockRow->qty_booking : 0.0;
+                $qty_free_awal  = !empty($stockRow) ? (float)$stockRow->qty_free : 0.0;
+                $harga_beli_awal = !empty($stockRow) ? (float)$stockRow->harga_beli : 0.0;
+
+                // no_surat untuk label history (ambil dari id_po_detail)
+                $id_po_detail = $det['id_po_detail'] ?? null;
+                $no_surat_po  = ($id_po_detail && isset($no_surat_map[$id_po_detail])) ? $no_surat_map[$id_po_detail] : ($no_surat ?? '');
+                $supplier_nm  = $supplier_from_po['nama'];
+                $supplier_id  = $supplier_from_po['id'];
+
+                $label_sumber = trim($no_surat_po . ' | ' . $supplier_nm);
+
+                // ===== 8A) warehouse_history (hindari double) =====
+                $exists_history = $this->db->get_where('warehouse_history', [
+                    'no_ipp'         => $kode_trans,
+                    'id_material'    => $id_material,
+                    'id_gudang'      => 1,
+                    'kd_gudang'      => $label_sumber,
+                    'id_gudang_dari' => 1,
+                    'kd_gudang_dari' => $label_sumber,
+                    'id_gudang_ke'   => 1,
+                    'kd_gudang_ke'   => 'GUDANG PUSAT'
+                ])->row();
+
+                if (empty($exists_history)) {
                     $this->db->insert('warehouse_history', [
-                        'id_material' => $det_inc['id_material'],
-                        'nm_material' => $det_inc['nm_material'],
-                        'id_gudang' => 1,
-                        'kd_gudang' => $get_no_po->no_surat . ' | ' . $supplier,
-                        'id_gudang_dari' => 1,
-                        'kd_gudang_dari' => $get_no_po->no_surat . ' | ' . $supplier,
-                        'id_gudang_ke' => 1,
-                        'kd_gudang_ke' => 'GUDANG PUSAT',
-                        'qty_stock_awal' => $qty_awal_stock,
-                        'qty_stock_akhir' => ($qty_awal_stock + $get_new_incoming_ttl['ttl_new_incoming']),
-                        'no_ipp' => $post['kode_trans'],
-                        'jumlah_mat' => $get_new_incoming_ttl['ttl_new_incoming'],
-                        'ket' => 'QC Incoming Check',
-                        'update_by' => $this->auth->user_id(),
-                        'update_date' => date('Y-m-d H:i:s'),
-                        'qty_ng' => $get_new_incoming_ttl['ttl_new_ng']
+                        'id_material'      => $id_material,
+                        'nm_material'      => $nm_material,
+                        'id_gudang'        => 1,
+                        'kd_gudang'        => $label_sumber,
+                        'id_gudang_dari'   => 1,
+                        'kd_gudang_dari'   => $label_sumber,
+                        'id_gudang_ke'     => 1,
+                        'kd_gudang_ke'     => 'GUDANG PUSAT',
+                        'qty_stock_awal'   => $qty_stock_awal,
+                        'qty_stock_akhir'  => $qty_stock_awal + $aggr['qty_order'],
+                        'no_ipp'           => $kode_trans,
+                        'jumlah_mat'       => $aggr['qty_order'],
+                        'ket'              => 'QC Incoming Check',
+                        'update_by'        => $this->auth->user_id(),
+                        'update_date'      => date('Y-m-d H:i:s'),
+                        'qty_ng'           => $aggr['qty_ng'],
+                    ]);
+                    if ($this->db->affected_rows() <= 0) throw new Exception('Gagal insert warehouse_history.');
+                }
+
+                // ===== 8B) Update/insert warehouse_stock + stock_per_day + kartu_stok =====
+                // gunakan qty_oke untuk stok masuk (yang layak masuk gudang)
+                $qty_in = (float)$aggr['qty_oke'];
+                $harga_in = (float)$aggr['harga'];
+
+                if (empty($stockRow)) {
+                    // insert stock baru
+                    $total_nilai = (float)$aggr['total_harga']; // asumsinya sudah qty_oke*harga
+
+                    $this->db->insert('warehouse_stock', [
+                        'id_material' => $id_material,
+                        'nm_product'  => $nm_material,
+                        'id_gudang'   => '1',
+                        'kd_gudang'   => 'PUS',
+                        'incoming'    => $qty_in,
+                        'begining'    => $qty_in,
+                        'qty_stock'   => $qty_in,
+                        'qty_free'    => $qty_in,
+                        'harga_beli'  => $harga_in,
+                        'total_nilai' => $total_nilai,
+                        'update_by'   => $this->auth->user_id(),
+                        'update_date' => date('Y-m-d H:i:s')
+                    ]);
+                    if ($this->db->affected_rows() <= 0) throw new Exception('Gagal insert warehouse_stock.');
+
+                    $this->db->insert('warehouse_stock_per_day', [
+                        'id_material' => $id_material,
+                        'nm_material' => $nm_material,
+                        'id_gudang'   => 1,
+                        'qty_stock'   => $qty_in,
+                        'hist_date'   => date('Y-m-d H:i:s')
+                    ]);
+
+                    $this->db->insert('kartu_stok', [
+                        'no_transaksi'   => $kode_trans,
+                        'transaksi'      => 'Incoming Product',
+                        'tgl_transaksi'  => date('Y-m-d H:i:s'),
+                        'code_lv4'       => $id_material,
+                        'nm_product'     => $nm_material,
+                        'qty'            => $qty_in,
+                        'qty_free'       => $qty_in,
+                        'qty_transaksi'  => $qty_in,
+                        'qty_akhir'      => $qty_in,
+                        'qty_free_akhir' => $qty_in,
+                        'harga_stok'     => $harga_in
+                    ]);
+                } else {
+                    // moving average cost
+                    $nilai_stock_lama  = $qty_stock_awal * $harga_beli_awal;
+                    $nilai_stock_baru  = $qty_in * $harga_in;
+                    $nilai_stock_total = $nilai_stock_lama + $nilai_stock_baru;
+
+                    $qty_stock_akhir = $qty_stock_awal + $qty_in;
+                    $costbook = ($qty_stock_akhir > 0) ? ($nilai_stock_total / $qty_stock_akhir) : $harga_beli_awal;
+                    $nilai_inventory = $qty_stock_akhir * $costbook;
+
+                    // qty_free policy: mengikuti logic kamu sebelumnya (qty_free lama + qty_in untuk kartu, tapi db update tetap qty_free lama)
+                    $qty_free_akhir = $qty_free_awal + $qty_in;
+
+                    $this->db->insert('warehouse_stock_per_day', [
+                        'id_material' => $id_material,
+                        'nm_material' => $nm_material,
+                        'id_gudang'   => 1,
+                        'qty_stock'   => $qty_stock_akhir,
+                        'hist_date'   => date('Y-m-d H:i:s')
+                    ]);
+
+                    $this->db->update('warehouse_stock', [
+                        'incoming'    => $qty_in,
+                        'qty_stock'   => $qty_stock_akhir,
+                        'qty_free'    => $qty_free_awal, // sesuai kode lama kamu
+                        'harga_beli'  => $costbook,
+                        'total_nilai' => $nilai_inventory,
+                        'update_by'   => $this->auth->user_id(),
+                        'update_date' => date('Y-m-d H:i:s')
+                    ], [
+                        'id_material' => $id_material,
+                        'id_gudang'   => '1',
+                        'kd_gudang'   => 'PUS'
+                    ]);
+
+                    $this->db->insert('kartu_stok', [
+                        'no_transaksi'    => $kode_trans,
+                        'transaksi'       => 'Incoming Product',
+                        'tgl_transaksi'   => date('Y-m-d H:i:s'),
+                        'code_lv4'        => $id_material,
+                        'nm_product'      => $nm_material,
+                        'qty'             => $qty_stock_awal,
+                        'qty_book'        => $qty_booking,
+                        'qty_free'        => $qty_free_awal,
+                        'qty_transaksi'   => $qty_in,
+                        'qty_book_akhir'  => $qty_booking,
+                        'qty_free_akhir'  => $qty_free_akhir,
+                        'qty_akhir'       => $qty_stock_akhir,
+                        'harga_stok'      => $costbook
                     ]);
                 }
-            }
 
-            $check_stock = $this->db->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->num_rows();
-            $get_warehouse_stock = $this->db->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->row();
-
-            if ($check_stock <= 0) {
-                $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming, harga, total_harga')
-                    ->get_where('tr_checked_incoming_detail', [
-                        'kode_trans'    => $post['kode_trans'],
-                        'id_material'   => $det_inc['id_material'],
-                        'id_detail'     => $det_inc['id'],
-                        'sts'           => '0'
-                    ])->row_array();
-
-                $qty_oke            = $get_new_incoming_ttl['ttl_new_incoming'];
-                $costbook           = $get_new_incoming_ttl['harga'];
-                $nilai_inventory    = $get_new_incoming_ttl['total_harga'];
-
-                $this->db->insert('warehouse_stock', [
-                    'id_material'       => $det_inc['id_material'],
-                    'nm_product'        => $det_inc['nm_material'],
-                    'id_gudang'         => '1',
-                    'kd_gudang'         => 'PUS',
-                    'incoming'          => $qty_oke,
-                    'begining'          => $qty_oke,
-                    'qty_stock'         => $qty_oke,
-                    'qty_free'          => $qty_oke,
-                    'harga_beli'        => $costbook,
-                    'total_nilai'       => $nilai_inventory,
-                    'update_by'         => $this->auth->user_id(),
-                    'update_date'       => date('Y-m-d H:i:s')
+                // ===== 8C) update status QC detail sts 0 -> 1 (yang sudah masuk stok) =====
+                $this->db->update('tr_checked_incoming_detail', ['sts' => '1'], [
+                    'kode_trans'  => $kode_trans,
+                    'id_material' => $id_material,
+                    'id_detail'   => $id_detail,
+                    'sts'         => '0'
                 ]);
 
-                $this->db->insert('warehouse_stock_per_day', [
-                    'id_material'       => $det_inc['id_material'],
-                    'nm_material'       => $det_inc['nm_material'],
-                    'id_gudang'         => 1,
-                    'qty_stock'         => $qty_oke,
-                    'hist_date'         => date('Y-m-d H:i:s')
-                ]);
+                $po_touched = $this->db->query("
+                            SELECT DISTINCT po_det.no_po
+                            FROM tr_incoming_check_detail icd
+                            JOIN dt_trans_po po_det ON po_det.id = icd.id_po_detail
+                            WHERE icd.kode_trans = ?
+                        ", [$kode_trans])->result();
 
-                $this->db->insert('kartu_stok', [
-                    'no_transaksi'      => $post['kode_trans'],
-                    'transaksi'         => "Incoming Product",
-                    'tgl_transaksi'     => date('Y-m-d H:i:s'),
-                    'code_lv4'          => $det_inc['id_material'],
-                    'nm_product'        => $det_inc['nm_material'],
-                    'qty'               => $qty_oke,
-                    'qty_free'          => $qty_oke,
-                    'qty_transaksi'     => $qty_oke,
-                    'qty_akhir'         => $qty_oke,
-                    'qty_free_akhir'    => $qty_oke,
-                    'harga_stok'        => $costbook
-                ]);
-            } else {
-                $get_stock = $this->db->select('qty_stock, qty_booking, qty_free, harga_beli')->get_where('warehouse_stock', ['id_material' => $det_inc['id_material'], 'id_gudang' => '1', 'kd_gudang' => 'PUS'])->row_array();
-                $get_new_incoming_ttl = $this->db->select('SUM(qty_oke) as ttl_new_incoming, harga')
-                    ->get_where('tr_checked_incoming_detail', [
-                        'kode_trans'    => $post['kode_trans'],
-                        'id_material'   => $det_inc['id_material'],
-                        'id_detail'     => $det_inc['id'],
-                        'sts'           => '0'
-                    ])->row_array();
+                foreach ($po_touched as $p) {
+                    $sum = $this->db->query("
+                        SELECT IFNULL(SUM(ci.qty_oke * po_det.hargasatuan), 0) AS hutang_idr
+                        FROM tr_checked_incoming_detail ci
+                        JOIN tr_incoming_check_detail icd ON icd.id = ci.id_detail
+                        JOIN dt_trans_po po_det ON po_det.id = icd.id_po_detail
+                        WHERE ci.sts = '1'
+                        AND po_det.no_po = ?
+                    ", [$p->no_po])->row();
 
-                $nilai_stock_lama   = $get_stock['qty_stock'] * $get_stock['harga_beli'];
-                $nilai_stock_baru   = $get_new_incoming_ttl['ttl_new_incoming'] * $get_new_incoming_ttl['harga'];
-                $nilai_stock_total  = $nilai_stock_lama + $nilai_stock_baru;
-                $qty_stock_akhir    = $get_new_incoming_ttl['ttl_new_incoming'] + $get_stock['qty_stock'];
-                $costbook           = $nilai_stock_total / $qty_stock_akhir;
-                $nilai_inventory    = $qty_stock_akhir * $costbook;
-                $qty_free           = $get_stock['qty_free'];
-                $qty_free_akhir     = $get_new_incoming_ttl['ttl_new_incoming'] + $qty_free;
+                    $hutang_idr = (float)($sum->hutang_idr ?? 0);
 
-                $this->db->insert('warehouse_stock_per_day', [
-                    'id_material'       => $det_inc['id_material'],
-                    'nm_material'       => $det_inc['nm_material'],
-                    'id_gudang'         => 1,
-                    'qty_stock'         => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
-                    'hist_date'         => date('Y-m-d H:i:s')
-                ]);
+                    $this->db->update('tr_purchase_order', [
+                        'hutang_idr' => $hutang_idr,
+                    ], ['no_po' => $p->no_po]);
 
-                $this->db->update('warehouse_stock', [
-                    'incoming'          => $get_new_incoming_ttl['ttl_new_incoming'],
-                    'qty_stock'         => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
-                    'qty_free'          => $qty_free,
-                    'harga_beli'        => $costbook,
-                    'total_nilai'       => $nilai_inventory,
-                    'update_by'         => $this->auth->user_id(),
-                    'update_date'       => date('Y-m-d H:i:s')
-                ], [
-                    'id_material'       => $det_inc['id_material'],
-                    'id_gudang'         => '1',
-                    'kd_gudang'         => 'PUS'
-                ]);
-
-                $this->db->insert('kartu_stok', [
-                    'no_transaksi'      => $post['kode_trans'],
-                    'transaksi'         => "Incoming Product",
-                    'tgl_transaksi'     => date('Y-m-d H:i:s'),
-                    'code_lv4'          => $det_inc['id_material'],
-                    'nm_product'        => $det_inc['nm_material'],
-                    'qty'               => $get_stock['qty_stock'],
-                    'qty_book'          => $get_stock['qty_booking'],
-                    'qty_free'          => $qty_free,
-                    'qty_transaksi'     => $get_new_incoming_ttl['ttl_new_incoming'],
-                    'qty_book_akhir'    => $get_stock['qty_booking'],
-                    'qty_free_akhir'    => $qty_free_akhir,
-                    'qty_akhir'         => ($get_stock['qty_stock'] + $get_new_incoming_ttl['ttl_new_incoming']),
-                    'harga_stok'        => $costbook
-                ]);
-            }
-            $this->db->update('tr_checked_incoming_detail', ['sts' => '1'], ['kode_trans' => $post['kode_trans'], 'id_material' => $det_inc['id_material'], 'id_detail' => $det_inc['id'],  'sts' => '0']);
-
-            $ttl_all_checked += (float) str_replace(',', '', (string)($post['qty_oke_' . $det_inc['id']] ?? 0)) + (float) str_replace(',', '', (string)($post['qty_ng_'  . $det_inc['id']] ?? 0));
-
-            $id_costbook = generate_no_costbook();
-            $hargasatuan = 0;
-            $get_hargasatuan = $this->db->get_where('dt_trans_po', ['id' => $det_inc['id_po_detail']])->row();
-            if (!empty($get_hargasatuan)) {
-                $hargasatuan = $get_hargasatuan->hargasatuan;
-            }
-
-            $value_neraca = 0;
-            $get_value_neraca = $this->db->select('a.value_neraca')
-                ->from('tr_cost_book a')
-                ->where('a.id_material', $det_inc['id_material'])
-                ->where('a.id_gudang_ke', 1)
-                ->order_by('a.tgl', 'DESC')
-                ->get()
-                ->row();
-            if (!empty($get_value_neraca)) {
-                $value_neraca = $get_value_neraca->value_neraca;
-            }
-
-            $nm_material = '';
-            $kode_material = '';
-            $get_nm_material = $this->db->select('a.nama as nm_material, a.code as kode_material')
-                ->from('new_inventory_4 a')
-                ->where('a.code_lv4', $det_inc['id_material'])
-                ->get()
-                ->row();
-            if (!empty($get_nm_material)) {
-                $nm_material = $get_nm_material->nm_material;
-                $kode_material = $get_nm_material->kode_material;
-            }
-
-            $nilai_qty = ($get_warehouse_stock->qty_stock + $get_new_incoming_ttl['ttl_new_incoming']);
-
-            $arr_warehouse_sub = [];
-            $arr_warehouse_prod = [];
-            $wgere = ['subgudang', 'stok', 'produksi'];
-
-            $get_sub_prod_warehouse = $this->db->query("SELECT id, `desc` FROM warehouse WHERE `desc` IN ('subgudang', 'stok', 'produksi')")->result();
-            foreach ($get_sub_prod_warehouse as $item_ware) {
-                if ($item_ware->desc == 'subgudang' || $item_ware->desc == 'stok') {
-                    $arr_warehouse_sub[] = $item_ware->id;
-                } else {
-                    $arr_warehouse_prod[] = $item_ware->id;
+                    if ($this->db->affected_rows() < 0) {
+                        throw new Exception('Gagal update hutang_idr PO ' . $p->no_po);
+                    }
                 }
+
+                // ===== 8D) Insert/Update price_book (upsert sederhana) =====
+                $qty_pusat = $qty_stock_awal + $qty_in;
+
+                $ttl_qty_sub = 0;
+                $ttl_qty_prod = 0;
+
+                if (!empty($arr_warehouse_sub)) {
+                    $sub = $this->db->select('IFNULL(SUM(qty_stock),0) as ttl', false)
+                        ->from('warehouse_stock')
+                        ->where('id_material', $id_material)
+                        ->where_in('id_gudang', $arr_warehouse_sub)
+                        ->get()->row();
+                    $ttl_qty_sub = (float)($sub->ttl ?? 0);
+                }
+
+                if (!empty($arr_warehouse_prod)) {
+                    $prd = $this->db->select('IFNULL(SUM(qty_stock),0) as ttl', false)
+                        ->from('warehouse_stock')
+                        ->where('id_material', $id_material)
+                        ->where_in('id_gudang', $arr_warehouse_prod)
+                        ->get()->row();
+                    $ttl_qty_prod = (float)($prd->ttl ?? 0);
+                }
+
+                $pb_exist = $this->db->get_where('price_book', [
+                    'kode_trans'  => $kode_trans,
+                    'id_material' => $id_material
+                ])->row();
+
+                $pb_data = [
+                    'id_material'   => $id_material,
+                    'pusat'         => $qty_pusat,
+                    'subgudang'     => $ttl_qty_sub,
+                    'produksi'      => $ttl_qty_prod,
+                    'price_book'    => 0,
+                    'status'        => 'Y',
+                    'kode_trans'    => $kode_trans,
+                    'updated_by'    => $this->auth->user_id(),
+                    'updated_date'  => date('Y-m-d H:i:s')
+                ];
+
+                if (empty($pb_exist)) {
+                    $this->db->insert('price_book', $pb_data);
+                } else {
+                    $this->db->update('price_book', $pb_data, ['id' => $pb_exist->id]);
+                }
+
+                // ===== 8E) total harga barang (pakai qty_in * hargasatuan PO) =====
+                $hargasatuan = $id_po_detail && isset($harga_po_map[$id_po_detail]) ? (float)$harga_po_map[$id_po_detail] : 0;
+                $totalhargabarang += ($qty_in * $hargasatuan);
             }
 
-            $ttl_qty_sub = 0;
-            $ttl_qty_prod = 0;
+            // ===== 9) Update header incoming check =====
+            $this->db->update('tr_incoming_check', [
+                'checked'             => 'Y',
+                'file_incoming_check' => $upload_incoming
+            ], ['kode_trans' => $kode_trans]);
 
-            $get_ttl_qty_sub = $this->db->query("SELECT SUM(qty_stock) as ttl_qty_sub FROM warehouse_stock WHERE id_material = '" . $det_inc['id_material'] . "' AND id_gudang IN ('" . str_replace(",", "','", implode(',', $arr_warehouse_sub)) . "')")->row();
-            if (!empty($get_ttl_qty_sub)) {
-                $ttl_qty_sub = $get_ttl_qty_sub->ttl_qty_sub;
+            // ===== 10) JURNAL (JV) + kartu hutang =====
+            // Catatan: kamu pakai debet[0] sebagai total. Saya amankan.
+            $tgl_inv = date('Y-m-d');
+            $keterangan = "incoming atas po nomor " . $no_po;
+
+            $debetArr = $this->input->post('debet');
+            $typeArr  = $this->input->post('type');
+            $coaArr   = $this->input->post('no_coa');
+            $tglJArr  = $this->input->post('tgl_jurnal');
+            $kreditArr = $this->input->post('kredit');
+
+            $total = 0;
+            if (is_array($debetArr) && isset($debetArr[0])) {
+                $total = (float) round($debetArr[0]);
             }
 
-            $get_ttl_qty_prod = $this->db->query("SELECT SUM(qty_stock) as ttl_qty_prod FROM warehouse_stock WHERE id_material = '" . $det_inc['id_material'] . "' AND id_gudang IN ('" . str_replace(",", "','", implode(',', $arr_warehouse_prod)) . "')")->row();
-            if (!empty($get_ttl_qty_prod)) {
-                $ttl_qty_prod = $get_ttl_qty_prod->ttl_qty_prod;
+            // hanya proses jurnal kalau ada baris detail
+            if (is_array($typeArr) && count($typeArr) > 0) {
+                $Nomor_JV = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
+
+                $Bln = substr($tgl_inv, 5, 2);
+                $Thn = substr($tgl_inv, 0, 4);
+
+                $dataJVhead = [
+                    'nomor'        => $Nomor_JV,
+                    'tgl'          => $tgl_inv,
+                    'jml'          => $total,
+                    'koreksi_no'   => '-',
+                    'kdcab'        => '101',
+                    'jenis'        => 'JV',
+                    'keterangan'   => $keterangan,
+                    'bulan'        => $Bln,
+                    'tahun'        => $Thn,
+                    'user_id'      => $this->auth->user_id(),
+                    'memo'         => '',
+                    'tgl_jvkoreksi' => $tgl_inv,
+                    'ho_valid'     => ''
+                ];
+
+                $this->db->insert(DBACC . '.javh', $dataJVhead);
+                if ($this->db->affected_rows() <= 0) throw new Exception('Gagal insert javh.');
+
+                for ($i = 0; $i < count($typeArr); $i++) {
+                    $datadetail = [
+                        'tipe'         => $typeArr[$i] ?? '',
+                        'nomor'        => $Nomor_JV,
+                        'tanggal'      => $tglJArr[$i] ?? $tgl_inv,
+                        'no_perkiraan' => $coaArr[$i] ?? '',
+                        'keterangan'   => $keterangan,
+                        'no_reff'      => $no_po,
+                        'debet'        => (float) round($debetArr[$i] ?? 0),
+                        'kredit'       => (float) round($kreditArr[$i] ?? 0),
+                        'created_by'   => $this->auth->user_id(),
+                        'created_on'   => date('Y-m-d H:i:s')
+                    ];
+                    $this->db->insert(DBACC . '.jurnal', $datadetail);
+                    if ($this->db->affected_rows() <= 0) throw new Exception('Gagal insert jurnal detail.');
+                }
+
+                $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'");
+
+                // kartu hutang
+                $datahutang = [
+                    'tipe'          => 'JV',
+                    'nomor'         => $Nomor_JV,
+                    'tanggal'       => $tgl_inv,
+                    'no_perkiraan'  => '1102-01-01',
+                    'keterangan'    => $keterangan,
+                    'no_reff'       => $no_po,
+                    'debet'         => 0,
+                    'kredit'        => $total,
+                    'id_supplier'   => $supplier_from_po['id'],
+                    'nama_supplier' => $supplier_from_po['nama'],
+                ];
+                $this->db->insert('tr_kartu_hutang', $datahutang);
             }
 
-            $insert_price_book = $this->db->insert('price_book', [
-                'id_material' => $det_inc['id_material'],
-                'pusat' => $nilai_qty,
-                'subgudang' => $ttl_qty_sub,
-                'produksi' => $ttl_qty_prod,
-                'price_book' => 0,
-                'status' => 'Y',
-                'kode_trans' => $post['kode_trans'],
-                'updated_by' => $this->auth->user_id(),
-                'updated_date' => date('Y-m-d H:i:s')
-            ]);
-
-            $totalhargabarang += $get_new_incoming_ttl['ttl_new_incoming'] * $hargasatuan;
-        endforeach;
-
-        $config['upload_path'] = './uploads/incoming_check'; //path folder
-        $config['allowed_types'] = 'gif|jpg|png|jpeg|bmp|pdf|webp'; //type yang dapat diakses bisa anda sesuaikan
-        $config['max_size'] = 100000000; // Maximum file size in kilobytes (2MB).
-        $config['encrypt_name'] = TRUE; // Encrypt the uploaded file's name.
-        $config['remove_spaces'] = TRUE; // Remove spaces from the file name.
-
-        $this->load->library('upload', $config);
-        $this->upload->initialize($config);
-
-        $upload_incoming = '';
-
-        $get_sum_material = $this->db->select('IF(SUM(qty_order) IS NULL, 0, SUM(qty_order)) jumlah_mat_check')->get_where('tr_incoming_check_detail', ['kode_trans' => $post['kode_trans']])->row();
-
-        $get_checked_val = $this->db->select('IF(SUM(qty_ng + qty_oke) IS NULL, 0 ,SUM(qty_ng + qty_oke)) AS qty_check')->get_where('tr_checked_incoming_detail', ['kode_trans' => $post['kode_trans'], 'sts' => '1'])->row_array();
-
-
-        $this->db->update('tr_incoming_check', ['checked' => 'Y', 'file_incoming_check' => $upload_incoming], ['kode_trans' => $post['kode_trans']]);
-
-
-        $get_incoming = $this->db->get_where('tr_incoming_check', ['kode_trans' => $post['kode_trans']])->row();
-
-        $no_ros       = $post['kode_trans'];
-        $kode_trans   = $post['kode_trans'];
-        $no_reff      = $post['kode_trans'];
-        $no_po        = $post['no_pox'];
-        $no_surat     = $post['no_surat'];
-
-
-
-
-        //SYAMSUDIN 16-09-2025 JURNAL
-
-        $tgl_inv  = date('Y-m-d');
-        $keterangan  = "incoming atas po nomor " . $no_po;
-        $type        = $post['no_pox'];
-        $reff        = $post['kode_trans'];
-        $no_req      = $post['no_surat'];
-        $total       = round($this->input->post('debet[0]'));
-        $jenis       = $this->input->post('jenis');
-        $tipe_jurnal       = $this->input->post('tipe');
-        $jenis_jurnal       = $this->input->post('jenis_jurnal');
-
-        $total_po           = round($this->input->post('debet[0]'));
-        $id_vendor          = $iDsupplier;
-        $nama_vendor        = $supplier;
-
-        $Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
-
-
-        $Bln             = substr($tgl_inv, 5, 2);
-        $Thn             = substr($tgl_inv, 0, 4);
-
-
-        $dataJVhead = array(
-            'nomor'             => $Nomor_JV,
-            'tgl'                 => $tgl_inv,
-            'jml'                => $total,
-            'koreksi_no'        => '-',
-            'kdcab'                => '101',
-            'jenis'                => 'JV',
-            'keterangan'         => $keterangan,
-            'bulan'                => $Bln,
-            'tahun'                => $Thn,
-            'user_id'            => $this->auth->user_id(),
-            'memo'                => '',
-            'tgl_jvkoreksi'        => $tgl_inv,
-            'ho_valid'            => ''
-        );
-
-        $this->db->insert(DBACC . '.javh', $dataJVhead);
-
-        for ($i = 0; $i < count($this->input->post('type')); $i++) {
-            $tipe = $this->input->post('type')[$i];
-            $perkiraan = $this->input->post('no_coa')[$i];
-            $noreff = $no_po;
-
-            $datadetail = array(
-                'tipe'            => $this->input->post('type')[$i],
-                'nomor'           => $Nomor_JV,
-                'tanggal'         => $this->input->post('tgl_jurnal')[$i],
-                'no_perkiraan'    => $this->input->post('no_coa')[$i],
-                'keterangan'      =>  $keterangan,
-                'no_reff'        => $no_po,
-                'debet'          => round($this->input->post('debet')[$i]),
-                'kredit'         => round($this->input->post('kredit')[$i]),
-                'created_by'      => $this->auth->user_id(),
-                'created_on'      => date('Y-m-d H:i:s')
-            );
-            $this->db->insert(DBACC . '.jurnal', $datadetail);
-        }
-
-        $Qry_Update_Cabang_acc     = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'";
-        $this->db->query($Qry_Update_Cabang_acc);
-
-
-
-        $No_Inv   = $no_po;
-
-        $datahutang = array(
-            'tipe'            => 'JV',
-            'nomor'            => $Nomor_JV,
-            'tanggal'        => $tgl_inv,
-            'no_perkiraan'  => '1102-01-01',
-            'keterangan'    => $keterangan,
-            'no_reff'       => $No_Inv,
-            'debet'         => 0,
-            'kredit'         =>  $total,
-            'id_supplier'     => $id_vendor,
-            'nama_supplier'   => $nama_vendor,
-
-        );
-        $this->db->insert('tr_kartu_hutang', $datahutang);
-
-
-        if ($this->db->trans_status() === FALSE || $valid == 2) {
-            $this->db->trans_rollback();
-            $msg = 'Sorry, the incoming material QC process failed!';
-            // if ($valid == 0) {
-            //     $msg = 'Please make sure All Qty NG and Expired Date input is not empty !';
-            // }
-            if ($valid == 2) {
-                $msg = 'Please make sure Qty NG value is below or same as Incoming Qty !';
+            // ===== 11) Final commit =====
+            if ($this->db->trans_status() === false) {
+                throw new Exception('Transaksi gagal.');
             }
-            $hasil = [
-                'status' => 0,
-                'pesan' => $msg
-            ];
-        } else {
+
             $this->db->trans_commit();
-            $hasil = [
-                'status' => 1,
-                'pesan' => 'Congratulations, the QC Incoming material process has been successful and the stock has entered the warehouse!'
-            ];
-        }
 
-        echo json_encode($hasil);
+            echo json_encode([
+                'status' => 1,
+                'pesan'  => 'QC Incoming berhasil. Stok masuk gudang & jurnal tercatat.'
+            ]);
+            return;
+        } catch (Exception $e) {
+            $this->db->trans_rollback();
+            echo json_encode([
+                'status' => 0,
+                'pesan'  => 'QC Incoming gagal: ' . $e->getMessage()
+            ]);
+            return;
+        }
     }
 
     public function print_incoming()
