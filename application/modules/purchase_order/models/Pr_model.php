@@ -78,15 +78,26 @@ class Pr_model extends BF_Model
 	{
 		$bulan = date('m', strtotime($tgl));
 		$tahun = date('Y', strtotime($tgl));
-		$blnthn = date('Y-m');
-		$query = $this->db->query("SELECT MAX(no_surat) as max_id FROM tr_purchase_order WHERE month(tanggal)='$bulan' and Year(tanggal)='$tahun'");
-		$row = $query->row_array();
-		$thn = date('T');
-		$max_id = $row['max_id'];
-		$max_id1 = (int) substr($max_id, -13, 3);
-		$counter = $max_id1 + 1;
-		$idcust = "PO-" . sprintf("%03s", $counter) . "/MP/" . $bulan . "/" . $tahun;
-		return $idcust;
+
+		$row = $this->db->query("
+        SELECT no_surat
+        FROM tr_purchase_order
+        WHERE MONTH(tanggal)=? AND YEAR(tanggal)=?
+          AND no_surat LIKE CONCAT('PO-%/MP/', ?, '/', ?)
+        ORDER BY no_surat DESC
+        LIMIT 1
+    ", [$bulan, $tahun, $bulan, $tahun])->row_array();
+
+		$maxNo = 0;
+		if (!empty($row['no_surat'])) {
+			// cocokkan PO-XYZ/MP/mm/yyyy
+			if (preg_match('/^PO-(\d{3})\/MP\/' . $bulan . '\/' . $tahun . '$/', $row['no_surat'], $m)) {
+				$maxNo = (int)$m[1];
+			}
+		}
+
+		$counter = $maxNo + 1;
+		return "PO-" . sprintf("%03d", $counter) . "/MP/" . $bulan . "/" . $tahun;
 	}
 
 

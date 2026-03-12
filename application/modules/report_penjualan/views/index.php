@@ -11,6 +11,20 @@
                 <label>Sampai</label>
                 <input type="date" id="tgl_sampai" class="form-control input-sm">
             </div>
+            <div class="col-md-2">
+                <label>Sales</label>
+                <select name="id_sales" class="form-control input-sm" id="id_sales" required <?= isset($komisi->id_karyawan) ? 'disabled' : '' ?>>
+                    <option value="">-- Pilih Sales --</option>
+                    <?php foreach ($sales as $s): ?>
+                        <option
+                            value="<?= $s['id'] ?>"
+                            data-nama="<?= $s['nm_karyawan'] ?>"
+                            <?= (isset($komisi->id_karyawan) && $komisi->id_karyawan == $s['id']) ? 'selected' : '' ?>>
+                            <?= ucfirst($s['nm_karyawan']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <div class="col-md-3" style="padding-top:25px;">
                 <button class="btn btn-primary btn-sm" id="btnFilter">Filter</button>
                 <button class="btn btn-default btn-sm" id="btnReset">Reset</button>
@@ -55,17 +69,20 @@
         $('#btnReset').on('click', function() {
             $('#tgl_dari').val('');
             $('#tgl_sampai').val('');
+            $('#id_sales').val('');
             $('#example1').DataTable().ajax.reload();
         });
 
         $('#btnExportExcel').on('click', function() {
             var tgl_dari = $('#tgl_dari').val();
             var tgl_sampai = $('#tgl_sampai').val();
+            var id_sales = $('#id_sales').val();
             var searchVal = $('#example1_filter input').val();
 
             var url = siteurl + active_controller + 'export_excel_report' +
                 '?tgl_dari=' + encodeURIComponent(tgl_dari || '') +
                 '&tgl_sampai=' + encodeURIComponent(tgl_sampai || '') +
+                '&id_sales=' + encodeURIComponent(id_sales || '') +
                 '&search=' + encodeURIComponent(searchVal || '');
 
             window.location = url;
@@ -100,6 +117,7 @@
                 data: function(d) {
                     d.tgl_dari = $('#tgl_dari').val();
                     d.tgl_sampai = $('#tgl_sampai').val();
+                    d.id_sales = $('#id_sales').val();
                 },
                 cache: false,
                 error: function() {

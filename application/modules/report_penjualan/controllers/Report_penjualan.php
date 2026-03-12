@@ -26,9 +26,11 @@ class Report_penjualan extends Admin_Controller
     // =============================
     public function index()
     {
+        $data['sales'] = $this->db->where('department', '2')->get('employee')->result_array();
+
         $this->template->page_icon('fa fa-clipboard');
         $this->template->title('Report Penjualan');
-        $this->template->render('index');
+        $this->template->render('index', $data);
     }
 
     public function data_side_report()
@@ -43,10 +45,18 @@ class Report_penjualan extends Admin_Controller
 
         $tgl_dari   = $this->input->get('tgl_dari', true);
         $tgl_sampai = $this->input->get('tgl_sampai', true);
+        $id_sales   = $this->input->get('id_sales', true);
         $search     = $this->input->get('search', true);
 
+        $nama_sales = 'Semua Sales';
+        if (!empty($id_sales)) {
+            // Anda bisa query singkat ke tabel employee untuk dapat nama
+            $sales_row = $this->db->select('nm_karyawan')->where('id', $id_sales)->get('employee')->row();
+            if ($sales_row) $nama_sales = $sales_row->nm_karyawan;
+        }
+
         // ambil data (tanpa paging)
-        $rows = $this->Report_penjualan_model->get_export_report($search, $tgl_dari, $tgl_sampai);
+        $rows = $this->Report_penjualan_model->get_export_report($search, $tgl_dari, $tgl_sampai, $id_sales);
 
         $this->load->library("PHPExcel");
         $objPHPExcel = new PHPExcel();
@@ -108,7 +118,10 @@ class Report_penjualan extends Admin_Controller
         }
         $sheet->setCellValue('A2', $periodeText);
         $sheet->mergeCells('A2:I2');
-        $sheet->getStyle('A2:I2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+        // TAMBAHKAN INI:
+        $sheet->setCellValue('A3', 'Sales: ' . ucfirst($nama_sales));
+        $sheet->mergeCells('A3:I3');
 
         // =========================
         // Header kolom (baris 3)
@@ -125,7 +138,7 @@ class Report_penjualan extends Admin_Controller
             'I' => 'Status'
         ];
 
-        $rowHeader = 3;
+        $rowHeader = 4;
         foreach ($headers as $col => $header) {
             $sheet->setCellValue($col . $rowHeader, $header);
             $sheet->getStyle($col . $rowHeader)->applyFromArray($tableHeader);
@@ -134,12 +147,12 @@ class Report_penjualan extends Admin_Controller
         $sheet->getRowDimension($rowHeader)->setRowHeight(20);
 
         // Freeze pane biar header tetap
-        $sheet->freezePane('A4');
+        $sheet->freezePane('A5');
 
         // =========================
         // Isi data (mulai baris 4)
         // =========================
-        $rowNum = 4;
+        $rowNum = 5;
         $no = 1;
 
         foreach ($rows as $row) {
@@ -211,9 +224,11 @@ class Report_penjualan extends Admin_Controller
     // =============================
     public function report_customer()
     {
+        $data['sales'] = $this->db->where('department', '2')->get('employee')->result_array();
+
         $this->template->page_icon('fa fa-clipboard');
         $this->template->title('Report Penjualan per Pelanggan');
-        $this->template->render('index_customer');
+        $this->template->render('index_customer', $data);
     }
 
     public function data_side_customer()
@@ -228,10 +243,18 @@ class Report_penjualan extends Admin_Controller
 
         $tgl_dari   = $this->input->get('tgl_dari', true);
         $tgl_sampai = $this->input->get('tgl_sampai', true);
+        $id_sales = $this->input->get('id_sales', true);
         $search     = $this->input->get('search', true);
 
+        $nama_sales = 'Semua Sales';
+        if (!empty($id_sales)) {
+            // Anda bisa query singkat ke tabel employee untuk dapat nama
+            $sales_row = $this->db->select('nm_karyawan')->where('id', $id_sales)->get('employee')->row();
+            if ($sales_row) $nama_sales = $sales_row->nm_karyawan;
+        }
+
         // ambil data (tanpa paging)
-        $rows = $this->Report_penjualan_model->get_export_customer($search, $tgl_dari, $tgl_sampai);
+        $rows = $this->Report_penjualan_model->get_export_customer($search, $tgl_dari, $tgl_sampai, $id_sales);
 
         $this->load->library("PHPExcel");
         $objPHPExcel = new PHPExcel();
@@ -320,6 +343,10 @@ class Report_penjualan extends Admin_Controller
         $sheet->setCellValue('A2', $periodeText);
         $sheet->mergeCells('A2:B2');
         $sheet->getStyle('A2:B2')->applyFromArray($styleSubTitle);
+
+        // TAMBAHKAN INI:
+        $sheet->setCellValue('A3', 'Sales: ' . ucfirst($nama_sales));
+        $sheet->mergeCells('A3:B3');
 
         // (opsional) Cabang seperti gambar (kalau belum ada data cabang, tulis default)
         // $sheet->setCellValue('B3', 'Cabang : [Semua Cabang]');
@@ -622,6 +649,8 @@ class Report_penjualan extends Admin_Controller
     // =============================
     public function report_product_customer()
     {
+        $data['sales'] = $this->db->where('department', '2')->get('employee')->result_array();
+
         $this->template->page_icon('fa fa-clipboard');
         $this->template->title('Report Penjualan Barang per Customer');
         $this->template->render('index_product_customer');
@@ -896,9 +925,11 @@ class Report_penjualan extends Admin_Controller
     // =============================
     public function report_customer_product()
     {
+        $data['sales'] = $this->db->where('department', '2')->get('employee')->result_array();
+
         $this->template->page_icon('fa fa-clipboard');
         $this->template->title('Report Penjualan Customer per Product');
-        $this->template->render('index_customer_product');
+        $this->template->render('index_customer_product', $data);
     }
 
     public function data_side_customer_per_barang()
