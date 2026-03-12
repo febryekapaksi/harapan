@@ -24,7 +24,8 @@ class Report_penjualan_model extends BF_Model
         $requestData = $_REQUEST;
 
         $tgl_dari   = $requestData['tgl_dari'] ?? null;   // format: YYYY-MM-DD
-        $tgl_sampai = $requestData['tgl_sampai'] ?? null; // format: YYYY-MM-DD
+        $tgl_sampai = $requestData['tgl_sampai'] ?? null;
+        $id_sales   = $requestData['id_sales'] ?? null;
 
         $fetch = $this->get_query_json_report(
             $requestData['search']['value'],
@@ -33,7 +34,8 @@ class Report_penjualan_model extends BF_Model
             $requestData['start'],
             $requestData['length'],
             $tgl_dari,
-            $tgl_sampai
+            $tgl_sampai,
+            $id_sales,
         );
 
         $totalData     = $fetch['totalData'];
@@ -82,7 +84,7 @@ class Report_penjualan_model extends BF_Model
         echo json_encode($json_data);
     }
 
-    public function get_query_json_report($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $tgl_dari = NULL, $tgl_sampai = NULL)
+    public function get_query_json_report($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $tgl_dari = NULL, $tgl_sampai = NULL, $id_sales = NULL)
     {
         $columns_order_by = [
             0 => 'i.id_invoice',
@@ -90,15 +92,18 @@ class Report_penjualan_model extends BF_Model
             2 => 'i.nm_customer',
         ];
 
-        // helper apply filter tanggal (biar tidak copy paste banyak)
-        $apply_date_filter = function () use ($tgl_dari, $tgl_sampai) {
+        // Helper filter (Tanggal & Sales)
+        $apply_filters = function () use ($tgl_dari, $tgl_sampai, $id_sales) {
+            // Filter Tanggal
             if (!empty($tgl_dari) && !empty($tgl_sampai)) {
                 $this->db->where('DATE(i.created_on) >=', $tgl_dari);
                 $this->db->where('DATE(i.created_on) <=', $tgl_sampai);
-            } elseif (!empty($tgl_dari)) {
-                $this->db->where('DATE(i.created_on) >=', $tgl_dari);
-            } elseif (!empty($tgl_sampai)) {
-                $this->db->where('DATE(i.created_on) <=', $tgl_sampai);
+            }
+
+            // Filter Sales (Join ke master customer)
+            if (!empty($id_sales)) {
+                $this->db->join('master_customers c', 'i.id_customer = c.id_customer');
+                $this->db->where('c.id_karyawan', $id_sales);
             }
         };
 
@@ -107,13 +112,13 @@ class Report_penjualan_model extends BF_Model
 
         // 1) totalData (opsional: mau dihitung setelah filter tanggal atau tidak)
         $this->db->select($select)->from('tr_invoice_sales i');
-        $apply_date_filter();                 // <-- kalau totalData ikut filter periode
+        $apply_filters();                 // <-- kalau totalData ikut filter periode
         $this->db->group_by('i.id_invoice');
         $totalData = $this->db->count_all_results();
 
         // 2) totalFiltered
         $this->db->select($select)->from('tr_invoice_sales i');
-        $apply_date_filter();                 // <-- penting
+        $apply_filters();                 // <-- penting
         $this->db->group_by('i.id_invoice');
 
         if (!empty($like_value)) {
@@ -126,7 +131,7 @@ class Report_penjualan_model extends BF_Model
 
         // 3) data
         $this->db->select($select)->from('tr_invoice_sales i');
-        $apply_date_filter();                 // <-- penting
+        $apply_filters();                 // <-- penting
         $this->db->group_by('i.id_invoice');
 
         if (!empty($like_value)) {
@@ -155,7 +160,7 @@ class Report_penjualan_model extends BF_Model
         ];
     }
 
-    public function get_export_report($like_value = NULL, $tgl_dari = NULL, $tgl_sampai = NULL)
+    public function get_export_report($like_value = NULL, $tgl_dari = NULL, $tgl_sampai = NULL, $id_sales = NULL)
     {
         $this->db->select('
         i.id_invoice,
@@ -170,9 +175,14 @@ class Report_penjualan_model extends BF_Model
         DATEDIFF(i.jatuh_tempo, DATE(i.created_on)) AS umur
     ');
         $this->db->from('tr_invoice_sales i');
-        $this->db->group_by('i.id_invoice');
 
-        // filter tanggal (created_on)
+        // Filter Sales (Join ke master customer)
+        if (!empty($id_sales)) {
+            $this->db->join('master_customers c', 'i.id_customer = c.id_customer');
+            $this->db->where('c.id_karyawan', $id_sales);
+        }
+
+        // Filter tanggal (created_on)
         if (!empty($tgl_dari)) {
             $this->db->where('DATE(i.created_on) >=', $tgl_dari);
         }
@@ -180,7 +190,7 @@ class Report_penjualan_model extends BF_Model
             $this->db->where('DATE(i.created_on) <=', $tgl_sampai);
         }
 
-        // search
+        // Search
         if (!empty($like_value)) {
             $this->db->group_start();
             $this->db->like('i.id_invoice', $like_value);
@@ -188,7 +198,9 @@ class Report_penjualan_model extends BF_Model
             $this->db->group_end();
         }
 
+        $this->db->group_by('i.id_invoice');
         $this->db->order_by('i.created_on', 'desc');
+
         return $this->db->get()->result();
     }
 
@@ -201,6 +213,7 @@ class Report_penjualan_model extends BF_Model
 
         $tgl_dari   = $requestData['tgl_dari'] ?? null;   // format: YYYY-MM-DD
         $tgl_sampai = $requestData['tgl_sampai'] ?? null; // format: YYYY-MM-DD
+        $id_sales = $requestData['id_sales'] ?? null; // format: YYYY-MM-DD
 
         $fetch = $this->get_query_json_customer(
             $requestData['search']['value'],
@@ -209,7 +222,8 @@ class Report_penjualan_model extends BF_Model
             $requestData['start'],
             $requestData['length'],
             $tgl_dari,
-            $tgl_sampai
+            $tgl_sampai,
+            $id_sales
         );
 
         $totalData     = $fetch['totalData'];
@@ -241,21 +255,25 @@ class Report_penjualan_model extends BF_Model
         echo json_encode($json_data);
     }
 
-    public function get_query_json_customer($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $tgl_dari = NULL, $tgl_sampai = NULL)
+    public function get_query_json_customer($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $tgl_dari = NULL, $tgl_sampai = NULL, $id_sales = NULL)
     {
         $columns_order_by = [
             0 => 'i.nm_customer',
             1 => 'total_invoice',
         ];
 
-        $apply_date_filter = function () use ($tgl_dari, $tgl_sampai) {
+        // Helper filter (Tanggal & Sales)
+        $apply_filters = function () use ($tgl_dari, $tgl_sampai, $id_sales) {
+            // Filter Tanggal
             if (!empty($tgl_dari) && !empty($tgl_sampai)) {
                 $this->db->where('DATE(i.created_on) >=', $tgl_dari);
                 $this->db->where('DATE(i.created_on) <=', $tgl_sampai);
-            } elseif (!empty($tgl_dari)) {
-                $this->db->where('DATE(i.created_on) >=', $tgl_dari);
-            } elseif (!empty($tgl_sampai)) {
-                $this->db->where('DATE(i.created_on) <=', $tgl_sampai);
+            }
+
+            // Filter Sales (Join ke master customer)
+            if (!empty($id_sales)) {
+                $this->db->join('master_customers c', 'i.id_customer = c.id_customer');
+                $this->db->where('c.id_karyawan', $id_sales);
             }
         };
 
@@ -272,7 +290,7 @@ class Report_penjualan_model extends BF_Model
         $this->db->select('i.id_customer');
         $this->db->from('tr_invoice_sales i');
         $this->db->where('i.is_cancel', null);
-        $apply_date_filter();
+        $apply_filters();
         $this->db->group_by('i.id_customer');
         $totalData = $this->db->count_all_results();
 
@@ -282,7 +300,7 @@ class Report_penjualan_model extends BF_Model
         $this->db->select('i.id_customer');
         $this->db->from('tr_invoice_sales i');
         $this->db->where('i.is_cancel', null);
-        $apply_date_filter();
+        $apply_filters();
 
         if (!empty($like_value)) {
             $this->db->group_start();
@@ -299,7 +317,7 @@ class Report_penjualan_model extends BF_Model
         $this->db->select($select);
         $this->db->from('tr_invoice_sales i');
         $this->db->where('i.is_cancel', null);
-        $apply_date_filter();
+        $apply_filters();
 
         if (!empty($like_value)) {
             $this->db->group_start();
@@ -328,7 +346,7 @@ class Report_penjualan_model extends BF_Model
         ];
     }
 
-    public function get_export_customer($like_value = NULL, $tgl_dari = NULL, $tgl_sampai = NULL)
+    public function get_export_customer($like_value = NULL, $tgl_dari = NULL, $tgl_sampai = NULL, $id_sales = NULL)
     {
         $this->db->select('
         i.id_customer,
@@ -339,6 +357,12 @@ class Report_penjualan_model extends BF_Model
         $this->db->from('tr_invoice_sales i');
         $this->db->where('i.is_cancel', null);
         $this->db->group_by('i.id_customer');
+
+        // Filter Sales (Join ke master customer)
+        if (!empty($id_sales)) {
+            $this->db->join('master_customers c', 'i.id_customer = c.id_customer');
+            $this->db->where('c.id_karyawan', $id_sales);
+        }
 
         // filter tanggal (created_on)
         if (!empty($tgl_dari)) {
@@ -804,6 +828,7 @@ class Report_penjualan_model extends BF_Model
 
         $tgl_dari   = $requestData['tgl_dari'] ?? null;
         $tgl_sampai = $requestData['tgl_sampai'] ?? null;
+        $id_sales = $requestData['id_sales'] ?? null;
 
         $fetch = $this->get_query_json_customer_per_barang(
             $requestData['search']['value'] ?? '',
@@ -812,7 +837,8 @@ class Report_penjualan_model extends BF_Model
             $requestData['start'] ?? 0,
             $requestData['length'] ?? -1,
             $tgl_dari,
-            $tgl_sampai
+            $tgl_sampai,
+            $id_sales
         );
 
         $totalData     = $fetch['totalData'];
@@ -892,11 +918,22 @@ class Report_penjualan_model extends BF_Model
         ]);
     }
 
-    public function get_query_json_customer_per_barang($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $tgl_dari = NULL, $tgl_sampai = NULL)
+    public function get_query_json_customer_per_barang($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $tgl_dari = NULL, $tgl_sampai = NULL, $id_sales = NULL)
     {
-        $apply_date_filter = function () use ($tgl_dari, $tgl_sampai) {
-            if (!empty($tgl_dari))   $this->db->where('DATE(i.created_on) >=', $tgl_dari);
-            if (!empty($tgl_sampai)) $this->db->where('DATE(i.created_on) <=', $tgl_sampai);
+
+        // Helper filter (Tanggal & Sales)
+        $apply_filters = function () use ($tgl_dari, $tgl_sampai, $id_sales) {
+            // Filter Tanggal
+            if (!empty($tgl_dari) && !empty($tgl_sampai)) {
+                $this->db->where('DATE(i.created_on) >=', $tgl_dari);
+                $this->db->where('DATE(i.created_on) <=', $tgl_sampai);
+            }
+
+            // Filter Sales (Join ke master customer)
+            if (!empty($id_sales)) {
+                $this->db->join('master_customers c', 'i.id_customer = c.id_customer');
+                $this->db->where('c.id_karyawan', $id_sales);
+            }
         };
 
         $apply_search_filter = function () use ($like_value) {
@@ -913,7 +950,7 @@ class Report_penjualan_model extends BF_Model
         $this->db->from('tr_invoice_sales i');
         $this->db->join('tr_invoice_sales_detail d', 'd.id_invoice = i.id_invoice', 'inner');
         $this->db->where('i.is_cancel', NULL);
-        $apply_date_filter();
+        $apply_filters();
 
         $this->db->select("COUNT(DISTINCT CONCAT(IFNULL(i.id_customer,''),'|',IFNULL(d.id_produk,''),'|',IFNULL(d.uom,''))) AS total", false);
         // kalau tidak ada i.id_customer, ganti:
@@ -925,7 +962,7 @@ class Report_penjualan_model extends BF_Model
         $this->db->from('tr_invoice_sales i');
         $this->db->join('tr_invoice_sales_detail d', 'd.id_invoice = i.id_invoice', 'inner');
         $this->db->where('i.is_cancel', NULL);
-        $apply_date_filter();
+        $apply_filters();
         $apply_search_filter();
 
         $this->db->select("COUNT(DISTINCT CONCAT(IFNULL(i.id_customer,''),'|',IFNULL(d.id_produk,''),'|',IFNULL(d.uom,''))) AS total", false);
@@ -946,7 +983,7 @@ class Report_penjualan_model extends BF_Model
         $this->db->from('tr_invoice_sales i');
         $this->db->join('tr_invoice_sales_detail d', 'd.id_invoice = i.id_invoice', 'inner');
         $this->db->where('i.is_cancel', NULL);
-        $apply_date_filter();
+        $apply_filters();
         $apply_search_filter();
 
         $this->db->group_by('pelanggan, d.nm_produk, d.uom');
