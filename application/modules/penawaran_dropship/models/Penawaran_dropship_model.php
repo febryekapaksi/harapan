@@ -178,6 +178,10 @@ class Penawaran_dropship_model extends BF_Model
 
     public function get_query_json_penawaran($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
     {
+        $id_karyawan_login = $this->auth->user_id();
+
+        $is_admin = ($this->auth->user_id() == 7);
+
         $columns_order_by = [
             0 => 'p.quotation_date',
             1 => 'p.quotation_date',
@@ -187,34 +191,17 @@ class Penawaran_dropship_model extends BF_Model
             5 => 'p.status'
         ];
 
+        $this->apply_filters_penawaran($id_karyawan_login, $is_admin, $like_value);
+
         // =====================
         // 1. Hitung totalData
         // =====================
-        $this->db->select('p.id_penawaran');
-        $this->db->from('penawaran p');
-        $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-        $this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left'); // tambahkan join ini
-        $this->db->where('p.status !=', 'L');
-        $this->db->where('p.tipe_penawaran', 'Dropship');
         $totalData = $this->db->count_all_results();
 
         // ============================
         // 2. Hitung totalFiltered
         // ============================
-        $this->db->select('p.id_penawaran');
-        $this->db->from('penawaran p');
-        $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-        $this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left');
-        $this->db->where('p.status !=', 'L');
-        $this->db->where('p.tipe_penawaran', 'Dropship');
-
-        if ($like_value) {
-            $this->db->group_start();
-            $this->db->like('p.id_penawaran', $like_value);
-            $this->db->or_like('c.name_customer', $like_value);
-            $this->db->group_end();
-        }
-
+        $this->apply_filters_penawaran($id_karyawan_login, $is_admin, $like_value);
         $totalFiltered = $this->db->count_all_results();
 
         // ============================
@@ -232,23 +219,12 @@ class Penawaran_dropship_model extends BF_Model
         c.name_customer,
         so.no_so
     ');
-        $this->db->from('penawaran p');
-        $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
-        $this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left');
-        $this->db->where('p.status !=', 'L');
-        $this->db->where('p.tipe_penawaran', 'Dropship');
-
-        if ($like_value) {
-            $this->db->group_start();
-            $this->db->like('p.id_penawaran', $like_value);
-            $this->db->or_like('c.name_customer', $like_value);
-            $this->db->group_end();
-        }
+        $this->apply_filters_penawaran($id_karyawan_login, $is_admin, $like_value);
 
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
         } else {
-            $this->db->order_by('p.created_at', 'desc');
+            $this->db->order_by('p.quotation_date', 'desc');
         }
 
         if ($limit_length != -1) {
@@ -264,6 +240,29 @@ class Penawaran_dropship_model extends BF_Model
         ];
     }
 
+    /**
+     * Fungsi privat untuk menyatukan logika filter agar query konsisten
+     */
+    private function apply_filters_penawaran($id_karyawan, $is_admin, $like_value)
+    {
+        $this->db->from('penawaran p');
+        $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
+        $this->db->join('sales_order so', 'p.id_penawaran = so.id_penawaran', 'left');
+        $this->db->join('users u', 'c.id_karyawan = u.employee_id', 'left');
+
+        $this->db->where('p.status !=', 'L');
+
+        if (!$is_admin) {
+            $this->db->where('u.id_user', $id_karyawan);
+        }
+
+        if ($like_value) {
+            $this->db->group_start();
+            $this->db->like('p.id_penawaran', $like_value);
+            $this->db->or_like('c.name_customer', $like_value);
+            $this->db->group_end();
+        }
+    }
 
     public function get_json_approval_manager()
     {
