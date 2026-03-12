@@ -172,9 +172,8 @@ class Penawaran_model extends BF_Model
 
     public function get_query_json_penawaran($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
     {
-        $id_karyawan_login = $this->auth->user_id();
-
-        $is_admin = ($this->auth->user_id() == 7);
+        $id_karyawan_login = (int) $this->auth->user_id();
+        $is_admin = in_array($id_karyawan_login, [7, 94, 95], true);
 
         $columns_order_by = [
             0 => 'p.quotation_date',
