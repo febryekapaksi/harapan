@@ -113,12 +113,12 @@
         var dataTable = $('#example1').DataTable({
             "processing": true,
             "serverSide": true,
-            "stateSave": true,
+            // "stateSave": true,
             "autoWidth": false,
             "destroy": true,
             "responsive": true,
             "aaSorting": [
-                [1, "asc"]
+                [3, "asc"]
             ],
             "columnDefs": [{
                 "targets": 'no-sort',
