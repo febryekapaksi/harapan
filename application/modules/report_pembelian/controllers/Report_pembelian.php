@@ -35,4 +35,15 @@ class Report_pembelian extends Admin_Controller
     {
         $this->Report_pembelian_model->data_side_report();
     }
+
+    // =============================
+    // Report Seluruh Pembelian
+    // =============================
+
+
+
+
+    // =============================
+    // Report Seluruh Pembelian
+    // =============================
 }

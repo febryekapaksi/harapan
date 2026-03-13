@@ -785,10 +785,8 @@ class Purchase_order_payment extends Admin_Controller
 		// exit;
 
 		$datajurnal1 = $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' order by parameter_no")->result();
-		$data_po     = $this->db->query("select * from tr_purchase_order WHERE no_surat='$no_po'")->row();
 
-		// print_r($data_po);
-		// exit;
+		$data_po     = $this->db->query("select * from tr_purchase_order WHERE no_surat='$no_po'")->row();
 
 		$unbill      = $data_po->hutang_idr;
 		$kurs_unbill = $data_po->kurs_terima_barang;
@@ -815,7 +813,6 @@ class Purchase_order_payment extends Admin_Controller
 		$nomor_jurnal = $jenis_jurnal . $no_po . rand(100, 999);
 		$payment_date = $post['invoice_date']; //date("Y-m-d");
 		$det_Jurnaltes1 = array();
-		//			$total=($data->nilai_terima_barang_kurs);
 		if ($post['tipe_req'] == 'dp') {
 			if ($nilai_invoice > 0) {
 				foreach ($datajurnal1 as $rec) {
@@ -1051,8 +1048,6 @@ class Purchase_order_payment extends Admin_Controller
 			exit;
 		}
 		//end auto jurnal
-
-
 
 		if ($this->db->trans_status() === false) {
 			$this->db->trans_rollback();
