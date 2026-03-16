@@ -377,20 +377,20 @@ class Request_payment_model extends BF_Model
         if ($tgl_from !== '' && $tgl_to !== '') {
             $filter_tgl1 = " AND a.tgl_doc BETWEEN {$esc_from} AND {$esc_to}";
             $filter_tgl2 = " AND a.tgl_doc BETWEEN {$esc_from} AND {$esc_to}";
-            $filter_tgl3 = " AND a.tgl_doc BETWEEN {$esc_from} AND {$esc_to}";
+            $filter_tgl3 = " AND pa.tgl_bayar BETWEEN {$esc_from} AND {$esc_to}";
             $filter_tgl4 = " AND a.tanggal_doc BETWEEN {$esc_from} AND {$esc_to}";
             $filter_tgl5 = " AND a.tanggal_doc BETWEEN {$esc_from} AND {$esc_to}";
         } else {
             if ($tgl_from !== '' && $tgl_to == '') {
                 $filter_tgl1 = " AND a.tgl_doc >= {$esc_from}";
                 $filter_tgl2 = " AND a.tgl_doc >= {$esc_from}";
-                $filter_tgl3 = " AND a.tgl_doc >= {$esc_from}";
+                $filter_tgl3 = " AND pa.tgl_bayar >= {$esc_from}";
                 $filter_tgl4 = " AND a.tanggal_doc >= {$esc_from}";
                 $filter_tgl5 = " AND a.tanggal_doc >= {$esc_from}";
             } else if ($tgl_from == '' && $tgl_to !== '') {
                 $filter_tgl1 = " AND a.tgl_doc <= {$esc_to}";
                 $filter_tgl2 = " AND a.tgl_doc <= {$esc_to}";
-                $filter_tgl3 = " AND a.tgl_doc <= {$esc_to}";
+                $filter_tgl3 = " AND pa.tgl_bayar <= {$esc_to}";
                 $filter_tgl4 = " AND a.tanggal_doc <= {$esc_to}";
                 $filter_tgl5 = " AND a.tanggal_doc <= {$esc_to}";
             }
@@ -443,7 +443,7 @@ class Request_payment_model extends BF_Model
                 a.id as ids,
                 a.no_doc,
                 a.nama,
-                a.tgl_doc,
+                pa.tgl_bayar as tgl_doc, 
                 a.informasi as keperluan,
                 'expense' as tipe,
                 a.jumlah,
@@ -453,6 +453,7 @@ class Request_payment_model extends BF_Model
                 a.accnumber,
                 a.accname
             FROM tr_expense a
+            JOIN payment_approve pa ON a.no_doc = pa.no_doc 
             WHERE a.jumlah >= 0 {$filter_tgl3}
             GROUP BY a.no_doc
 
@@ -534,7 +535,7 @@ class Request_payment_model extends BF_Model
                 created_by,
                 pay_by,
                 DATE_FORMAT(created_on, "%d %M %Y") as tgl_pengajuan,
-                IF(pay_on IS NULL, "", DATE_FORMAT(pay_on, "%d %M %Y")) as tgl_pembayaran
+                IF(tgl_bayar IS NULL, "", DATE_FORMAT(tgl_bayar, "%d %M %Y")) as tgl_pembayaran
             ')
                 ->where_in('no_doc', $no_docs)
                 ->get('payment_approve')
@@ -544,7 +545,7 @@ class Request_payment_model extends BF_Model
                 $payment_approve_map[$pa->no_doc] = $pa;
                 $list_tgl_pengajuan_pembayaran[$pa->no_doc] = [
                     'diajukan_oleh'  => $pa->created_by,
-                    'dibayar_oleh'   => $pa->pay_by,
+                    'dibayar_oleh'   => $pa->created_by,
                     'tgl_pengajuan'  => $pa->tgl_pengajuan,
                     'tgl_pembayaran' => $pa->tgl_pembayaran
                 ];

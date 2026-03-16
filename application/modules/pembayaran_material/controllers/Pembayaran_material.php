@@ -184,21 +184,6 @@ class Pembayaran_material extends Admin_Controller
 
 		$id_payment = explode(';', $_GET['id_payment']);
 
-		// $dataid = implode("','", $request_id);
-		// $results = $this->pembayaran_material_model->get_data_json_request_payment("id in ('" . $dataid . "')");
-		// $data_Group	= $this->master_model->getArray('groups', array(), 'id', 'name');
-		// $datacoa	= $this->All_model->GetCoaCombo('5', " a.no_perkiraan like '1101%'");
-		// $data = array(
-		// 	'title'			=> 'Form Payment',
-		// 	'action'		=> 'index',
-		// 	'datacoa'		=> $datacoa,
-		// 	'row_group'		=> $data_Group,
-		// 	'akses_menu'	=> $Arr_Akses,
-		// 	'results'		=> $results,
-		// );
-		// history('Form Payment');
-		// $this->load->view('Pembayaran_material/form_payment_new.php', $data);
-
 		$check_transpoty_driver = $this->Pembayaran_material_model->check_transport_payment($id_payment);
 
 		$jurnal_refill_petty_cash = '';
@@ -213,7 +198,6 @@ class Pembayaran_material extends Admin_Controller
 			->get()
 			->result();
 		$get_supplier = $this->db->get('new_supplier')->result();
-		// $get_bank = $this->db->get_where(DBACC . '.coa_master', ['kode_bank <>' => '', 'kode_bank <>' => null])->result();
 		$get_mata_uang = $this->db->get_where('mata_uang', ['deleted_by' => 0, 'activation' => 'active'])->result();
 
 		$this->db->from(DBACC . '.coa_master a')
