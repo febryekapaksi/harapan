@@ -297,19 +297,20 @@ class Pembayaran_material_model extends BF_Model
 		$total_bank_main = 0;
 		$ket_bank        = []; // biar keterangannya gabung (optional)
 
-		// Helper untuk append baris (7 kolom konsisten)
-		$addRow = function ($coa, $nm_coa, $keterangan, $debit, $kredit) use (&$hasil_jurnal, &$no_jurnal) {
-			$tanggal_view = date('d/m/Y');
-			$tanggal_db   = date('Y-m-d');
+		foreach ($get_payment as $row) {
+			$tgl_bayar = $row->tanggal; // Akses per baris
+		}
 
+		// Helper untuk append baris (7 kolom konsisten)
+		$addRow = function ($coa, $nm_coa, $keterangan, $debit, $kredit) use (&$hasil_jurnal, &$no_jurnal, $tgl_bayar) {
 			$debit  = (float) $debit;
 			$kredit = (float) $kredit;
 
 			$hasil_jurnal .= '<tr>';
 
 			$hasil_jurnal .= '<td class="text-center">';
-			$hasil_jurnal .= $tanggal_view;
-			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . $tanggal_db . '">';
+			$hasil_jurnal .= date('d F Y', strtotime($tgl_bayar));
+			$hasil_jurnal .= '<input type="hidden" name="jurnal_ls[' . $no_jurnal . '][tanggal_jurnal]" value="' . $tgl_bayar . '">';
 			$hasil_jurnal .= '</td>';
 
 			$hasil_jurnal .= '<td class="text-center">';

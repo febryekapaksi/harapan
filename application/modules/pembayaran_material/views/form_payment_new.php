@@ -463,7 +463,7 @@ foreach ($results['result_payment'] as $item) {
 								echo '<tr>';
 
 								echo '<td class="text-center">';
-								echo date('d F Y');
+								echo $tgl_pengajuan;
 								echo '<input type="hidden" name="jurnal_refill_pettycash[' . $no_jurnal_refill_pettycash . '][tanggal_jurnal]" value="' . date('Y-m-d') . '">';
 								echo '</td>';
 
