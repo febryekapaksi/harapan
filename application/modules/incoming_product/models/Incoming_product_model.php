@@ -358,8 +358,8 @@ class Incoming_product_model extends BF_Model
         $jumlah_mat = 0;
         $valid = 1;
         foreach ($addInMat as $val => $valx) {
-            $qtyIN         = str_replace(',', '', $valx['qty_in']);
-            $qty_sisa = $valx['qty_sisa'];
+            $qtyIN      = str_replace(',', '', $valx['qty_in']);
+            $qty_sisa   = $valx['qty_sisa'];
 
             if ($qtyIN > $qty_sisa) {
                 $valid = 2;

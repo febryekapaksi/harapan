@@ -219,6 +219,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 													<th style="min-width: 100px;" hidden>Rate LME</th>
 													<th style="min-width: 100px;" hidden>Alloy Price</th>
 													<th style="min-width: 100px;" hidden>Fab Cost</th>
+													<th style="min-width: 150px;">Harga Satuan (Include PPn)</th>
 													<th style="min-width: 150px;">Harga Satuan</th>
 													<th style="min-width: 100px;" hidden>Disc %</th>
 													<th style="min-width: 100px;" hidden>Biaya Kirim</th>
@@ -320,7 +321,10 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 														</td>
 														<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_alloyprice_" . $key . "' " . $disabled . " data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' name='dt[" . $key . "][alloyprice]' onkeyup='HitAmmount(" . $key . ")'></td>
 														<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_fabcost_" . $key . "' " . $disabled . " name='dt[" . $key . "][fabcost]' onkeyup='HitAmmount(" . $key . ")'></td>
+														
+														<td><input type='text' class='form-control text-right input-sm auto_num' id='dt_hargasatuan_include_" . $key . "' name='dt[" . $key . "][hargasatuan_include]' onkeyup='HitAmmount(" . $key . ")' value='" . $value->hargasatuan . "'></td>
 														<td><input type='text' class='form-control text-right input-sm auto_num' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ")' value='" . $value->hargasatuan . "'></td>
+														
 														<td hidden>
 															<select class='form-control input-sm' id='dt_ppn_" . $key . "' name='dt[" . $key . "][ppn]' onchange='CariPPN(" . $key . ")'>
 																<option value=''>SELECT</option>
@@ -331,7 +335,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 														<td hidden><input type='text' class='form-control input-sm autoNumeric pajak' id='dt_pajak_" . $key . "' name='dt[" . $key . "][pajak]' onkeyup='HitAmmount(" . $key . ")'></td>
 														<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_diskon_" . $key . "' " . $disabled . " name='dt[" . $key . "][diskon]' onkeyup='HitAmmount(" . $key . ")'></td>
 													
-														<td><input type='text' class='form-control input-sm ch_jumlah_ex text-right auto_num' id='dt_jumlahharga_" . $key . "' readonly name='dt[" . $key . "][jumlahharga]' value='" . number_format($total) . "'></td>
+														<td><input type='text' class='form-control input-sm ch_jumlah_ex text-right auto_num' id='dt_jumlahharga_" . $key . "' readonly name='dt[" . $key . "][jumlahharga]' value='" . $total . "'></td>
 														
 														<td>
 															<div class='input-group input-group-sm' style='margin-bottom:6px;'>
@@ -342,14 +346,14 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 															<div class='input-group input-group-sm'>
 																<span class='input-group-addon'>Rp</span>
 																<input type='text' name='dt[" . $key . "][disc_num]' class='form-control input-sm auto_num disc_num'
-																	id='disc_num_" . $key . "' data-key='" . $key . "' value='" . number_format($value->nilai_disc) . "'>
+																	id='disc_num_" . $key . "' data-key='" . $key . "' value='" . $value->nilai_disc . "'>
 															</div>
 														</td>
 														<td hidden>
 														<input type='text' class='form-control auto_num input-sm ch_ppn cng_nilai_ppn' id='dt_nilai_ppn_" . $key . "' name='dt[" . $key . "][nilai_ppn]' data-key='" . $key . "' placeholder='Nilai PPN' " . (($value->ppn > 0) ? '' : 'readonly') . " value='" . (($value->ppn > 0) ? $value->ppn : null) . "'>
 														<input type='text' class='form-control input-sm ch_per_ppn cng_persen_ppn' id='dt_persen_ppn_" . $key . "' name='dt[" . $key . "][persen_ppn]' data-key='" . $key . "' placeholder='Persen PPN' " . (($value->ppn > 0) ? '' : 'readonly') . " value='" . (($value->ppn > 0) ? $value->ppn_persen : null) . "'>
 														</td>
-														<td><input type='text' class='form-control input-sm text-right auto_num ch_jumlah_ex2' id='dt_totalharga_" . $key . "' readonly name='dt[" . $key . "][totalharga]' value='" . number_format($total - $value->nilai_disc + $value->ppn) . "'></td>
+														<td><input type='text' class='form-control input-sm text-right auto_num ch_jumlah_ex2' id='dt_totalharga_" . $key . "' readonly name='dt[" . $key . "][totalharga]' value='" . ($total - $value->nilai_disc + $value->ppn) . "'></td>
 														<td><input type='text' class='form-control input-sm' id='dt_note_" . $key . "' name='dt[" . $key . "][note]'></td>																
 										 			</tr>
 												";
@@ -360,44 +364,44 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 												<tr>
 													<td class="text-right" colspan="9"><b>Total</b></th>
 													<td colspan="2">
-														<input readonly type="text" class="form-control auto_num text-right" id="totalinppn" value="<?= number_format($results['header_po']->subtotal) ?>" required name="totalinppn">
+														<input readonly type="text" class="form-control auto_num text-right" id="totalinppn" value="<?= ($results['header_po']->hargatotal) ?>" required name="totalinppn">
 													</td>
 												</tr>
 												<tr>
 													<td class="text-right" colspan="9"><b>Diskon Khusus</b></th>
 													<td colspan="2">
-														<input type="text" class="form-control text-right auto_num" id="diskonkhusus" value="<?= number_format($results['header_po']->diskon_khusus) ?>" name="diskonkhusus">
+														<input type="text" class="form-control text-right auto_num" id="diskonkhusus" value="<?= ($results['header_po']->diskon_khusus) ?>" name="diskonkhusus">
 													</td>
 												</tr>
 												<tr>
 													<td class="text-right" colspan="9"><b>Total (Exclude PPn)</b></td>
 													<td colspan="2">
-														<input readonly type="text" class="form-control auto_num text-right" id="totalexppn" value="<?= number_format($results['header_po']->total_exclude_ppn) ?>" required name="totalexppn">
+														<input readonly type="text" class="form-control auto_num text-right" id="totalexppn" value="<?= ($results['header_po']->total_exclude_ppn) ?>" required name="totalexppn">
 													</td>
 												</tr>
 												<tr>
 													<td class="text-right" colspan="9"><b>DPP</b></td>
 													<td colspan="2">
-														<input readonly type="text" class="form-control auto_num text-right" id="dpp" value="<?= number_format($results['header_po']->total_dpp) ?>" required name="dpp">
+														<input readonly type="text" class="form-control auto_num text-right" id="dpp" value="<?= ($results['header_po']->total_dpp) ?>" required name="dpp">
 													</td>
 												</tr>
 												<tr>
 													<td class="text-right" colspan="9"><b>PPn</b></td>
 													<td colspan="2">
-														<input readonly type="text" class="form-control auto_num text-right" id="ppn" value="<?= number_format($results['header_po']->total_ppn) ?>" required name="ppn">
+														<input readonly type="text" class="form-control auto_num text-right" id="ppn" value="<?= ($results['header_po']->total_ppn) ?>" required name="ppn">
 													</td>
 												</tr>
 												<tr>
 													<td class="text-right" colspan="9"><b>Biaya Kirim</b></td>
 													<td colspan="2">
 														<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
-														<input type="text" class="form-control auto_num text-right" id="kirim" value="<?= $results['header_po']->taxtotal ?>" required name="kirim">
+														<input type="text" class="form-control auto_num text-right" id="kirim" value="<?= $results['header_po']->kirim ?>" required name="kirim">
 													</td>
 												</tr>
 												<tr>
 													<td class="text-right" colspan="9"><b>Total Order</b></td>
 													<td colspan="2">
-														<input readonly type="text" class="form-control text-right" id="subtotal" value="<?= number_format($results['header_po']->total_include_ppn) ?>" required name="subtotal">
+														<input readonly type="text" class="form-control auto-num text-right" id="subtotal" value="<?= number_format($results['header_po']->grandtotal_idr) ?>" required name="subtotal">
 													</td>
 												</tr>
 											</tfoot>
