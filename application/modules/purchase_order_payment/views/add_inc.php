@@ -79,7 +79,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="">Total Invoice</label>
-            <input type="text" name="total_invoice" id="" class="form-control form-control-sm text-right total_invoice auto_num" value="<?= number_format($results['total_invoice'], 2) ?>" required>
+            <input type="text" name="total_invoice" id="" class="form-control form-control-sm text-right total_invoice auto_num" value="<?= number_format($results['nilai_req_payment'], 2) ?>" required>
         </div>
     </div>
     <div class="col-md-6">
@@ -233,7 +233,7 @@
                         echo '<tr>';
                         echo '<td class="text-center">' . $no . '</td>';
                         echo '<td class="text-center">' . $item->no_surat . '</td>';
-                        echo '<td class="text-center">' . $item->nm_material . '</td>';
+                        echo '<td class="text-left">' . $item->nm_material . '</td>';
                         echo '<td class="text-center">' . number_format($item->qty_po) . '</td>';
                         echo '<td class="text-center">' . number_format($item->qty_order) . '</td>';
                         echo '<td class="text-right">' . number_format($item->hargasatuan, 2) . '</td>';

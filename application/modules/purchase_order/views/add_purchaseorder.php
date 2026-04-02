@@ -278,13 +278,13 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 					</div>
 
 					<div class="col-sm-12" style="margin-bottom: 10px;">
-						<div class="text-right">
+						<!-- <div class="text-right">
 							<label class="switch">
 								<input type="checkbox" id="toggle_pajak">
 								<span class="slider round"></span>
 							</label>
 							<label><b>Gunakan Pajak (PPn/DPP)</b></label>
-						</div>
+						</div> -->
 						<div class="table-responsive">
 							<table class='table table-bordered table-striped'>
 								<thead>
@@ -303,6 +303,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 										<th style="min-width: 100px;" hidden>Rate LME</th>
 										<th style="min-width: 100px;" hidden>Alloy Price</th>
 										<th style="min-width: 100px;" hidden>Fab Cost</th>
+										<th style="min-width: 150px;">Harga Satuan (Include PPn)</th>
 										<th style="min-width: 150px;">Harga Satuan</th>
 										<th style="min-width: 100px;" hidden>Disc %</th>
 										<th style="min-width: 100px;" hidden>Biaya Kirim</th>
@@ -417,7 +418,8 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_alloyprice_" . $key . "' " . $disabled . " data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' name='dt[" . $key . "][alloyprice]' onkeyup='HitAmmount(" . $key . ")'></td>
 													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_fabcost_" . $key . "' " . $disabled . " name='dt[" . $key . "][fabcost]' onkeyup='HitAmmount(" . $key . ")'></td>
 													
-													<td><input type='text' class='form-control input-sm text-right auto_num' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ")' value=''></td>
+													<td><input type='text' class='form-control input-sm text-right auto_num' id='dt_hargasatuan_include_" . $key . "' name='dt[" . $key . "][hargasatuan_include]' onkeyup='HitAmmount(" . $key . ", \"include\")' value=''></td>
+													<td><input type='text' class='form-control input-sm text-right auto_num' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ", \"exclude\")' value=''></td>
 													
 													<td hidden><input type='text' class='form-control input-sm autoNumeric pajak' id='dt_pajak_" . $key . "' name='dt[" . $key . "][pajak]' onkeyup='HitAmmount(" . $key . ")'></td>
 													<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_diskon_" . $key . "' " . $disabled . " name='dt[" . $key . "][diskon]' onkeyup='HitAmmount(" . $key . ")'></td>
@@ -426,13 +428,13 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 													<td>
 														<div class='input-group input-group-sm' style='margin-bottom:6px;'>
 															<input type='text' name='dt[" . $key . "][disc_persen]' class='form-control input-sm auto_num disc_persen'
-																id='disc_persen_" . $key . "' data-key='" . $key . "' placeholder='Persen Disc (%)'>
+																id='disc_persen_" . $key . "' data-key='" . $key . "' placeholder='Persen Disc (%)' onkeyup='HitAmmount(" . $key . ", \"disc_persen\")'>
 															<span class='input-group-addon'>%</span>
 														</div>
 														<div class='input-group input-group-sm'>
 															<span class='input-group-addon'>Rp</span>
 															<input type='text' name='dt[" . $key . "][disc_num]' class='form-control input-sm auto_num disc_num'
-																id='disc_num_" . $key . "' data-key='" . $key . "' placeholder='Nilai Disc (Rp)'>
+																id='disc_num_" . $key . "' data-key='" . $key . "' placeholder='Nilai Disc (Rp)' onkeyup='HitAmmount(" . $key . ", \"disc_num\")'>
 														</div>
 													</td>
 
@@ -452,34 +454,32 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 									<tr>
 										<td class="text-right" colspan="10"><b>Total</b></th>
 										<td colspan="2">
-											<input readonly type="text" class="form-control text-right" id="totalinppn" onkeyup required name="totalinppn">
+											<input readonly type="text" class="form-control text-right" id="subtotal" onkeyup required name="subtotal">
+										</td>
+									</tr>
+									<tr hidden>
+										<td class="text-right" colspan="10"><b>Diskon Khusus</b></th>
+										<td colspan="2">
+											<input type="text" class="form-control text-right auto_num" id="diskonkhusus" onblur="updateGlobal()" name="diskonkhusus">
+											<input type="hidden" id="diskontotal" name="diskontotal">
 										</td>
 									</tr>
 									<tr>
-										<td class="text-right" colspan="10"><b>Diskon Khusus</b></th>
+										<td class="text-right" colspan="10"><b>Total (Exclude PPn)</b></td>
 										<td colspan="2">
-											<input type="text" class="form-control text-right auto_num" id="diskonkhusus" onblur="cariTotal()" name="diskonkhusus">
+											<input readonly type="text" class="form-control text-right" id="totalexppn" name="totalexppn">
+											<input type="hidden" id="totalinppn" name="totalinppn">
 										</td>
 									</tr>
-									<tr class="row-pajak" style="display: none;">
-										<td class="text-right" colspan="10"><b>Total (Exclude PPn)</b></td>
-										<td colspan="2"><input readonly type="text" class="form-control text-right" id="totalexppn" name="totalexppn"></td>
-									</tr>
-									<tr class="row-pajak" style="display: none;">
+									<tr>
 										<td class="text-right" colspan="10"><b>DPP</b></td>
 										<td colspan="2"><input readonly type="text" class="form-control text-right" id="dpp" name="dpp"></td>
 									</tr>
-									<tr class="row-pajak" style="display: none;">
+									<tr>
 										<td class="text-right" colspan="10"><b>PPn</b></td>
 										<td colspan="2"><input readonly type="text" class="form-control text-right" id="ppn" name="ppn"></td>
 									</tr>
-									<!-- <tr>
-										<td class="text-right" colspan="10"><b>Keterangan</b></td>
-										<td colspan="2">
-											<textarea name="note" id="" class="form-control"></textarea>
-										</td>
-									</tr> -->
-									<tr>
+									<tr hidden>
 										<td class="text-right" colspan="10"><b>Biaya Kirim</b></td>
 										<td colspan="2">
 											<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
@@ -489,146 +489,11 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 									<tr>
 										<td class="text-right" colspan="10"><b>Total Order</b></td>
 										<td colspan="2">
-											<input readonly type="text" class="form-control text-right" id="subtotal" onkeyup required name="subtotal">
+											<input readonly type="text" class="form-control text-right" id="grand_total" onkeyup required name="grand_total">
 										</td>
 									</tr>
 								</tfoot>
 							</table>
-						</div>
-					</div>
-
-					<div class="col-sm-12" hidden>
-						<div class="col-sm-6">
-							<div class="form-group row">
-								<div class="col-md-4">
-									<label for="customer">Expect Date</label>
-								</div>
-								<div class="col-md-8">
-									<input type="text" class="form-control" id="expect_tanggal" required name="expect_tanggal" readonly>
-								</div>
-							</div>
-						</div>
-						<div class="col-sm-6">
-							<div class="form-group row">
-								<div class="col-md-2">
-									<label for="customer">Note</label>
-								</div>
-								<div class="col-md-10">
-									<input type="text" class="form-control" id="note_ket" name="note_ket">
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-12" hidden>
-						<div class="row">
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="id_customer">Sub Total Harga Satuan</label>
-									</div>
-									<div class="col-md-8" id="ForHarga">
-										<input readonly type="text" class="form-control" id="hargatotal" onkeyup required name="hargatotal">
-									</div>
-								</div>
-							</div>
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="id_customer">Keterangan</label>
-									</div>
-									<div class="col-md-8" id="ForHarga">
-										<textarea name="note" id="" class="form-control" disabled></textarea>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-12" hidden>
-						<div class="row">
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="persendisc" class="control-label">Total Discount</label>
-									</div>
-
-									<div class="col-md-8" id="ForHarga">
-										<!-- Persentase -->
-										<div class="input-group" style="margin-bottom:6px;">
-											<input type="text" class="form-control auto_num" id="persendisc" name="persendisc" placeholder="Persen Disc (%)" required onkeyup="cariTotal()" onblur="cariTotal()">
-											<span class="input-group-addon">%</span>
-										</div>
-
-										<!-- Nominal -->
-										<div class="input-group">
-											<span class="input-group-addon">Rp</span> <!-- atau $ -->
-											<input type="text" class="form-control auto_num text-right" id="totaldisc" name="totaldisc" placeholder="Nilai Disc" required onkeyup="cariTotal()" onblur="cariTotal()">
-										</div>
-									</div>
-								</div>
-
-							</div>
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="id_customer">Biaya Kirim</label>
-									</div>
-									<div class="col-md-8" id="ForTax">
-										<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
-										<input type="text" class="form-control auto_num" id="kirim" onblur="cariTotal()" required name="kirim" disabled>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-12" hidden>
-						<div class="row">
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="persenppn" class="control-label">Total PPN</label>
-									</div>
-
-									<div class="col-md-8" id="ForHarga">
-										<!-- Persentase PPN -->
-										<div class="input-group" style="margin-bottom:6px;">
-											<input type="text"
-												class="form-control auto_num" id="persenppn" name="persenppn" placeholder="Persen PPN (%)" required onkeyup="cariTotal()" onblur="cariTotal()">
-											<span class="input-group-addon">%</span>
-										</div>
-
-										<!-- Nilai PPN -->
-										<div class="input-group">
-											<span class="input-group-addon">Rp</span> <!-- atau $ -->
-											<input type="text"
-												class="form-control auto_num" id="totalppn" name="totalppn" placeholder="Nilai PPN" required onkeyup="cariTotal()" onblur="cariTotal()">
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="id_customer">Total Order</label>
-									</div>
-									<div class="col-md-8" id="ForSum">
-										<input readonly type="text" class="form-control" id="subtotal" required name="subtotal" disabled>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="col-sm-12" hidden>
-						<div class="row">
-							<div class="col-sm-6">
-								<div class="form-group row">
-									<div class="col-md-4">
-										<label for="id_customer">Discount</label>
-									</div>
-									<div class="col-md-8" id="ForDiskon">
-										<input readonly type="text" class="form-control" id="diskontotal" onkeyup required name="diskontotal">
-									</div>
-								</div>
-							</div>
 						</div>
 					</div>
 
@@ -673,7 +538,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 	var active_controller = '<?php echo ($this->uri->segment(1)); ?>';
 	var num_top = getNum($('.num_top').val());
 	$(document).ready(function() {
-		TotalSemua()
+		// TotalSemua()
 
 		$('.chosen-select').chosen({
 			width: "100%"
@@ -689,24 +554,6 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 			dateFormat: 'yy-mm-dd',
 			changeMonth: true,
 			changeYear: true,
-		});
-
-		var tipePR = $("input[id^='dt_tipe_pr_']").first().val();
-		if (tipePR === 'pr depart' || tipePR === 'pr asset') {
-			$('#toggle_pajak').prop('checked', false);
-			$('.row-pajak').hide();
-		} else {
-			$('#toggle_pajak').prop('checked', true);
-			$('.row-pajak').show();
-		}
-
-		$(document).on('change', '#toggle_pajak', function() {
-			if ($(this).is(':checked')) {
-				$('.row-pajak').fadeIn(); // Muncul jika aktif
-			} else {
-				$('.row-pajak').fadeOut(); // Sembunyi jika non-aktif
-			}
-			cariTotal();
 		});
 
 		$(document).on('click', '.checked_point', function() {
@@ -772,7 +619,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 				$('input[name="dt[' + no + '][note]"]').val('');
 			}
 
-			TotalSemua()
+			// TotalSemua()
 		});
 
 		$('#select_all').change(function() {
@@ -1074,57 +921,6 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		HitAmmount(key);
 	});
 
-	$(document).on('change', '.disc_persen', function() {
-		var key = $(this).data('key');
-		var disc_persen = getNum($(this).val().split(',').join(''));
-		var hargasatuan = getNum($('#dt_hargasatuan_' + key).val().split(',').join(''));
-		var qty = getNum($('#dt_qty_' + key).val().split(',').join(''));
-
-		var disc_num = ((hargasatuan * qty) * disc_persen / 100);
-		$('#disc_num_' + key).val(number_format(disc_num, 2));
-
-		HitAmmount(key);
-	});
-
-	$(document).on('change', '.disc_num', function() {
-		var key = $(this).data('key');
-		var disc_num = getNum($(this).val().split(',').join(''));
-		var hargasatuan = getNum($('#dt_hargasatuan_' + key).val().split(',').join(''));
-		var qty = getNum($('#dt_qty_' + key).val().split(',').join(''));
-
-		var disc_persen = parseFloat(disc_num / (hargasatuan * qty) * 100);
-		$('#disc_persen_' + key).val(disc_persen);
-
-		HitAmmount(key);
-	});
-
-	$(document).on('keyup', '#persendisc', function() {
-		var total = getNum($("#hargatotal").val().split(",").join(""));
-		var persen_disc = getNum($(this).val().split(",").join(""));
-
-		var disc = (total * persen_disc / 100);
-
-		$("#totaldisc").val(number_format(disc, 2));
-		cariTotal();
-	});
-
-	$(document).on('keyup', '#diskonkhusus', function() {
-		var total = getNum($("#totalinppn").val().split(",").join(""));
-		var nilai = getNum($(this).val().split(",").join(""));
-		var selisih = total - nilai
-
-		var exppn = selisih / 1.11
-		var dpp = (exppn) * 11 / 12
-		var ppn = 12 / 100 * (dpp)
-		var subtotal = exppn + ppn
-
-		$("#totalexppn").val(number_format(exppn, 2));
-		$("#ppn").val(number_format(ppn, 2));
-		$("#subtotal").val(number_format(subtotal, 2));
-
-		cariTotal()
-	});
-
 	$(document).on('keyup', '#totaldisc', function() {
 		var total = getNum($("#hargatotal").val().split(",").join(""));
 		var disc = getNum($("#totaldisc").val().split(",").join(""));
@@ -1186,7 +982,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 	$(document).on('change', '.input_progress', function() {
 		var no = $(this).data('no');
-		var subtotal = $('#subtotal').val();
+		var subtotal = $('#grand_total').val();
 		if (subtotal == '' || subtotal == null) {
 			subtotal = 0;
 		} else {
@@ -1212,7 +1008,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 	$(document).on('change', '.nilai_top', function() {
 		var no = $(this).data('no');
 
-		var subtotal = $('#subtotal').val();
+		var subtotal = $('#grand_total').val();
 		if (subtotal == '' || subtotal == null) {
 			subtotal = 0;
 		} else {
@@ -1298,7 +1094,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 				$("#totalwidth_" + id).html(html);
 			}
 		});
-		TotalSemua()
+		// TotalSemua()
 	}
 
 	function CariPrice(id) {
@@ -1554,7 +1350,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		var lebar = $("#dt_lebar_" + id).val();
 		var jumlahharga = $("#dt_jumlahharga_" + id).val();
 		var note = $("#dt_note_" + id).val();
-		var subtotal = $("#subtotal").val();
+		var subtotal = $("#grand_total").val();
 		var hargatotal = $("#hargatotal").val();
 		var diskontotal = $("#diskontotal").val();
 		var taxtotal = $("#taxtotal").val();
@@ -1616,7 +1412,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		var pajak = $("#dt_pajak_" + id).val();
 		var jumlahharga = $("#dt_jumlahharga_" + id).val();
 		var note = $("#dt_note_" + id).val();
-		var subtotal = $("#subtotal").val();
+		var subtotal = $("#grand_total").val();
 		var hargatotal = $("#hargatotal").val();
 		var diskontotal = $("#diskontotal").val();
 		var taxtotal = $("#taxtotal").val();
@@ -1689,140 +1485,70 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 	}
 
-	function HitAmmount(id) {
-		var alloyprice = getNum($("#dt_alloyprice_" + id).val().split(",").join(""));
-		var fabcost = getNum($("#dt_fabcost_" + id).val().split(",").join(""));
-		var diskon = getNum($("#dt_diskon_" + id).val().split(",").join(""));
-		var pajak = getNum($("#dt_pajak_" + id).val().split(",").join(""));
-		var qty = getNum($("#dt_qty_" + id).val().split(",").join(""));
-		var hargasatuan = getNum($("#dt_hargasatuan_" + id).val().split(",").join(""));
-		var ppn = getNum($("#dt_nilai_ppn_" + id).val().split(",").join(""));
-		var persen_ppn = getNum($("#dt_persen_ppn_" + id).val().split(",").join(""));
-		var dt_width = getNum($("#dt_totalweight_" + id).val().split(",").join(""));
-		var disc_persen = getNum($('#disc_persen_' + id).val().split(',').join(''));
-		var disc_num = getNum($('#disc_num_' + id).val().split(',').join(''));
-		var loi = $("#loi").val();
+	function HitAmmount(id, source = null) {
+		let qty = getNum($("#dt_qty_" + id).val().replace(/,/g, ""));
+		let harga = getNum($("#dt_hargasatuan_" + id).val().replace(/,/g, ""));
+		let harga_inc = getNum($("#dt_hargasatuan_include_" + id).val().replace(/,/g, ""));
+		let disc_persen = getNum($("#disc_persen_" + id).val().replace(/,/g, ""));
+		let disc_num = getNum($("#disc_num_" + id).val().replace(/,/g, ""));
 
-		// if(loi == 'Import'){
-		// 	var total 	= Number(alloyprice) + Number(fabcost);
-		// 	var jumlah 	= total * dt_width;	
-
-		// 	$("#dt_hargasatuan_"+id).val(number_format(total,2));
-		// }
-		//else{
-
-		// if (disc_num !== ((hargasatuan * qty) * disc_persen / 100)) {
-		// 	disc_num = ((hargasatuan * qty) * disc_persen / 100);
-		// }
-
-
-		var total = hargasatuan;
-		var jumlah = hargasatuan * qty;
-		var jumlah_w_disc = (jumlah - (jumlah * disc_persen / 100));
-		var ppn = (jumlah_w_disc * persen_ppn / 100);
-		var totalharga = (jumlah_w_disc + ppn);
-		// console.log(totalharga);
-
-		// alert(jumlah);
-		//}
-
-		var tot_pajak = pajak;
-		var tot_diskon = diskon / 100 * jumlah;
-		var tot_jumlah = totalharga - tot_diskon + tot_pajak;
-
-		var nilai_ppn = parseFloat(((hargasatuan - (hargasatuan * disc_persen / 100)) * qty) * persen_ppn / 100);
-		$("#dt_nilai_ppn_" + id).val(number_format(nilai_ppn, 2));
-
-		$("#dt_jumlahharga_" + id).val(number_format(jumlah, 2));
-		$("#dt_totalharga_" + id).val(number_format(totalharga, 2));
-
-		$("#dt_ch_pajak_" + id).val(tot_pajak);
-		$("#dt_ch_diskon_" + id).val(tot_diskon);
-		$("#dt_ch_jumlah_" + id).val(tot_jumlah);
-
-		$("#disc_persen_" + id).val(number_format(disc_persen, 2));
-		$("#disc_num_" + id).val(number_format(disc_num, 2));
-
-		var SUM_JML = 0
-		var SUM_DIS = 0
-		var SUM_PJK = 0
-		var SUM_JMX = 0
-		var SUM_PPN = 0
-		var SUM_DISC = 0
-
-		$(".ch_diskon").each(function() {
-			SUM_DIS += Number($(this).val());
-		});
-
-		$(".ch_pajak").each(function() {
-			SUM_PJK += Number($(this).val());
-		});
-
-		$(".ch_jumlah").each(function() {
-			SUM_JML += Number($(this).val());
-		});
-
-		$(".ch_jumlah_ex").each(function() {
-			SUM_JMX += Number($(this).val().split(",").join(""));
-		});
-		$(".ch_ppn").each(function() {
-			SUM_PPN += Number($(this).val().split(",").join(""));
-		});
-		$(".disc_num").each(function() {
-			SUM_DISC += Number($(this).val().split(",").join(""));
-		});
-
-		var exppn = SUM_JML / 1.11
-		var dpp = (exppn) * 11 / 12
-		var ppn = 12 / 100 * (dpp)
-		var subtotal = exppn + ppn
-
-		$("#hargatotal").val(number_format(SUM_JMX, 2));
-		$("#totalppn").val(number_format(SUM_PPN, 2));
-		$("#totaldisc").val(number_format(SUM_DISC, 2));
-		$("#diskontotal").val(number_format(SUM_DIS));
-		$("#taxtotal").val(number_format(SUM_PJK));
-		// $("#subtotal").val(number_format(subtotal, 2));
-		$("#totalinppn").val(number_format(SUM_JML, 2));
-		$("#totalexppn").val(number_format(exppn, 2));
-		$("#dpp").val(number_format(dpp, 2));
-		$("#ppn").val(number_format(ppn, 2));
-		TotalSemua();
-	}
-
-	function cariTotal() {
-		var diskonKhusus = getNum($("#diskonkhusus").val().split(",").join(""));
-		var totalInPPn = getNum($("#totalinppn").val().split(",").join(""));
-		var kirim = getNum($("#kirim").val().split(",").join(""));
-
-		var base = Math.max(0, totalInPPn - diskonKhusus);
-		var subtotal = 0;
-
-		// Cek apakah Toggle Pajak AKTIF
-		var pajakAktif = $('#toggle_pajak').is(':checked');
-
-		if (pajakAktif) {
-			// Mode Pajak Aktif (Gunakan rumus asli Anda)
-			var exppn = base / 1.11;
-			var dpp = (exppn) * 11 / 12;
-			var ppn = 12 / 100 * (dpp);
-			subtotal = exppn + ppn;
-
-			$("#totalexppn").val(number_format(exppn, 2));
-			$("#dpp").val(number_format(dpp, 2));
-			$("#ppn").val(number_format(ppn, 2));
-		} else {
-			// Mode Pajak Mati (Default)
-			subtotal = base;
-
-			$("#totalexppn").val(0);
-			$("#dpp").val(0);
-			$("#ppn").val(0);
+		// =========================
+		// AUTO DETECT
+		// =========================
+		if (!source) {
+			source = (harga_inc > 0 && harga === 0) ? 'include' : 'exclude';
 		}
 
-		var grandtotal = kirim + subtotal;
-		$("#subtotal").val(number_format(grandtotal, 2));
-		$("#kirim").val(number_format(kirim, 2));
+		// =========================
+		// SYNC INCLUDE / EXCLUDE
+		// =========================
+		if (source === 'include' && harga_inc > 0) {
+			harga = Math.round(harga_inc / 1.11);
+			$("#dt_hargasatuan_" + id).val(number_format(harga, 2));
+		}
+
+		if (source === 'exclude' && harga > 0) {
+			harga_inc = Math.round(harga * 1.11);
+			$("#dt_hargasatuan_include_" + id).val(number_format(harga_inc, 2));
+		}
+
+		let jumlah = harga * qty;
+
+		// =========================
+		// SYNC DISCOUNT (PENTING)
+		// =========================
+		if (source === 'disc_persen') {
+			disc_num = jumlah * disc_persen / 100;
+			$("#disc_num_" + id).val(number_format(disc_num, 2));
+		}
+
+		if (source === 'disc_num') {
+			disc_persen = jumlah > 0 ? (disc_num / jumlah * 100) : 0;
+			$("#disc_persen_" + id).val(disc_persen.toFixed(2));
+		}
+
+		// fallback kalau tidak ada source discount
+		if (!source || (source !== 'disc_persen' && source !== 'disc_num')) {
+			disc_num = jumlah * disc_persen / 100;
+		}
+
+		// =========================
+		// CALCULATION
+		// =========================
+		let jumlah_w_disc = jumlah - disc_num;
+
+		let dpp = jumlah_w_disc * (11 / 12);
+		let ppn = dpp * (12 / 100);
+		let total = jumlah_w_disc + ppn;
+
+		// =========================
+		// SET VALUE
+		// =========================
+		$("#dt_jumlahharga_" + id).val(number_format(jumlah, 2));
+		$("#dt_nilai_ppn_" + id).val(number_format(ppn, 2));
+		$("#dt_totalharga_" + id).val(number_format(jumlah_w_disc, 2));
+
+		updateGlobal();
 	}
 
 	function SumDel() {
@@ -1850,38 +1576,52 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		$("#hargatotal").val(number_format(SUM_JMX, 2));
 		$("#diskontotal").val(number_format(SUM_DIS, 2));
 		$("#taxtotal").val(number_format(SUM_PJK, 2));
-		$("#subtotal").val(number_format(SUM_JML, 2));
+		$("#grand_total").val(number_format(SUM_JML, 2));
 
 	}
 
-	function TotalSemua() {
-		var SUM_JML = 0
-		var SUM_DIS = 0
-		var SUM_PJK = 0
-		var SUM_JMX = 0
+	function updateGlobal() {
+		let total_ex = 0;
+		let total_ex_w_disc_sat = 0;
+		let diskon_total = 0;
+		let diskonkhusus = getNum($("#diskonkhusus").val().replace(/,/g, ""));
 
-		$(".ch_diskon").each(function() {
-			SUM_DIS += Number($(this).val());
-		});
-
-		$(".ch_pajak").each(function() {
-			SUM_PJK += Number($(this).val());
-		});
-
-		$(".ch_jumlah").each(function() {
-			SUM_JML += Number($(this).val());
+		$(".ch_jumlah_ex").each(function() {
+			total_ex += getNum($(this).val().replace(/,/g, ""));
 		});
 
 		$(".ch_jumlah_ex2").each(function() {
-			SUM_JMX += Number($(this).val().split(",").join(""));
+			total_ex_w_disc_sat += getNum($(this).val().replace(/,/g, ""));
 		});
 
-		$("#hargatotal").val(number_format(SUM_JMX, 2));
-		$("#totalinppn").val(number_format(SUM_JMX, 2));
-		$("#diskontotal").val(number_format(SUM_DIS, 2));
-		$("#taxtotal").val(number_format(SUM_PJK, 2));
-		$("#subtotal").val(number_format(SUM_JMX, 2));
+		$(".disc_num").each(function() {
+			diskon_total += getNum($(this).val().replace(/,/g, ""));
+		});
 
+		let total_ex_w_disc_khus = total_ex_w_disc_sat - diskonkhusus
+		let dpp = (11 / 12) * total_ex_w_disc_khus
+		let total_ppn = dpp * (12 / 100)
+		let total_inc = total_ex + total_ppn;
+
+		$("#subtotal").val(number_format(total_ex_w_disc_sat, 2));
+		$("#diskontotal").val(number_format(diskon_total, 2));
+		$("#totalexppn").val(number_format(total_ex_w_disc_khus, 2));
+		$("#totalinppn").val(number_format(total_inc, 2));
+		$("#dpp").val(number_format(dpp, 2));
+		$("#ppn").val(number_format(total_ppn, 2));
+
+		cariTotal();
+	}
+
+	function cariTotal() {
+		let kirim = getNum($("#kirim").val().replace(/,/g, ""));
+		let total_ex = getNum($("#totalexppn").val().replace(/,/g, ""));
+		let total_ppn = getNum($("#ppn").val().replace(/,/g, ""));
+
+		let grandtotal = total_ex + total_ppn + kirim
+
+		$("#grand_total").val(number_format(grandtotal, 2));
+		$("#kirim").val(number_format(kirim, 2));
 	}
 
 	function number_format(number, decimals, dec_point, thousands_sep) {

@@ -1859,401 +1859,246 @@ class Purchase_order_payment extends Admin_Controller
 
 	public function rec_invoice_btn()
 	{
-		$get_checked_invoice = $this->db->select('kode_trans')->get_where('tr_check_invoice', ['id_user' => $this->auth->user_id()])->result();
-		$no_incoming = [];
-		foreach ($get_checked_invoice as $item) {
-			$no_incoming[] = $item->kode_trans;
+		$userId = $this->auth->user_id();
+
+		// 1. Ambil invoice yang dicek
+		$get_checked_invoice = $this->db->select('kode_trans')
+			->get_where('tr_check_invoice', ['id_user' => $userId])
+			->result();
+
+		$no_incoming = array_column($get_checked_invoice, 'kode_trans');
+		$incoming_no = !empty($no_incoming) ? implode(', ', $no_incoming) : '';
+
+		if (empty($no_incoming)) {
+			// Handle jika data kosong agar query tidak error
+			echo "No data selected";
+			die();
 		}
 
-		if (!empty($no_incoming)) {
-			$incoming_no = implode(', ', $no_incoming);
-		} else {
-			$incoming_no = '';
-		}
+		// Helper untuk string IN clause (untuk query manual)
+		$in_clause = "'" . implode("','", $no_incoming) . "'";
 
+		// 2. Ambil data PO, PPN, dan Kurs
 		$arr_no_po = [];
 		$ppn_asli = 0;
-		$get_no_po = $this->db->query("
-			SELECT
-				b.no_surat as surat_no,
-				b.total_ppn as total_ppn,
-				b.uang_muka,
-				b.uang_muka_idr,
-				b.kurs_terima_barang,
-				b.matauang
+		$uang_muka_idr = 0;
+		$kurs_terima_barang = 1;
 
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-			WHERE
-				a.id IN (SELECT aa.id_po_detail FROM tr_incoming_check_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY b.no_surat
+		$query_po = "
+        SELECT b.no_surat, b.total_ppn, b.uang_muka, b.uang_muka_idr, b.kurs_terima_barang, b.matauang
+        FROM dt_trans_po a
+        JOIN tr_purchase_order b ON b.no_po = a.no_po
+        WHERE a.id IN (SELECT aa.id_po_detail FROM tr_incoming_check_detail aa WHERE aa.kode_trans IN ($in_clause))
+        GROUP BY b.no_surat
+        UNION ALL
+        SELECT b.no_surat, b.total_ppn, b.uang_muka, b.uang_muka_idr, b.kurs_terima_barang, b.matauang
+        FROM dt_trans_po a
+        JOIN tr_purchase_order b ON b.no_po = a.no_po
+        WHERE a.id IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ($in_clause))
+        GROUP BY b.no_surat
+        UNION ALL
+        SELECT a.no_pr as no_surat, 0 as total_ppn, b.uang_muka, b.uang_muka_idr, b.kurs_terima_barang, 'IDR' as matauang
+        FROM rutin_non_planning_detail a
+        JOIN rutin_non_planning_header b ON b.no_pengajuan = a.no_pengajuan
+        WHERE a.id IN (SELECT aa.id_po_detail FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ($in_clause))
+        GROUP BY a.no_pr
+        UNION ALL
+        SELECT b.no_surat, b.total_ppn, b.uang_muka, b.uang_muka_idr, b.kurs_terima_barang, b.matauang
+        FROM dt_trans_po a
+        JOIN tr_purchase_order b ON b.no_po = a.no_po
+        WHERE b.no_surat IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ($in_clause)) AND b.tipe = 'pr asset'
+        GROUP BY b.no_surat
+    ";
 
-			UNION ALL
+		$get_no_po = $this->db->query($query_po)->result();
 
-			SELECT
-				b.no_surat as surat_no,
-				b.total_ppn as total_ppn,
-				b.uang_muka,
-				b.uang_muka_idr,
-				b.kurs_terima_barang,
-				b.matauang
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-			WHERE
-				a.id IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY b.no_surat
-
-			UNION ALL
-
-			SELECT
-				a.no_pr as surat_no,
-				0 as total_ppn,
-				b.uang_muka,
-				b.uang_muka_idr,
-				b.kurs_terima_barang,
-				'IDR' as matauang
-			FROM
-				rutin_non_planning_detail a
-				JOIN rutin_non_planning_header b ON b.no_pengajuan = a.no_pengajuan
-			WHERE
-				a.id IN (SELECT aa.id_po_detail FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY a.no_pr
-
-			UNION ALL
-
-			SELECT
-				b.no_surat as surat_no,
-				b.total_ppn as total_ppn,
-				b.uang_muka,
-				b.uang_muka_idr,
-				b.kurs_terima_barang,
-				b.matauang
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-			WHERE
-				b.no_surat IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "')) AND b.tipe = 'pr asset'
-			GROUP BY b.no_surat
-		")->result();
-
-		foreach ($get_no_po as $item_no_po) {
-			$arr_no_po[] = $item_no_po->surat_no;
-			$ppn_asli += $item_no_po->total_ppn;
-			$uang_muka = $item_no_po->uang_muka;
-			$uang_muka_idr = $item_no_po->uang_muka_idr;
-			$kurs_terima_barang = $item_no_po->kurs_terima_barang;
-			if ($item_no_po->matauang == 'IDR') {
-				$kurs_terima_barang = 1;
-			}
+		foreach ($get_no_po as $item) {
+			$arr_no_po[] = $item->no_surat;
+			$ppn_asli += $item->total_ppn;
+			$uang_muka_idr = $item->uang_muka_idr;
+			$kurs_terima_barang = ($item->matauang == 'IDR') ? 1 : $item->kurs_terima_barang;
 		}
 
-		$arrNmSupplier = [];
-		$arrKdSupplier = [];
-		$get_nm_supplier = $this->db->query("
-			SELECT
-				c.nama as nm_supplier,
-				c.kode_supplier as kode_supplier
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-				LEFT JOIN new_supplier c ON c.kode_supplier = b.id_suplier
-			WHERE
-				a.id IN (SELECT aa.id_po_detail FROM tr_incoming_check_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-				GROUP BY c.nama
+		// 3. Ambil Data Supplier
+		$query_supplier = "
+        SELECT c.nama, c.kode_supplier FROM dt_trans_po a 
+        JOIN tr_purchase_order b ON b.no_po = a.no_po 
+        LEFT JOIN new_supplier c ON c.kode_supplier = b.id_suplier
+        WHERE a.id IN (SELECT aa.id_po_detail FROM tr_incoming_check_detail aa WHERE aa.kode_trans IN ($in_clause))
+        GROUP BY c.nama
+        UNION ALL
+        SELECT c.nama, c.kode_supplier FROM dt_trans_po a 
+        JOIN tr_purchase_order b ON b.no_po = a.no_po 
+        LEFT JOIN new_supplier c ON c.kode_supplier = b.id_suplier
+        WHERE a.id IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ($in_clause))
+        GROUP BY c.nama
+        UNION ALL
+        SELECT c.nama, c.kode_supplier FROM dt_trans_po a 
+        JOIN tr_purchase_order b ON b.no_po = a.no_po 
+        LEFT JOIN new_supplier c ON c.kode_supplier = b.id_suplier
+        WHERE b.no_surat IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ($in_clause))
+        GROUP BY c.nama
+    ";
+		$res_supplier = $this->db->query($query_supplier)->result();
+		$nm_supplier = implode(', ', array_unique(array_column($res_supplier, 'nama')));
+		$kode_supplier = implode(',', array_unique(array_column($res_supplier, 'kode_supplier')));
 
-			UNION ALL
+		// 4. Ambil Currency
+		$query_curr = "
+        SELECT b.matauang FROM dt_trans_po a JOIN tr_purchase_order b ON b.no_po = a.no_po 
+        WHERE a.id IN (SELECT aa.id_po_detail FROM tr_incoming_check_detail aa WHERE aa.kode_trans IN ($in_clause))
+        GROUP BY b.matauang
+        UNION ALL
+        SELECT b.matauang FROM dt_trans_po a JOIN tr_purchase_order b ON b.no_po = a.no_po 
+        WHERE a.id IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ($in_clause))
+        GROUP BY b.matauang
+        UNION ALL
+        SELECT b.matauang FROM dt_trans_po a JOIN tr_purchase_order b ON b.no_po = a.no_po 
+        WHERE b.no_surat IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ($in_clause))
+        GROUP BY b.matauang
+    ";
+		$res_curr = $this->db->query($query_curr)->result();
+		$currency = implode(', ', array_filter(array_unique(array_column($res_curr, 'matauang'))));
 
-			SELECT
-				c.nama as nm_supplier,
-				c.kode_supplier as kode_supplier
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-				LEFT JOIN new_supplier c ON c.kode_supplier = b.id_suplier
-			WHERE
-				a.id IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY c.nama
-
-			UNION ALL
-
-			SELECT
-				c.nama as nm_supplier,
-				c.kode_supplier as kode_supplier
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-				LEFT JOIN new_supplier c ON c.kode_supplier = b.id_suplier
-			WHERE
-				b.no_surat IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY c.nama
-		")->result();
-		foreach ($get_nm_supplier as $item_supplier) {
-			$arrNmSupplier[] = $item_supplier->nm_supplier;
-			$arrKdSupplier[] = $item_supplier->kode_supplier;
-		}
-
-		if (!empty($arrNmSupplier)) {
-			$nm_supplier = implode(', ', $arrNmSupplier);
-			$kode_supplier = implode(',', $arrKdSupplier);
-		} else {
-			$nm_supplier = '';
-			$kode_supplier = '';
-		}
-
-		$arrCurrency = [];
-		$get_currency = $this->db->query("
-			SELECT
-				b.matauang as currency
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-			WHERE
-				a.id IN (SELECT aa.id_po_detail FROM tr_incoming_check_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY b.matauang
-
-			UNION ALL
-
-			SELECT
-				b.matauang as currency
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-			WHERE
-				a.id IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY b.matauang
-
-			UNION ALL
-
-			SELECT
-				b.matauang as currency
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-			WHERE
-				b.no_surat IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY b.matauang
-		")->result();
-		foreach ($get_currency as $item_currency) {
-			if ($item_currency->currency !== '') {
-				$arrCurrency[] = $item_currency->currency;
-			}
-		}
-
-		if (!empty($arrCurrency)) {
-			$currency = implode(', ', $arrCurrency);
-		} else {
-			$currency = '';
-		}
-
+		// 5. Hitung DP (Ditambahkan filter ID = 76 pada tr_top_po)
 		$value_dp = 0;
-		$get_value_dp = $this->db->query("
-			SELECT
-				c.nilai as nilai_dp_material,
-				0 as nilai_dp_stok
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-				LEFT JOIN tr_top_po c ON c.no_po = b.no_po
-			WHERE
-				a.id IN (SELECT aa.id_po_detail FROM tr_incoming_check_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY c.id
+		$query_dp = "
+        SELECT c.nilai as nilai_dp 
+        FROM dt_trans_po a 
+        JOIN tr_purchase_order b ON b.no_po = a.no_po 
+        LEFT JOIN tr_top_po c ON c.no_po = b.no_po
+        WHERE a.id IN (SELECT aa.id_po_detail FROM tr_incoming_check_detail aa WHERE aa.kode_trans IN ($in_clause)) 
+          AND c.id = 76 
+        GROUP BY c.id
 
-			UNION ALL
+        UNION ALL
 
-			SELECT
-				0 as nilai_dp_material,
-				c.nilai as nilai_dp_stok
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-				LEFT JOIN tr_top_po c ON c.no_po = b.no_po
-			WHERE
-				a.id IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY c.id
+        SELECT c.nilai as nilai_dp 
+        FROM dt_trans_po a 
+        JOIN tr_purchase_order b ON b.no_po = a.no_po 
+        LEFT JOIN tr_top_po c ON c.no_po = b.no_po
+        WHERE a.id IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ($in_clause)) 
+          AND c.id = 76 
+        GROUP BY c.id
 
-			UNION ALL
+        UNION ALL
 
-			SELECT
-				0 as nilai_dp_material,
-				c.nilai as nilai_dp_stok
-			FROM
-				dt_trans_po a
-				JOIN tr_purchase_order b ON b.no_po = a.no_po
-				LEFT JOIN tr_top_po c ON c.no_po = b.no_po
-			WHERE
-				b.no_surat IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "'))
-			GROUP BY c.id
-		")->result();
-		foreach ($get_value_dp as $item_dp) {
-			$value_dp += ($item_dp->nilai_dp_material + $item_dp->nilai_dp_stok);
+        SELECT c.nilai as nilai_dp 
+        FROM dt_trans_po a 
+        JOIN tr_purchase_order b ON b.no_po = a.no_po 
+        LEFT JOIN tr_top_po c ON c.no_po = b.no_po
+        WHERE b.no_surat IN (SELECT aa.no_ipp FROM warehouse_adjustment_detail aa WHERE aa.kode_trans IN ($in_clause)) 
+          AND c.id = 76 
+        GROUP BY c.id
+    ";
+
+		$res_dp = $this->db->query($query_dp)->result();
+		foreach ($res_dp as $dp) {
+			$value_dp += $dp->nilai_dp;
 		}
 
+		// 6. Hitung Total Invoice
 		$total_invoice = 0;
-		$base = 0;
-		$get_ttl_invoice = $this->db->query("
-			SELECT
-				c.qty_oke as qty_oke,
-				b.hargasatuan as hargasatuan
-			FROM
-				tr_incoming_check_detail a
-				JOIN dt_trans_po b ON b.id = a.id_po_detail
-				JOIN tr_checked_incoming_detail c ON c.kode_trans = a.kode_trans AND c.id_detail = a.id
-			WHERE
-				a.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "')
-			
-			UNION ALL
+		$query_ttl = "
+        SELECT (c.total_harga) as subtotal FROM tr_incoming_check_detail a 
+        JOIN dt_trans_po b ON b.id = a.id_po_detail 
+        JOIN tr_checked_incoming_detail c ON c.kode_trans = a.kode_trans AND c.id_detail = a.id
+        WHERE a.kode_trans IN ($in_clause)
+        UNION ALL
 
-			SELECT
-				a.qty_oke as qty_oke,
-				b.hargasatuan as hargasatuan
-			FROM
-				warehouse_adjustment_detail a
-				JOIN dt_trans_po b ON b.id = a.no_ipp
-				LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
-			WHERE
-				a.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "')  AND
-				c.category = 'incoming stok'
+        SELECT (a.qty_oke * b.hargasatuan) FROM warehouse_adjustment_detail a 
+        JOIN dt_trans_po b ON b.id = a.no_ipp 
+        LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
+        WHERE a.kode_trans IN ($in_clause) AND c.category = 'incoming stok'
+        UNION ALL
 
-			UNION ALL
+        SELECT (a.qty_oke * b.harga) FROM warehouse_adjustment_detail a 
+        JOIN tr_pr_detail_kasbon b ON b.id_detail = a.id_po_detail AND b.id_kasbon = a.no_ipp 
+        LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
+        WHERE a.kode_trans IN ($in_clause) AND c.category = 'incoming non rutin'
+        UNION ALL
 
-			SELECT
-				a.qty_oke as qty_oke,
-				b.harga as hargasatuan
-			FROM
-				warehouse_adjustment_detail a
-				JOIN tr_pr_detail_kasbon b ON b.id_detail = a.id_po_detail AND b.id_kasbon = a.no_ipp
-				LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
-			WHERE
-				a.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "') AND 
-				c.category = 'incoming non rutin'
+        SELECT (a.qty_oke * d.hargasatuan) FROM warehouse_adjustment_detail a 
+        JOIN tr_purchase_order b ON b.no_surat = a.no_ipp 
+        JOIN dt_trans_po d ON d.no_po = b.no_po AND a.nm_material = d.namamaterial 
+        LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
+        WHERE a.kode_trans IN ($in_clause) AND c.category = 'incoming asset'
+    ";
+		$res_ttl = $this->db->query($query_ttl)->result();
+		foreach ($res_ttl as $row) $total_invoice += $row->subtotal;
 
-			UNION ALL
-
-			SELECT
-				a.qty_oke as qty_oke,
-				d.hargasatuan as hargasatuan
-			FROM
-				warehouse_adjustment_detail a
-				JOIN tr_purchase_order b ON b.no_surat = a.no_ipp
-				JOIN dt_trans_po d ON d.no_po = b.no_po AND a.nm_material = d.namamaterial
-				LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
-			WHERE
-				a.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "')  AND
-				c.category = 'incoming asset'
-		")->result();
-
-
-
-		foreach ($get_ttl_invoice as $item_ttl_invoice) {
-			$total_invoice += ($item_ttl_invoice->hargasatuan * $item_ttl_invoice->qty_oke);
-		}
-
+		// 7. Hitung Diskon
 		$nilai_disc = 0;
-		$get_nilai_disc = $this->db->query("
-			SELECT
-				d.qty_oke,
-				b.hargasatuan,
-				b.persen_disc as persen_disc_item,
-				c.persen_disc as persen_disc_po
-			FROM
-				tr_incoming_check_detail a
-				JOIN dt_trans_po b ON b.id = a.id_po_detail
-				JOIN tr_purchase_order c ON c.no_po = b.no_po
-				JOIN tr_checked_incoming_detail d ON d.kode_trans = a.kode_trans AND d.id_detail = a.id
-			WHERE
-				a.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "')
-		")->result();
-		foreach ($get_nilai_disc as $item_nilai_disc) {
-			if ($item_nilai_disc->persen_disc_item > 0) {
-				$persen_disc = $item_nilai_disc->persen_disc_item;
-			} else {
-				$persen_disc = $item_nilai_disc->persen_disc_po;
-			}
-
-			$nilai_awal = ($item_nilai_disc->hargasatuan * $item_nilai_disc->qty_oke);
-			$nilai_disc += (($nilai_awal) * $persen_disc / 100);
+		// Diskon Material & Stok (Disederhanakan logikanya)
+		$query_disc = "
+        SELECT d.qty_oke, b.qty, b.hargasatuan, b.hargasatuan_disc, b.harga_total, b.persen_disc as p_item, c.persen_disc as p_po
+        FROM tr_incoming_check_detail a
+        JOIN dt_trans_po b ON b.id = a.id_po_detail
+        JOIN tr_purchase_order c ON c.no_po = b.no_po
+        JOIN tr_checked_incoming_detail d ON d.kode_trans = a.kode_trans AND d.id_detail = a.id
+        WHERE a.kode_trans IN ($in_clause)
+        UNION ALL
+		
+        SELECT a.qty_oke, b.qty, b.hargasatuan, b.hargasatuan_disc, b.harga_total, b.persen_disc, c.persen_disc
+        FROM warehouse_adjustment_detail a
+        JOIN dt_trans_po b ON b.id = a.no_ipp
+        JOIN tr_purchase_order c ON c.no_po = b.no_po
+        JOIN tr_checked_incoming_detail d ON d.kode_trans = a.kode_trans AND d.id_material = a.id_material
+        WHERE a.kode_trans IN ($in_clause)
+    ";
+		$res_disc = $this->db->query($query_disc)->result();
+		foreach ($res_disc as $row) {
+			$p = ($row->p_item > 0) ? $row->p_item : $row->p_po;
+			$disc = $row->hargasatuan - ($row->harga_total / $row->qty);
+			$nilai_disc += $disc * $row->qty_oke;
 		}
 
-		$get_nilai_disc_stok = $this->db->query("
-			SELECT
-				a.qty_oke,
-				b.hargasatuan,
-				b.persen_disc as persen_disc_item,
-				c.persen_disc as persen_disc_po
-			FROM
-				warehouse_adjustment_detail a
-				JOIN dt_trans_po b ON b.id = a.no_ipp
-				JOIN tr_purchase_order c ON c.no_po = b.no_po
-				JOIN tr_checked_incoming_detail d ON d.kode_trans = a.kode_trans AND d.id_material = a.id_material
-			WHERE
-				a.kode_trans IN ('" . str_replace(",", "','", implode(',', $no_incoming)) . "')
-		")->result();
-		foreach ($get_nilai_disc_stok as $item_nilai_disc) {
-			if ($item_nilai_disc->persen_disc_item > 0) {
-				$persen_disc = $item_nilai_disc->persen_disc_item;
-			} else {
-				$persen_disc = $item_nilai_disc->persen_disc_po;
-			}
-
-			$nilai_awal = ($item_nilai_disc->hargasatuan * $item_nilai_disc->qty_oke);
-			$nilai_disc += (($nilai_awal) * $persen_disc / 100);
-		}
-
+		// Jika diskon masih 0, cek diskon Asset
 		if ($nilai_disc <= 0) {
-			$this->db->select('a.qty_oke, c.hargasatuan, c.persen_disc as persen_disc_item, b.persen_disc as persen_disc_po');
-			$this->db->from('warehouse_adjustment_detail a');
-			$this->db->join('tr_purchase_order b', 'b.no_surat = a.no_ipp');
-			$this->db->join('dt_trans_po c', 'c.no_po = b.no_po AND c.namamaterial = a.nm_material', 'left');
-			$this->db->where_in('a.kode_trans', $no_incoming);
-			$get_nilai_disc_asset = $this->db->get()->result();
+			$res_disc_asset = $this->db->select('a.qty_oke, c.hargasatuan, c.persen_disc as p_item, b.persen_disc as p_po')
+				->from('warehouse_adjustment_detail a')
+				->join('tr_purchase_order b', 'b.no_surat = a.no_ipp')
+				->join('dt_trans_po c', 'c.no_po = b.no_po AND c.namamaterial = a.nm_material', 'left')
+				->where_in('a.kode_trans', $no_incoming)
+				->get()->result();
 
-			// print_r($this->db->last_query());
-			// exit;
-
-			foreach ($get_nilai_disc_asset as $item_nilai_disc) {
-				if ($item_nilai_disc->persen_disc_item > 0) {
-					$persen_disc = $item_nilai_disc->persen_disc_item;
-				} else {
-					$persen_disc = $item_nilai_disc->persen_disc_po;
-				}
-
-				$nilai_awal = ($item_nilai_disc->hargasatuan * $item_nilai_disc->qty_oke);
-				$nilai_disc += (($nilai_awal) * $persen_disc / 100);
+			foreach ($res_disc_asset as $row) {
+				$p = ($row->p_item > 0) ? $row->p_item : $row->p_po;
+				$nilai_disc += ($row->hargasatuan * $row->qty_oke * $p / 100);
 			}
 		}
 
-		$base       = ($total_invoice * $kurs_terima_barang) - $uang_muka_idr;
-		$nilai_ppn  = $base * 11 / 111;
-		// $nilai_ppn = ((($total_invoice * $kurs_terima_barang) - $uang_muka_idr) * 11 / 100);
-		if ($ppn_asli <= 0) {
-			$nilai_ppn = 0;
-		}
-		$nilai_req_payment = (($total_invoice * $kurs_terima_barang) + $nilai_ppn - $nilai_disc - $value_dp);
+		// 8. Final Calculation
+		$total_invoice_final = $total_invoice * $kurs_terima_barang;
+		$base = $total_invoice_final - $uang_muka_idr;
+		$nilai_ppn = (11 / 12 * $base) * 12 / 100;
+		// echo '<pre>';
+		// print_r($nilai_ppn);
+		// echo '</pre>';
+		// die();
+		$nilai_req_payment = (($total_invoice_final + $nilai_ppn) - $value_dp);
 
 		$data = [
-			'no_incoming' => $no_incoming,
-			'incoming_no' => $incoming_no,
-			'nm_supplier' => $nm_supplier,
-			'kode_supplier' => $kode_supplier,
-			'currency' => $currency,
-			'value_dp' => $uang_muka_idr,
-			'total_invoice' => ($total_invoice * $kurs_terima_barang),
-			'nilai_disc' => $nilai_disc,
-			'nilai_ppn' => $nilai_ppn,
+			'no_incoming'       => $no_incoming,
+			'incoming_no'       => $incoming_no,
+			'nm_supplier'       => $nm_supplier,
+			'kode_supplier'     => $kode_supplier,
+			'currency'          => $currency,
+			'value_dp'          => $uang_muka_idr,
+			'total_invoice'     => $total_invoice_final,
+			'nilai_disc'        => $nilai_disc,
+			'nilai_ppn'         => $nilai_ppn,
 			'nilai_req_payment' => $nilai_req_payment,
-			'no_po' => $arr_no_po
+			'no_po'             => array_unique($arr_no_po)
 		];
+
+		// Debugging (Hapus baris ini jika sudah OK)
+		// echo '<pre>';
+		// print_r($data);
+		// echo '</pre>';
+		// die();
+
 		$this->template->set('results', $data);
 		$this->template->render('add_inc');
 	}
-
-	// public function list_dp(){
-	// 	$no_po = $this->input->post('no_po');
-
-	// 	$get_po_dp = $this->db->get_where()
-	// }
-
-
 }

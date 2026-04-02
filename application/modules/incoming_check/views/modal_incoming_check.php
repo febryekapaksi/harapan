@@ -368,11 +368,11 @@
 							<td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
 							<td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
 							<td>
-								<input type="hidden" id="debet1" name="debet[]" value="<?= $total_nilai ?>" class="form-control" readonly />
-								<input type="text" id="debet21" name="debet2[]" value="<?= $total_nilai ?>" class="form-control" readonly />
+								<input type="hidden" id="debet1" name="debet[]" value="<?= number_format($total_nilai) ?>" class="form-control text-right" readonly />
+								<input type="text" id="debet21" name="debet2[]" value="<?= number_format($total_nilai) ?>" class="form-control text-right" readonly />
 							</td>
-							<td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
-								<input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+							<td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control text-right" readonly />
+								<input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control text-right" readonly />
 							</td>
 
 						</tr>
@@ -381,11 +381,11 @@
 							<td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
 							<td><input type="text" id="no_coa2" name="no_coa[]" value="2101-01-02" class="form-control" readonly /></td>
 							<td><input type="text" id="nama_coa2" name="nama_coa[]" value="Unbill" class="form-control" readonly /></td>
-							<td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
-								<input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+							<td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control text-right" readonly />
+								<input type="text" id="debet22" name="debet2[]" value="0" class="form-control text-right" readonly />
 							</td>
-							<td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
-								<input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+							<td><input type="hidden" id="kredit2" name="kredit[]" value="<?= number_format($total_nilai) ?>" class="form-control text-right" readonly />
+								<input type="text" id="kredit22" name="kredit2[]" value="<?= number_format($total_nilai) ?>" class="form-control text-right" readonly />
 							</td>
 
 						</tr>
@@ -394,21 +394,21 @@
 							<td><input type="text" id="type3" name="type[]" value="JV" class="form-control" readonly /></td>
 							<td><input type="text" id="no_coa3" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
 							<td><input type="text" id="nama_coa3" name="nama_coa[]" value="Uang Muka Pembelian" class="form-control" readonly /></td>
-							<td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
-								<input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
+							<td><input type="hidden" id="debet3" name="debet[]" value="0" class="form-control text-right" readonly />
+								<input type="text" id="debet23" name="debet2[]" value="0" class="form-control text-right" readonly />
 							</td>
-							<td><input type="hidden" id="kredit3" name="kredit[]" value="<?= $total_nilai ?>" class="form-control" readonly />
-								<input type="text" id="kredit23" name="kredit2[]" value="<?= $total_nilai ?>" class="form-control" readonly />
+							<td><input type="hidden" id="kredit3" name="kredit[]" value="0" class="form-control text-right" readonly />
+								<input type="text" id="kredit23" name="kredit2[]" value="0" class="form-control text-right" readonly />
 							</td>
 
 						</tr>
 						<tr bgcolor='#DCDCDC'>
 							<td colspan="4" align="right"><b>TOTAL</b></td>
-							<td align="right"><input type="hidden" id="total" name="total" value="<?= $total_nilai ?>" class="form-control" readonly />
-								<input type="text" id="total31" name="total3" value="<?= $total_nilai ?>" class="form-control" readonly />
+							<td align="right"><input type="hidden" id="total" name="total" value="<?= number_format($total_nilai) ?>" class="form-control text-right" readonly />
+								<input type="text" id="total31" name="total3" value="<?= number_format($total_nilai) ?>" class="form-control text-right" readonly />
 							</td>
 							<td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
-								<input type="text" id="total41" name="total4" value="<?= $total_nilai ?>" class="form-control" readonly />
+								<input type="text" id="total41" name="total4" value="<?= number_format($total_nilai) ?>" class="form-control text-right" readonly />
 							</td>
 						</tr>
 					</tbody>

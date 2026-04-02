@@ -3213,6 +3213,7 @@ class Incoming_check extends Admin_Controller
 		$this->db->trans_begin();
 
 		$get_detail = $this->db->get_where('tr_incoming_check_detail', ['id' => $data['id']])->row();
+		$get_trans_po = $this->db->get_where('dt_trans_po', ['id' => $get_detail->id_po_detail])->row();
 
 		$this->db->select('a.*, b.code as satuan, c.code as packing');
 		$this->db->from('new_inventory_4 a');
@@ -3244,10 +3245,12 @@ class Incoming_check extends Admin_Controller
 			}
 		}
 
-		$total_harga = 0;
-		$qty_oke = $data['qty_oke'];
-		$harga	= $get_detail->harga;
-		$total_harga = $qty_oke * $harga;
+		$total_harga_after_disc = 0;
+		$qty_oke = $data['qty_oke']; // qty ok dari incoming cek
+		$total_after_disc = $get_trans_po->harga_total; // total harga setelah diskon di detail po
+		$qty_po = $get_trans_po->qty; // qty po dari detail po 
+		$hargasatuan_after_disc = $total_after_disc / $qty_po; // harga satuan setelah diskon dibagi qty po
+		$total_harga_after_disc = $hargasatuan_after_disc * $qty_oke; // total harga setelah diskon dikalikan qty ok
 
 		$this->db->insert('tr_checked_incoming_detail', [
 			'kode_trans' => $data['kode_trans'],
@@ -3258,8 +3261,8 @@ class Incoming_check extends Admin_Controller
 			'qty_order' => $get_detail->qty_order,
 			'unit' => $get_material->satuan,
 			'packing' => $get_material->packing,
-			'harga'		=> $harga,
-			'total_harga'	=> $total_harga,
+			'harga'		=> $hargasatuan_after_disc,
+			'total_harga'	=> $total_harga_after_disc,
 			'qty_ng' => $data['qty_ng'],
 			'qty_oke' => $qty_oke,
 			'qty_pack' => $data['qty_pack'],
@@ -3461,12 +3464,12 @@ class Incoming_check extends Admin_Controller
 			<td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
 			<td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
 			<td>
-				<input type="hidden" id="debet1" name="debet[]" value="' . $total_nilai . '" class="form-control" readonly />
-				<input type="text" id="debet21" name="debet2[]" value="' . $total_nilai . '" class="form-control" readonly />
+				<input type="hidden" id="debet1" name="debet[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
+				<input type="text" id="debet21" name="debet2[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
 			</td>
 			<td>
-				<input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
-				<input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+				<input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control text-right" readonly />
+				<input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control text-right" readonly />
 			</td>
 			</tr>
 			<tr bgcolor="#DCDCDC">
@@ -3475,12 +3478,12 @@ class Incoming_check extends Admin_Controller
 			<td><input type="text" id="no_coa2" name="no_coa[]" value="2101-01-02" class="form-control" readonly /></td>
 			<td><input type="text" id="nama_coa2" name="nama_coa[]" value="Unbill" class="form-control" readonly /></td>
 			<td>
-				<input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
-				<input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+				<input type="hidden" id="debet2" name="debet[]" value="0" class="form-control text-right" readonly />
+				<input type="text" id="debet22" name="debet2[]" value="0" class="form-control text-right" readonly />
 			</td>
 			<td>
-				<input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
-				<input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+				<input type="hidden" id="kredit2" name="kredit[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
+				<input type="text" id="kredit22" name="kredit2[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
 			</td>
 			</tr>
 			<tr bgcolor="#DCDCDC">
@@ -3489,23 +3492,23 @@ class Incoming_check extends Admin_Controller
 			<td><input type="text" id="no_coa3" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
 			<td><input type="text" id="nama_coa3" name="nama_coa[]" value="Uang Muka Pembelian" class="form-control" readonly /></td>
 			<td>
-				<input type="hidden" id="debet3" name="debet[]" value="0" class="form-control" readonly />
-				<input type="text" id="debet23" name="debet2[]" value="0" class="form-control" readonly />
+				<input type="hidden" id="debet3" name="debet[]" value="0" class="form-control text-right" readonly />
+				<input type="text" id="debet23" name="debet2[]" value="0" class="form-control text-right" readonly />
 			</td>
 			<td>
-				<input type="hidden" id="kredit3" name="kredit[]" value="' . $total_nilai . '" class="form-control" readonly />
-				<input type="text" id="kredit23" name="kredit2[]" value="' . $total_nilai . '" class="form-control" readonly />
+				<input type="hidden" id="kredit3" name="kredit[]" value="0" class="form-control text-right" readonly />
+				<input type="text" id="kredit23" name="kredit2[]" value="0" class="form-control text-right" readonly />
 			</td>
 			</tr>
 			<tr bgcolor="#DCDCDC">
 			<td colspan="4" align="right"><b>TOTAL</b></td>
 			<td align="right">
 				<input type="hidden" id="total" name="total" value="" class="form-control" readonly />
-				<input type="text" id="total31" name="total3" value="' . $total_nilai . '" class="form-control" readonly />
+				<input type="text" id="total31" name="total3" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
 			</td>
 			<td align="right">
 				<input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
-				<input type="text" id="total41" name="total4" value="' . $total_nilai . '" class="form-control" readonly />
+				<input type="text" id="total41" name="total4" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
 			</td>
 			</tr>
 		';
