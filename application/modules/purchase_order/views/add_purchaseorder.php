@@ -1503,7 +1503,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 		// SYNC INCLUDE / EXCLUDE
 		// =========================
 		if (source === 'include' && harga_inc > 0) {
-			harga = Math.round(harga_inc / 1.11);
+			harga = harga_inc / 1.11;
 			$("#dt_hargasatuan_" + id).val(number_format(harga, 2));
 		}
 
