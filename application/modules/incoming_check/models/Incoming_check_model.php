@@ -1112,13 +1112,9 @@ class Incoming_check_model extends BF_Model
 
                 // ===== 8A) warehouse_history (hindari double) =====
                 $exists_history = $this->db->get_where('warehouse_history', [
-                    'no_ipp'           => $kode_trans,
-                    'id_gudang'        => 2,
-                    'kd_gudang'        => 'PUS',
-                    'id_gudang_dari'   => 2,
-                    'kd_gudang_dari'   => 'PUS',
-                    'id_gudang_ke'     => 2,
-                    'kd_gudang_ke'     => 'PUS',
+                    'no_ipp'      => $kode_trans,
+                    'id_material' => $id_material,
+                    'id_gudang'   => 2
                 ])->row();
 
                 if (empty($exists_history)) {
@@ -1133,15 +1129,18 @@ class Incoming_check_model extends BF_Model
                         'id_gudang_ke'     => 2,
                         'kd_gudang_ke'     => 'PUS',
                         'qty_stock_awal'   => $qty_stock_awal,
-                        'qty_stock_akhir'  => $qty_stock_awal + $aggr['qty_order'],
+                        'qty_stock_akhir'  => $qty_stock_awal + $qty_in,
                         'no_ipp'           => $kode_trans,
-                        'jumlah_mat'       => $aggr['qty_order'],
-                        'ket'              => 'QC Incoming Check',
+                        'jumlah_mat'       => $qty_in,
+                        'qty_ng'           => $aggr['qty_ng'],
+                        'ket'              => 'QC Incoming Check ' . $label_sumber,
                         'update_by'        => $this->auth->user_id(),
                         'update_date'      => date('Y-m-d H:i:s'),
-                        'qty_ng'           => $aggr['qty_ng'],
                     ]);
-                    if ($this->db->affected_rows() <= 0) throw new Exception('Gagal insert warehouse_history.');
+
+                    if ($this->db->affected_rows() <= 0) {
+                        throw new Exception('Gagal insert warehouse_history.');
+                    }
                 }
 
                 // ===== 8B) Update/insert warehouse_stock + stock_per_day + kartu_stok =====
