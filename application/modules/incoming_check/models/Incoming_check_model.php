@@ -197,41 +197,11 @@ class Incoming_check_model extends BF_Model
 
     public function modal_incoming_check()
     {
-        $kode_trans     = $this->uri->segment(3);
+        $kode_trans         = $this->uri->segment(3);
 
-        //		$result_header		= $this->db->get_where('warehouse_adjustment',array('kode_trans'=>$kode_trans))->result();
-        // $sql_header    = "SELECT a.*,b.id as id_ros, b.no_ros FROM warehouse_adjustment a left join report_of_shipment b on a.no_ros=b.id WHERE a.kode_trans='" . $kode_trans . "' ";
-        $sql_header    = "SELECT a.*, b.no_surat FROM tr_incoming_check a LEFT JOIN tr_purchase_order b ON b.no_po = a.no_ipp WHERE a.kode_trans = '" . $kode_trans . "'";
-        $result_header        = $this->db->query($sql_header)->result();
-        $pembeda = substr($result_header[0]->no_ipp, 0, 1);
+        $sql_header         = "SELECT a.*, b.no_surat FROM tr_incoming_check a LEFT JOIN tr_purchase_order b ON b.no_po = a.no_ipp WHERE a.kode_trans = '" . $kode_trans . "'";
+        $result_header      = $this->db->query($sql_header)->result();
 
-        // if ($pembeda == 'P') {
-        //     $sql     = "	SELECT
-        // 					a.*,
-        // 					b.qty_purchase,
-        // 					b.qty_in,
-        // 					b.satuan,
-        // 					b.id AS id2
-        // 				FROM
-        // 					warehouse_adjustment_detail a
-        // 					LEFT JOIN tran_material_po_detail b ON a.no_ipp=b.no_po AND a.id_po_detail = b.id
-        // 				WHERE
-        // 					a.id_material = b.id_material
-        // 					AND a.kode_trans='" . $kode_trans . "' ";
-        // }
-        // if ($pembeda == 'N') {
-        //     $sql     = "	SELECT
-        // 					a.*,
-        // 					b.qty_purchase,
-        // 					b.qty_in,
-        // 					b.id AS id2
-        // 				FROM
-        // 					warehouse_adjustment_detail a
-        // 					LEFT JOIN tran_material_non_po_detail b ON a.no_ipp=b.no_non_po AND a.id_po_detail = b.id
-        // 				WHERE
-        // 					a.id_material = b.id_material
-        // 					AND a.kode_trans='" . $kode_trans . "' ";
-        // }
         $sql = '
             SELECT 
                 a.*, 
@@ -255,7 +225,6 @@ class Incoming_check_model extends BF_Model
         $this->db->select('d.no_pr, b.hargasatuan');
         $this->db->from('tr_incoming_check_detail a');
         $this->db->join('dt_trans_po b', 'b.id = a.id_po_detail');
-        // $this->db->from('dt_trans_po a');
         $this->db->join('material_planning_base_on_produksi_detail c', 'c.id = b.idpr', 'left');
         $this->db->join('material_planning_base_on_produksi d', 'd.so_number = c.so_number', 'left');
         $this->db->where('a.kode_trans', $kode_trans);
@@ -270,19 +239,32 @@ class Incoming_check_model extends BF_Model
         $no_pr = implode(', ', $arr_no_pr);
 
         $get_summary_incoming = $this->db->select('
-            a.id,
-            a.nm_material,
-            a.qty_order,
-            IF(SUM(b.qty_ng) IS NULL, 0, SUM(b.qty_ng)) AS ttl_qty_ng,
-            IF(SUM(b.qty_oke) IS NULL, 0, SUM(b.qty_oke)) AS ttl_qty_oke,
-            IF(SUM(b.total_harga) IS NULL, 0, SUM(b.total_harga)) AS total_harga,
-            ')
+				a.id,
+				a.nm_material,
+				a.qty_order,
+				g.no_po,
+				h.no_surat,
+				IF(SUM(b.qty_ng) IS NULL, 0, SUM(b.qty_ng)) AS ttl_qty_ng,
+				IF(SUM(b.qty_oke) IS NULL, 0, SUM(b.qty_oke)) AS ttl_qty_oke,
+				IF(SUM(b.total_harga) IS NULL, 0, SUM(b.total_harga)) AS total_harga
+			')
             ->from('tr_incoming_check_detail a')
             ->join('tr_checked_incoming_detail b', 'b.id_detail = a.id', 'left')
+            ->join('dt_trans_po g', 'g.id = a.id_po_detail', 'left')
+            ->join('tr_purchase_order h', 'h.no_po = g.no_po', 'left')
             ->where('a.kode_trans', $kode_trans)
-            ->group_by('a.id_material, a.id')
+            ->group_by('g.no_po, a.id_material, a.id')
             ->get()
             ->result_array();
+
+        $group_po = [];
+        foreach ($get_summary_incoming as $row) {
+            $po = $row['no_surat'];
+            if (!isset($group_po[$po])) {
+                $group_po[$po] = 0;
+            }
+            $group_po[$po] += $row['total_harga'];
+        }
 
         $no_surat = [];
         $get_no_surat = $this->db->query("SELECT no_surat FROM tr_purchase_order WHERE no_po IN ('" . str_replace(",", "','", $result_header[0]->no_ipp) . "')")->result();
@@ -292,21 +274,19 @@ class Incoming_check_model extends BF_Model
         $no_surat = implode(', ', $no_surat);
 
         $data = array(
-            'result_header'     => $result_header,
-            'no_po'     => $result_header[0]->no_ipp,
-            'kode_trans'     => $result_header[0]->kode_trans,
-            'id_header'     => $result_header[0]->id,
-            'gudang_tujuan'     => $result_header[0]->kd_gudang_ke,
-            'id_tujuan'     => $result_header[0]->id_gudang_ke,
-            'dated'     => date('ymdhis', strtotime($result_header[0]->created_date)),
-            'resv'     => date('d F Y', strtotime($result_header[0]->created_date)),
-            'no_pr' => $no_pr,
+            'result_header'         => $result_header,
+            'no_po'                 => $result_header[0]->no_ipp,
+            'kode_trans'            => $result_header[0]->kode_trans,
+            'id_header'             => $result_header[0]->id,
+            'gudang_tujuan'         => $result_header[0]->kd_gudang_ke,
+            'id_tujuan'             => $result_header[0]->id_gudang_ke,
+            'dated'                 => date('ymdhis', strtotime($result_header[0]->created_date)),
+            'resv'                  => date('d F Y', strtotime($result_header[0]->created_date)),
+            'no_pr'                 => $no_pr,
             'file_incoming_material' => $result_header[0]->file_incoming_material,
-            'summary_incoming' => $get_summary_incoming,
-            'no_surat' => $no_surat,
-            // 'id_ros'    => $result_header[0]->id_ros,
-            // 'no_ros'    => $result_header[0]->no_ros,
-            // 'total_freight'    => $result_header[0]->total_freight,
+            'summary_incoming'      => $get_summary_incoming,
+            'no_surat'              => $no_surat,
+            'group_po'              => $group_po,
         );
 
         $this->load->view('modal_incoming_check', $data);
@@ -1132,26 +1112,26 @@ class Incoming_check_model extends BF_Model
 
                 // ===== 8A) warehouse_history (hindari double) =====
                 $exists_history = $this->db->get_where('warehouse_history', [
-                    'no_ipp'         => $kode_trans,
-                    'id_material'    => $id_material,
-                    'id_gudang'      => 1,
-                    'kd_gudang'      => $label_sumber,
-                    'id_gudang_dari' => 1,
-                    'kd_gudang_dari' => $label_sumber,
-                    'id_gudang_ke'   => 1,
-                    'kd_gudang_ke'   => 'GUDANG PUSAT'
+                    'no_ipp'           => $kode_trans,
+                    'id_gudang'        => 2,
+                    'kd_gudang'        => 'PUS',
+                    'id_gudang_dari'   => 2,
+                    'kd_gudang_dari'   => 'PUS',
+                    'id_gudang_ke'     => 2,
+                    'kd_gudang_ke'     => 'PUS',
                 ])->row();
 
                 if (empty($exists_history)) {
                     $this->db->insert('warehouse_history', [
+                        'no_po'            => $no_surat_po,
                         'id_material'      => $id_material,
                         'nm_material'      => $nm_material,
-                        'id_gudang'        => 1,
-                        'kd_gudang'        => $label_sumber,
-                        'id_gudang_dari'   => 1,
-                        'kd_gudang_dari'   => $label_sumber,
-                        'id_gudang_ke'     => 1,
-                        'kd_gudang_ke'     => 'GUDANG PUSAT',
+                        'id_gudang'        => 2,
+                        'kd_gudang'        => 'PUS',
+                        'id_gudang_dari'   => 2,
+                        'kd_gudang_dari'   => 'PUS',
+                        'id_gudang_ke'     => 2,
+                        'kd_gudang_ke'     => 'PUS',
                         'qty_stock_awal'   => $qty_stock_awal,
                         'qty_stock_akhir'  => $qty_stock_awal + $aggr['qty_order'],
                         'no_ipp'           => $kode_trans,
@@ -1357,15 +1337,16 @@ class Incoming_check_model extends BF_Model
             ], ['kode_trans' => $kode_trans]);
 
             // ===== 10) JURNAL (JV) + kartu hutang =====
-            // Catatan: kamu pakai debet[0] sebagai total. Saya amankan.
             $tgl_inv = date('Y-m-d');
-            $keterangan = "incoming atas po nomor " . $no_po;
+            $keterangan = "incoming atas po nomor " . $no_surat;
 
-            $debetArr = $this->input->post('debet');
+            $debetArr = str_replace(',', '', $this->input->post('debet'));
+            $kreditArr = str_replace(',', '', $this->input->post('kredit'));
             $typeArr  = $this->input->post('type');
+            $ketArr  = $this->input->post('nama_coa');
+            $reffArr  = $this->input->post('no_reff');
             $coaArr   = $this->input->post('no_coa');
             $tglJArr  = $this->input->post('tgl_jurnal');
-            $kreditArr = $this->input->post('kredit');
 
             $total = 0;
             if (is_array($debetArr) && isset($debetArr[0])) {
@@ -1404,10 +1385,10 @@ class Incoming_check_model extends BF_Model
                         'nomor'        => $Nomor_JV,
                         'tanggal'      => $tglJArr[$i] ?? $tgl_inv,
                         'no_perkiraan' => $coaArr[$i] ?? '',
-                        'keterangan'   => $keterangan,
-                        'no_reff'      => $no_po,
-                        'debet'        => (float) round($debetArr[$i] ?? 0),
-                        'kredit'       => (float) round($kreditArr[$i] ?? 0),
+                        'keterangan'   => $ketArr[$i],
+                        'no_reff'      => $kode_trans,
+                        'debet'        => $debetArr[$i],
+                        'kredit'       => $kreditArr[$i],
                         'created_by'   => $this->auth->user_id(),
                         'created_on'   => date('Y-m-d H:i:s')
                     ];
@@ -1424,7 +1405,7 @@ class Incoming_check_model extends BF_Model
                     'tanggal'       => $tgl_inv,
                     'no_perkiraan'  => '1102-01-01',
                     'keterangan'    => $keterangan,
-                    'no_reff'       => $no_po,
+                    'no_reff'       => $no_surat,
                     'debet'         => 0,
                     'kredit'        => $total,
                     'id_supplier'   => $supplier_from_po['id'],
