@@ -3295,7 +3295,7 @@ class Incoming_check extends Admin_Controller
 		$get_no_surat = $this->db->select('no_surat')->get_where('tr_purchase_order', ['no_po' => $no_ipp])->row();
 
 		$sql = '
-            SELECT 
+	        SELECT 
 					a.*, 
 					b.konversi,
 					c.code as satuan,
@@ -3405,17 +3405,21 @@ class Incoming_check extends Admin_Controller
 		endforeach;
 
 		$get_summary_incoming = $this->db->select('
-			a.id,    
-			a.nm_material,
-            a.qty_order,
-            IF(SUM(b.qty_ng) IS NULL, 0, SUM(b.qty_ng)) AS ttl_qty_ng,
-            IF(SUM(b.qty_oke) IS NULL, 0, SUM(b.qty_oke)) AS ttl_qty_oke,
-            IF(SUM(b.total_harga) IS NULL, 0, SUM(b.total_harga)) AS total_harga,
-        ')
+				a.id,
+				a.nm_material,
+				a.qty_order,
+				g.no_po,
+				h.no_surat,
+				IF(SUM(b.qty_ng) IS NULL, 0, SUM(b.qty_ng)) AS ttl_qty_ng,
+				IF(SUM(b.qty_oke) IS NULL, 0, SUM(b.qty_oke)) AS ttl_qty_oke,
+				IF(SUM(b.total_harga) IS NULL, 0, SUM(b.total_harga)) AS total_harga
+			')
 			->from('tr_incoming_check_detail a')
 			->join('tr_checked_incoming_detail b', 'b.id_detail = a.id', 'left')
+			->join('dt_trans_po g', 'g.id = a.id_po_detail', 'left')
+			->join('tr_purchase_order h', 'h.no_po = g.no_po', 'left')
 			->where('a.kode_trans', $kode_trans)
-			->group_by('a.id_material, a.id')
+			->group_by('g.no_po, a.id_material, a.id')
 			->get()
 			->result_array();
 
@@ -3457,62 +3461,79 @@ class Incoming_check extends Admin_Controller
 			</tr>
 		';
 
-		$hasil4 = '
-			<tr bgcolor="#DCDCDC">
-			<td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="' . date('Y-m-d') . '" class="form-control" readonly /></td>
-			<td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
-			<td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
-			<td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
-			<td>
-				<input type="hidden" id="debet1" name="debet[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
-				<input type="text" id="debet21" name="debet2[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
-			</td>
-			<td>
-				<input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control text-right" readonly />
-				<input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control text-right" readonly />
-			</td>
-			</tr>
-			<tr bgcolor="#DCDCDC">
-			<td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="' . date('Y-m-d') . '" class="form-control" readonly /></td>
-			<td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
-			<td><input type="text" id="no_coa2" name="no_coa[]" value="2101-01-02" class="form-control" readonly /></td>
-			<td><input type="text" id="nama_coa2" name="nama_coa[]" value="Unbill" class="form-control" readonly /></td>
-			<td>
-				<input type="hidden" id="debet2" name="debet[]" value="0" class="form-control text-right" readonly />
-				<input type="text" id="debet22" name="debet2[]" value="0" class="form-control text-right" readonly />
-			</td>
-			<td>
-				<input type="hidden" id="kredit2" name="kredit[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
-				<input type="text" id="kredit22" name="kredit2[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
-			</td>
-			</tr>
-			<tr bgcolor="#DCDCDC">
-			<td><input type="date" id="tgl_jurnal3" name="tgl_jurnal[]" value="' . date('Y-m-d') . '" class="form-control" readonly /></td>
-			<td><input type="text" id="type3" name="type[]" value="JV" class="form-control" readonly /></td>
-			<td><input type="text" id="no_coa3" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
-			<td><input type="text" id="nama_coa3" name="nama_coa[]" value="Uang Muka Pembelian" class="form-control" readonly /></td>
-			<td>
-				<input type="hidden" id="debet3" name="debet[]" value="0" class="form-control text-right" readonly />
-				<input type="text" id="debet23" name="debet2[]" value="0" class="form-control text-right" readonly />
-			</td>
-			<td>
-				<input type="hidden" id="kredit3" name="kredit[]" value="0" class="form-control text-right" readonly />
-				<input type="text" id="kredit23" name="kredit2[]" value="0" class="form-control text-right" readonly />
-			</td>
-			</tr>
-			<tr bgcolor="#DCDCDC">
-			<td colspan="4" align="right"><b>TOTAL</b></td>
-			<td align="right">
-				<input type="hidden" id="total" name="total" value="" class="form-control" readonly />
-				<input type="text" id="total31" name="total3" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
-			</td>
-			<td align="right">
-				<input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
-				<input type="text" id="total41" name="total4" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly />
-			</td>
-			</tr>
-		';
+		$group_po = [];
+		foreach ($get_summary_incoming as $row) {
+			$po = $row['no_surat'];
+			if (!isset($group_po[$po])) {
+				$group_po[$po] = 0;
+			}
+			$group_po[$po] += $row['total_harga'];
+		}
 
+		$hasil4 = '';
+		// =====================
+		// 1. PERSEDIAAN (GLOBAL)
+		// =====================
+		$hasil4 .= '
+			<tr bgcolor="#DCDCDC">
+				<td><input type="date" name="tgl_jurnal[]" value="' . date('Y-m-d') . '" class="form-control" readonly /></td>
+				<td><input type="text" name="type[]" value="JV" class="form-control" readonly /></td>
+				<td><input type="text" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
+				<td>
+					<input type="text" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly />
+					<input type="hidden" name="no_reff[]" value="" />
+				</td>
+				<td><input type="text" name="debet[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly /></td>
+				<td><input type="text" name="kredit[]" value="0" class="form-control text-right" readonly /></td>
+			</tr>
+			';
+
+		// =====================
+		// 2. UNBILL (PER PO)
+		// =====================
+		foreach ($group_po as $po => $nilai_po) {
+			$hasil4 .= '
+				<tr bgcolor="#DCDCDC">
+					<td><input type="date" name="tgl_jurnal[]" value="' . date('Y-m-d') . '" class="form-control" readonly /></td>
+					<td><input type="text" name="type[]" value="JV" class="form-control" readonly /></td>
+					<td><input type="text" name="no_coa[]" value="2101-01-02" class="form-control" readonly /></td>
+					<td>
+						<input type="text" name="nama_coa[]" value="Unbill (' . $po . ')" class="form-control" readonly />
+						<input type="hidden" name="no_reff[]" value="' . $po . '" />
+					</td>
+					<td><input type="text" name="debet[]" value="0" class="form-control text-right" readonly /></td>
+					<td><input type="text" name="kredit[]" value="' . number_format($nilai_po) . '" class="form-control text-right" readonly /></td>
+				</tr>
+				';
+		}
+
+		// =====================
+		// 3. UANG MUKA (GLOBAL)
+		// =====================
+		$hasil4 .= '
+			<tr bgcolor="#DCDCDC">
+				<td><input type="date" name="tgl_jurnal[]" value="' . date('Y-m-d') . '" class="form-control" readonly /></td>
+				<td><input type="text" name="type[]" value="JV" class="form-control" readonly /></td>
+				<td><input type="text" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
+				<td>
+					<input type="text" name="nama_coa[]" value="Uang Muka Pembelian" class="form-control" readonly />
+					<input type="hidden" name="no_reff[]" value="" />
+				</td>
+				<td><input type="text" name="debet[]" value="0" class="form-control text-right" readonly /></td>
+				<td><input type="text" name="kredit[]" value="0" class="form-control text-right" readonly /></td>
+			</tr>
+			';
+
+		// =====================
+		// 4. TOTAL
+		// =====================
+		$hasil4 .= '
+			<tr bgcolor="#DCDCDC">
+				<td colspan="4" align="right"><b>TOTAL</b></td>
+				<td><input type="text" name="total_debet" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly /></td>
+				<td><input type="text" name="total_kredit" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly /></td>
+			</tr>
+			';
 
 		echo json_encode([
 			'hasil' => $hasil,

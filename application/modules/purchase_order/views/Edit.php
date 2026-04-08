@@ -395,7 +395,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 											<input readonly type="text" class="form-control text-right" id="subtotal" value="<?= number_format($results['get_po']->hargatotal) ?>" onkeyup required name="subtotal">
 										</td>
 									</tr>
-									<tr>
+									<tr hidden>
 										<td class="text-right" colspan="9"><b>Diskon Khusus</b></th>
 										<td colspan="2">
 											<input type="text" class="form-control text-right auto_num" id="diskonkhusus" value="<?= number_format($results['get_po']->diskon_khusus) ?>" onblur="updateGlobal()" name="diskonkhusus">
@@ -421,7 +421,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 											<input readonly type="text" class="form-control auto_num text-right" id="ppn" value="<?= number_format($results['get_po']->total_ppn) ?>" onkeyup required name="ppn">
 										</td>
 									</tr>
-									<tr>
+									<tr hidden>
 										<td class="text-right" colspan="9"><b>Biaya Kirim</b></td>
 										<td colspan="2">
 											<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
