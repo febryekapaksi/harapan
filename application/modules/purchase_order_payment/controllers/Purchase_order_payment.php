@@ -382,10 +382,6 @@ class Purchase_order_payment extends Admin_Controller
 	public function save_invoice()
 	{
 		$post = $this->input->post();
-		echo '<pre>';
-		print_r($post);
-		echo '</pre>';
-		die();
 
 		$config['upload_path'] = './uploads/invoice'; //path folder
 		$config['allowed_types'] = '*'; //type yang dapat diakses bisa anda sesuaikan
@@ -721,11 +717,7 @@ class Purchase_order_payment extends Admin_Controller
 			}
 		} else {
 			$clean_no_po = str_replace(', ', ',', $post['nomor_po']);
-			// if ($post['tipe_incoming'] == 'incoming material') {
-			// 	$this->db->update('tr_incoming_check', ['inc_inv_create' => 1], ['kode_trans' => $post['nomor_po']]);
-			// } else {
-			// 	$this->db->update('warehouse_adjustment', ['inc_inv_create' => 1], ['kode_trans' => $post['nomor_po']]);
-			// }
+
 			$update_incoming = $this->db->where_in('kode_trans', explode(',', $clean_no_po));
 			$update_incoming = $this->db->update('tr_incoming_check', ['inc_inv_create' => 1]);
 			if (!$update_incoming) {
@@ -795,29 +787,22 @@ class Purchase_order_payment extends Admin_Controller
 
 		$datajurnal1 = $this->db->query("select * from " . DBACC . ".master_oto_jurnal_detail where kode_master_jurnal='" . $jenis_jurnal . "' order by parameter_no")->result();
 
-		$data_po     = $this->db->query("select * from tr_purchase_order WHERE no_surat='$no_po'")->row();
-
-		$unbill      = $data_po->hutang_idr;
-		$kurs_unbill = $data_po->kurs_terima_barang;
-		$kurs_um     = $data_po->kurs_terima_invoice;
-		$um          = $data_po->uang_muka;
-		$umidr       = $data_po->uang_muka_idr;
-		if ($data_po->matauang == 'IDR') {
-			$kurs_unbill = 1;
-			$kurs_um = 1;
-		}
-
-		$selisih_um  = (($total_pembelian) - ($unbill - $umidr));
-
-		if ($selisih_um < 0) {
-			$selisihdebet  = 0;
-			$selisihkredit = $selisih_um * (-1);
-		} elseif ($selisih_um > 0) {
-			$selisihdebet  = $selisih_um;
-			$selisihkredit = 0;
-		}
-
 		$nilai_incoming = $total_pembelian;
+
+		$kode_trans = $clean_no_po;
+		$data_incoming = $this->db->select('
+        g.no_po,
+        h.no_surat,
+        SUM(b.total_harga) as total_harga
+    	')
+			->from('tr_incoming_check_detail a')
+			->join('tr_checked_incoming_detail b', 'b.id_detail = a.id', 'left')
+			->join('dt_trans_po g', 'g.id = a.id_po_detail', 'left')
+			->join('tr_purchase_order h', 'h.no_po = g.no_po', 'left')
+			->where('a.kode_trans', $kode_trans)
+			->group_by('g.no_po')
+			->get()
+			->result();
 
 		$nomor_jurnal = $jenis_jurnal . $no_po . rand(100, 999);
 		$payment_date = $post['invoice_date']; //date("Y-m-d");
@@ -885,22 +870,27 @@ class Purchase_order_payment extends Admin_Controller
 				foreach ($datajurnal1 as $rec) {
 					if ($rec->parameter_no == "1") {
 
-						$det_Jurnaltes1[] = array(
-							'nomor' => $nomor_jurnal,
-							'tanggal' => $payment_date,
-							'tipe' => 'JV',
-							'no_perkiraan' => $rec->no_perkiraan,
-							'keterangan' => 'Receive Invoice' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
-							'no_reff' => $post['nomor_invoice'],
-							'debet' => $nilai_incoming,
-							'kredit' => 0,
-							'no_request' => $post['nomor_po'],
-							'jenis_jurnal' => $jenis_jurnal,
-							'nocust' => $kode_supplier,
-							'stspos' => '1'
-						);
-						$totalunbill = $unbill;
-						$coaunbill = $rec->no_perkiraan;
+						foreach ($data_incoming as $row) {
+
+							if ($row->total_harga <= 0) continue;
+
+							$det_Jurnaltes1[] = array(
+								'nomor'        => $nomor_jurnal,
+								'tanggal'      => $payment_date,
+								'tipe'         => 'JV',
+								'no_perkiraan' => $rec->no_perkiraan,
+								'keterangan'   => 'Receive Invoice PO ' . $row->no_surat . ' dari Incoming ' . $kode_trans . ', Sup:' . $nama,
+								'no_reff'      => $row->no_surat,
+								'debet'        => $row->total_harga,
+								'kredit'       => 0,
+								'no_request'   => $row->no_po,
+								'jenis_jurnal' => $jenis_jurnal,
+								'nocust'       => $kode_supplier,
+								'stspos'       => '1'
+							);
+							$coaunbill = $rec->no_perkiraan;
+							$totalunbill += $row->total_harga;
+						}
 					}
 					if ($rec->parameter_no == "2") {
 						$det_Jurnaltes1[] = array(
@@ -908,7 +898,7 @@ class Purchase_order_payment extends Admin_Controller
 							'tanggal' => $payment_date,
 							'tipe' => 'JV',
 							'no_perkiraan' => $rec->no_perkiraan,
-							'keterangan' => 'Receive Invoice' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
+							'keterangan' => 'Receive Invoice Incoming ' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
 							'no_reff' => $post['nomor_invoice'],
 							'debet' => $nilai_ppn,
 							'kredit' => 0,
@@ -917,8 +907,6 @@ class Purchase_order_payment extends Admin_Controller
 							'nocust' => $kode_supplier,
 							'stspos' => '1'
 						);
-						$totalap = $nilai_incoming;
-						$coaap = $rec->no_perkiraan;
 					}
 					if ($rec->parameter_no == "3") {
 						$det_Jurnaltes1[] = array(
@@ -926,7 +914,7 @@ class Purchase_order_payment extends Admin_Controller
 							'tanggal' => $payment_date,
 							'tipe' => 'JV',
 							'no_perkiraan' => $rec->no_perkiraan,
-							'keterangan' => 'Receive Invoice' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
+							'keterangan' => 'Receive Invoice Incoming ' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
 							'no_reff' => $post['nomor_invoice'],
 							'debet' => 0,
 							'kredit' => $nilai_incoming + $nilai_ppn,
@@ -935,41 +923,43 @@ class Purchase_order_payment extends Admin_Controller
 							'nocust' => $kode_supplier,
 							'stspos' => '1'
 						);
+						$totalap = $nilai_incoming + $nilai_ppn;
+						$coaap = $rec->no_perkiraan;
 					}
 
-					//gadipake 
-					if ($rec->parameter_no == "4") {
-						$det_Jurnaltes1[] = array(
-							'nomor' => $nomor_jurnal,
-							'tanggal' => $payment_date,
-							'tipe' => 'JV',
-							'no_perkiraan' => $rec->no_perkiraan,
-							'keterangan' => 'PO ' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
-							'no_reff' => $post['nomor_invoice'],
-							'debet' => 0,
-							'kredit' => $umidr,
-							'no_request' => $post['nomor_po'],
-							'jenis_jurnal' => $jenis_jurnal,
-							'nocust' => $kode_supplier,
-							'stspos' => '1'
-						);
-					}
-					if ($rec->parameter_no == "5") {
-						$det_Jurnaltes1[] = array(
-							'nomor' => $nomor_jurnal,
-							'tanggal' => $payment_date,
-							'tipe' => 'JV',
-							'no_perkiraan' => $rec->no_perkiraan,
-							'keterangan' => 'PO ' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
-							'no_reff' => $post['nomor_invoice'],
-							'debet' => $selisihdebet,
-							'kredit' => $selisihkredit,
-							'no_request' => $post['nomor_po'],
-							'jenis_jurnal' => $jenis_jurnal,
-							'nocust' => $kode_supplier,
-							'stspos' => '1'
-						);
-					}
+					// //gadipake 
+					// if ($rec->parameter_no == "4") {
+					// 	$det_Jurnaltes1[] = array(
+					// 		'nomor' => $nomor_jurnal,
+					// 		'tanggal' => $payment_date,
+					// 		'tipe' => 'JV',
+					// 		'no_perkiraan' => $rec->no_perkiraan,
+					// 		'keterangan' => 'PO ' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
+					// 		'no_reff' => $post['nomor_invoice'],
+					// 		'debet' => 0,
+					// 		'kredit' => $umidr,
+					// 		'no_request' => $post['nomor_po'],
+					// 		'jenis_jurnal' => $jenis_jurnal,
+					// 		'nocust' => $kode_supplier,
+					// 		'stspos' => '1'
+					// 	);
+					// }
+					// if ($rec->parameter_no == "5") {
+					// 	$det_Jurnaltes1[] = array(
+					// 		'nomor' => $nomor_jurnal,
+					// 		'tanggal' => $payment_date,
+					// 		'tipe' => 'JV',
+					// 		'no_perkiraan' => $rec->no_perkiraan,
+					// 		'keterangan' => 'PO ' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
+					// 		'no_reff' => $post['nomor_invoice'],
+					// 		'debet' => $selisihdebet,
+					// 		'kredit' => $selisihkredit,
+					// 		'no_request' => $post['nomor_po'],
+					// 		'jenis_jurnal' => $jenis_jurnal,
+					// 		'nocust' => $kode_supplier,
+					// 		'stspos' => '1'
+					// 	);
+					// }
 				}
 			}
 		}
@@ -1024,33 +1014,40 @@ class Purchase_order_payment extends Admin_Controller
 			print_r($this->db->error($insert_javh));
 			exit;
 		}
-		$datahutang = array(
-			'tipe'       	 => 'JV',
-			'nomor'       	 => $Nomor_JV,
-			'tanggal'        => $tanggal,
-			'no_perkiraan'   => $coaunbill,
-			'keterangan'     => $keterangan,
-			'no_reff'     	 => $post['nomor_po'],
-			'kredit'      	 => 0,
-			'debet'          => $totalunbill,
-			'id_supplier'    => $kode_supplier,
-			'nama_supplier'  => $nama,
-			'no_request'     => $post['nomor_invoice'],
-		);
-		$insert_kartu_hutang = $this->db->insert('tr_kartu_hutang', $datahutang);
-		if (!$insert_kartu_hutang) {
-			print_r($this->db->error($insert_kartu_hutang));
-			exit;
+
+		//KARTU HUTANG
+		//A.UNBILL PO
+		foreach ($data_incoming as $row) {
+			if ($row->total_harga <= 0) continue;
+			$dataunbill = array(
+				'tipe'       	 => 'JV',
+				'nomor'       	 => $Nomor_JV,
+				'tanggal'        => $tanggal,
+				'no_perkiraan'   => $coaunbill,
+				'keterangan'     => 'Unbil PO ' . $row->no_surat . '; ' . $keterangan . ' dari Incoming ' . $kode_trans,
+				'no_reff'     	 => $row->no_surat,
+				'debet'          => $row->total_harga,
+				'kredit'      	 => 0,
+				'id_supplier'    => $kode_supplier,
+				'nama_supplier'  => $nama,
+				'no_request'     => $post['nomor_invoice'],
+			);
+			$insert_kartu_hutang = $this->db->insert('tr_kartu_hutang', $dataunbill);
+			if (!$insert_kartu_hutang) {
+				print_r($this->db->error($insert_kartu_hutang));
+				exit;
+			}
 		}
+		//B. TOTAL HUTANG
 		$datahutang = array(
 			'tipe'       	 => 'JV',
 			'nomor'       	 => $Nomor_JV,
 			'tanggal'        => $tanggal,
 			'no_perkiraan'   => $coaap,
 			'keterangan'     => $keterangan,
-			'no_reff'     	 => $post['nomor_po'],
-			'kredit'      	 => $totalap,
+			'no_reff'     	 => $kode_trans,
 			'debet'          => 0,
+			'kredit'      	 => $totalap,
 			'id_supplier'    => $kode_supplier,
 			'nama_supplier'  => $nama,
 			'no_request'     => $post['nomor_invoice'],

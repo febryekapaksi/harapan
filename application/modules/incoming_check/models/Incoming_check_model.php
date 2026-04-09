@@ -1111,6 +1111,9 @@ class Incoming_check_model extends BF_Model
                 $label_sumber = trim($no_surat_po . ' | ' . $supplier_nm);
 
                 // ===== 8A) warehouse_history (hindari double) =====
+                $qty_in = (float)$aggr['qty_oke'];
+                $harga_in = (float)$aggr['harga'];
+
                 $exists_history = $this->db->get_where('warehouse_history', [
                     'no_ipp'      => $kode_trans,
                     'id_material' => $id_material,
@@ -1337,7 +1340,7 @@ class Incoming_check_model extends BF_Model
 
             // ===== 10) JURNAL (JV) + kartu hutang =====
             $tgl_inv = date('Y-m-d');
-            $keterangan = "incoming atas po nomor " . $no_surat;
+            $keterangan = "Incoming atas PO nomor " . $no_surat;
 
             $debetArr = str_replace(',', '', $this->input->post('debet'));
             $kreditArr = str_replace(',', '', $this->input->post('kredit'));
@@ -1397,20 +1400,44 @@ class Incoming_check_model extends BF_Model
 
                 $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'");
 
-                // kartu hutang
-                $datahutang = [
-                    'tipe'          => 'JV',
-                    'nomor'         => $Nomor_JV,
-                    'tanggal'       => $tgl_inv,
-                    'no_perkiraan'  => '1102-01-01',
-                    'keterangan'    => $keterangan,
-                    'no_reff'       => $no_surat,
-                    'debet'         => 0,
-                    'kredit'        => $total,
-                    'id_supplier'   => $supplier_from_po['id'],
-                    'nama_supplier' => $supplier_from_po['nama'],
-                ];
-                $this->db->insert('tr_kartu_hutang', $datahutang);
+                // KARTU HUTANG UNBILL per PO
+                $data_incoming = $this->db->select('
+                    g.no_po,
+                    h.no_surat,
+                    h.id_suplier,
+                    n.nama,
+                    SUM(b.total_harga) as total_harga
+                    ')
+                    ->from('tr_incoming_check_detail a')
+                    ->join('tr_checked_incoming_detail b', 'b.id_detail = a.id', 'left')
+                    ->join('dt_trans_po g', 'g.id = a.id_po_detail', 'left')
+                    ->join('tr_purchase_order h', 'h.no_po = g.no_po', 'left')
+                    ->join('new_supplier n', 'n.kode_supplier = h.id_suplier', 'left')
+                    ->where('a.kode_trans', $kode_trans)
+                    ->group_by('g.no_po')
+                    ->get()
+                    ->result();
+
+                foreach ($data_incoming as $row) {
+                    if ($row->total_harga <= 0) continue;
+                    $datahutang = [
+                        'tipe'          => 'JV',
+                        'nomor'         => $Nomor_JV,
+                        'tanggal'       => $tgl_inv,
+                        'no_perkiraan'  => '2101-01-02',
+                        'keterangan'    => 'Unbill PO ' . $row->no_surat . ' atas Incoming ' . $kode_trans,
+                        'no_reff'       => $row->no_surat,
+                        'debet'         => 0,
+                        'kredit'        => $row->total_harga,
+                        'id_supplier'   => $row->id_suplier,
+                        'nama_supplier' => $row->nama,
+                    ];
+                    $insert_kartu_hutang = $this->db->insert('tr_kartu_hutang', $datahutang);
+                    if (!$insert_kartu_hutang) {
+                        print_r($this->db->error($insert_kartu_hutang));
+                        exit;
+                    }
+                }
             }
 
             // ===== 11) Final commit =====

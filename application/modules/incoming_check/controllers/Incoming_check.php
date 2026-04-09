@@ -3481,7 +3481,7 @@ class Incoming_check extends Admin_Controller
 				<td><input type="text" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
 				<td>
 					<input type="text" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly />
-					<input type="hidden" name="no_reff[]" value="" />
+					<input type="hidden" name="no_reff[]" value="' . $kode_trans . '" />
 				</td>
 				<td><input type="text" name="debet[]" value="' . number_format($total_nilai) . '" class="form-control text-right" readonly /></td>
 				<td><input type="text" name="kredit[]" value="0" class="form-control text-right" readonly /></td>
@@ -3498,7 +3498,7 @@ class Incoming_check extends Admin_Controller
 					<td><input type="text" name="type[]" value="JV" class="form-control" readonly /></td>
 					<td><input type="text" name="no_coa[]" value="2101-01-02" class="form-control" readonly /></td>
 					<td>
-						<input type="text" name="nama_coa[]" value="Unbill (' . $po . ')" class="form-control" readonly />
+						<input type="text" name="nama_coa[]" value="Unbill ' . $po . ' atas Incoming ' . $kode_trans . '" class="form-control" readonly />
 						<input type="hidden" name="no_reff[]" value="' . $po . '" />
 					</td>
 					<td><input type="text" name="debet[]" value="0" class="form-control text-right" readonly /></td>
@@ -3517,7 +3517,7 @@ class Incoming_check extends Admin_Controller
 				<td><input type="text" name="no_coa[]" value="1103-01-01" class="form-control" readonly /></td>
 				<td>
 					<input type="text" name="nama_coa[]" value="Uang Muka Pembelian" class="form-control" readonly />
-					<input type="hidden" name="no_reff[]" value="" />
+					<input type="hidden" name="no_reff[]" value="' . $kode_trans . '" />
 				</td>
 				<td><input type="text" name="debet[]" value="0" class="form-control text-right" readonly /></td>
 				<td><input type="text" name="kredit[]" value="0" class="form-control text-right" readonly /></td>
