@@ -482,8 +482,8 @@ class Pembayaran_material_model extends BF_Model
 
 					if ($amount_po > 0) {
 						$addRow(
-							'2104-01-01',
-							'Hutang Pembelian Belum Ditagih',
+							'2101-01-01',
+							'Hutang Dagang',
 							$informasi,
 							$amount_po,
 							0
@@ -491,7 +491,7 @@ class Pembayaran_material_model extends BF_Model
 
 						$ttl_debit       += $amount_po;
 						$total_bank_main += $amount_po;
-						$ket_bank[]       = 'PO/Inv via Expense ' . $item_payment->no_doc;
+						$ket_bank[]       = 'PO/Inv ' . $item_payment->no_doc;
 					}
 
 					// NOTE: Bagian "pr depart" di code kamu panjang dan belum ada emit jurnal.
