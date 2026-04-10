@@ -302,7 +302,7 @@ $terbilang = function_exists('rupiah_to_words')
                     </tr>
                     <tr>
                         <td class="text-left"><strong>Total Order</strong></td>
-                        <td class="text-right"><strong><?= fmt2($header->total_include_ppn) ?></strong></td>
+                        <td class="text-right"><strong><?= number_format($header->total_include_ppn) ?></strong></td>
                     </tr>
                 </table>
             </td>

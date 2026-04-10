@@ -79,7 +79,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="">Total Invoice</label>
-            <input type="text" name="total_invoice" id="" class="form-control form-control-sm text-right total_invoice auto_num" value="<?= number_format($results['nilai_req_payment'], 2) ?>" required>
+            <input type="text" name="total_invoice" id="" class="form-control form-control-sm text-right total_invoice auto_num" value="<?= number_format($results['nilai_req_payment']) ?>" required>
         </div>
     </div>
     <div class="col-md-6">
@@ -110,7 +110,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="">Invoice Date</label>
-            <input type="date" name="invoice_date_real" id="" class="form-control form-control-sm invoice_date_real">
+            <input type="date" name="invoice_date_real" id="" class="form-control form-control-sm invoice_date_real" required>
         </div>
     </div>
     <div class="col-md-6">
@@ -122,7 +122,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="">Tanggal Faktur Pajak</label>
-            <input type="date" name="tanggal_faktur_pajak" id="" class="form-control form-control-sm tanggal_faktur_pajak">
+            <input type="date" name="tanggal_faktur_pajak" id="" class="form-control form-control-sm tanggal_faktur_pajak" required>
         </div>
     </div>
     <div class="col-md-6">
