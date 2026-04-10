@@ -185,6 +185,10 @@
         return jqXHR.responseText;
     }
 
+    $(document).on('change', '.check_invoice', function() {
+        $('.check_invoice').not(this).prop('checked', false);
+    });
+
     $(document).on('click', '.check_invoice', function() {
         var kode_trans = $(this).data('kode_trans');
         var tipe_incoming = $(this).data('tipe_incoming');
