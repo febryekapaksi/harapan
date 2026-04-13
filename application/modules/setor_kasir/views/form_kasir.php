@@ -27,7 +27,7 @@
                                 <label>Pilih Bank <span class="text-red">*</span></label>
                             </div>
                             <div class="col-md-8">
-                                <select class="form-control select2" name="bank" id="bank">
+                                <select class="form-control select2" name="bank" id="bank" required>
                                     <option value="">Pilih</option>
                                     <?php foreach ($bank as $b) : ?>
                                         <option value="<?= $b->no_perkiraan ?>" data-rekening="<?= $b->no_perkiraan ?>" data-nama="<?= $b->nama; ?>">
@@ -199,7 +199,7 @@
                             </tr>
 
                             <tr bgcolor='#DCDCDC'>
-                                <td colspan="3" align="right"><b>TOTAL</b></td>
+                                <td colspan="4" align="right"><b>TOTAL</b></td>
                                 <td align="right"><input type="hidden" id="total" name="total" value="0" class="form-control" readonly />
                                     <input type="text" id="total31" name="total3" value="0" class="form-control" readonly />
                                 </td>
