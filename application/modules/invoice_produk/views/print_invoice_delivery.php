@@ -207,12 +207,6 @@
     <!-- Total -->
     <br>
     <table>
-        <?php
-        $vat = $invoice->nilai_ppn;
-        $dpp = ($total);
-        $total_all = $dpp + $vat;
-        $total_tagihan = $total_all;
-        ?>
         <tr>
             <td width="10%">Terbilang</td>
             <td width="35%"><strong><em><?= ucfirst(rupiah_to_words($invoice->nilai_invoice)) ?> Rupiah</em></strong></td>
@@ -237,7 +231,7 @@
         <tr>
             <td rowspan="2" class="text-center">BCA : 001-07-49-611</td>
             <td class="text-right">PPn (12%)</td>
-            <td class="text-right"><?= number_format($vat, 2) ?></td>
+            <td class="text-right"><?= number_format($invoice->nilai_ppn, 2) ?></td>
         </tr>
         <!-- <tr>
             <td class="text-right">Subtotal</td>
