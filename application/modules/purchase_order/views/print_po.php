@@ -247,7 +247,7 @@ $terbilang = function_exists('rupiah_to_words')
                 $code  = $r->code ?? '';
                 $desc  = trim(($r->nama ?? $r->namamaterial ?? '') . ($r->description ? ' ' . $r->description : ''));
                 $qty   = (float)($r->qty ?? 0);
-                $price = (float)($r->hargasatuan ?? 0);
+                $price = (float)($r->hargasatuan_include ?? 0);
                 $discP = (float)($r->diskon_persen ?? 0);
                 $line  = $qty * $price;
                 $discA = $line * $discP / 100;
@@ -286,7 +286,7 @@ $terbilang = function_exists('rupiah_to_words')
                 <table>
                     <tr>
                         <td class="text-left" style="width:50%;">Sub Total</td>
-                        <td class="text-right" style="width:50%;"><?= fmt2($subtotal) ?></td>
+                        <td class="text-right" style="width:50%;"><?= number_format($header->total_include_ppn, 2) ?></td>
                     </tr>
                     <tr>
                         <td class="text-left">Diskon</td>
@@ -302,7 +302,7 @@ $terbilang = function_exists('rupiah_to_words')
                     </tr>
                     <tr>
                         <td class="text-left"><strong>Total Order</strong></td>
-                        <td class="text-right"><strong><?= number_format($header->total_include_ppn) ?></strong></td>
+                        <td class="text-right"><strong><?= number_format($header->total_include_ppn, 2) ?></strong></td>
                     </tr>
                 </table>
             </td>
