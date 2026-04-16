@@ -356,8 +356,8 @@
             // Hapus dari tracking array dan data map
             selectedPenerimaan = selectedPenerimaan.filter(id => id !== kd);
             delete penerimaanDataMap[kd];
-            loadSisaPiutangSebelumnya();
-            updatePnTable();
+            // loadSisaPiutangSebelumnya();
+            // updatePnTable();
         });
 
         $(document).on('submit', '#data-form', function(e) {

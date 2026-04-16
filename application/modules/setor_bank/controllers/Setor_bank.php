@@ -55,6 +55,32 @@ class Setor_bank extends Admin_Controller
         $this->template->render('form', $data);
     }
 
+    public function view($id)
+    {
+        $this->template->page_icon('fa fa-eye');
+        $this->template->title('View Setoran Bank');
+
+        // Ambil data header (tr_setor_bank)
+        $header = $this->db->get_where('tr_setor_bank', ['id' => $id])->row();
+
+        // Ambil data detail (tr_setor_bank_detail)
+        $detail = $this->db->get_where('tr_setor_bank_detail', ['id_setor_bank' => $id])->result();
+
+        // Ambil data bank untuk label
+        $this->db->from(DBACC . '.coa_master a')
+            ->where('a.no_perkiraan LIKE', '%1101-02%')
+            ->where('a.level', 5);
+        $bank = $this->db->get()->result();
+
+        $data = [
+            'header' => $header,
+            'detail' => $detail,
+            'bank'   => $bank,
+        ];
+
+        $this->template->render('view', $data);
+    }
+
     public function save()
     {
         try {
@@ -179,7 +205,7 @@ class Setor_bank extends Admin_Controller
             'kdcab'         => '101',
             'jenis_reff'    => $id_setoran,
             'no_reff'       => $id_setoran,
-            'customer'      => $session['id_user'],
+            'customer'      => $session['nm_lengkap'],
             'note'          => 'SETOR BANK DARI SALES NO. ' . $id_setoran,
             'jenis_ar'      => 'V',
             'terima_dari'   => '-',

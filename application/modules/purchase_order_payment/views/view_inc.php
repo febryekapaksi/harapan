@@ -28,7 +28,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="">Nomor Incoming</label>
-            <input type="text" name="nomor_po" id="" class="form-control form-control-sm nomor_po" value="<?= $data_invoice['no_po'] ?>" readonly>
+            <input type="text" name="nomor_po" id="" class="form-control form-control-sm nomor_po" value="<?= $data_invoice['no_incoming'] ?>" readonly>
         </div>
     </div>
     <div class="col-md-6">
@@ -197,11 +197,11 @@
                         echo '<tr>';
                         echo '<td class="text-center">' . $no . '</td>';
                         echo '<td class="text-center">' . $item->no_surat . '</td>';
-                        echo '<td class="text-center">' . $item->nm_material . '</td>';
+                        echo '<td >' . $item->nm_material . '</td>';
                         echo '<td class="text-center">' . number_format($item->qty_po) . '</td>';
                         echo '<td class="text-center">' . number_format($item->qty_order) . '</td>';
-                        echo '<td class="text-center">' . number_format($item->hargasatuan) . '</td>';
-                        echo '<td class="text-center">' . number_format($item->qty_order * $item->hargasatuan) . '</td>';
+                        echo '<td class="text-right">' . number_format($item->hargasatuan) . '</td>';
+                        echo '<td class="text-right">' . number_format($item->qty_order * $item->hargasatuan) . '</td>';
                         echo '</tr>';
                         $no++;
                     }
