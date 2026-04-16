@@ -47,118 +47,156 @@
                 </div>
 
                 <div class="col-md-12">
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="tablePn">
-                            <thead class="bg-blue">
-                                <tr>
-                                    <th style="min-width: 20px;" class="text-nowrap">No</th>
-                                    <th style="min-width: 100px;" class="text-nowrap">Kode Penerimaan</th>
-                                    <th style="min-width: 200px;" class="text-nowrap">Nama Customer</th>
-                                    <th style="min-width: 50px;" class="text-nowrap">No Invoice</th>
-                                    <th style="min-width: 50px;" class="text-nowrap">Total Invoice</th>
-                                    <th style="min-width: 50px;" class="text-nowrap">Total Penerimaan</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                            <tfoot>
-                                <tr>
-                                    <th colspan="5" class="text-right">Sisa Piutang Sebelumnya</th>
-                                    <th>
-                                        <input type="text" name="sisa_piutang_sebelum" class="form-control moneyFormat text-right" id="sisaPiutangSebelum" readonly>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colspan="5" class="text-right">Penerimaan Uang Cash</th>
-                                    <th>
-                                        <input type="text" name="total_penerimaan" class="form-control moneyFormat text-right" id="totalPenerimaan" readonly>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colspan="5" class="text-right">Total Piutang Sales</th>
-                                    <th>
-                                        <input type="text" name="total_piutang_sales" class="form-control moneyFormat text-right" id="totalPiutangSales" readonly>
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colspan="5" class="text-right">Nilai Setor</th>
-                                    <th>
-                                        <input type="text" name="nilai_setor" class="form-control moneyFormat text-right" id="nilaiSetor">
-                                    </th>
-                                </tr>
-                                <tr>
-                                    <th colspan="5" class="text-right">Sisa Piutang Sekarang</th>
-                                    <th>
-                                        <input type="text" name="sisa_piutang_sesudah" class="form-control moneyFormat text-right" id="sisaPiutangSesudah" readonly>
-                                    </th>
-                                </tr>
-                            </tfoot>
-                        </table>
+                    <div class="col-md-12">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="tablePn">
+                                <thead class="bg-blue">
+                                    <tr>
+                                        <th style="min-width: 20px;" class="text-nowrap">No</th>
+                                        <th style="min-width: 100px;" class="text-nowrap">Kode Penerimaan</th>
+                                        <th style="min-width: 200px;" class="text-nowrap">Nama Customer</th>
+                                        <th style="min-width: 50px;" class="text-nowrap">No Invoice</th>
+                                        <th style="min-width: 50px;" class="text-nowrap">Total Invoice</th>
+                                        <th style="min-width: 50px;" class="text-nowrap">Total Penerimaan</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                                <tfoot>
+                                    <tr hidden>
+                                        <th colspan="5" class="text-right">Sisa Piutang Sebelumnya</th>
+                                        <th>
+                                            <input type="text" name="sisa_piutang_sebelum" class="form-control moneyFormat text-right" id="sisaPiutangSebelum" readonly>
+                                        </th>
+                                    </tr>
+                                    <tr hidden>
+                                        <th colspan="5" class="text-right">Penerimaan Uang Cash</th>
+                                        <th>
+                                            <input type="text" name="total_penerimaan" class="form-control moneyFormat text-right" id="totalPenerimaan" readonly>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="5" class="text-right">Total Piutang Sales</th>
+                                        <th>
+                                            <input type="text" name="total_piutang_sales" class="form-control moneyFormat text-right" id="totalPiutangSales" readonly>
+                                        </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="5" class="text-right">Nilai Setor</th>
+                                        <th>
+                                            <input type="text" name="nilai_setor" class="form-control moneyFormat text-right" id="nilaiSetor">
+                                        </th>
+                                    </tr>
+                                    <tr hidden>
+                                        <th colspan="5" class="text-right">Sisa Piutang Sekarang</th>
+                                        <th>
+                                            <input type="text" name="sisa_piutang_sesudah" class="form-control moneyFormat text-right" id="sisaPiutangSesudah" readonly>
+                                        </th>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
-                <table class="table table-bordered table-hover">
-                    <thead>
-                        <tr bgcolor='#9acfea'>
-                            <th>
-                                <center>Tanggal</center>
-                            </th>
-                            <th>
-                                <center>Tipe</center>
-                            </th>
-                            <th>
-                                <center>No. COA</center>
-                            </th>
-                            <th>
-                                <center>COA</center>
-                            </th>
-                            <th>
-                                <center>Debit</center>
-                            </th>
-                            <th>
-                                <center>Kredit</center>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr bgcolor='#DCDCDC'>
-                            <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-                            <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
-                            <td><input type="text" id="no_coa1" name="no_coa[]" value="1101-02-01" class="form-control" readonly /></td>
-                            <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly /></td>
-                            <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
-                                <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
-                            </td>
-                            <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
-                                <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
-                            </td>
 
-                        </tr>
-                        <tr bgcolor='#DCDCDC'>
-                            <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-                            <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
-                            <td><input type="text" id="no_coa2" name="no_coa[]" value="1102-01-04" class="form-control" readonly /></td>
-                            <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Piutang Sales" class="form-control" readonly /></td>
-                            <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
-                                <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
-                            </td>
-                            <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
-                                <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
-                            </td>
+                <div class="col-md-12">
+                    <div class="col-md-12">
+                        <hr>
+                        <label>Informasi Jurnal</label>
+                        <div class="table-responsive">
+                            <table id="tableJurnal" class="table table-bordered table-hover">
+                                <thead>
+                                    <tr bgcolor='#9acfea'>
+                                        <th class="text-center">Tanggal</th>
+                                        <th class="text-center">Tipe</th>
+                                        <th class="text-center">No. COA</th>
+                                        <th class="text-center">Nama COA</th>
+                                        <th class="text-center">Keterangan</th>
+                                        <th class="text-center">Debit</th>
+                                        <th class="text-center">Kredit</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- KOSONG -->
+                                </tbody>
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="5" align="right"><b>TOTAL</b></td>
+                                        <td><input type="text" id="totalDebit" name="total_debit" class="form-control text-right" readonly></td>
+                                        <td><input type="text" id="totalKredit" name="total_kredit" class="form-control text-right" readonly></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div class="col-md-12">
+                    <div class="table responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr bgcolor='#9acfea'>
+                                    <th>
+                                        <center>Tanggal</center>
+                                    </th>
+                                    <th>
+                                        <center>Tipe</center>
+                                    </th>
+                                    <th>
+                                        <center>No. COA</center>
+                                    </th>
+                                    <th>
+                                        <center>COA</center>
+                                    </th>
+                                    <th>
+                                        <center>Debit</center>
+                                    </th>
+                                    <th>
+                                        <center>Kredit</center>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr bgcolor='#DCDCDC'>
+                                    <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                    <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+                                    <td><input type="text" id="no_coa1" name="no_coa[]" value="1101-02-01" class="form-control" readonly /></td>
+                                    <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly /></td>
+                                    <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
+                                        <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
+                                    </td>
+                                    <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
+                                        <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+                                    </td>
 
-                        </tr>
+                                </tr>
+                                <tr bgcolor='#DCDCDC'>
+                                    <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                    <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+                                    <td><input type="text" id="no_coa2" name="no_coa[]" value="1102-01-04" class="form-control" readonly /></td>
+                                    <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Piutang Sales" class="form-control" readonly /></td>
+                                    <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
+                                        <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+                                    </td>
+                                    <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
+                                        <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+                                    </td>
 
-                        <tr bgcolor='#DCDCDC'>
-                            <td colspan="4" align="right"><b>TOTAL</b></td>
-                            <td align="right"><input type="hidden" id="total" name="total" value="0" class="form-control" readonly />
-                                <input type="text" id="total31" name="total3" value="0" class="form-control" readonly />
-                            </td>
-                            <td align="right"><input type="hidden" id="total2" name="total2" value="0" class="form-control" readonly />
-                                <input type="text" id="total41" name="total4" value="0" class="form-control" readonly />
-                            </td>
+                                </tr>
 
-                        </tr>
+                                <tr bgcolor='#DCDCDC'>
+                                    <td colspan="4" align="right"><b>TOTAL</b></td>
+                                    <td align="right"><input type="hidden" id="total" name="total" value="0" class="form-control" readonly />
+                                        <input type="text" id="total31" name="total3" value="0" class="form-control" readonly />
+                                    </td>
+                                    <td align="right"><input type="hidden" id="total2" name="total2" value="0" class="form-control" readonly />
+                                        <input type="text" id="total41" name="total4" value="0" class="form-control" readonly />
+                                    </td>
 
-                </table>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div> -->
                 <div class="form-group row">
                     <div class="col-md-12 text-center">
                         <button type="submit" class="btn btn-success" id="submitBtn"><i class="fa fa-save"></i> Save</button>
@@ -208,10 +246,9 @@
 <script src="<?= base_url('assets/plugins/jquery-inputmask/jquery.inputmask.js') ?>"></script>
 
 <script>
+    let selectedPenerimaan = [];
+    let penerimaanDataMap = {};
     $(document).ready(function() {
-        let selectedPenerimaan = [];
-        let penerimaanDataMap = {};
-
         moneyFormat('.moneyFormat');
 
         $('.select2').select2({
@@ -226,7 +263,7 @@
         // Tombol Pilih Penerimaan
         $('#selectPenerimaan').on('click', function() {
             const tgl_setor = $('#tgl_setor').val();
-            const sales = $('#id_sales').val(); // ambil ID user dari select
+            const sales = $('#id_sales').val();
 
             if (!tgl_setor) {
                 swal("Error", "Silahkan pilih Tanggal Setoran terlebih dahulu", "warning");
@@ -253,13 +290,16 @@
                     } else {
                         data.forEach(item => {
                             const isChecked = selectedPenerimaan.includes(item.kd_pembayaran) ? 'checked' : '';
+                            const invoiceList = item.detail ?
+                                item.detail.map(d => d.invoice).join(', ') :
+                                item.invoiced;
 
                             html += `
                         <tr>
                             <td class="text-center">${no++}</td>
                             <td>${item.kd_pembayaran}</td>
                             <td>${item.name_customer ?? '-'}</td>
-                            <td>${item.invoiced ?? '-'}</td>
+                            <td>${invoiceList}</td>
                             <td class="text-right">${parseFloat(item.total_invoice || 0).toLocaleString()}</td>
                             <td class="text-right">${parseFloat(item.totalinvoiced || 0).toLocaleString()}</td>
                             <td class="text-center">
@@ -276,12 +316,14 @@
                     $('#tableModalPn tbody').html(html);
                     $('#modalPn').modal('show');
                     loadSisaPiutangSebelumnya();
+                    generateJurnal()
                 },
                 error: function() {
                     swal("Error", "Gagal mengambil data penerimaan.", "error");
                 }
             });
         });
+
 
         $('#btnPilihPn').on('click', function() {
             const selected = $('.select-pn:checked');
@@ -329,18 +371,8 @@
             const totalPiutangSales = parseFloat($('#totalPiutangSales').val().replace(/[^0-9.-]+/g, "")) || 0;
             const sisa = totalPiutangSales - nilaiSetor;
 
-            $('#debet1').val(nilaiSetor);
-            $('#debet21').val(number_format(nilaiSetor, 2));
-
-            $('#kredit2').val(nilaiSetor);
-            $('#kredit22').val(number_format(nilaiSetor, 2));
-
-            $('#total').val(nilaiSetor);
-            $('#total31').val(number_format(nilaiSetor, 2));
-            $('#total2').val(nilaiSetor);
-            $('#total41').val(number_format(nilaiSetor, 2));
-
             $('#sisaPiutangSesudah').val(sisa.toLocaleString());
+            generateJurnal();
         });
 
         $(document).on('click', '.remove-pn', function() {
@@ -422,6 +454,130 @@
         });
 
     });
+
+    function generateJurnal() {
+
+        let jurnalHTML = '';
+        let totalDebit = 0;
+        let totalKredit = 0;
+
+        const today = $('#tgl_setor').val() || '';
+
+        let totalSetor = parseFloat($('#nilaiSetor').val().replace(/,/g, '')) || 0;
+
+        // =========================
+        // 1. BANK (DEBIT)
+        // =========================
+        if (totalSetor > 0) {
+            jurnalHTML += `
+        <tr>
+            <td><input type="date" name="tgl_jurnal[]" value="${today}" class="form-control" readonly></td>
+            <td><input type="text" name="type[]" value="BUM" class="form-control" readonly></td>
+            <td><input type="text" name="no_coa[]" value="1101-01-03" class="form-control" readonly></td>
+            <td><input type="text" name="nama_coa[]" value="Kas Penjualan Cirebon" class="form-control" readonly></td>
+            <td><textarea name="keterangan[]" class="form-control" readonly>Setoran Sales ke Kas Penjualan Cirebon</textarea></td>
+
+            <td>
+                <input type="hidden" name="debet[]" value="${totalSetor}">
+                <input type="text" value="${number_format(totalSetor,2)}" class="form-control text-right" readonly>
+            </td>
+
+            <td>
+                <input type="hidden" name="kredit[]" value="0">
+                <input type="text" value="0" class="form-control text-right" readonly>
+            </td>
+        </tr>
+        `;
+            totalDebit += totalSetor;
+        }
+
+        // =========================
+        // 2. LOOP PER PENERIMAAN → PER INVOICE 🔥
+        // =========================
+        Object.values(penerimaanDataMap).forEach(pn => {
+
+            if (!pn.detail) return; // safety
+
+            pn.detail.forEach(inv => {
+
+                const invoice = inv.invoice;
+                const nominal = parseFloat(inv.nominal) || 0;
+
+                if (nominal > 0) {
+
+                    jurnalHTML += `
+                <tr>
+                    <td><input type="date" name="tgl_jurnal[]" value="${today}" class="form-control" readonly></td>
+                    <td><input type="text" name="type[]" value="BUM" class="form-control" readonly></td>
+                    <td><input type="text" name="no_coa[]" value="1102-01-04" class="form-control" readonly></td>
+                    <td><input type="text" name="nama_coa[]" value="Piutang Sales" class="form-control" readonly></td>
+                    <td><textarea name="keterangan[]" class="form-control" readonly>Setoran Invoice ${invoice} (${pn.kd_pembayaran})</textarea></td>
+
+                    <td>
+                        <input type="hidden" name="debet[]" value="0">
+                        <input type="text" value="0" class="form-control text-right" readonly>
+                    </td>
+
+                    <td>
+                        <input type="hidden" name="kredit[]" value="${nominal}">
+                        <input type="text" value="${number_format(nominal,2)}" class="form-control text-right" readonly>
+                    </td>
+                </tr>
+                `;
+
+                    totalKredit += nominal;
+                }
+            });
+
+        });
+
+        // =========================
+        // 3. BIAYA ADMIN
+        // =========================
+        let biayaAdmin = parseFloat($('#biaya_admin').val()?.replace(/,/g, '')) || 0;
+
+        if (biayaAdmin > 0) {
+            jurnalHTML += `
+        <tr>
+            <td><input type="date" name="tgl_jurnal[]" value="${today}" class="form-control" readonly></td>
+            <td><input type="text" name="type[]" value="BUM" class="form-control" readonly></td>
+            <td><input type="text" name="no_coa[]" value="7201-01-02" class="form-control" readonly></td>
+            <td><input type="text" name="nama_coa[]" value="Biaya Admin Bank" class="form-control" readonly></td>
+            <td><textarea name="keterangan[]" class="form-control" readonly>Biaya Admin Setoran</textarea></td>
+
+            <td>
+                <input type="hidden" name="debet[]" value="${biayaAdmin}">
+                <input type="text" value="${number_format(biayaAdmin,2)}" class="form-control text-right" readonly>
+            </td>
+
+            <td>
+                <input type="hidden" name="kredit[]" value="0">
+                <input type="text" value="0" class="form-control text-right" readonly>
+            </td>
+        </tr>
+        `;
+            totalDebit += biayaAdmin;
+        }
+
+        // =========================
+        // RENDER
+        // =========================
+        $('#tableJurnal tbody').html(jurnalHTML);
+
+        $('#totalDebit').val(number_format(totalDebit, 2));
+        $('#totalKredit').val(number_format(totalKredit, 2));
+
+        // =========================
+        // VALIDASI
+        // =========================
+        if (totalDebit !== totalKredit) {
+            $('#totalDebit, #totalKredit').addClass('bg-red');
+            $('#submitBtn').prop('disabled', true);
+        } else {
+            $('#totalDebit, #totalKredit').removeClass('bg-red');
+            $('#submitBtn').prop('disabled', false);
+        }
+    }
 
     function updatePnTable() {
         let total = 0;

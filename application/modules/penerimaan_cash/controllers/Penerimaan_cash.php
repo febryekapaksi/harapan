@@ -48,7 +48,7 @@ class Penerimaan_cash extends Admin_Controller
 		$this->db->join('users u', 'u.employee_id = c.id_karyawan', 'left');
 		$this->db->where('c.deleted_by IS NULL');
 		$this->db->where('a.sts', 1);
-		if ($user_id != 7) {
+		if ($user_id != 7 || $user_id != 114) {
 			$this->db->where('u.id_user', $user_id);
 		}
 		$this->db->group_by('c.id_customer');
@@ -104,142 +104,159 @@ class Penerimaan_cash extends Admin_Controller
 		echo json_encode($data);
 	}
 
-	public function save_tanpa_otp()
-	{
-		$post = $this->input->post();
+	// public function save_tanpa_otp()
+	// {
+	// 	$post = $this->input->post();
 
-		$tgl_pembayaran = $post['tgl_pembayaran'];
-		$id_customer = $post['id_customer'];
-		$detail = $post['detail'];
-		$total_invoice = str_replace(",", "", $post['total_invoice']);
-		$total_terima = str_replace(",", "", $post['total_terima']);
-		$id_invoices = array_column($detail, 'id_invoice');
-		$invoice_string = implode(', ', $id_invoices);
+	// 	$tgl_pembayaran = $post['tgl_pembayaran'];
+	// 	$id_customer = $post['id_customer'];
+	// 	$detail = $post['detail'];
+	// 	$total_invoice = str_replace(",", "", $post['total_invoice']);
+	// 	$total_terima = str_replace(",", "", $post['total_terima']);
+	// 	$id_invoices = array_column($detail, 'id_invoice');
+	// 	$invoice_string = implode(', ', $id_invoices);
 
-		$kd_pembayaran = $this->penerimaan_cash_model->generate_nopn($tgl_pembayaran);
-		$customer = $this->db->get_where('master_customers', ['id_customer' => $id_customer])->row();
+	// 	$kd_pembayaran = $this->penerimaan_cash_model->generate_nopn($tgl_pembayaran);
+	// 	$customer = $this->db->get_where('master_customers', ['id_customer' => $id_customer])->row();
 
-		// Simpan header langsung (tanpa OTP)
-		$header = [
-			'kd_pembayaran' => $kd_pembayaran,
-			'tgl_pembayaran' => $tgl_pembayaran,
-			'no_invoice' => $invoice_string,
-			'id_customer' => $id_customer,
-			'nm_customer' => $customer->name_customer,
-			'jumlah_piutang_idr' => $total_invoice,
-			'jumlah_pembayaran_idr' => $total_terima,
-			'keterangan' => $post['ket_bayar'],
-			'created_by' => $this->auth->user_id(),
-			'created_on' => date('Y-m-d H:i:s'),
-			'tipe_bayar' => "CASH"
-		];
+	// 	// Simpan header langsung (tanpa OTP)
+	// 	$header = [
+	// 		'kd_pembayaran' => $kd_pembayaran,
+	// 		'tgl_pembayaran' => $tgl_pembayaran,
+	// 		'no_invoice' => $invoice_string,
+	// 		'id_customer' => $id_customer,
+	// 		'nm_customer' => $customer->name_customer,
+	// 		'jumlah_piutang_idr' => $total_invoice,
+	// 		'jumlah_pembayaran_idr' => $total_terima,
+	// 		'keterangan' => $post['ket_bayar'],
+	// 		'created_by' => $this->auth->user_id(),
+	// 		'created_on' => date('Y-m-d H:i:s'),
+	// 		'tipe_bayar' => "CASH"
+	// 	];
 
-		$this->db->insert('tr_invoice_payment', $header);
+	// 	$this->db->insert('tr_invoice_payment', $header);
 
-		// Simpan detail
-		foreach ($detail as $row) {
-			$invoice = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $row['id_invoice']])->result();
-			$total_bayar = floatval(str_replace(',', '', $row['total_bayar']));
-			$tagihan = floatval(str_replace(',', '', $row['tagihan']));
-			$sisa_invoice = floatval(str_replace(',', '', $row['sisa_invoice']));
+	// 	// Simpan detail
+	// 	foreach ($detail as $row) {
+	// 		$invoice = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $row['id_invoice']])->result();
+	// 		$total_bayar = floatval(str_replace(',', '', $row['total_bayar']));
+	// 		$tagihan = floatval(str_replace(',', '', $row['tagihan']));
+	// 		$sisa_invoice = floatval(str_replace(',', '', $row['sisa_invoice']));
 
-			foreach ($invoice as $inv) {
-				$data_detail = [
-					'kd_pembayaran' => $kd_pembayaran,
-					'no_invoice' => $row['id_invoice'],
-					'no_ipp' => $row['id_so'],
-					'so_number' => $row['id_so'],
-					'tgl_invoice' => date('Y-m-d', strtotime($inv->created_on)),
-					'total_ppn_idr' => $inv->nilai_ppn,
-					'total_invoice_idr' => $tagihan,
-					'total_bayar_idr' => $total_bayar,
-					'sisa_invoice_idr' => $sisa_invoice,
-					'id_customer' => $header['id_customer'],
-					'nm_customer' => $header['nm_customer'],
-					'created_by' => $this->auth->user_id(),
-					'created_on' => date('Y-m-d H:i:s'),
-					'tipe_bayar' => "CASH"
-				];
+	// 		foreach ($invoice as $inv) {
+	// 			$data_detail = [
+	// 				'kd_pembayaran' => $kd_pembayaran,
+	// 				'no_invoice' => $row['id_invoice'],
+	// 				'no_ipp' => $row['id_so'],
+	// 				'so_number' => $row['id_so'],
+	// 				'tgl_invoice' => date('Y-m-d', strtotime($inv->created_on)),
+	// 				'total_ppn_idr' => $inv->nilai_ppn,
+	// 				'total_invoice_idr' => $tagihan,
+	// 				'total_bayar_idr' => $total_bayar,
+	// 				'sisa_invoice_idr' => $sisa_invoice,
+	// 				'id_customer' => $header['id_customer'],
+	// 				'nm_customer' => $header['nm_customer'],
+	// 				'created_by' => $this->auth->user_id(),
+	// 				'created_on' => date('Y-m-d H:i:s'),
+	// 				'tipe_bayar' => "CASH"
+	// 			];
 
-				$this->db->insert('tr_invoice_payment_detail', $data_detail);
+	// 			$this->db->insert('tr_invoice_payment_detail', $data_detail);
 
-				// Rekap ulang total_bayar dari detail
-				$sum = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
-					->from('tr_invoice_payment_detail')
-					->where('no_invoice', $row['id_invoice'])
-					->get()->row()->total;
+	// 			// Rekap ulang total_bayar dari detail
+	// 			$sum = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
+	// 				->from('tr_invoice_payment_detail')
+	// 				->where('no_invoice', $row['id_invoice'])
+	// 				->get()->row()->total;
 
-				// Update header: total_bayar, piutang, dan status
-				$this->db->set('total_bayar', $sum, false);
-				$this->db->set('piutang', "GREATEST(COALESCE(piutang,0) - {$sum}, 0)", false);
-				$this->db->set('sts', "CASE WHEN {$sum} >= COALESCE(piutang,0) THEN 0 ELSE 1 END", false);
-				$this->db->where('id_invoice', $row['id_invoice'])->update('tr_invoice_sales');
-			}
-		}
+	// 			// Update header: total_bayar, piutang, dan status
+	// 			$this->db->set('total_bayar', $sum, false);
+	// 			$this->db->set('piutang', "GREATEST(COALESCE(piutang,0) - {$sum}, 0)", false);
+	// 			$this->db->set('sts', "CASE WHEN {$sum} >= COALESCE(piutang,0) THEN 0 ELSE 1 END", false);
+	// 			$this->db->where('id_invoice', $row['id_invoice'])->update('tr_invoice_sales');
+	// 		}
+	// 	}
 
-		$kd_bayar  = $kd_pembayaran;
-		$this->appr_jurnal($kd_bayar);
+	// 	$kd_bayar  = $kd_pembayaran;
+	// 	$this->appr_jurnal($kd_bayar);
 
-		echo json_encode([
-			'status' => 1,
-			'message' => 'Pembayaran berhasil disimpan.',
-			'redirect_url' => base_url("penerimaan_cash/print_struk/$kd_pembayaran")
-		]);
-	}
+	// 	echo json_encode([
+	// 		'status' => 1,
+	// 		'message' => 'Pembayaran berhasil disimpan.',
+	// 		'redirect_url' => base_url("penerimaan_cash/print_struk/$kd_pembayaran")
+	// 	]);
+	// }
 
 	public function save()
 	{
 		$post = $this->input->post();
+		// echo '<pre>';
+		// print_r($post);
+		// echo '</pre>';
+		// die();
 
 		$tgl_pembayaran = $post['tgl_pembayaran'];
-		$id_customer = $post['id_customer'];
-		$detail = $post['detail'];
-		$total_invoice = str_replace(",", "", $post['total_invoice']);
-		$total_terima = str_replace(",", "", $post['total_terima']);
-		$id_invoices = array_column($detail, 'id_invoice');
+		$id_customer    = $post['id_customer'];
+		$detail         = $post['detail'];
+
+		$total_invoice  = str_replace(",", "", $post['total_invoice']);
+		$total_terima   = str_replace(",", "", $post['total_terima']);
+
+		$id_invoices    = array_column($detail, 'id_invoice');
 		$invoice_string = implode(', ', $id_invoices);
 
-		$kd_pembayaran = $this->penerimaan_cash_model->generate_nopn($tgl_pembayaran);
-		$customer = $this->db->get_where('master_customers', ['id_customer' => $id_customer])->row();
+		$kd_pembayaran  = $this->penerimaan_cash_model->generate_nopn($tgl_pembayaran);
+		$customer       = $this->db->get_where('master_customers', ['id_customer' => $id_customer])->row();
 
-		// Generate OTP
-		$otp_code = rand(100000, 999999);
+		// OTP
+		$otp_code   = rand(100000, 999999);
 		$otp_expiry = date('Y-m-d H:i:s', strtotime('+3 minutes'));
-		$total_rupiah = number_format($total_terima, 0, ',', '.');
 
-		// Simpan ke tabel sementara (tr_invoice_payment_otp)
+		// 🔥 SIMPAN SEMUA TERMASUK JURNAL
 		$otp_data = [
 			'kd_pembayaran' => $kd_pembayaran,
-			'id_customer' => $id_customer,
-			'otp_code' => $otp_code,
-			'expired_at' => $otp_expiry,
-			'data_json' => json_encode([
+			'id_customer'   => $id_customer,
+			'otp_code'      => $otp_code,
+			'expired_at'    => $otp_expiry,
+			'data_json'     => json_encode([
 				'header' => [
-					'tgl_pembayaran' 		=> $tgl_pembayaran,
-					'no_invoice' 			=> $invoice_string,
-					'id_customer' 			=> $id_customer,
-					'nm_customer' 			=> $customer->name_customer,
-					'jumlah_piutang_idr' 	=> $total_invoice,
+					'tgl_pembayaran'        => $tgl_pembayaran,
+					'no_invoice'            => $invoice_string,
+					'id_customer'           => $id_customer,
+					'nm_customer'           => $customer->name_customer,
+					'jumlah_piutang_idr'    => $total_invoice,
 					'jumlah_pembayaran_idr' => $total_terima,
-					'keterangan' 			=> $post['ket_bayar'],
-					'created_by' 			=> $this->auth->user_id(),
-					'created_on' 			=> date('Y-m-d H:i:s'),
-					'tipe_bayar' 			=> "CASH"
+					'keterangan'            => $post['ket_bayar'],
+					'created_by'            => $this->auth->user_id(),
+					'created_on'            => date('Y-m-d H:i:s'),
+					'tipe_bayar'            => "CASH"
 				],
-				'detail' => $detail
+				'detail' => $detail,
+
+				// 🔥 INI KUNCI
+				'jurnal' => [
+					'tgl_jurnal' => $post['tgl_jurnal'],
+					'type'       => $post['type'],
+					'no_coa'     => $post['no_coa'],
+					'nama_coa'   => $post['nama_coa'],
+					'keterangan' => $post['keterangan'],
+					'debet'      => $post['debet'],
+					'kredit'     => $post['kredit'],
+				]
 			])
 		];
+
 		$this->db->insert('tr_invoice_payment_otp', $otp_data);
 
 		// Kirim OTP via WhatsApp API Gateway
 		$wa_number = preg_replace('/^0/', '62', $customer->telephone); // convert 08xxx → 628xxx
-		$otp_message = "Terimakasih telah melakukan pembayaran sejumlah Rp. *$total_rupiah* \n\nKode OTP untuk verifikasi pembayaran Anda adalah: *$otp_code*\n\nKode ini berlaku hingga " . date('H:i', strtotime($otp_expiry)) . " WIB.\n\nJangan bagikan kode ini ke siapa pun.";
+		$otp_message = "Terimakasih telah melakukan pembayaran sejumlah Rp. *$total_terima* \n\nKode OTP untuk verifikasi pembayaran Anda adalah: *$otp_code*\n\nKode ini berlaku hingga " . date('H:i', strtotime($otp_expiry)) . " WIB.\n\nJangan bagikan kode ini ke siapa pun.";
 
 		$response = $this->send_wa($wa_number, $otp_message);
 
 		echo json_encode([
 			'status' => 1,
-			'message' => 'OTP dikirim ke customer.',
+			'message' => 'OTP dikirim',
 			'kd_pembayaran' => $kd_pembayaran,
 			'response' => $response
 		]);
@@ -250,7 +267,8 @@ class Penerimaan_cash extends Admin_Controller
 		$url = 'https://app.whacenter.com/api/send';
 
 		$data = [
-			'device_id' => '532c60ddc0f2c1184b396488c804413e',
+			'device_id' => '532c60ddc0f2c1184b396488c804413e', //punya harapan
+			// 'device_id' => '0d0750bc2fc55e9e86b4da9dde60cfd9', punya gue
 			'number' => $number, // format: 628xxx
 			'message' => $message
 		];
@@ -267,79 +285,211 @@ class Penerimaan_cash extends Admin_Controller
 	public function verify_otp()
 	{
 		$post = $this->input->post();
-		$kd_pembayaran = $post['kd_pembayaran'];
-		$otp_input = $post['otp_code'];
+		$kd   = $post['kd_pembayaran'];
+		$otp  = $post['otp_code'];
 
 		$otp_data = $this->db->get_where('tr_invoice_payment_otp', [
-			'kd_pembayaran' => $kd_pembayaran,
-			'otp_code' => $otp_input
+			'kd_pembayaran' => $kd,
+			'otp_code'      => $otp
 		])->row();
 
 		if (!$otp_data || strtotime($otp_data->expired_at) < time()) {
-			echo json_encode(['status' => 0, 'message' => 'OTP salah atau telah kadaluarsa']);
+			echo json_encode(['status' => 0, 'message' => 'OTP salah / expired']);
 			return;
 		}
 
-		$decoded = json_decode($otp_data->data_json);
-		$header = (array) $decoded->header;
-		$detail = $decoded->detail;
+		$decoded = json_decode($otp_data->data_json, true); // WAJIB TRUE
+		$header  = $decoded['header'];
+		$detail  = $decoded['detail'];
+		$jurnal  = $decoded['jurnal'];
 
-		$header['kd_pembayaran'] = $kd_pembayaran;
+		$this->db->trans_begin();
 
-		// Simpan header
-		$this->db->insert('tr_invoice_payment', $header);
+		try {
 
-		// Simpan detail
-		foreach ($detail as $row) {
-			$invoice = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $row->id_invoice])->result();
-			$total_bayar = floatval(str_replace(',', '', $row->total_bayar));
-			$tagihan = floatval(str_replace(',', '', $row->tagihan));
-			$sisa_invoice = floatval(str_replace(',', '', $row->sisa_invoice));
-			foreach ($invoice as $inv) {
-				$data_detail = [
-					'kd_pembayaran' => $kd_pembayaran,
-					'no_invoice' => $row->id_invoice,
-					'no_ipp' => $row->id_so,
-					'so_number' => $row->id_so,
-					'tgl_invoice' => date('Y-m-d', strtotime($inv->created_on)),
-					'total_ppn_idr' => $inv->nilai_ppn,
-					'total_invoice_idr' => $tagihan,
-					'total_bayar_idr' => $total_bayar,
-					'sisa_invoice_idr' => $sisa_invoice,
-					'id_customer' => $header['id_customer'],
-					'nm_customer' => $header['nm_customer'],
-					'created_by' => $this->auth->user_id(),
-					'created_on' => date('Y-m-d H:i:s'),
-					'tipe_bayar' => "CASH"
-				];
+			// =========================
+			// INSERT HEADER
+			// =========================
+			$header['kd_pembayaran'] = $kd;
+			$this->db->insert('tr_invoice_payment', $header);
 
-				$this->db->insert('tr_invoice_payment_detail', $data_detail);
+			// =========================
+			// INSERT DETAIL + UPDATE INV
+			// =========================
+			foreach ($detail as $row) {
 
-				// Rekap ulang total_bayar dari detail (sumber kebenaran)
-				$sum = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
-					->from('tr_invoice_payment_detail')
-					->where('no_invoice', $inv->id_invoice)
-					->get()->row()->total;
+				$inv = $this->db
+					->get_where('tr_invoice_sales', ['id_invoice' => $row['id_invoice']])
+					->row();
 
-				// Update tr_invoice_sales
-				$this->db->set('total_bayar', $sum, false);
+				if (!$inv) {
+					throw new Exception("Invoice tidak ditemukan: " . $row['id_invoice']);
+				}
+
+				$total_bayar  = floatval(str_replace(',', '', $row['total_bayar']));
+				$tagihan      = floatval(str_replace(',', '', $row['tagihan']));
+				$sisa_invoice = floatval(str_replace(',', '', $row['sisa_invoice']));
+
+				$this->db->insert('tr_invoice_payment_detail', [
+					'kd_pembayaran'      => $kd,
+					'no_invoice'         => $row['id_invoice'],
+					'no_ipp'             => $row['id_so'],
+					'so_number'          => $row['id_so'],
+					'tgl_invoice'        => date('Y-m-d', strtotime($inv->created_on)),
+					'total_ppn_idr'      => $inv->nilai_ppn,
+					'total_invoice_idr'  => $tagihan,
+					'total_bayar_idr'    => $total_bayar,
+					'sisa_invoice_idr'   => $sisa_invoice,
+					'id_customer'        => $header['id_customer'],
+					'nm_customer'        => $header['nm_customer'],
+					'created_by'         => $this->auth->user_id(),
+					'created_on'         => date('Y-m-d H:i:s'),
+					'tipe_bayar'         => "CASH"
+				]);
+
+				// update invoice
+				$this->db->set('total_bayar', "COALESCE(total_bayar,0) + {$total_bayar}", false);
 				$this->db->set('piutang', $sisa_invoice, false);
 				$this->db->set('sts', "CASE WHEN {$sisa_invoice} <= 0 THEN 0 ELSE 1 END", false);
-				$this->db->where('id_invoice', $inv->id_invoice)->update('tr_invoice_sales');
+				$this->db->where('id_invoice', $row['id_invoice']);
+				$this->db->update('tr_invoice_sales');
+			}
+			// =========================
+			// JURNAL 🔥
+			// =========================
+			$this->appr_jurnal($kd, $jurnal, $header, $detail);
+
+			// hapus OTP
+			$this->db->delete('tr_invoice_payment_otp', ['kd_pembayaran' => $kd]);
+
+			if ($this->db->trans_status() === FALSE) {
+				throw new Exception("DB Error");
+			}
+
+			$this->db->trans_commit();
+
+			echo json_encode([
+				'status' => 1,
+				'message' => 'Verifikasi berhasil. Pembayaran disimpan.',
+				'redirect_url' => base_url("penerimaan_cash/print_struk/$kd")
+			]);
+		} catch (Exception $e) {
+
+			$this->db->trans_rollback();
+
+			echo json_encode([
+				'status' => 0,
+				'message' => $e->getMessage()
+			]);
+		}
+	}
+
+	function appr_jurnal($kd_bayar, $jurnal, $header, $detail)
+	{
+		$session = $this->session->userdata('app_session');
+
+		$customer = $this->db
+			->select('c.name_customer, c.id_karyawan, e.nm_karyawan')
+			->from('master_customers c')
+			->join('employee e', 'e.id = c.id_karyawan', 'left')
+			->where('c.id_customer', $header['id_customer'])
+			->get()
+			->row();
+		//AMBIL NO INVOICE DARI DETAIL
+		$arrInv = array_column($detail, 'id_invoice');
+		$invString = implode(', ', $arrInv);
+		$note = 'PEMBAYARAN PIUTANG INVOICE ' . $invString . ' A/N ' . $customer->name_customer;
+
+		$Nomor_BUM = $this->Jurnal_model
+			->get_Nomor_Jurnal_BUM('101', $header['tgl_pembayaran']);
+
+
+		// VALIDASI BALANCE
+		if (array_sum($jurnal['debet']) != array_sum($jurnal['kredit'])) {
+			throw new Exception("Jurnal tidak balance");
+		}
+
+		// HEADER
+		$this->db->insert(DBACC . '.jarh', [
+			'nomor'         => $Nomor_BUM,
+			'kd_pembayaran' => $kd_bayar,
+			'tgl'           => $header['tgl_pembayaran'],
+			'jml'           => array_sum($jurnal['debet']),
+			'kdcab'         => '101',
+			'jenis_reff'    => $kd_bayar,
+			'no_reff'       => $kd_bayar,
+			'customer'      => $header['nm_customer'],
+			'note'          => $note,
+			'jenis_ar'      => 'V',
+			'terima_dari'   => '-',
+			'valid'         => $session['id_user'],
+			'tgl_valid'     => $header['tgl_pembayaran'],
+			'user_id'       => $session['id_user'],
+			'tgl_invoice'   => $header['tgl_pembayaran'],
+			'batal'         => 0,
+		]);
+
+		// DETAIL
+		$arrJurnal = [];
+
+		for ($i = 0; $i < count($jurnal['no_coa']); $i++) {
+			$arrJurnal[] = [
+				'nomor'         => $Nomor_BUM,
+				'tanggal'       => $jurnal['tgl_jurnal'][$i],
+				'tipe'          => $jurnal['type'][$i],
+				'no_perkiraan'  => $jurnal['no_coa'][$i],
+				'keterangan'    => $jurnal['keterangan'][$i] . " A/n " . $customer->name_customer,
+				'no_reff'       => $kd_bayar,
+				'debet'         => floatval($jurnal['debet'][$i]),
+				'kredit'        => floatval($jurnal['kredit'][$i]),
+				'created_by'    => $this->auth->user_id(),
+				'created_on'    => date('Y-m-d H:i:s'),
+			];
+		}
+		$this->db->insert_batch(DBACC . '.jurnal', $arrJurnal);
+
+		// INSERT KARTU PIUTANG
+		foreach ($detail as $row) {
+
+			$total_bayar = floatval(str_replace(',', '', $row['total_bayar']));
+
+			if ($total_bayar > 0) {
+
+
+
+				$data_piutang = [
+					'tipe'          => 'BUM',
+					'nomor'         => $Nomor_BUM,
+					'tanggal'       => $header['tgl_pembayaran'],
+					'no_perkiraan'  => '1102-01-01',
+					'keterangan'    => 'PEMBAYARAN PIUTANG INV ' . $row['id_invoice'] . ' A/n ' . $customer->name_customer,
+					'no_reff'       => $row['id_invoice'],
+					'debet'         => 0,
+					'kredit'        => $total_bayar,
+					'id_supplier'   => $header['id_customer'],
+					'nama_supplier' => $customer->name_customer,
+				];
+
+				$data_piutang_sales = [
+					'tipe'          => 'BUM',
+					'nomor'         => $Nomor_BUM,
+					'tanggal'       => $header['tgl_pembayaran'],
+					'no_perkiraan'  => '1102-01-04',
+					'keterangan'    => 'PENERIMAAN PIUTANG INV ' . $row['id_invoice'] . ' A/n ' . $customer->name_customer,
+					'no_reff'       => $row['id_invoice'],
+					'debet'         => $total_bayar,
+					'kredit'        => 0,
+					'id_sales'   	=> $customer->id_karyawan,
+					'nama_sales' 	=> $customer->nm_karyawan,
+				];
+
+				$this->db->insert('tr_kartu_piutang', $data_piutang);
+				$this->db->insert('tr_kartu_piutang_sales', $data_piutang_sales);
 			}
 		}
 
-		$kd_bayar  = $kd_pembayaran;
-		$this->appr_jurnal($kd_bayar);
-
-		// Hapus OTP setelah sukses
-		$this->db->delete('tr_invoice_payment_otp', ['kd_pembayaran' => $kd_pembayaran]);
-
-		echo json_encode([
-			'status' => 1,
-			'message' => 'Verifikasi berhasil. Pembayaran disimpan.',
-			'redirect_url' => base_url("penerimaan_cash/print_struk/$kd_pembayaran")
-		]);
+		// COUNTER
+		$this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum=nobum+1 WHERE nocab='101'");
 	}
 
 	public function resend_otp()
@@ -380,7 +530,12 @@ class Penerimaan_cash extends Admin_Controller
 
 		$response = $this->send_wa($wa, $msg);
 
-		echo json_encode(['status' => 1, 'message' => 'OTP dikirim ulang']);
+		echo json_encode([
+			'status' => 1,
+			'message' => 'OTP dikirim',
+			'kd_pembayaran' => $kd,
+			'response' => $response
+		]);
 	}
 
 	public function print_struk($kd_pembayaran)
@@ -511,142 +666,6 @@ class Penerimaan_cash extends Admin_Controller
 		$dompdf->setPaper([0, 0, 165, 500], 'portrait'); // thermal 58mm
 		$dompdf->render();
 		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => false]);
-	}
-
-
-	function appr_jurnal($kd_bayar)
-	{
-
-
-		$session = $this->session->userdata('app_session');
-
-		$data_bayar =  $this->db->query("SELECT * FROM tr_invoice_payment WHERE kd_pembayaran = '$kd_bayar' ")->row();
-
-		$tgl_byr 	= $data_bayar->tgl_pembayaran;
-		$kd_invoice    	= $data_bayar->no_invoice;
-		$kd_bank 	= $data_bayar->kd_bank;
-		$jenis_pph 	= $data_bayar->jenis_pph;
-		$nama	= html_escape($data_bayar->nm_customer);
-		$jmlpph   = 0;
-		$idcust  = $data_bayar->id_customer;
-
-
-
-		$No_Inv  = $kd_bayar;
-		$Tgl_Inv = $tgl_byr;
-		$Bln 			= substr($Tgl_Inv, 6, 2);
-		$Thn 			= substr($Tgl_Inv, 0, 4);
-		$bulan_bayar = date("n", strtotime($Tgl_Inv));
-		$tahun_bayar = date("Y", strtotime($Tgl_Inv));
-		$keterangan_byr  = $data_bayar->keterangan;
-		$jumlah_total    = $data_bayar->jumlah_pembayaran_idr;
-		$jumlah_terima   = $data_bayar->jumlah_bank_idr;
-		$biaya_admin     = $data_bayar->biaya_admin_idr;
-		$biaya_lain     = $data_bayar->biaya_pph_idr;
-		$deposit         = $data_bayar->lebih_bayar;
-		$jenis_reff      = $kd_bayar;
-		$no_reff         = $kd_bayar;
-		## NOMOR JV ##
-		$Nomor_BUM				= $this->Jurnal_model->get_Nomor_Jurnal_BUM('101', $Tgl_Inv);
-
-		//print_r($Nomor_BUM);
-		//exit;
-
-
-		//$Keterangan_INV		    = 'PENERIMAAN MULTI INVOICE A/N '.$nama.' INV NO. '.$No_Inv.
-		//' Keterangan :'.$ket_invoice.', Catatan :'.$notes.', No Reff:'.$noreff.', No Pembayaran:'.$kd_pn;
-
-		$Keterangan_INV		    = 'PENERIMAAN SALES INVOICE A/N ' . $nama . ' INV NO. ' . $No_Inv . ' Keterangan :' . $keterangan_byr;
-
-		$dataJARH = array(
-			'nomor' 	    	=> $Nomor_BUM,
-			'kd_pembayaran'    	=> $kd_bayar,
-			'tgl'	         	=> $Tgl_Inv,
-			'jml'	            => $jumlah_total,
-			'kdcab'				=> '101',
-			'jenis_reff'		=> $jenis_reff,
-			'no_reff'		    => $no_reff,
-			'customer'		    => $nama,
-			'terima_dari'		=> '-',
-			'jenis_ar'		    => 'V',
-			'note'				=> $Keterangan_INV,
-			'valid'				=> $session['id_user'],
-			'tgl_valid'			=> $Tgl_Inv,
-			'user_id'			=> $session['id_user'],
-			'tgl_invoice'	    => $Tgl_Inv,
-			'ho_valid'			=> '',
-			'batal'			    => '0'
-		);
-
-		$det_Jurnal				= array();
-		$det_Jurnal[]			= array(
-			'nomor'         => $Nomor_BUM,
-			'tanggal'       => $Tgl_Inv,
-			'tipe'          => 'BUM',
-			'no_perkiraan'  => '1102-01-04',
-			'keterangan'    => $Keterangan_INV,
-			'no_reff'       => $No_Inv,
-			'debet'         => $jumlah_total,
-			'kredit'        => 0
-
-		);
-
-
-		$data_jurnal = $this->db->query("SELECT * FROM tr_invoice_payment_detail WHERE kd_pembayaran = '$kd_bayar' ")->result();
-
-		foreach ($data_jurnal as $jr) {
-			$jmlbayar   = $jr->total_bayar_idr;
-			$invoice2    = $jr->no_invoice;
-
-			$det_Jurnal[]			  = array(
-				'nomor'         => $Nomor_BUM,
-				'tanggal'       => $Tgl_Inv,
-				'tipe'          => 'BUM',
-				'no_perkiraan'  => '1102-01-01',
-				'keterangan'    => $Keterangan_INV,
-				'no_reff'       => $invoice2,
-				'debet'         => 0,
-				'kredit'        => $jmlbayar,
-			);
-		}
-
-
-		## INSERT JURNAL ##
-		$this->db->insert(DBACC . '.jarh', $dataJARH);
-		$this->db->insert_batch(DBACC . '.jurnal', $det_Jurnal);
-
-		$Qry_Update_Cabang_acc	 = "UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum=nobum + 1 WHERE nocab='101'";
-		$this->db->query($Qry_Update_Cabang_acc);
-
-		//PROSES JURNAL
-
-		$data_jr = $this->db->query("SELECT * FROM tr_invoice_payment_detail WHERE kd_pembayaran = '$kd_bayar' ")->result();
-
-		foreach ($data_jr as $val) {
-			$jml   = $val->total_bayar_idr;
-			$inv   = $val->no_invoice;
-
-			$Ket_INV		    = 'PENERIMAAN SALES INVOICE A/N ' . $nama . ' INV NO. ' . $inv . ' Keterangan :' . $keterangan_byr;
-
-
-			$datapiutang = array(
-				'tipe'       	 => 'BUM',
-				'nomor'       	 => $Nomor_BUM,
-				'tanggal'        => $Tgl_Inv,
-				'no_perkiraan'  => '1102-01-01',
-				'keterangan'    => $Ket_INV,
-				'no_reff'       => $inv,
-				'debet'         => 0,
-				'kredit'         => $jml,
-				'id_supplier'     => $idcust,
-				'nama_supplier'   => $nama,
-
-			);
-
-
-
-			$idso = $this->db->insert('tr_kartu_piutang', $datapiutang);
-		}
 	}
 }
 
