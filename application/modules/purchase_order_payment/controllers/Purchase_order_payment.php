@@ -305,8 +305,8 @@ class Purchase_order_payment extends Admin_Controller
 		$id = $this->input->post('id');
 
 		$get_invoice = $this->db->get_where('tr_invoice_po', ['id' => $id])->row_array();
-		$id_po = str_replace(', ', ',', $get_invoice['no_po']);
-		$no_incoming = explode(',', $id_po);
+		$kode_trans = str_replace(', ', ',', $get_invoice['no_incoming']);
+		$no_incoming = explode(',', $kode_trans);
 		// echo '<pre>';
 		// print_r($no_incoming);
 		// echo '</pre>';

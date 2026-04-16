@@ -78,7 +78,7 @@ class Setor_kasir_model extends BF_Model
                 : $urut1 + $start_dari;
 
             $status_text = ($row['status'] == 0) ? '<span class="badge badge-pill bg-blue">Open</span>' : '<span class="badge badge-pill bg-green">Done</span>';
-            $aksi        = ($row['status'] == 0) ? "<input type='checkbox' class='check-setor-kasir' data-id='{$row['id']}' />" : "<button type='button' class='btn btn-sm btn-warning btn-view-setor' data-id='{$row['id']}' title='Lihat Detail'><i class='fa fa-eye'></i></button>";
+            $aksi        = ($row['status'] == 0) ? "<input type='checkbox' class='check-setor-kasir' data-id='{$row['id']}' />" : "<a href='" . base_url('setor_kasir/view/' . $row['id']) . "' class='btn btn-sm btn-warning btn-view-setor' data-id='{$row['id']}' title='Lihat Detail'><i class='fa fa-eye'></i></a>";
 
             $nestedData = [];
             $nestedData[] = "<div align='center'>{$nomor}</div>";

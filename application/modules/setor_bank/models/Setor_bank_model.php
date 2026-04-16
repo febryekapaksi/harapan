@@ -93,8 +93,8 @@ class Setor_bank_model extends BF_Model
             $nestedData[] = "<div align='right'>" . number_format($row['total_setoran'], 0, ',', '.') . "</div>";
 
             $nestedData[] = "<div align='center'>
-            <a href='javascript:void(0)' class='btn btn-sm btn-warning view-setoran' data-id='{$row['id']}'><i class='fa fa-eye'></i></a>
-        </div>";
+                            <a href='" . base_url('setor_bank/view/' . $row['id']) . "' class='btn btn-sm btn-warning view-setoran' data-id='{$row['id']}'><i class='fa fa-eye'></i></a>
+                            </div>";
 
             $data[] = $nestedData;
             $urut1++;
