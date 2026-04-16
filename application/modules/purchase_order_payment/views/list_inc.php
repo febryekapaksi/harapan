@@ -147,8 +147,8 @@
                     echo '<tr>';
                     echo '<td style="text-align: center;">' . $no . '</td>';
                     echo '<td style="text-align: center;">' . $item['id'] . '</td>';
-                    echo '<td style="text-align: center;">' . $item['no_po'] . '</td>';
-                    echo '<td style="text-align: center;">' . $no_po . '</td>';
+                    echo '<td style="text-align: center;">' . $item['no_incoming'] . '</td>';
+                    echo '<td style="text-align: center;">' . $item['no_po']  . '</td>';
                     echo '<td style="text-align: center;">' . $item['invoice_no'] . '</td>';
                     echo '<td style="text-align: center;">' . $no_payment . '</td>';
                     echo '<td style="text-align: center;">' . date('d F Y', strtotime($item['invoice_date'])) . '</td>';
