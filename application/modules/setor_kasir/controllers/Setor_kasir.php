@@ -272,7 +272,27 @@ class Setor_kasir extends Admin_Controller
             ->where('a.created_by', $user_id)
             ->order_by('a.created_on', 'DESC')
             ->get()
-            ->result();
+            ->result_array(); // 🔥 penting pakai array
+
+        // =========================
+        // TAMBAHKAN DETAIL INVOICE 🔥
+        // =========================
+        foreach ($data as &$row) {
+
+            $detail = $this->db
+                ->select('no_invoice, total_bayar_idr')
+                ->from('tr_invoice_payment_detail')
+                ->where('kd_pembayaran', $row['kd_pembayaran'])
+                ->get()
+                ->result_array();
+
+            $row['detail'] = array_map(function ($d) {
+                return [
+                    'invoice' => $d['no_invoice'],
+                    'nominal' => (float) $d['total_bayar_idr']
+                ];
+            }, $detail);
+        }
 
         echo json_encode($data);
     }

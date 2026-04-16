@@ -100,69 +100,28 @@
                 <hr>
                 <label>Informasi Jurnal</label>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover">
+                    <table id="tableJurnal" class="table table-bordered table-hover">
                         <thead>
                             <tr bgcolor='#9acfea'>
-                                <th>
-                                    <center>Tanggal</center>
-                                </th>
-                                <th>
-                                    <center>Tipe</center>
-                                </th>
-                                <th>
-                                    <center>No. COA</center>
-                                </th>
-                                <th>
-                                    <center>Nama. COA</center>
-                                </th>
-                                <th>
-                                    <center>Debit</center>
-                                </th>
-                                <th>
-                                    <center>Kredit</center>
-                                </th>
+                                <th class="text-center">Tanggal</th>
+                                <th class="text-center">Tipe</th>
+                                <th class="text-center">No. COA</th>
+                                <th class="text-center">Nama COA</th>
+                                <th class="text-center">Keterangan</th>
+                                <th class="text-center">Debit</th>
+                                <th class="text-center">Kredit</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr bgcolor='#DCDCDC'>
-                                <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-                                <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
-                                <td><input type="text" id="no_coa1" name="no_coa[]" value="1102-01-04" class="form-control" readonly /></td>
-                                <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Piutang Sales" class="form-control" readonly /></td>
-                                <td><input type="hidden" id="debet1" name="debet[]" value="0" class="form-control" readonly />
-                                    <input type="text" id="debet21" name="debet2[]" value="0" class="form-control" readonly />
-                                </td>
-                                <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
-                                    <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
-                                </td>
-
+                            <!-- KOSONG -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" align="right"><b>TOTAL</b></td>
+                                <td><input type="text" id="totalDebit" name="total_debit" class="form-control text-right" readonly></td>
+                                <td><input type="text" id="totalKredit" name="total_kredit" class="form-control text-right" readonly></td>
                             </tr>
-                            <tr bgcolor='#DCDCDC'>
-                                <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-                                <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
-                                <td><input type="text" id="no_coa2" name="no_coa[]" value="1102-01-01" class="form-control" readonly /></td>
-                                <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly /></td>
-                                <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
-                                    <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
-                                </td>
-                                <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
-                                    <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
-                                </td>
-
-                            </tr>
-
-
-                            <tr bgcolor='#DCDCDC'>
-                                <td colspan="4" align="right"><b>TOTAL</b></td>
-                                <td align="right"><input type="hidden" id="total" name="total" value="0" class="form-control" readonly />
-                                    <input type="text" id="total31" name="total3" value="0" class="form-control" readonly />
-                                </td>
-                                <td align="right"><input type="hidden" id="total2" name="total2" value="0" class="form-control" readonly />
-                                    <input type="text" id="total41" name="total4" value="0" class="form-control" readonly />
-                                </td>
-
-                            </tr>
-
+                        </tfoot>
                     </table>
                 </div>
 
@@ -600,6 +559,85 @@
         }, 1000);
     }
 
+    function generateJurnal() {
+
+        let jurnalHTML = '';
+        let totalDebit = 0;
+        let totalKredit = 0;
+
+        const today = $('#tgl_pembayaran').val() || '';
+
+        let totalBayar = parseFloat($('#totalTerima').val().replace(/,/g, '')) || 0;
+
+        // =========================
+        // BANK (DEBIT)
+        // =========================
+        if (totalBayar > 0) {
+            jurnalHTML += `
+        <tr>
+            <td><input type="date" name="tgl_jurnal[]" value="${today}" class="form-control" readonly></td>
+            <td style="min-width: 10px;"><input type="text" name="type[]" value="JV" class="form-control" readonly></td>
+            <td><input type="text" name="no_coa[]" value="1102-01-04" class="form-control" readonly></td>
+            <td><input type="text" name="nama_coa[]" value="Piutang Sales" class="form-control" readonly></td>
+            <td><textarea name="keterangan[]" class="form-control" readonly>Penerimaan uang via Sales</textarea></td>
+
+            <td>
+                <input type="hidden" name="debet[]" value="${totalBayar}">
+                <input type="text" value="${number_format(totalBayar,2)}" class="form-control text-right" readonly>
+            </td>
+
+            <td>
+                <input type="hidden" name="kredit[]" value="0">
+                <input type="text" value="0" class="form-control text-right" readonly>
+            </td>
+        </tr>
+        `;
+            totalDebit += totalBayar;
+        }
+
+        // =========================
+        // PIUTANG
+        // =========================
+        $('#tableInv tbody tr').each(function() {
+
+            const invoice = $(this).find('td:eq(1)').text();
+            const bayar = parseFloat($(this).find('.total_bayar').val().replace(/,/g, '')) || 0;
+            if (bayar > 0) {
+                jurnalHTML += `
+            <tr>
+                <td><input type="date" name="tgl_jurnal[]" value="${today}" class="form-control" readonly></td>
+                <td><input type="text" name="type[]" value="JV" class="form-control" readonly></td>
+                <td><input type="text" name="no_coa[]" value="1102-01-01" class="form-control" readonly></td>
+                <td><input type="text" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly></td>
+                <td><textarea name="keterangan[]" class="form-control" readonly>Pembayaran Invoice ${invoice}</textarea></td>
+
+                <td><input type="hidden" name="debet[]" value="0">
+                <input type="text" value="0" class="form-control text-right" readonly></td>
+
+                <td><input type="hidden" name="kredit[]" value="${bayar}">
+                <input type="text" value="${number_format(bayar,2)}" class="form-control text-right" readonly></td>
+            </tr>
+            `;
+                totalKredit += bayar;
+            }
+        });
+
+        $('#tableJurnal tbody').html(jurnalHTML);
+
+        $('#totalDebit').val(number_format(totalDebit, 2));
+        $('#totalKredit').val(number_format(totalKredit, 2));
+
+        if (totalDebit !== totalKredit) {
+            $('#totalDebit').addClass('bg-red');
+            $('#totalKredit').addClass('bg-red');
+            $('#btnSave').prop('disabled', true)
+        } else {
+            $('#totalDebit').removeClass('bg-red');
+            $('#totalKredit').removeClass('bg-red');
+            $('#btnSave').prop('disabled', false);
+        }
+    }
+
     function updateInvoiceTotals() {
         let totalInvoice = 0;
         let sisaBayar = getNum($('#totalTerima').val().split(',').join(''));
@@ -633,25 +671,7 @@
 
         $('#totalInvoice').val(number_format(totalInvoice, 2));
 
-        isiJurnal();
-
-    }
-
-    function isiJurnal() {
-        let totalInvoice = 0;
-        let nilaiBayar = $('#totalTerima').val().split(',').join('');
-
-        $('#debet1').val(nilaiBayar);
-        $('#debet21').val(number_format(nilaiBayar, 2));
-
-        $('#kredit2').val(nilaiBayar);
-        $('#kredit22').val(number_format(nilaiBayar, 2));
-
-        $('#total').val(nilaiBayar);
-        $('#total31').val(number_format(nilaiBayar, 2));
-        $('#total2').val(nilaiBayar);
-        $('#total41').val(number_format(nilaiBayar, 2));
-
+        generateJurnal()
     }
 
     function number_format(number, decimals, dec_point, thousands_sep) {
