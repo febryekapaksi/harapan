@@ -381,7 +381,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 														<input type='text' class='form-control auto_num input-sm ch_ppn cng_nilai_ppn' id='dt_nilai_ppn_" . $key . "' name='dt[" . $key . "][nilai_ppn]' data-key='" . $key . "' placeholder='Nilai PPN' " . (($value->ppn > 0) ? '' : 'readonly') . " value='" . (($value->ppn > 0) ? $value->ppn : null) . "'>
 														<input type='text' class='form-control input-sm ch_per_ppn cng_persen_ppn' id='dt_persen_ppn_" . $key . "' name='dt[" . $key . "][persen_ppn]' data-key='" . $key . "' placeholder='Persen PPN' " . (($value->ppn > 0) ? '' : 'readonly') . " value='" . (($value->ppn > 0) ? $value->ppn_persen : null) . "'>
 														</td>
-														<td><input type='text' class='form-control input-sm text-right auto_num ch_jumlah_ex2' id='dt_totalharga_" . $key . "' readonly name='dt[" . $key . "][totalharga]' value='" . number_format($total - $value->nilai_disc) . "'></td>
+														<td><input type='text' class='form-control input-sm text-right auto_num ch_jumlah_ex2' id='dt_totalharga_" . $key . "' readonly name='dt[" . $key . "][totalharga]' value='" . ($total - $value->nilai_disc) . "'></td>
 														<td><input type='text' class='form-control input-sm' id='dt_note_" . $key . "' name='dt[" . $key . "][note]'></td>																
 										 			</tr>
 												";
@@ -398,34 +398,34 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 									<tr hidden>
 										<td class="text-right" colspan="9"><b>Diskon Khusus</b></th>
 										<td colspan="2">
-											<input type="text" class="form-control text-right auto_num" id="diskonkhusus" value="<?= number_format($results['get_po']->diskon_khusus) ?>" onblur="updateGlobal()" name="diskonkhusus">
+											<input type="text" class="form-control text-right" id="diskonkhusus" value="<?= number_format($results['get_po']->diskon_khusus) ?>" onblur="updateGlobal()" name="diskonkhusus">
 											<input type="hidden" id="diskontotal" name="diskontotal" value="<?= $results['get_po']->diskontotal ?>">
 										</td>
 									</tr>
 									<tr>
 										<td class="text-right" colspan="9"><b>Total (Exclude PPn)</b></td>
 										<td colspan="2">
-											<input readonly type="text" class="form-control auto_num text-right" id="totalexppn" value="<?= number_format($results['get_po']->total_exclude_ppn) ?>" onkeyup required name="totalexppn">
+											<input readonly type="text" class="form-control text-right" id="totalexppn" value="<?= number_format($results['get_po']->total_exclude_ppn) ?>" onkeyup required name="totalexppn">
 											<input type="hidden" id="totalinppn" name="totalinppn" value="<?= $results['get_po']->total_include_ppn ?>">
 										</td>
 									</tr>
 									<tr>
 										<td class="text-right" colspan="9"><b>DPP</b></td>
 										<td colspan="2">
-											<input readonly type="text" class="form-control auto_num text-right" id="dpp" value="<?= number_format($results['get_po']->total_dpp) ?>" onkeyup required name="dpp">
+											<input readonly type="text" class="form-control text-right" id="dpp" value="<?= number_format($results['get_po']->total_dpp) ?>" onkeyup required name="dpp">
 										</td>
 									</tr>
 									<tr>
 										<td class="text-right" colspan="9"><b>PPn</b></td>
 										<td colspan="2">
-											<input readonly type="text" class="form-control auto_num text-right" id="ppn" value="<?= number_format($results['get_po']->total_ppn) ?>" onkeyup required name="ppn">
+											<input readonly type="text" class="form-control text-right" id="ppn" value="<?= number_format($results['get_po']->total_ppn) ?>" onkeyup required name="ppn">
 										</td>
 									</tr>
 									<tr hidden>
 										<td class="text-right" colspan="9"><b>Biaya Kirim</b></td>
 										<td colspan="2">
 											<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
-											<input type="text" class="form-control auto_num text-right" id="kirim" value="<?= number_format($results['get_po']->kirim) ?>" onblur="cariTotal()" required name="kirim">
+											<input type="text" class="form-control text-right" id="kirim" value="<?= number_format($results['get_po']->kirim) ?>" onblur="cariTotal()" required name="kirim">
 										</td>
 									</tr>
 									<tr>
@@ -1397,7 +1397,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 		let grandtotal = total_ex + total_ppn + kirim
 
-		$("#grand_total").val(number_format(grandtotal, 2));
+		$("#grand_total").val(number_format(grandtotal, 0));
 		$("#kirim").val(number_format(kirim, 2));
 	}
 
