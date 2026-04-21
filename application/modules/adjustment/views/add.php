@@ -1,4 +1,4 @@
-<div class="box">
+<div class="box box-primary">
 	<div class="box-body">
 		<form action="#" method="POST" id="form_proses" autocomplete='off'>
 			<div class='form-group row'>
@@ -8,7 +8,7 @@
 						<option value='0'>Select Type</option>
 						<option value='plus'>PLUS</option>
 						<option value='minus'>MINUS</option>
-						<option value='mutasi'>MUTASI</option>
+						<!-- <option value='mutasi'>MUTASI</option> -->
 					</select>
 				</div>
 				<label class='label-control col-sm-2 gudang_mutasi'><b>PIC <span class='text-red'>*</span></b></label>
@@ -18,7 +18,7 @@
 					?>
 				</div>
 			</div>
-			<div class='form-group row gudang_mutasi'>
+			<div class='form-group row gudang_mutasi' hidden>
 				<label class='label-control col-sm-2'><b>Dari Gudang <span class='text-red'>*</span></b></label>
 				<div class='col-sm-4'>
 					<select name='id_gudang_dari_m' id='id_gudang_dari_m' class='form-control select2'>
