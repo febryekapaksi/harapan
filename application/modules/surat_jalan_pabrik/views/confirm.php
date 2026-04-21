@@ -193,11 +193,11 @@
                                         <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
                                         <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-03" class="form-control" readonly /></td>
                                         <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang In Customer" class="form-control" readonly /></td>
-                                        <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control" readonly />
-                                            <input type="text" id="debet21" name="debet2[]" value="" class="form-control" readonly />
+                                        <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control text-right" readonly />
+                                            <input type="text" id="debet21" name="debet2[]" value="" class="form-control text-right" readonly />
                                         </td>
-                                        <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control" readonly />
-                                            <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control" readonly />
+                                        <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control text-right" readonly />
+                                            <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control text-right" readonly />
                                         </td>
 
                                     </tr>
@@ -206,21 +206,21 @@
                                         <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
                                         <td><input type="text" id="no_coa2" name="no_coa[]" value="1104-01-02" class="form-control" readonly /></td>
                                         <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Persediaan Barang In Transit" class="form-control" readonly /></td>
-                                        <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control" readonly />
-                                            <input type="text" id="debet22" name="debet2[]" value="0" class="form-control" readonly />
+                                        <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control text-right" readonly />
+                                            <input type="text" id="debet22" name="debet2[]" value="0" class="form-control text-right" readonly />
                                         </td>
-                                        <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control" readonly />
-                                            <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control" readonly />
+                                        <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control text-right" readonly />
+                                            <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control text-right" readonly />
                                         </td>
 
                                     </tr>
                                     <tr bgcolor='#DCDCDC'>
                                         <td colspan="4" align="right"><b>TOTAL</b></td>
-                                        <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control" readonly />
-                                            <input type="text" id="total31" name="total3" value="" class="form-control" readonly />
+                                        <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control text-right" readonly />
+                                            <input type="text" id="total31" name="total3" value="" class="form-control text-right" readonly />
                                         </td>
-                                        <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control" readonly />
-                                            <input type="text" id="total41" name="total4" value="" class="form-control" readonly />
+                                        <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control text-right" readonly />
+                                            <input type="text" id="total41" name="total4" value="" class="form-control text-right" readonly />
                                         </td>
                                     </tr>
                             </table>
@@ -369,13 +369,13 @@
         $('.total-costbook').each(function() {
             sum += parseFloat($(this).val()) || 0;
         });
-        $('#grandTotal').val(sum);
-        $('#debet1').val(sum);
-        $('#debet21').val(sum);
-        $('#kredit2').val(sum);
-        $('#kredit22').val(sum);
-        $('#total31').val(sum);
-        $('#total41').val(sum);
+        $('#grandTotal').val(number_format(sum));
+        $('#debet1').val(number_format(sum));
+        $('#debet21').val(number_format(sum));
+        $('#kredit2').val(number_format(sum));
+        $('#kredit22').val(number_format(sum));
+        $('#total31').val(number_format(sum));
+        $('#total41').val(number_format(sum));
     }
 
     function validateQty(input) {
@@ -431,5 +431,29 @@
         [row.querySelector('.qty-terkirim'), row.querySelector('.qty-retur'), row.querySelector('.qty-hilang')].forEach(el => {
             el.style.backgroundColor = highlight ? '#fff3cd' : '';
         });
+    }
+
+    function number_format(number, decimals, dec_point, thousands_sep) {
+        // Strip all characters but numerical ones.
+        number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
+        var n = !isFinite(+number) ? 0 : +number,
+            prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+            sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+            dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+            s = '',
+            toFixedFix = function(n, prec) {
+                var k = Math.pow(10, prec);
+                return '' + Math.round(n * k) / k;
+            };
+        // Fix for IE parseFloat(0.55).toFixed(0) = 0;
+        s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+        if (s[0].length > 3) {
+            s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+        }
+        if ((s[1] || '').length < prec) {
+            s[1] = s[1] || '';
+            s[1] += new Array(prec - s[1].length + 1).join('0');
+        }
+        return s.join(dec);
     }
 </script>
