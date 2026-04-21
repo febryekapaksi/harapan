@@ -234,19 +234,18 @@ class Surat_jalan extends Admin_Controller
             $this->db->insert_batch('surat_jalan_detail', $ArrDetail);
 
             //SYAMSUDIN 16-09-2025 JURNAL
-
             $tgl_inv  = date('Y-m-d');
             $keterangan  = "Surat Jalan" . $no_surat_jalan;
             $type        = $no_surat_jalan;
             $reff        = $no_surat_jalan;
             $no_req      = $no_surat_jalan;
             $no_po       = $no_surat_jalan;
-            $total       = round($this->input->post('debet[0]'));
+            $total       = str_replace(",", "", $this->input->post('debet[0]'));
             $jenis       = $this->input->post('jenis');
             $tipe_jurnal       = $this->input->post('tipe');
             $jenis_jurnal       = $this->input->post('jenis_jurnal');
 
-            $total_po           = round($this->input->post('debet[0]'));
+            $total_po           = str_replace(",", "", $this->input->post('debet[0]'));
             $Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
 
@@ -284,8 +283,8 @@ class Surat_jalan extends Admin_Controller
                     'no_perkiraan'    => $this->input->post('no_coa')[$i],
                     'keterangan'      =>  $keterangan,
                     'no_reff'        => $no_po,
-                    'debet'          => round($this->input->post('debet')[$i]),
-                    'kredit'         => round($this->input->post('kredit')[$i]),
+                    'debet'          => str_replace(",", "", $this->input->post('debet')[$i]),
+                    'kredit'         => str_replace(",", "", $this->input->post('kredit')[$i]),
                     'created_by'      => $this->auth->user_id(),
                     'created_on'      => date('Y-m-d H:i:s')
                 );
@@ -697,8 +696,8 @@ class Surat_jalan extends Admin_Controller
                     'no_perkiraan' => $this->input->post('no_coa')[$i],
                     'keterangan'   => $keterangan,
                     'no_reff'      => $no_po,
-                    'debet'        => round($this->input->post('debet')[$i]),
-                    'kredit'       => round($this->input->post('kredit')[$i]),
+                    'debet'        => str_replace(",", "", $this->input->post('debet')[$i]),
+                    'kredit'       => str_replace(",", "", $this->input->post('kredit')[$i]),
                     'created_by'   => $this->auth->user_id(),
                     'created_on'   => date('Y-m-d H:i:s')
                 ];
