@@ -1822,16 +1822,23 @@ class Purchase_order extends Admin_Controller
 		foreach ($_POST['dt'] as $used) {
 			$numb1++;
 
+			$total_harga = str_replace(",", "", $used['totalharga']);
+			$qty = str_replace(",", "", $used['qty']);
+
+			$hargasatuan_disc = $total_harga / $qty;
+
 			$dt =  array(
 				'description'			=> $used['description'],
-				'qty'					=> $used['qty'],
+				'qty'					=> $qty,
 				'hargasatuan'			=> str_replace(",", "", $used['hargasatuan']),
+				'hargasatuan_include'	=> str_replace(",", "", $used['hargasatuan_include']),
+				'hargasatuan_disc'		=> $hargasatuan_disc,
 				'jumlahharga'			=> str_replace(",", "", $used['jumlahharga']),
 				'ppn'					=> str_replace(",", "", $used['nilai_ppn']),
 				'ppn_persen'			=> str_replace(",", "", $used['persen_ppn']),
 				'persen_disc' 			=> str_replace(",", "", $used['disc_persen']),
 				'nilai_disc' 			=> str_replace(",", "", $used['disc_num']),
-				'harga_total'			=> str_replace(",", "", $used['totalharga']),
+				'harga_total'			=> $total_harga,
 				'note'					=> $used['note']
 			);
 
