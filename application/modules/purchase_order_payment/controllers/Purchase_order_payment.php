@@ -2080,7 +2080,8 @@ class Purchase_order_payment extends Admin_Controller
 		// 8. Final Calculation
 		$total_invoice_final = $total_invoice * $kurs_terima_barang;
 		$base = $total_invoice_final - $uang_muka_idr;
-		$nilai_ppn = (11 / 12 * $base) * 12 / 100;
+		$dpp = $base * (11 / 12);
+		$nilai_ppn = $dpp * (12 / 100);
 		// echo '<pre>';
 		// print_r($nilai_ppn);
 		// echo '</pre>';
