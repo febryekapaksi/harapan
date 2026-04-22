@@ -87,8 +87,10 @@
                             $check_box = '<input type="checkbox" name="check_invoice[]" class="check_invoice" data-kode_trans="' . $item['kode_trans'] . '" data-tipe_incoming="' . $item['tipe_incoming'] . '" value="' . $item['kode_trans'] . '" ' . $checked . '>';
                             if ($complete == 0) {
                                 $total_invoice = 0;
-                                $this->db->select('IF(SUM(a.total_harga) IS NULL, 0, SUM(a.total_harga)) as total_invoice');
-                                $this->db->from('tr_checked_incoming_detail a');
+                                $this->db->select('IFNULL(SUM(c.qty_oke * b.hargasatuan), 0) as total_invoice', false);
+                                $this->db->from('tr_incoming_check_detail a');
+                                $this->db->join('dt_trans_po b', 'b.id = a.id_po_detail');
+                                $this->db->join('tr_checked_incoming_detail c', 'c.kode_trans = a.kode_trans AND c.id_detail = a.id');
                                 $this->db->where('a.kode_trans', $item['kode_trans']);
                                 $get_ttl_invoice = $this->db->get()->row();
                                 if (!empty($get_ttl_invoice)) {
