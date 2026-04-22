@@ -2010,7 +2010,7 @@ class Purchase_order_payment extends Admin_Controller
 		// 6. Hitung Total Invoice
 		$total_invoice = 0;
 		$query_ttl = "
-        SELECT (c.total_harga) as subtotal FROM tr_incoming_check_detail a 
+        SELECT (c.qty_oke * b.hargasatuan) as subtotal FROM tr_incoming_check_detail a 
         JOIN dt_trans_po b ON b.id = a.id_po_detail 
         JOIN tr_checked_incoming_detail c ON c.kode_trans = a.kode_trans AND c.id_detail = a.id
         WHERE a.kode_trans IN ($in_clause)

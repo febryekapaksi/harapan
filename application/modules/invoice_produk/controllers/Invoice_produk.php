@@ -599,55 +599,41 @@ class Invoice_produk extends Admin_Controller
 
 			//SYAMSUDIN 29-08-2025 JURNAL
 
-			$tgl_inv  = $this->input->post('tgl_jurnal[0]');
-			$keterangan  = "Penjualan atas invoice nomor " . $id_invoice;
-			$type        = $this->input->post('type[0]');
-			$reff        = $id_invoice;
-			$no_req      = $this->input->post('no_request[0]');
-			$total       = round($this->input->post('total'));
-			$jenis       = $this->input->post('jenis');
-			$tipe_jurnal       = $this->input->post('tipe');
-			$jenis_jurnal       = $this->input->post('jenis_jurnal');
+			$tgl_inv  		= $this->input->post('tgl_jurnal[0]');
+			$keterangan  	= "Penjualan atas invoice nomor " . $id_invoice;
+			$type        	= $this->input->post('type[0]');
+			$reff        	= $id_invoice;
+			$no_req      	= $this->input->post('no_request[0]');
+			$total       	= str_replace(",", "", $this->input->post('total'));
+			$jenis       	= $this->input->post('jenis');
+			$tipe_jurnal    = $this->input->post('tipe');
+			$jenis_jurnal   = $this->input->post('jenis_jurnal');
 
-			$total_po           = $this->input->post('total_po');
-			$id_vendor          = $this->input->post('vendor_id');
-			$nama_vendor        = $this->input->post('vendor_nm'); //SYAMSUDIN 29-08-2025
+			$total_po       = $this->input->post('total_po');
+			$id_vendor      = $this->input->post('vendor_id');
+			$nama_vendor    = $this->input->post('vendor_nm'); //SYAMSUDIN 29-08-2025
 
-			$tgl_inv  = $this->input->post('tgl_jurnal[0]');
-			$keterangan  = "Penjualan atas invoice nomor " . $id_invoice;
-			$type        = $this->input->post('type[0]');
-			$reff        = $id_invoice;
-			$no_req      = $this->input->post('no_request[0]');
-			$total       = round($this->input->post('total'));
-			$jenis       = $this->input->post('jenis');
-			$tipe_jurnal       = $this->input->post('tipe');
-			$jenis_jurnal       = $this->input->post('jenis_jurnal');
-
-			$total_po           = $this->input->post('total_po');
-			$id_vendor          = $this->input->post('vendor_id');
-			$nama_vendor        = $this->input->post('vendor_nm');
-
-			$Nomor_JV                = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
+			$Nomor_JV       = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
 
-			$Bln             = substr($tgl_inv, 5, 2);
-			$Thn             = substr($tgl_inv, 0, 4);
+			$Bln            = substr($tgl_inv, 5, 2);
+			$Thn            = substr($tgl_inv, 0, 4);
 
 
 			$dataJVhead = array(
 				'nomor'             => $Nomor_JV,
-				'tgl'                 => $tgl_inv,
-				'jml'                => $total,
+				'tgl'               => $tgl_inv,
+				'jml'               => $total,
 				'koreksi_no'        => '-',
-				'kdcab'                => '101',
-				'jenis'                => 'JV',
-				'keterangan'         => $keterangan,
-				'bulan'                => $Bln,
-				'tahun'                => $Thn,
-				'user_id'            => $this->auth->user_id(),
-				'memo'                => '',
-				'tgl_jvkoreksi'        => $tgl_inv,
-				'ho_valid'            => ''
+				'kdcab'             => '101',
+				'jenis'             => 'JV',
+				'keterangan'        => $keterangan,
+				'bulan'             => $Bln,
+				'tahun'             => $Thn,
+				'user_id'    	    => $this->auth->user_id(),
+				'memo'              => '',
+				'tgl_jvkoreksi'     => $tgl_inv,
+				'ho_valid'      	=> ''
 			);
 
 			$this->db->insert(DBACC . '.javh', $dataJVhead);
@@ -663,11 +649,11 @@ class Invoice_produk extends Admin_Controller
 					'tanggal'         => $this->input->post('tgl_jurnal')[$i],
 					'no_perkiraan'    => $this->input->post('no_coa')[$i],
 					'keterangan'      =>  $keterangan,
-					'no_reff'        => $id_invoice,
-					'debet'          => round($this->input->post('debet')[$i]),
-					'kredit'         => round($this->input->post('kredit')[$i]),
-					'created_by' 	 => $this->auth->user_id(),
-					'created_on' 	 => date('Y-m-d H:i:s')
+					'no_reff'         => $id_invoice,
+					'debet'           => str_replace(",", "", $this->input->post('debet')[$i]),
+					'kredit'          => str_replace(",", "", $this->input->post('kredit')[$i]),
+					'created_by' 	  => $this->auth->user_id(),
+					'created_on' 	  => date('Y-m-d H:i:s')
 				);
 				$this->db->insert(DBACC . '.jurnal', $datadetail);
 			}
@@ -680,16 +666,16 @@ class Invoice_produk extends Admin_Controller
 			$No_Inv   = $id_invoice;
 
 			$datapiutang = array(
-				'tipe'            => 'JV',
-				'nomor'            => $Nomor_JV,
-				'tanggal'        => $tgl_inv,
+				'tipe'          => 'JV',
+				'nomor'         => $Nomor_JV,
+				'tanggal'       => $tgl_inv,
 				'no_perkiraan'  => '1102-01-01',
 				'keterangan'    => $keterangan,
 				'no_reff'       => $No_Inv,
 				'debet'         => $total,
-				'kredit'         =>  0,
-				'id_supplier'     => $id_cust,
-				'nama_supplier'   => $nama,
+				'kredit'        =>  0,
+				'id_supplier'   => $id_cust,
+				'nama_supplier' => $nama,
 
 			);
 			$this->db->insert('tr_kartu_piutang', $datapiutang);
