@@ -249,6 +249,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 												<th style="min-width: 100px;" hidden>Rate LME</th>
 												<th style="min-width: 100px;" hidden>Alloy Price</th>
 												<th style="min-width: 100px;" hidden>Fab Cost</th>
+												<th style="min-width: 150px;">Harga Satuan (Include PPn)</th>
 												<th style="min-width: 150px;">Harga Satuan</th>
 												<th style="min-width: 100px;" hidden>Disc %</th>
 												<th style="min-width: 100px;" hidden>Biaya Kirim</th>
@@ -350,6 +351,8 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 														</td>
 														<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_alloyprice_" . $key . "' " . $disabled . " data-decimal='.' data-thousand='' data-precision='0' data-allow-zero='' name='dt[" . $key . "][alloyprice]' onkeyup='HitAmmount(" . $key . ")'></td>
 														<td hidden><input type='text' class='form-control input-sm autoNumeric3' id='dt_fabcost_" . $key . "' " . $disabled . " name='dt[" . $key . "][fabcost]' onkeyup='HitAmmount(" . $key . ")'></td>
+														
+														<td><input type='text' class='form-control text-right input-sm auto_num' id='dt_hargasatuan_include_" . $key . "' name='dt[" . $key . "][hargasatuan_include]' onkeyup='HitAmmount(" . $key . ", \"include\")' value='" . number_format($value->hargasatuan_include) . "'></td>
 														<td><input type='text' class='form-control text-right input-sm auto_num' id='dt_hargasatuan_" . $key . "' name='dt[" . $key . "][hargasatuan]' onkeyup='HitAmmount(" . $key . ")' value='" . number_format($value->hargasatuan) . "'></td>
 														<td hidden>
 															<select class='form-control input-sm' id='dt_ppn_" . $key . "' name='dt[" . $key . "][ppn]' onchange='CariPPN(" . $key . ")'>
@@ -393,7 +396,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 													<input readonly type="text" class="form-control auto_num text-right" id="totalinppn" value="<?= number_format($results['get_po']->total_include_ppn) ?>" onkeyup required name="totalinppn">
 												</td>
 											</tr>
-											<tr>
+											<tr hidden>
 												<td class="text-right" colspan="9"><b>Diskon Khusus</b></th>
 												<td colspan="2">
 													<input type="text" class="form-control text-right auto_num" id="diskonkhusus" value="<?= number_format($results['get_po']->diskon_khusus) ?>" onblur="cariTotal()" name="diskonkhusus">
@@ -417,7 +420,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 													<input readonly type="text" class="form-control auto_num text-right" id="ppn" value="<?= number_format($results['get_po']->total_ppn) ?>" onkeyup required name="ppn">
 												</td>
 											</tr>
-											<tr>
+											<tr hidden>
 												<td class="text-right" colspan="9"><b>Biaya Kirim</b></td>
 												<td colspan="2">
 													<input type="hidden" class="form-control" id="taxtotal" onkeyup required name="taxtotal">
