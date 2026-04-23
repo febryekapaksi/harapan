@@ -129,7 +129,7 @@
 
             <div class="form-group row">
                 <div class="col-md-12 text-center">
-                    <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Save</button>
+                    <button type="submit" id="btnSave" class="btn btn-success"><i class="fa fa-save"></i> Save</button>
                     <a class="btn btn-default" onclick="window.history.back(); return false;">
                         <i class="fa fa-reply"></i> Batal
                     </a>
@@ -567,6 +567,8 @@
 
         const today = $('#tgl_pembayaran').val() || '';
 
+        const customerName = $('#id_customer option:selected').text().trim();
+
         let totalBayar = parseFloat($('#totalTerima').val().replace(/,/g, '')) || 0;
 
         // =========================
@@ -609,7 +611,7 @@
                 <td><input type="text" name="type[]" value="JV" class="form-control" readonly></td>
                 <td><input type="text" name="no_coa[]" value="1102-01-01" class="form-control" readonly></td>
                 <td><input type="text" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly></td>
-                <td><textarea name="keterangan[]" class="form-control" readonly>Pembayaran Invoice ${invoice}</textarea></td>
+                <td><textarea name="keterangan[]" class="form-control" readonly>Pembayaran Invoice ${invoice} A/n ${customerName}</textarea></td>
 
                 <td><input type="hidden" name="debet[]" value="0">
                 <input type="text" value="0" class="form-control text-right" readonly></td>
