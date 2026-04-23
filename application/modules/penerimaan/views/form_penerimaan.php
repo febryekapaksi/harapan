@@ -475,6 +475,7 @@
         let totalKredit = 0;
 
         const today = $('#tgl_pembayaran').val() || '';
+        const customerName = $('#id_customer option:selected').text().trim();
 
         const noPerkiraan = $('#bank').val() || '';
         const namaBank = $('#bank option:selected').data('nama') || '';
@@ -522,7 +523,7 @@
                 <td><input type="text" name="type[]" value="BUM" class="form-control" readonly></td>
                 <td><input type="text" name="no_coa[]" value="1102-01-01" class="form-control" readonly></td>
                 <td><input type="text" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly></td>
-                <td><textarea name="keterangan[]" class="form-control" readonly>Pembayaran Invoice ${invoice}</textarea></td>
+                <td><textarea name="keterangan[]" class="form-control" readonly>Pembayaran Invoice ${invoice} A/n ${customerName}</textarea></td>
 
                 <td><input type="hidden" name="debet[]" value="0">
                 <input type="text" value="0" class="form-control text-right" readonly></td>
