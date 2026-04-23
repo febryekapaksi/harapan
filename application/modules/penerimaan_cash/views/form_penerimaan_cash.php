@@ -566,7 +566,6 @@
         let totalKredit = 0;
 
         const today = $('#tgl_pembayaran').val() || '';
-
         const customerName = $('#id_customer option:selected').text().trim();
 
         let totalBayar = parseFloat($('#totalTerima').val().replace(/,/g, '')) || 0;
