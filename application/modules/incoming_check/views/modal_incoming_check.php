@@ -367,7 +367,7 @@
 							<td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
 							<td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
 							<td>
-								<input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly />
+								<input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang Warehouse <?= $kode_trans ?>" class="form-control" readonly />
 								<input type="hidden" id="no_reff1" name="no_reff[]" value="<?= $kode_trans ?>" />
 							</td>
 							<td><input type="text" id="debet1" name="debet[]" value="<?= number_format($total_nilai) ?>" class="form-control text-right" readonly /></td>
