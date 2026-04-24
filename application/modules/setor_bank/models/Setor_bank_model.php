@@ -122,35 +122,44 @@ class Setor_bank_model extends BF_Model
 
         // Total data
         $this->db->from('tr_setor_bank s');
+        $this->db->join('tr_setor_bank_detail sd', 'sd.id_setor_bank = s.id', 'left');
         $totalData = $this->db->count_all_results();
 
         // Filtered data
         $this->db->from('tr_setor_bank s');
+        $this->db->join('tr_setor_bank_detail sd', 'sd.id_setor_bank = s.id', 'left');
         if ($like_value) {
             $this->db->group_start();
             $this->db->like('s.id', $like_value);
             $this->db->or_like('s.tgl_setor', $like_value);
+            $this->db->or_like('sd.kd_pembayaran', $like_value);
             $this->db->group_end();
         }
         $totalFiltered = $this->db->count_all_results();
 
         // Main query
-        $this->db->select('s.id, s.tgl_setor, s.total_setoran');
+        $this->db->select('s.id, sd.kd_pembayaran, s.tgl_setor, s.total_setoran');
         $this->db->from('tr_setor_bank s');
+        $this->db->join('tr_setor_bank_detail sd', 'sd.id_setor_bank = s.id', 'left');
+
         if ($like_value) {
             $this->db->group_start();
             $this->db->like('s.id', $like_value);
             $this->db->or_like('s.tgl_setor', $like_value);
+            $this->db->or_like('sd.kd_pembayaran', $like_value); // 🔥 tambahan
             $this->db->group_end();
         }
+
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
         } else {
             $this->db->order_by('s.tgl_setor', 'desc');
         }
+
         if ($limit_length != -1) {
             $this->db->limit($limit_length, $limit_start);
         }
+
         $query = $this->db->get();
 
         return [
