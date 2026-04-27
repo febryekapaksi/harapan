@@ -1,3 +1,33 @@
+<style>
+    /* Mengatur area scroll tabel */
+    .table-scrollable {
+        max-height: 500px;
+        /* Tentukan tinggi maksimal tabel sebelum muncul scroll */
+        overflow-y: auto;
+        /* Munculkan scroll vertikal jika data melebihi max-height */
+        border: 1px solid #ccc;
+    }
+
+    /* Membuat Header Tabel tetap di atas saat di-scroll (Sticky Header) */
+    #tbl-piutang thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: #337ab7;
+        /* Warna biru sesuai class bg-blue AdminLTE */
+        color: #fff;
+        box-shadow: inset 0 1px 0 #fff, inset 0 -1px 0 #fff;
+    }
+
+    /* Memastikan footer juga tetap terlihat di bawah jika diinginkan */
+    #tbl-piutang tfoot td {
+        position: sticky;
+        bottom: 0;
+        background-color: #f9f9f9;
+        z-index: 10;
+        border-top: 2px solid #ccc;
+    }
+</style>
 <div class="box box-primary">
     <div class="box-header with-border">
         <h3 class="box-title"><i class="fa fa-file-text-o"></i> Report Piutang Per Invoice</h3>
@@ -10,18 +40,18 @@
                 <div class="form-group">
                     <label>Tanggal</label>
                     <input type="text" id="tanggal" name="tanggal"
-                           class="form-control datepicker"
-                           placeholder="Pilih tanggal..."
-                           autocomplete="off" readonly>
+                        class="form-control datepicker"
+                        placeholder="Pilih tanggal..."
+                        autocomplete="off" readonly>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="form-group">
                     <label>Total Piutang</label>
                     <input type="text" id="total_piutang_display"
-                           class="form-control text-right"
-                           readonly
-                           style="background:#d9edf7; font-weight:bold; color:#31708f;">
+                        class="form-control text-right"
+                        readonly
+                        style="background:#d9edf7; font-weight:bold; color:#31708f;">
                 </div>
             </div>
             <div class="col-md-6" style="padding-top:25px;">
@@ -39,7 +69,7 @@
 
         <!-- Tabel Hasil -->
         <div id="result-area" style="display:none; margin-top:10px;">
-            <div class="table-responsive">
+            <div class="table-responsive table-scrollable">
                 <table class="table table-bordered table-striped table-condensed" id="tbl-piutang">
                     <thead>
                         <tr class="bg-blue" style="color:#fff;">
@@ -81,121 +111,138 @@
 <script src="<?= base_url('assets/plugins/datepicker/bootstrap-datepicker.js') ?>"></script>
 
 <script>
-var base_url = '<?= base_url() ?>';
-var active_controller = '<?= $this->uri->segment(1) ?>';
+    var base_url = '<?= base_url() ?>';
+    var active_controller = '<?= $this->uri->segment(1) ?>';
 
-$(document).ready(function () {
+    $(document).ready(function() {
 
-    // Init datepicker
-    $('#tanggal').datepicker({
-        format: 'dd/mm/yyyy',
-        autoclose: true,
-        todayHighlight: true
-    });
+        // Init datepicker
+        $('#tanggal').datepicker({
+            format: 'dd/mm/yyyy',
+            autoclose: true,
+            todayHighlight: true
+        });
 
-    // Tombol Tampilkan
-    $('#btn-cari').on('click', function () {
-        var tgl_display = $('#tanggal').val();
-        if (!tgl_display) {
-            swal({ title: 'Perhatian', text: 'Pilih tanggal terlebih dahulu.', type: 'warning' });
-            return;
+        // Tombol Tampilkan
+        $('#btn-cari').on('click', function() {
+            var tgl_display = $('#tanggal').val();
+            if (!tgl_display) {
+                swal({
+                    title: 'Perhatian',
+                    text: 'Pilih tanggal terlebih dahulu.',
+                    type: 'warning'
+                });
+                return;
+            }
+
+            // Konversi dd/mm/yyyy -> yyyy-mm-dd untuk dikirim ke server
+            var parts = tgl_display.split('/');
+            var tgl_server = parts[2] + '-' + parts[1] + '-' + parts[0];
+
+            $.ajax({
+                url: base_url + active_controller + '/get_data',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    tanggal: tgl_server
+                },
+                beforeSend: function() {
+                    $('#btn-cari').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
+                },
+                success: function(res) {
+                    $('#btn-cari').prop('disabled', false).html('<i class="fa fa-search"></i> Tampilkan');
+
+                    if (!res.status) {
+                        swal({
+                            title: 'Error',
+                            text: res.message,
+                            type: 'error'
+                        });
+                        return;
+                    }
+
+                    if (res.data.length === 0) {
+                        $('#result-area').hide();
+                        $('#no-data-area').show();
+                        $('#btn-print, #btn-excel').hide();
+                        $('#total_piutang_display').val('');
+                        return;
+                    }
+
+                    $('#no-data-area').hide();
+                    renderTable(res.data, res.total_piutang);
+                    $('#total_piutang_display').val(formatNumber(res.total_piutang));
+                    $('#result-area').show();
+                    $('#btn-print, #btn-excel').show().data('tanggal', tgl_server);
+                },
+                error: function() {
+                    $('#btn-cari').prop('disabled', false).html('<i class="fa fa-search"></i> Tampilkan');
+                    swal({
+                        title: 'Error',
+                        text: 'Koneksi gagal, coba lagi.',
+                        type: 'error'
+                    });
+                }
+            });
+        });
+
+        // Tombol Print
+        $('#btn-print').on('click', function() {
+            var tgl = $(this).data('tanggal');
+            window.open(base_url + active_controller + '/print_report/' + tgl, '_blank');
+        });
+
+        // Tombol Excel
+        $('#btn-excel').on('click', function() {
+            var tgl = $(this).data('tanggal');
+            window.location.href = base_url + active_controller + '/export_excel/' + tgl;
+        });
+
+        function renderTable(data, total) {
+            var tbody = '';
+            var prevInvoice = null;
+
+            $.each(data, function(i, row) {
+                tbody += '<tr>';
+
+                if (row.is_first_row) {
+                    tbody += '<td rowspan="' + row.rowspan + '">' + escHtml(row.name_customer) + '</td>';
+                    tbody += '<td rowspan="' + row.rowspan + '" class="text-center">' + formatDate(row.tgl_invoice) + '</td>';
+                    tbody += '<td rowspan="' + row.rowspan + '" class="text-center">' + escHtml(row.id_invoice) + '</td>';
+                    tbody += '<td rowspan="' + row.rowspan + '" class="text-right">' + formatNumber(row.nilai_invoice) + '</td>';
+                }
+
+                tbody += '<td class="text-center">' + (row.kd_pembayaran ? escHtml(row.kd_pembayaran) : '') + '</td>';
+                tbody += '<td class="text-center">' + (row.tgl_bayar ? formatDate(row.tgl_bayar) : '') + '</td>';
+                tbody += '<td class="text-right">' + (row.nilai_bayar !== '' ? formatNumber(row.nilai_bayar) : '') + '</td>';
+                tbody += '<td class="text-right">' + (row.total_bayar !== '' ? formatNumber(row.total_bayar) : '') + '</td>';
+                tbody += '<td class="text-right">' + formatNumber(row.sisa_piutang) + '</td>';
+                tbody += '</tr>';
+            });
+
+            $('#tbody-piutang').html(tbody);
+            $('#tfoot-total strong').text(formatNumber(total));
         }
 
-        // Konversi dd/mm/yyyy -> yyyy-mm-dd untuk dikirim ke server
-        var parts = tgl_display.split('/');
-        var tgl_server = parts[2] + '-' + parts[1] + '-' + parts[0];
+        function formatNumber(n) {
+            if (n === '' || n === null || n === undefined) return '';
+            return parseFloat(n).toLocaleString('id-ID', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        }
 
-        $.ajax({
-            url: base_url + active_controller + '/get_data',
-            type: 'POST',
-            dataType: 'json',
-            data: { tanggal: tgl_server },
-            beforeSend: function () {
-                $('#btn-cari').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Loading...');
-            },
-            success: function (res) {
-                $('#btn-cari').prop('disabled', false).html('<i class="fa fa-search"></i> Tampilkan');
+        function formatDate(d) {
+            if (!d) return '';
+            var dt = new Date(d);
+            if (isNaN(dt)) return d;
+            var months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+            return dt.getDate() + ' ' + months[dt.getMonth()] + ' ' + dt.getFullYear();
+        }
 
-                if (!res.status) {
-                    swal({ title: 'Error', text: res.message, type: 'error' });
-                    return;
-                }
-
-                if (res.data.length === 0) {
-                    $('#result-area').hide();
-                    $('#no-data-area').show();
-                    $('#btn-print, #btn-excel').hide();
-                    $('#total_piutang_display').val('');
-                    return;
-                }
-
-                $('#no-data-area').hide();
-                renderTable(res.data, res.total_piutang);
-                $('#total_piutang_display').val(formatNumber(res.total_piutang));
-                $('#result-area').show();
-                $('#btn-print, #btn-excel').show().data('tanggal', tgl_server);
-            },
-            error: function () {
-                $('#btn-cari').prop('disabled', false).html('<i class="fa fa-search"></i> Tampilkan');
-                swal({ title: 'Error', text: 'Koneksi gagal, coba lagi.', type: 'error' });
-            }
-        });
+        function escHtml(str) {
+            if (!str) return '';
+            return $('<div>').text(str).html();
+        }
     });
-
-    // Tombol Print
-    $('#btn-print').on('click', function () {
-        var tgl = $(this).data('tanggal');
-        window.open(base_url + active_controller + '/print_report/' + tgl, '_blank');
-    });
-
-    // Tombol Excel
-    $('#btn-excel').on('click', function () {
-        var tgl = $(this).data('tanggal');
-        window.location.href = base_url + active_controller + '/export_excel/' + tgl;
-    });
-
-    function renderTable(data, total) {
-        var tbody = '';
-        var prevInvoice = null;
-
-        $.each(data, function (i, row) {
-            tbody += '<tr>';
-
-            if (row.is_first_row) {
-                tbody += '<td rowspan="' + row.rowspan + '">' + escHtml(row.name_customer) + '</td>';
-                tbody += '<td rowspan="' + row.rowspan + '" class="text-center">' + formatDate(row.tgl_invoice) + '</td>';
-                tbody += '<td rowspan="' + row.rowspan + '" class="text-center">' + escHtml(row.id_invoice) + '</td>';
-                tbody += '<td rowspan="' + row.rowspan + '" class="text-right">' + formatNumber(row.nilai_invoice) + '</td>';
-            }
-
-            tbody += '<td class="text-center">' + (row.kd_pembayaran ? escHtml(row.kd_pembayaran) : '') + '</td>';
-            tbody += '<td class="text-center">' + (row.tgl_bayar ? formatDate(row.tgl_bayar) : '') + '</td>';
-            tbody += '<td class="text-right">' + (row.nilai_bayar !== '' ? formatNumber(row.nilai_bayar) : '') + '</td>';
-            tbody += '<td class="text-right">' + (row.total_bayar !== '' ? formatNumber(row.total_bayar) : '') + '</td>';
-            tbody += '<td class="text-right">' + formatNumber(row.sisa_piutang) + '</td>';
-            tbody += '</tr>';
-        });
-
-        $('#tbody-piutang').html(tbody);
-        $('#tfoot-total strong').text(formatNumber(total));
-    }
-
-    function formatNumber(n) {
-        if (n === '' || n === null || n === undefined) return '';
-        return parseFloat(n).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
-    }
-
-    function formatDate(d) {
-        if (!d) return '';
-        var dt = new Date(d);
-        if (isNaN(dt)) return d;
-        var months = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
-        return dt.getDate() + ' ' + months[dt.getMonth()] + ' ' + dt.getFullYear();
-    }
-
-    function escHtml(str) {
-        if (!str) return '';
-        return $('<div>').text(str).html();
-    }
-});
 </script>
