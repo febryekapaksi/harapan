@@ -17,7 +17,29 @@ class Report_piutang_model extends BF_Model
      */
     public function get_piutang_per_invoice($tanggal)
     {
-        return $this->_build_report_rows($tanggal);
+        $rows = $this->_build_report_rows($tanggal);
+
+        // Hitung total piutang: ambil sisa_piutang dari baris terakhir tiap invoice
+        $total_piutang = 0;
+        $last_invoice = null;
+        $last_sisa = 0;
+
+        foreach ($rows as $r) {
+            if ($r['is_first_row'] && $last_invoice !== null) {
+                $total_piutang += $last_sisa;
+            }
+            $last_invoice = $r['id_invoice'];
+            $last_sisa = (float)$r['sisa_piutang'];
+        }
+        // Tambahkan invoice terakhir
+        if ($last_invoice !== null) {
+            $total_piutang += $last_sisa;
+        }
+
+        return [
+            'rows'          => $rows,
+            'total_piutang' => $total_piutang,
+        ];
     }
 
     /**
