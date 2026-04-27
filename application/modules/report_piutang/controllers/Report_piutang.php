@@ -139,8 +139,8 @@ class Report_piutang extends Admin_Controller
 
             $tgl_bayar = !empty($d['tgl_bayar']) ? date('d', strtotime($d['tgl_bayar'])) . ' ' . $months_id[(int)date('n', strtotime($d['tgl_bayar']))] . ' ' . date('Y', strtotime($d['tgl_bayar'])) : '';
             $sheet->setCellValue('E' . $row, $tgl_bayar);
-            $sheet->setCellValue('F' . $row, $d['nilai_bayar'] !== '' ? (float)$d['nilai_bayar'] : '');
-            $sheet->setCellValue('G' . $row, $d['total_bayar'] !== '' ? (float)$d['total_bayar'] : '');
+            $sheet->setCellValue('F' . $row, $d['nilai_bayar'] !== '' ? (float)$d['nilai_bayar'] : null);
+            $sheet->setCellValue('G' . $row, $d['total_bayar'] !== '' ? (float)$d['total_bayar'] : null);
             $sheet->setCellValue('H' . $row, (float)$d['sisa_piutang']);
 
             $sheet->getStyle('F' . $row)->getNumberFormat()->setFormatCode('#,##0');
