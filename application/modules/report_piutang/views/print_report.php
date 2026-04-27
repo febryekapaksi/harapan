@@ -145,20 +145,21 @@
     <table>
         <thead>
             <tr>
-                <th style="width:18%;">Customer</th>
-                <th style="width:10%;">Tgl Invoice</th>
-                <th style="width:14%;">No Invoice</th>
-                <th style="width:12%;">Nilai Invoice</th>
-                <th style="width:10%;">Tgl Bayar</th>
+                <th style="width:16%;">Customer</th>
+                <th style="width:9%;">Tgl Invoice</th>
+                <th style="width:12%;">No Invoice</th>
+                <th style="width:10%;">Nilai Invoice</th>
+                <th style="width:12%;">Kode Penerimaan</th>
+                <th style="width:9%;">Tgl Bayar</th>
                 <th style="width:10%;">Nilai Bayar</th>
-                <th style="width:12%;">Total Bayar</th>
-                <th style="width:12%;">Sisa Piutang</th>
+                <th style="width:10%;">Total Bayar</th>
+                <th style="width:10%;">Sisa Piutang</th>
             </tr>
         </thead>
         <tbody>
         <?php if (empty($data_report)): ?>
             <tr>
-                <td colspan="8" class="text-center">Tidak ada data piutang.</td>
+                <td colspan="9" class="text-center">Tidak ada data piutang.</td>
             </tr>
         <?php else: ?>
             <?php
@@ -184,6 +185,7 @@
                 <td rowspan="<?= $row['rowspan'] ?>" class="text-center"><?= htmlspecialchars($row['id_invoice']) ?></td>
                 <td rowspan="<?= $row['rowspan'] ?>" class="text-right"><?= fmt_num($row['nilai_invoice']) ?></td>
                 <?php endif; ?>
+                <td class="text-center"><?= htmlspecialchars($row['kd_pembayaran']) ?></td>
                 <td class="text-center"><?= fmt_tgl($row['tgl_bayar'], $months_id) ?></td>
                 <td class="text-right"><?= fmt_num($row['nilai_bayar']) ?></td>
                 <td class="text-right"><?= fmt_num($row['total_bayar']) ?></td>
@@ -194,7 +196,7 @@
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="7" class="text-right">Total Piutang</td>
+                <td colspan="8" class="text-right">Total Piutang</td>
                 <td class="text-right"><?= number_format($total_piutang, 0, ',', '.') ?></td>
             </tr>
         </tfoot>

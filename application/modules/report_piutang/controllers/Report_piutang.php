@@ -106,18 +106,18 @@ class Report_piutang extends Admin_Controller
 
         // Title
         $sheet->setCellValue('A1', 'REPORT PIUTANG PER INVOICE');
-        $sheet->mergeCells('A1:H1');
+        $sheet->mergeCells('A1:I1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(13);
         $sheet->getStyle('A1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
         $sheet->setCellValue('A2', 'Per Tanggal: ' . date('d F Y', strtotime($tanggal)));
-        $sheet->mergeCells('A2:H2');
+        $sheet->mergeCells('A2:I2');
         $sheet->getStyle('A2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
         // Header kolom
         $headers = ['Customer', 'Tgl Invoice', 'No Invoice', 'Nilai Invoice',
-                    'Tgl Bayar', 'Nilai Bayar', 'Total Bayar', 'Sisa Piutang'];
-        $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                    'Kode Penerimaan', 'Tgl Bayar', 'Nilai Bayar', 'Total Bayar', 'Sisa Piutang'];
+        $cols    = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'];
 
         foreach ($headers as $i => $h) {
             $sheet->setCellValue($cols[$i] . '4', $h);
@@ -140,26 +140,27 @@ class Report_piutang extends Admin_Controller
                 $sheet->getStyle('D' . $row)->getNumberFormat()->setFormatCode('#,##0');
             }
 
+            $sheet->setCellValue('E' . $row, $d['kd_pembayaran']);
             $tgl_bayar = !empty($d['tgl_bayar']) ? date('d', strtotime($d['tgl_bayar'])) . ' ' . $months_id[(int)date('n', strtotime($d['tgl_bayar']))] . ' ' . date('Y', strtotime($d['tgl_bayar'])) : '';
-            $sheet->setCellValue('E' . $row, $tgl_bayar);
-            $sheet->setCellValue('F' . $row, $d['nilai_bayar'] !== '' ? (float)$d['nilai_bayar'] : null);
-            $sheet->setCellValue('G' . $row, $d['total_bayar'] !== '' ? (float)$d['total_bayar'] : null);
-            $sheet->setCellValue('H' . $row, (float)$d['sisa_piutang']);
+            $sheet->setCellValue('F' . $row, $tgl_bayar);
+            $sheet->setCellValue('G' . $row, $d['nilai_bayar'] !== '' ? (float)$d['nilai_bayar'] : null);
+            $sheet->setCellValue('H' . $row, $d['total_bayar'] !== '' ? (float)$d['total_bayar'] : null);
+            $sheet->setCellValue('I' . $row, (float)$d['sisa_piutang']);
 
-            $sheet->getStyle('F' . $row)->getNumberFormat()->setFormatCode('#,##0');
             $sheet->getStyle('G' . $row)->getNumberFormat()->setFormatCode('#,##0');
             $sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle('I' . $row)->getNumberFormat()->setFormatCode('#,##0');
 
-            $sheet->getStyle('A' . $row . ':H' . $row)->applyFromArray($style_data);
+            $sheet->getStyle('A' . $row . ':I' . $row)->applyFromArray($style_data);
             $row++;
         }
 
         // Total row
         $sheet->setCellValue('A' . $row, 'Total Piutang');
-        $sheet->mergeCells('A' . $row . ':G' . $row);
-        $sheet->setCellValue('H' . $row, (float)$total_piutang);
-        $sheet->getStyle('H' . $row)->getNumberFormat()->setFormatCode('#,##0');
-        $sheet->getStyle('A' . $row . ':H' . $row)->applyFromArray($style_total);
+        $sheet->mergeCells('A' . $row . ':H' . $row);
+        $sheet->setCellValue('I' . $row, (float)$total_piutang);
+        $sheet->getStyle('I' . $row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('A' . $row . ':I' . $row)->applyFromArray($style_total);
 
         // Output
         $filename = 'Report_Piutang_' . $tanggal . '.xlsx';

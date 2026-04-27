@@ -47,6 +47,7 @@
                             <th class="text-center" style="vertical-align:middle;">Tanggal Invoice</th>
                             <th class="text-center" style="vertical-align:middle;">No Invoice</th>
                             <th class="text-center" style="vertical-align:middle;">Nilai Invoice</th>
+                            <th class="text-center" style="vertical-align:middle;">Kode Penerimaan</th>
                             <th class="text-center" style="vertical-align:middle;">Tanggal Bayar</th>
                             <th class="text-center" style="vertical-align:middle;">Nilai Bayar</th>
                             <th class="text-center" style="vertical-align:middle;">Total Bayar</th>
@@ -57,7 +58,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="7" class="text-right"><strong>Total Piutang</strong></td>
+                            <td colspan="8" class="text-right"><strong>Total Piutang</strong></td>
                             <td class="text-right" id="tfoot-total"><strong></strong></td>
                         </tr>
                     </tfoot>
@@ -167,6 +168,7 @@ $(document).ready(function () {
                 tbody += '<td rowspan="' + row.rowspan + '" class="text-right">' + formatNumber(row.nilai_invoice) + '</td>';
             }
 
+            tbody += '<td class="text-center">' + (row.kd_pembayaran ? escHtml(row.kd_pembayaran) : '') + '</td>';
             tbody += '<td class="text-center">' + (row.tgl_bayar ? formatDate(row.tgl_bayar) : '') + '</td>';
             tbody += '<td class="text-right">' + (row.nilai_bayar !== '' ? formatNumber(row.nilai_bayar) : '') + '</td>';
             tbody += '<td class="text-right">' + (row.total_bayar !== '' ? formatNumber(row.total_bayar) : '') + '</td>';
