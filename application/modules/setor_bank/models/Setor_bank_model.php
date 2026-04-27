@@ -149,6 +149,7 @@ class Setor_bank_model extends BF_Model
             $this->db->or_like('sd.kd_pembayaran', $like_value); // 🔥 tambahan
             $this->db->group_end();
         }
+        $this->db->group_by('s.id');
 
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
