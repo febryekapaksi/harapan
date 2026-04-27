@@ -236,6 +236,46 @@ class Report_penjualan extends Admin_Controller
         $this->Report_penjualan_model->data_side_customer();
     }
 
+    public function get_detail_piutang()
+    {
+        $id_customer = $this->input->post('id_customer');
+
+        $data = $this->Report_penjualan_model->get_detail_inv_by_customer($id_customer);
+
+        $grouped = [];
+        $grand_total_sisa = 0;
+
+        foreach ($data as $row) {
+            $inv = $row->id_invoice;
+
+            if (!isset($grouped[$inv])) {
+                $grouped[$inv] = [
+                    'tgl_invoice' => $row->tgl_invoice,
+                    'grand_total' => $row->grand_total,
+                    'details' => [],
+                    'last_sisa' => $row->grand_total // default kalau belum bayar
+                ];
+            }
+
+            if ($row->kd_pembayaran) {
+                $grouped[$inv]['details'][] = $row;
+                $grouped[$inv]['last_sisa'] = $row->sisa_piutang;
+            }
+        }
+
+        // hitung grand total piutang
+        foreach ($grouped as $g) {
+            $grand_total_sisa += $g['last_sisa'];
+        }
+
+        $data_view = [
+            'grouped' => $grouped,
+            'grand_total_sisa' => $grand_total_sisa
+        ];
+
+        $this->load->view('modal_detail_customer', $data_view);
+    }
+
     public function export_excel_customer()
     {
         set_time_limit(0);

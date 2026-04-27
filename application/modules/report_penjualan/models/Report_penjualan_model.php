@@ -235,10 +235,15 @@ class Report_penjualan_model extends BF_Model
 
         foreach ($query->result_array() as $row) {
             $nestedData = [];
+            $id_customer = $row['id_customer'];
+            $nm_customer = $row['nm_customer'];
 
             $nestedData[] = "<div class='text-center'>{$urut}</div>";
             $nestedData[] = "<div>" . strtoupper($row['nm_customer']) . "</div>";
             $nestedData[] = "<div class='text-right'>" . number_format($row['total_invoice']) . "</div>";
+            $nestedData[] = "<div class='text-right'>" . number_format($row['total_bayar']) . "</div>";
+            $nestedData[] = "<div class='text-right'>" . number_format($row['total_piutang']) . "</div>";
+            $nestedData[] = "<a href='javascript:void(0)' class='btn btn-sm btn-warning view-detail' data-name='{$nm_customer}' data-customer='{$id_customer}'><i class='fa fa-eye'></i> View</a>";
 
             $data[] = $nestedData;
             $urut++;
@@ -278,9 +283,12 @@ class Report_penjualan_model extends BF_Model
         };
 
         $select = '
+        i.id_invoice,
         i.id_customer,
         i.nm_customer,
         SUM(i.grand_total) AS total_invoice,
+        SUM(i.total_bayar) AS total_bayar,
+        SUM(i.piutang) AS total_piutang,
         i.created_on
     ';
 
@@ -344,6 +352,34 @@ class Report_penjualan_model extends BF_Model
             'totalFiltered' => $totalFiltered,
             'query' => $query
         ];
+    }
+
+    public function get_detail_inv_by_customer($id_customer)
+    {
+        $sql = "SELECT 
+                inv.id_invoice,
+                inv.created_on AS tgl_invoice,
+                inv.grand_total,
+
+                pay.kd_pembayaran,
+                p.tgl_pembayaran AS tgl_bayar,
+                pay.total_bayar_idr AS nilai_bayar,
+
+                pay.sisa_invoice_idr AS sisa_piutang
+
+            FROM tr_invoice_sales inv
+
+            LEFT JOIN tr_invoice_payment_detail pay 
+                ON pay.no_invoice = inv.id_invoice
+
+            LEFT JOIN tr_invoice_payment p 
+                ON p.kd_pembayaran = pay.kd_pembayaran
+
+            WHERE inv.id_customer = ?
+
+            ORDER BY inv.id_invoice, p.tgl_pembayaran ASC, pay.id_payment_detail ASC";
+
+        return $this->db->query($sql, [$id_customer])->result();
     }
 
     public function get_export_customer($like_value = NULL, $tgl_dari = NULL, $tgl_sampai = NULL, $id_sales = NULL)
