@@ -39,7 +39,10 @@
                     <tr>
                         <th style="width: 10px;">No</th>
                         <th>Customer</th>
-                        <th>Penjualan</th>
+                        <th>Total Invoice</th>
+                        <th>Total Bayar</th>
+                        <th>Total Piutang</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -47,6 +50,25 @@
         </div>
     </div>
 </div>
+
+
+<div class="modal fade" id="modalDet" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">Detail Piutang</h4>
+            </div>
+            <div class="modal-body">
+                <div id="isi-modal-detail"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <!-- DataTables -->
 <script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
@@ -80,6 +102,31 @@
                 '&search=' + encodeURIComponent(searchVal || '');
 
             window.location = url;
+        });
+
+        $(document).on('click', '.view-detail', function() {
+            var id_cust = $(this).data('customer');
+            var nm_cust = $(this).data('name');
+
+            $('.modal-title').text('Detail Piutang ' + nm_cust);
+
+            $('#isi-modal-detail').html('<div class="text-center"><i class="fa fa-spinner fa-spin"></i> Loading Data...</div>');
+
+            $('#modalDet').modal('show');
+
+            $.ajax({
+                url: '<?php echo base_url("report_penjualan/get_detail_piutang") ?>',
+                type: 'POST',
+                data: {
+                    id_customer: id_cust
+                },
+                success: function(response) {
+                    $('#isi-modal-detail').html(response);
+                },
+                error: function() {
+                    $('#isi-modal-detail').html('<p class="text-danger text-center">Gagal mengambil data. Cek koneksi atau query.</p>');
+                }
+            });
         });
     });
 
