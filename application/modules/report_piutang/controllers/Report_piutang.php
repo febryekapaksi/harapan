@@ -33,8 +33,9 @@ class Report_piutang extends Admin_Controller
             return;
         }
 
-        $data = $this->Report_piutang_model->get_piutang_per_invoice($tanggal);
-        $total_piutang = array_sum(array_column($data, 'sisa_piutang'));
+        $result = $this->Report_piutang_model->get_piutang_per_invoice($tanggal);
+        $data = $result['rows'];
+        $total_piutang = $result['total_piutang'];
 
         echo json_encode([
             'status'        => true,
@@ -53,8 +54,9 @@ class Report_piutang extends Admin_Controller
             show_error('Tanggal tidak ditemukan.');
         }
 
-        $data_report   = $this->Report_piutang_model->get_piutang_per_invoice($tanggal);
-        $total_piutang = array_sum(array_column($data_report, 'sisa_piutang'));
+        $result        = $this->Report_piutang_model->get_piutang_per_invoice($tanggal);
+        $data_report   = $result['rows'];
+        $total_piutang = $result['total_piutang'];
 
         $data = [
             'tanggal'       => $tanggal,
@@ -75,8 +77,9 @@ class Report_piutang extends Admin_Controller
             show_error('Tanggal tidak ditemukan.');
         }
 
-        $data_report   = $this->Report_piutang_model->get_piutang_per_invoice($tanggal);
-        $total_piutang = array_sum(array_column($data_report, 'sisa_piutang'));
+        $result        = $this->Report_piutang_model->get_piutang_per_invoice($tanggal);
+        $data_report   = $result['rows'];
+        $total_piutang = $result['total_piutang'];
 
         $this->load->library('PHPExcel');
 
