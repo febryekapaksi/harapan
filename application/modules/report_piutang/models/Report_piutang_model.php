@@ -89,7 +89,7 @@ class Report_piutang_model extends BF_Model
             }
 
             // Ambil semua baris pembayaran untuk invoice ini s/d tanggal
-            $this->db->select('p.tgl_pembayaran, d.total_bayar_idr AS nilai_bayar');
+            $this->db->select('p.kd_pembayaran, p.tgl_pembayaran, d.total_bayar_idr AS nilai_bayar');
             $this->db->from('tr_invoice_payment_detail d');
             $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = d.kd_pembayaran', 'inner');
             $this->db->where('d.no_invoice', $inv['id_invoice']);
@@ -102,16 +102,17 @@ class Report_piutang_model extends BF_Model
             if (empty($payments)) {
                 // Invoice belum ada pembayaran sama sekali
                 $rows[] = [
-                    'name_customer' => $inv['nm_customer'],
-                    'tgl_invoice'   => $inv['tgl_invoice'],
-                    'id_invoice'    => $inv['id_invoice'],
-                    'nilai_invoice' => $inv['nilai_invoice'],
-                    'tgl_bayar'     => '',
-                    'nilai_bayar'   => '',
-                    'total_bayar'   => '',
-                    'sisa_piutang'  => $inv['nilai_invoice'],
-                    'is_first_row'  => true,
-                    'rowspan'       => 1,
+                    'name_customer'  => $inv['nm_customer'],
+                    'tgl_invoice'    => $inv['tgl_invoice'],
+                    'id_invoice'     => $inv['id_invoice'],
+                    'nilai_invoice'  => $inv['nilai_invoice'],
+                    'kd_pembayaran'  => '',
+                    'tgl_bayar'      => '',
+                    'nilai_bayar'    => '',
+                    'total_bayar'    => '',
+                    'sisa_piutang'   => $inv['nilai_invoice'],
+                    'is_first_row'   => true,
+                    'rowspan'        => 1,
                 ];
             } else {
                 $running_total = 0;
@@ -122,16 +123,17 @@ class Report_piutang_model extends BF_Model
                     $sisa = $inv['nilai_invoice'] - $running_total;
 
                     $rows[] = [
-                        'name_customer' => $inv['nm_customer'],
-                        'tgl_invoice'   => $inv['tgl_invoice'],
-                        'id_invoice'    => $inv['id_invoice'],
-                        'nilai_invoice' => $inv['nilai_invoice'],
-                        'tgl_bayar'     => $pay['tgl_pembayaran'],
-                        'nilai_bayar'   => $pay['nilai_bayar'],
-                        'total_bayar'   => $running_total,
-                        'sisa_piutang'  => $sisa,
-                        'is_first_row'  => ($idx === 0),
-                        'rowspan'       => $rowspan,
+                        'name_customer'  => $inv['nm_customer'],
+                        'tgl_invoice'    => $inv['tgl_invoice'],
+                        'id_invoice'     => $inv['id_invoice'],
+                        'nilai_invoice'  => $inv['nilai_invoice'],
+                        'kd_pembayaran'  => $pay['kd_pembayaran'],
+                        'tgl_bayar'      => $pay['tgl_pembayaran'],
+                        'nilai_bayar'    => $pay['nilai_bayar'],
+                        'total_bayar'    => $running_total,
+                        'sisa_piutang'   => $sisa,
+                        'is_first_row'   => ($idx === 0),
+                        'rowspan'        => $rowspan,
                     ];
                 }
             }
