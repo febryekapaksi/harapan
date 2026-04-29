@@ -89,7 +89,7 @@ class Report_piutang_model extends BF_Model
             }
 
             // Ambil semua baris pembayaran untuk invoice ini s/d tanggal
-            $this->db->select('p.kd_pembayaran, p.tgl_pembayaran, d.total_bayar_idr AS nilai_bayar');
+            $this->db->select('p.kd_pembayaran, p.tgl_pembayaran, d.total_bayar_idr AS nilai_bayar, d.sisa_invoice_idr AS sisa');
             $this->db->from('tr_invoice_payment_detail d');
             $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = d.kd_pembayaran', 'inner');
             $this->db->where('d.no_invoice', $inv['id_invoice']);
@@ -120,7 +120,8 @@ class Report_piutang_model extends BF_Model
 
                 foreach ($payments as $idx => $pay) {
                     $running_total += $pay['nilai_bayar'];
-                    $sisa = $inv['nilai_invoice'] - $running_total;
+                    // $sisa = $inv['nilai_invoice'] - $running_total;
+                    $sisa = $pay['sisa'];
 
                     $rows[] = [
                         'name_customer'  => $inv['nm_customer'],
