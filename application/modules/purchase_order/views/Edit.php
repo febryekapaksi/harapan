@@ -906,7 +906,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 
 	$(document).on('change', '.input_progress', function() {
 		var no = $(this).data('no');
-		var subtotal = $('#subtotal').val();
+		var subtotal = $('#grand_total').val();
 		if (subtotal == '' || subtotal == null) {
 			subtotal = 0;
 		} else {
@@ -932,7 +932,7 @@ $ENABLE_DELETE  = has_permission('Purchase_Request.Delete');
 	$(document).on('change', '.nilai_top', function() {
 		var no = $(this).data('no');
 
-		var subtotal = $('#subtotal').val();
+		var subtotal = $('#grand_total').val();
 		if (subtotal == '' || subtotal == null) {
 			subtotal = 0;
 		} else {
