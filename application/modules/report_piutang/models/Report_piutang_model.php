@@ -53,6 +53,7 @@ class Report_piutang_model extends BF_Model
         $this->db->from('tr_invoice_sales');
         $this->db->where('DATE(created_on) <=', $tanggal);
         $this->db->where('is_cancel', null);
+        $this->db->where('sts', 0);
         $this->db->order_by('nm_customer ASC, created_on ASC, id_invoice ASC');
         $all_invoices = $this->db->get();
 
