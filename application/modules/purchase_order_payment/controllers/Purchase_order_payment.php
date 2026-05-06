@@ -2078,13 +2078,13 @@ class Purchase_order_payment extends Admin_Controller
 		}
 
 		// 8. Final Calculation
-		$total_invoice_final = $total_invoice * $kurs_terima_barang;
-		$base = $total_invoice_final - $uang_muka_idr;
-		$dpp = $base * (11 / 12);
-		$nilai_ppn = $dpp * (12 / 100);
+		$total_invoice_final = round($total_invoice * $kurs_terima_barang, 2);
+		$base                = round($total_invoice_final - $uang_muka_idr, 2);
+		$dpp                 = round($base * (11 / 12), 2);
+		$nilai_ppn           = round($dpp * (12 / 100), 2);
 
-		$nilai_req_payment = (($total_invoice_final + $nilai_ppn) - $value_dp);
-
+		// Konsisten: pakai base (sudah minus DP) + ppn, tidak kurangi DP lagi
+		$nilai_req_payment   = round($base + $nilai_ppn, 2);
 		$data = [
 			'no_incoming'       => $no_incoming,
 			'incoming_no'       => $incoming_no,

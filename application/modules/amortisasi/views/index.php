@@ -418,7 +418,7 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
         }, function(isConfirm) {
             if (isConfirm) {
                 $.ajax({
-                    url: base_url + 'index.php/' + active_controller + '/batal_jurnal',
+                    url: base_url + active_controller + '/batal_jurnal',
                     type: 'POST',
                     data: {
                         bulan: bulan,
