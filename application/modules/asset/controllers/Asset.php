@@ -584,6 +584,13 @@ class Asset extends Admin_Controller
 		echo json_encode($Arr_Data);
 	}
 
+	public function get_coa_list()
+	{
+		$sql = "SELECT no_perkiraan, nama FROM " . DBACC . ".coa_master ORDER BY no_perkiraan ASC";
+		$result = $this->db->query($sql)->result_array();
+		echo json_encode($result);
+	}
+
 	public function add_category()
 	{
 		if ($this->input->post()) {
@@ -595,10 +602,18 @@ class Asset extends Admin_Controller
 			$id 		    = $data['id'];
 			$nm_category	= strtoupper($data['nm_category']);
 			$status			= $data['status'];
+			$coa_debit		= $data['coa_debit'];
+			$nm_coa_debit	= strtoupper($data['nm_coa_debit']);
+			$coa_kredit		= $data['coa_kredit'];
+			$nm_coa_kredit	= strtoupper($data['nm_coa_kredit']);
 
 			if (empty($id)) {
 				$ArrHeader = array(
 					'nm_category'   => $nm_category,
+					'coa_debit'		=> $coa_debit,
+					'nm_coa_debit'	=> $nm_coa_debit,
+					'coa_kredit'	=> $coa_kredit,
+					'nm_coa_kredit'	=> $nm_coa_kredit,
 					'status' 		=> $status,
 					'created_by' 	=> $this->session->userdata['app_session']['username'],
 					'created_date' 	=> $dateTime
@@ -609,6 +624,10 @@ class Asset extends Admin_Controller
 			if (!empty($id)) {
 				$ArrHeader = array(
 					'nm_category'   => $nm_category,
+					'coa_debit'		=> $coa_debit,
+					'nm_coa_debit'	=> $nm_coa_debit,
+					'coa_kredit'	=> $coa_kredit,
+					'nm_coa_kredit'	=> $nm_coa_kredit,
 					'status' 		=> $status,
 					'updated_by' 	=> $this->session->userdata['app_session']['username'],
 					'updated_date' 	=> $dateTime
@@ -659,8 +678,8 @@ class Asset extends Admin_Controller
 			$result = $this->db->query($query)->result();
 
 			$data = array(
-				'title'		=> 'Add Category Asset',
-				'action'	=> 'add',
+				'title'		=> (!empty($id)) ? 'Edit Category Asset' : 'Add Category Asset',
+				'action'	=> (!empty($id)) ? 'edit' : 'add',
 				'data'      => $result
 			);
 			$this->template->render('add_category', $data);
