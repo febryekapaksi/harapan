@@ -2082,10 +2082,7 @@ class Purchase_order_payment extends Admin_Controller
 		$base = $total_invoice_final - $uang_muka_idr;
 		$dpp = $base * (11 / 12);
 		$nilai_ppn = $dpp * (12 / 100);
-		// echo '<pre>';
-		// print_r($nilai_ppn);
-		// echo '</pre>';
-		// die();
+
 		$nilai_req_payment = (($total_invoice_final + $nilai_ppn) - $value_dp);
 
 		$data = [
@@ -2095,6 +2092,7 @@ class Purchase_order_payment extends Admin_Controller
 			'kode_supplier'     => $kode_supplier,
 			'currency'          => $currency,
 			'value_dp'          => $uang_muka_idr,
+			'total_incoming'    => $total_invoice,
 			'total_invoice'     => $total_invoice_final,
 			'nilai_disc'        => $nilai_disc,
 			'nilai_ppn'         => $nilai_ppn,
