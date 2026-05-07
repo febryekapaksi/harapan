@@ -14,7 +14,7 @@ class Amortisasi_model extends BF_Model
     {
         $where_kdcab = '';
         if (!empty($kdcab)) {
-            $where_kdcab = " AND a.kdcab = '" . $this->db->escape_str($kdcab) . "'";
+            $where_kdcab = " AND a.kdcab = '" . $kdcab . "'";
         }
 
         $sql = "
@@ -32,8 +32,8 @@ class Amortisasi_model extends BF_Model
             FROM asset_generate ag
             LEFT JOIN asset a  ON ag.kd_asset = a.kd_asset
             LEFT JOIN asset_category ac ON ag.category = ac.id
-            WHERE ag.bulan = '" . $this->db->escape_str($bulan) . "'
-              AND ag.tahun  = '" . $this->db->escape_str($tahun) . "'
+            WHERE ag.bulan = '" . $bulan . "'
+              AND ag.tahun  = '" . $tahun . "'
               AND a.deleted = 'N'
               " . $where_kdcab . "
             GROUP BY ag.category, ag.kdcab
@@ -90,8 +90,12 @@ class Amortisasi_model extends BF_Model
     // -----------------------------------------------------------------------
     public function cekJurnalBulan($bulan, $tahun, $kdcab = '')
     {
+        // Pastikan bulan selalu 2 digit (01, 02, dst)
+        $bulan = str_pad($bulan, 2, '0', STR_PAD_LEFT);
+
+        // Cek dari database DBACC
         $sql = "
-            SELECT COUNT(*) AS jml FROM jurnal
+            SELECT COUNT(*) AS jml FROM " . DBACC . ".jurnal
             WHERE jenis_trans = 'amortisasi asset'
               AND MONTH(tanggal) = '" . (int)$bulan . "'
               AND YEAR(tanggal)  = '" . (int)$tahun . "'

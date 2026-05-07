@@ -367,7 +367,7 @@ class Asset extends Admin_Controller
 				$detailDataDash[$lopp2]['bulan'] 		= substr($Tanggal, 5, 2);
 				$detailDataDash[$lopp2]['tahun'] 		= substr($Tanggal, 0, 4);
 				$detailDataDash[$lopp2]['nilai_susut'] 	= str_replace(',', '', $data['value']);
-				$detailDataDash[$lopp2]['kdcab'] 		= $session['kdcab'];
+				$detailDataDash[$lopp2]['kdcab'] 		= '101';
 			}
 		}
 

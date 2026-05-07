@@ -138,17 +138,23 @@ class Amortisasi extends Admin_Controller
     // -----------------------------------------------------------------------
     // BATAL JURNAL – hapus jurnal bulan tertentu
     // -----------------------------------------------------------------------
+    // BATAL JURNAL – hapus jurnal bulan tertentu
+    // -----------------------------------------------------------------------
     public function batal_jurnal()
     {
         $bulan   = $this->input->post('bulan');
         $tahun   = $this->input->post('tahun');
+
+        // Pastikan bulan selalu 2 digit (01, 02, dst)
+        $bulan = str_pad($bulan, 2, '0', STR_PAD_LEFT);
+
         $session = $this->session->userdata('app_session');
         $kdcab   = $session['kdcab'];
         $user    = $session['username'];
 
-        // Ambil nomor jurnal yang akan dihapus
+        // Ambil nomor jurnal yang akan dihapus dari database DBACC
         $ArrNomor = $this->db->query(
-            "SELECT DISTINCT nomor FROM jurnal
+            "SELECT DISTINCT nomor FROM " . DBACC . ".jurnal
              WHERE jenis_trans = 'amortisasi asset'
              AND MONTH(tanggal) = '" . (int)$bulan . "'
              AND YEAR(tanggal)  = '" . (int)$tahun . "'"
@@ -163,8 +169,11 @@ class Amortisasi extends Admin_Controller
         $inNomor   = "('" . implode("','", $listNomor) . "')";
 
         $this->db->trans_start();
-        $this->db->query("DELETE FROM jurnal WHERE nomor IN " . $inNomor . " AND jenis_trans = 'amortisasi asset'");
-        $this->db->query("DELETE FROM javh   WHERE nomor IN " . $inNomor);
+        // Hapus dari database DBACC
+        $this->db->query("DELETE FROM " . DBACC . ".jurnal WHERE nomor IN " . $inNomor . " AND jenis_trans = 'amortisasi asset'");
+        $this->db->query("DELETE FROM " . DBACC . ".javh   WHERE nomor IN " . $inNomor);
+
+        // Update flag di database default
         $this->db->query(
             "UPDATE asset_generate SET flag = 'N'
              WHERE bulan = '" . $bulan . "' AND tahun = '" . $tahun . "'"
@@ -206,8 +215,11 @@ class Amortisasi extends Admin_Controller
     // -----------------------------------------------------------------------
     private function _proses_jurnal($bulan, $tahun, $user = 'System')
     {
+        // Pastikan bulan selalu 2 digit (01, 02, dst)
+        $bulan = str_pad($bulan, 2, '0', STR_PAD_LEFT);
+
         $session = $this->session->userdata('app_session');
-        $kdcab   = isset($session['kdcab']) ? $session['kdcab'] : '';
+        $kdcab   = '101';
 
         // Ambil data amortisasi bulan ini beserta COA dari category
         $ArrAsset = $this->Amortisasi_model->getAmortisasiUntukJurnal($bulan, $tahun, $kdcab);
@@ -216,9 +228,9 @@ class Amortisasi extends Admin_Controller
             return array('status' => 0, 'pesan' => 'Tidak ada data amortisasi untuk periode ' . $bulan . '/' . $tahun . '.');
         }
 
-        // Hapus jurnal lama bulan ini jika ada (re-post)
+        // Hapus jurnal lama bulan ini jika ada (re-post) - dari database DBACC
         $ArrNomorLama = $this->db->query(
-            "SELECT DISTINCT nomor FROM jurnal
+            "SELECT DISTINCT nomor FROM " . DBACC . ".jurnal
              WHERE jenis_trans = 'amortisasi asset'
              AND MONTH(tanggal) = '" . (int)$bulan . "'
              AND YEAR(tanggal)  = '" . (int)$tahun . "'"
@@ -240,7 +252,7 @@ class Amortisasi extends Admin_Controller
             $coaK = !empty($valx['coa_kredit']) ? $valx['coa_kredit'] : '1309-00-00';
             $ketK = !empty($valx['nm_coa_kredit']) ? strtoupper($valx['nm_coa_kredit']) : 'AKUMULASI AMORTISASI ASSET';
 
-            $nomor_jm = $this->Jurnal_model->get_Nomor_Jurnal_Memorial($valx['kdcab'], $tgl_jurnal);
+            $nomor_jm = $this->Jurnal_model->get_Nomor_Jurnal_Sales($valx['kdcab'], $tgl_jurnal);
 
             $ArrDebit[$Loop] = array(
                 'tipe'        => 'JV',
@@ -251,7 +263,9 @@ class Amortisasi extends Admin_Controller
                 'no_reff'     => $nomor_jm,
                 'debet'       => $valx['nilai_susut'],
                 'kredit'      => 0,
-                'jenis_trans' => 'amortisasi asset'
+                'jenis_trans' => 'amortisasi asset',
+                'created_on'  => date('Y-m-d h:i:s'),
+                'created_by'  => $this->auth->user_id()
             );
 
             $ArrKredit[$Loop] = array(
@@ -263,7 +277,9 @@ class Amortisasi extends Admin_Controller
                 'no_reff'     => $nomor_jm,
                 'debet'       => 0,
                 'kredit'      => $valx['nilai_susut'],
-                'jenis_trans' => 'amortisasi asset'
+                'jenis_trans' => 'amortisasi asset',
+                'created_on'  => date('Y-m-d h:i:s'),
+                'created_by'  => $this->auth->user_id()
             );
 
             $ArrJavh[$Loop] = array(
@@ -282,17 +298,20 @@ class Amortisasi extends Admin_Controller
             $this->Jurnal_model->update_Nomor_Jurnal($valx['kdcab'], 'JM');
         }
 
-        // Hapus jurnal lama jika ada
+        // Hapus jurnal lama jika ada - dari database DBACC
         if (!empty($ArrNomorLama)) {
             $inLama = "('" . implode("','", array_column($ArrNomorLama, 'nomor')) . "')";
-            $this->db->query("DELETE FROM jurnal WHERE nomor IN " . $inLama . " AND jenis_trans = 'amortisasi asset'");
-            $this->db->query("DELETE FROM javh   WHERE nomor IN " . $inLama);
+            $this->db->query("DELETE FROM " . DBACC . ".jurnal WHERE nomor IN " . $inLama . " AND jenis_trans = 'amortisasi asset'");
+            $this->db->query("DELETE FROM " . DBACC . ".javh   WHERE nomor IN " . $inLama);
         }
 
         $this->db->trans_start();
-        $this->db->insert_batch('jurnal', $ArrDebit);
-        $this->db->insert_batch('jurnal', $ArrKredit);
-        $this->db->insert_batch('javh',   $ArrJavh);
+        // Insert ke database DBACC
+        $this->db->insert_batch(DBACC . '.javh', $ArrJavh);
+        $this->db->insert_batch(DBACC . '.jurnal', $ArrDebit);
+        $this->db->insert_batch(DBACC . '.jurnal', $ArrKredit);
+
+        // Update flag di database default
         $this->db->query(
             "UPDATE asset_generate SET flag = 'Y'
              WHERE bulan = '" . $bulan . "' AND tahun = '" . $tahun . "'"
