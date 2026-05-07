@@ -458,7 +458,7 @@ class Penerimaan_cash extends Admin_Controller
 
 
 				$data_piutang = [
-					'tipe'          => 'BUM',
+					'tipe'          => 'JV',
 					'nomor'         => $Nomor_JV,
 					'tanggal'       => $header['tgl_pembayaran'],
 					'no_perkiraan'  => '1102-01-01',
@@ -471,7 +471,7 @@ class Penerimaan_cash extends Admin_Controller
 				];
 
 				$data_piutang_sales = [
-					'tipe'          => 'BUM',
+					'tipe'          => 'JV',
 					'nomor'         => $Nomor_JV,
 					'tanggal'       => $header['tgl_pembayaran'],
 					'no_perkiraan'  => '1102-01-04',

@@ -307,7 +307,7 @@ class Asset extends Admin_Controller
 			$Ym				= $Year . $Month;
 		}
 
-		$qQuery			= "SELECT max(kd_asset) as maxP FROM asset WHERE category='" . $category . "' AND kd_asset LIKE 'AST-" . $session['kdcab'] . $Ym . "-" . $KdCategory . "-%' ";
+		$qQuery			= "SELECT max(kd_asset) as maxP FROM asset WHERE category='" . $category . "' AND kd_asset LIKE 'AST-101-"  . $Ym . "-" . $KdCategory . "-%' ";
 		$restQuery		= $this->db->query($qQuery)->result_array();
 
 		// AST-1011908-02-0001
@@ -319,7 +319,7 @@ class Asset extends Admin_Controller
 		$urutan2++;
 		$urut2			= sprintf('%03s', $urutan2);
 
-		$kode_assets	= "AST-" . $session['kdcab'] . $Ym . "-" . $KdCategory . "-" . $urut2;
+		$kode_assets	= "AST-101-"  . $Ym . "-" . $KdCategory . "-" . $urut2;
 
 		$detailDataDash	= array();
 		// echo $kode_assets; exit;
@@ -339,7 +339,7 @@ class Asset extends Admin_Controller
 			$detailData[$lopp]['asset_ke'] 		= $no;
 			$detailData[$lopp]['depresiasi'] 	= $data['depresiasi'];
 			$detailData[$lopp]['value'] 		= str_replace(',', '', $data['value']);
-			$detailData[$lopp]['kdcab'] 		= $session['kdcab'];
+			$detailData[$lopp]['kdcab'] 		= '101';
 			$detailData[$lopp]['lokasi_asset'] 	= $data['lokasi_asset'];
 			$detailData[$lopp]['cost_center'] 	= $data['cost_center'];
 			$detailData[$lopp]['created_by'] 	= $this->session->userdata['app_session']['username'];
