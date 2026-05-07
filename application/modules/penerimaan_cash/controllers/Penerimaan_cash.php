@@ -401,8 +401,7 @@ class Penerimaan_cash extends Admin_Controller
 		$invString = implode(', ', $arrInv);
 		$note = 'PEMBAYARAN PIUTANG INVOICE ' . $invString . ' A/N ' . $customer->name_customer;
 
-		$Nomor_BUM = $this->Jurnal_model
-			->get_Nomor_Jurnal_BUM('101', $header['tgl_pembayaran']);
+		$Nomor_JV       = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $header['tgl_pembayaran']);
 
 
 		// VALIDASI BALANCE
@@ -412,7 +411,7 @@ class Penerimaan_cash extends Admin_Controller
 
 		// HEADER
 		$this->db->insert(DBACC . '.jarh', [
-			'nomor'         => $Nomor_BUM,
+			'nomor'         => $Nomor_JV,
 			'kd_pembayaran' => $kd_bayar,
 			'tgl'           => $header['tgl_pembayaran'],
 			'jml'           => array_sum($jurnal['debet']),
@@ -435,7 +434,7 @@ class Penerimaan_cash extends Admin_Controller
 
 		for ($i = 0; $i < count($jurnal['no_coa']); $i++) {
 			$arrJurnal[] = [
-				'nomor'         => $Nomor_BUM,
+				'nomor'         => $Nomor_JV,
 				'tanggal'       => $jurnal['tgl_jurnal'][$i],
 				'tipe'          => $jurnal['type'][$i],
 				'no_perkiraan'  => $jurnal['no_coa'][$i],
@@ -460,7 +459,7 @@ class Penerimaan_cash extends Admin_Controller
 
 				$data_piutang = [
 					'tipe'          => 'BUM',
-					'nomor'         => $Nomor_BUM,
+					'nomor'         => $Nomor_JV,
 					'tanggal'       => $header['tgl_pembayaran'],
 					'no_perkiraan'  => '1102-01-01',
 					'keterangan'    => 'PEMBAYARAN PIUTANG INV ' . $row['id_invoice'] . ' A/n ' . $customer->name_customer,
@@ -473,7 +472,7 @@ class Penerimaan_cash extends Admin_Controller
 
 				$data_piutang_sales = [
 					'tipe'          => 'BUM',
-					'nomor'         => $Nomor_BUM,
+					'nomor'         => $Nomor_JV,
 					'tanggal'       => $header['tgl_pembayaran'],
 					'no_perkiraan'  => '1102-01-04',
 					'keterangan'    => 'PENERIMAAN PIUTANG INV ' . $row['id_invoice'] . ' A/n ' . $customer->name_customer,
