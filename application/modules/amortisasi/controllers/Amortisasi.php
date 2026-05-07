@@ -114,7 +114,7 @@ class Amortisasi extends Admin_Controller
     public function proses_otomatis()
     {
         // Endpoint ini bisa dipanggil via cron job:
-        // curl -s "http://domain.com/index.php/amortisasi/proses_otomatis"
+        // curl -s "http://domain.com/amortisasi/proses_otomatis"
         $bulan = date('m');
         $tahun = date('Y');
 

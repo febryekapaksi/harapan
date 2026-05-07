@@ -150,9 +150,9 @@ class Asset extends Admin_Controller
 		// exit;
 
 		$this->db->trans_start();
-		$this->db->insert_batch('jurnal', $ArrDebit);
-		$this->db->insert_batch('jurnal', $ArrKredit);
-		$this->db->insert_batch('javh', $ArrJavh);
+		$this->db->insert_batch(DBACC . '.javh', $ArrJavh);
+		$this->db->insert_batch(DBACC . '.jurnal', $ArrDebit);
+		$this->db->insert_batch(DBACC . '.jurnal', $ArrKredit);
 		$this->db->trans_complete();
 
 		if ($this->db->trans_status() === FALSE) {
@@ -717,5 +717,224 @@ class Asset extends Admin_Controller
 			history('Delete Category Asset Data : ' . $id);
 		}
 		echo json_encode($Arr_Data);
+	}
+
+	// TEST FUNCTION - untuk memastikan routing bekerja
+	public function test_generate()
+	{
+		echo json_encode([
+			'status' => 1,
+			'pesan' => 'Test berhasil! Fungsi dapat diakses.',
+			'timestamp' => date('Y-m-d H:i:s')
+		]);
+	}
+
+	// -----------------------------------------------------------------------
+	// GENERATE AMORTISASI - untuk asset yang sudah ada
+	// -----------------------------------------------------------------------
+	public function generate_amortisasi()
+	{
+		// Temporary: bypass auth untuk testing
+		// $this->auth->restrict($this->managePermission);
+
+		// Set header JSON
+		header('Content-Type: application/json');
+
+		try {
+			// Ambil parameter dari POST atau GET
+			$kd_asset = $this->input->post('kd_asset') ?: $this->input->get('kd_asset');
+			$regenerate = $this->input->post('regenerate') ?: $this->input->get('regenerate'); // Y = hapus dan generate ulang
+
+			// Log untuk debug
+			log_message('info', 'Generate amortisasi called - kd_asset: ' . $kd_asset . ', regenerate: ' . $regenerate);
+
+			if (empty($kd_asset)) {
+				// Jika tidak ada kd_asset, generate untuk SEMUA asset yang belum ada di asset_generate
+				$this->_generate_all_assets($regenerate);
+			} else {
+				// Generate untuk asset tertentu
+				$this->_generate_single_asset($kd_asset, $regenerate);
+			}
+		} catch (Exception $e) {
+			log_message('error', 'Generate amortisasi error: ' . $e->getMessage());
+			echo json_encode([
+				'status' => 0,
+				'pesan' => 'Error: ' . $e->getMessage()
+			]);
+		}
+	}
+
+	// Generate untuk semua asset
+	private function _generate_all_assets($regenerate = 'N')
+	{
+		// Ambil semua asset yang aktif (tidak deleted)
+		$assets = $this->db->select('kd_asset, nm_asset, tgl_perolehan, category, nm_category, depresiasi, value, kdcab')
+			->get_where('asset', ['deleted' => 'N'])
+			->result_array();
+
+		if (empty($assets)) {
+			echo json_encode([
+				'status' => 0,
+				'pesan' => 'Tidak ada asset yang ditemukan.'
+			]);
+			return;
+		}
+
+		$total_generated = 0;
+		$total_skipped = 0;
+		$errors = [];
+
+		$this->db->trans_start();
+
+		foreach ($assets as $asset) {
+			try {
+				// Cek apakah sudah ada di asset_generate
+				$exists = $this->db->get_where('asset_generate', [
+					'kd_asset' => $asset['kd_asset']
+				])->num_rows();
+
+				if ($exists > 0 && $regenerate != 'Y') {
+					$total_skipped++;
+					continue;
+				}
+
+				// Hapus data lama jika regenerate
+				if ($regenerate == 'Y') {
+					$this->db->where('kd_asset', $asset['kd_asset'])->delete('asset_generate');
+				}
+
+				// Generate jadwal amortisasi
+				$generated = $this->_generate_schedule($asset);
+
+				if ($generated > 0) {
+					$total_generated++;
+				}
+			} catch (Exception $e) {
+				$errors[] = $asset['kd_asset'] . ': ' . $e->getMessage();
+			}
+		}
+
+		$this->db->trans_complete();
+
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			echo json_encode([
+				'status' => 0,
+				'pesan' => 'Gagal generate amortisasi. ' . implode(', ', $errors)
+			]);
+		} else {
+			$this->db->trans_commit();
+			echo json_encode([
+				'status' => 1,
+				'pesan' => "Berhasil generate {$total_generated} asset, {$total_skipped} asset di-skip (sudah ada).",
+				'total_generated' => $total_generated,
+				'total_skipped' => $total_skipped
+			]);
+			history("Generate amortisasi untuk {$total_generated} asset");
+		}
+	}
+
+	// Generate untuk single asset
+	private function _generate_single_asset($kd_asset, $regenerate = 'N')
+	{
+		// Ambil data asset
+		$asset = $this->db->select('kd_asset, nm_asset, tgl_perolehan, category, nm_category, depresiasi, value, kdcab')
+			->get_where('asset', ['kd_asset' => $kd_asset, 'deleted' => 'N'])
+			->row_array();
+
+		if (empty($asset)) {
+			echo json_encode([
+				'status' => 0,
+				'pesan' => 'Asset tidak ditemukan atau sudah dihapus.'
+			]);
+			return;
+		}
+
+		// Cek apakah sudah ada di asset_generate
+		$exists = $this->db->get_where('asset_generate', [
+			'kd_asset' => $kd_asset
+		])->num_rows();
+
+		if ($exists > 0 && $regenerate != 'Y') {
+			echo json_encode([
+				'status' => 0,
+				'pesan' => 'Asset sudah memiliki jadwal amortisasi. Gunakan parameter regenerate=Y untuk generate ulang.'
+			]);
+			return;
+		}
+
+		$this->db->trans_start();
+
+		// Hapus data lama jika regenerate
+		if ($regenerate == 'Y') {
+			$this->db->where('kd_asset', $kd_asset)->delete('asset_generate');
+		}
+
+		// Generate jadwal amortisasi
+		$total_months = $this->_generate_schedule($asset);
+
+		$this->db->trans_complete();
+
+		if ($this->db->trans_status() === FALSE) {
+			$this->db->trans_rollback();
+			echo json_encode([
+				'status' => 0,
+				'pesan' => 'Gagal generate amortisasi.'
+			]);
+		} else {
+			$this->db->trans_commit();
+			echo json_encode([
+				'status' => 1,
+				'pesan' => "Berhasil generate {$total_months} bulan amortisasi untuk asset {$kd_asset}."
+			]);
+			history("Generate amortisasi untuk asset {$kd_asset}");
+		}
+	}
+
+	// Helper function untuk generate schedule
+	private function _generate_schedule($asset)
+	{
+		$kd_asset = $asset['kd_asset'];
+		$nm_asset = $asset['nm_asset'];
+		$tgl_perolehan = $asset['tgl_perolehan'];
+		$category = $asset['category'];
+		$nm_category = $asset['nm_category'];
+		$depresiasi = (int)$asset['depresiasi']; // dalam tahun
+		$nilai_susut = (float)$asset['value']; // nilai susut per bulan
+		$kdcab = $asset['kdcab'];
+
+		// Hitung total bulan
+		$total_months = $depresiasi * 12;
+
+		// Mulai dari bulan perolehan
+		$start_date = $tgl_perolehan;
+
+		$detailDataDash = [];
+
+		for ($x = 1; $x <= $total_months; $x++) {
+			// Hitung tanggal untuk bulan ke-x
+			// Mulai dari bulan sekarang (bulan perolehan langsung disusutkan)
+			$tanggal = date('Y-m', mktime(0, 0, 0, substr($start_date, 5, 2) + $x, 0, substr($start_date, 0, 4)));
+
+			$detailDataDash[] = [
+				'kd_asset'     => $kd_asset,
+				'nm_asset'     => $nm_asset,
+				'category'     => $category,
+				'nm_category'  => strtoupper($nm_category),
+				'bulan'        => substr($tanggal, 5, 2),
+				'tahun'        => substr($tanggal, 0, 4),
+				'nilai_susut'  => $nilai_susut,
+				'kdcab'        => $kdcab,
+				'flag'         => 'N' // belum dijurnal
+			];
+		}
+
+		// Insert batch
+		if (!empty($detailDataDash)) {
+			$this->db->insert_batch('asset_generate', $detailDataDash);
+			return count($detailDataDash);
+		}
+
+		return 0;
 	}
 }

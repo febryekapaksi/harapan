@@ -155,7 +155,7 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
                 }
             },
             aaSorting: [
-                [1, "desc"]
+                [1, "asc"]
             ],
             columnDefs: [{
                 targets: 'no-sort',
