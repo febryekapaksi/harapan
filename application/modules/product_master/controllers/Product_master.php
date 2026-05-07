@@ -236,6 +236,7 @@ class Product_master extends Admin_Controller
       $label      = (!empty($id)) ? 'Edit' : 'Add';
 
       $dataProcess1 = [
+        'id_material'  => $code_lv4,
         'category'  => 'product',
         'code_lv1'  => $code_lv1,
         'code_lv2'  => $code_lv2,
@@ -363,13 +364,66 @@ class Product_master extends Admin_Controller
     $this->auth->restrict($this->deletePermission);
 
     $id = $this->input->post('id');
+
+    // Ambil data product untuk mendapatkan code_lv4 (id_material)
+    $product = $this->db->select('code_lv4, nama')
+      ->get_where('new_inventory_4', ['id' => $id])
+      ->row();
+
+    if (empty($product)) {
+      $status = array(
+        'pesan'  => 'Product not found!',
+        'status' => 0
+      );
+      echo json_encode($status);
+      return;
+    }
+
+    $code_lv4 = $product->code_lv4;
+    $nama_product = $product->nama;
+
     $data = [
       'deleted_by'     => $this->id_user,
       'deleted_date'   => $this->datetime
     ];
 
     $this->db->trans_begin();
+
+    // 1. Soft delete di new_inventory_4
     $this->db->where('id', $id)->update("new_inventory_4", $data);
+
+    // 2. Hard delete di warehouse_stock (PERMANENT DELETE)
+    // Cek apakah ada stok untuk product ini
+    $warehouse_stocks = $this->db->select('id, kd_gudang, qty_stock')
+      ->get_where('warehouse_stock', ['id_material' => $code_lv4])
+      ->result_array();
+
+    if (!empty($warehouse_stocks)) {
+      // Log untuk history sebelum dihapus
+      foreach ($warehouse_stocks as $stock) {
+        $this->db->insert('warehouse_history', [
+          'id_material'     => $code_lv4,
+          'nm_material'     => $nama_product,
+          'id_gudang'       => $stock['id'] ?? 0,
+          'kd_gudang'       => $stock['kd_gudang'] ?? '',
+          'qty_stock_awal'  => $stock['qty_stock'] ?? 0,
+          'qty_stock_akhir' => 0,
+          'jumlah_mat'      => - ($stock['qty_stock'] ?? 0),
+          'ket'             => 'DELETED - Product Master Deleted (ID: ' . $id . ')',
+          'update_by'       => $this->id_user,
+          'update_date'     => $this->datetime
+        ]);
+      }
+
+      // Hard delete dari warehouse_stock
+      $this->db->where('id_material', $code_lv4)->delete('warehouse_stock');
+    }
+
+    // 3. Hard delete dari warehouse_stock_per_day (optional - untuk cleanup history)
+    $this->db->where('id_material', $code_lv4)->delete('warehouse_stock_per_day');
+
+    // 4. Hard delete dari price_book (optional)
+    $this->db->where('id_material', $code_lv4)->delete('price_book');
 
     if ($this->db->trans_status() === FALSE) {
       $this->db->trans_rollback();
@@ -380,10 +434,10 @@ class Product_master extends Admin_Controller
     } else {
       $this->db->trans_commit();
       $status  = array(
-        'pesan'    => 'Success process data!',
+        'pesan'    => 'Success process data! Product and warehouse stock deleted.',
         'status'  => 1
       );
-      history("Delete product master : " . $id);
+      history("Delete product master : " . $id . " (" . $nama_product . ") - warehouse_stock also deleted");
     }
     echo json_encode($status);
   }
