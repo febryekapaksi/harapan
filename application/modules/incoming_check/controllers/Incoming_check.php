@@ -53,7 +53,7 @@ class Incoming_check extends Admin_Controller
 
 		// Set properties
 		$objPHPExcel->getProperties()
-			->setCreator("Harapan System")
+			->setCreator("SBF SISTEM")
 			->setTitle("Outstanding Incoming 2025")
 			->setSubject("Outstanding Incoming Report")
 			->setDescription("Report Outstanding Incoming Check 2025");
@@ -102,51 +102,61 @@ class Incoming_check extends Admin_Controller
 		$no = 1;
 
 		foreach ($result as $row) {
-			$arr_ipp = explode(',', $row['no_ipp']);
+			$no_ipp_list = $row['no_ipp'];
+			$kode_trs    = $row['kode_trans'];
+
+			$arr_ipp = explode(',', $no_ipp_list);
 			$nomor_surat_array = [];
 			$is_invoiced = false;
 
 			foreach ($arr_ipp as $ipp) {
 				$ipp_clean = trim($ipp);
+				if (empty($ipp_clean)) continue;
+
 				$po = $this->db->select('no_surat')->get_where('tr_purchase_order', ['no_po' => $ipp_clean])->row();
 
 				if ($po) {
 					$no_surat = $po->no_surat;
 					$nomor_surat_array[] = $no_surat;
 
-					// Cek status invoice
-					$check = $this->db->group_start()
+					/** * PERBAIKAN LOGIKA: 
+					 * Jangan cuma LIKE '$no_surat', karena PO/01 akan match dengan PO/010.
+					 * Kita gunakan pengecekan manual yang lebih aman.
+					 */
+					$check_invoices = $this->db->group_start()
 						->like('no_po', $no_surat)
-						->or_like('no_incoming', $row['kode_trans'])
+						->or_like('no_incoming', $kode_trs)
 						->group_end()
-						->get('tr_invoice_po')->num_rows();
-					if ($check > 0) {
-						$is_invoiced = true;
-						break;
+						->get('tr_invoice_po')->result_array();
+
+					foreach ($check_invoices as $inv) {
+						// Pecah string no_po di tabel invoice menjadi array untuk dicek presisi
+						$inv_po_list = explode(',', str_replace(' ', '', $inv['no_po']));
+						$inv_inc_list = explode(',', str_replace(' ', '', $inv['no_incoming']));
+
+						if (in_array($no_surat, $inv_po_list) || in_array($kode_trs, $inv_inc_list)) {
+							$is_invoiced = true;
+							break;
+						}
 					}
 				}
+				if ($is_invoiced) break;
 			}
 
+			// Tampilkan jika BELUM ada di invoice
 			if (!$is_invoiced) {
 				$sheet->setCellValue('A' . $row_num, $no++);
-				$sheet->setCellValue('B' . $row_num, $row['kode_trans']);
+				$sheet->setCellValue('B' . $row_num, $kode_trs);
 				$sheet->setCellValue('C' . $row_num, $row['tanggal']);
-				$sheet->setCellValue('D' . $row_num, $row['no_ipp']);
+				$sheet->setCellValue('D' . $row_num, $no_ipp_list);
 				$sheet->setCellValue('E' . $row_num, implode(', ', $nomor_surat_array));
 				$sheet->setCellValue('F' . $row_num, $row['total_qty']);
 				$sheet->setCellValue('G' . $row_num, $row['total_nominal']);
 
-				// Format number untuk nominal
+				// Styling baris (Border & Number format)
 				$sheet->getStyle('G' . $row_num)->getNumberFormat()->setFormatCode('#,##0');
-
-				// Border untuk data
-				$sheet->getStyle('A' . $row_num . ':G' . $row_num)->applyFromArray(array(
-					'borders' => array(
-						'allborders' => array(
-							'style' => PHPExcel_Style_Border::BORDER_THIN
-						)
-					)
-				));
+				$styleArray = array('borders' => array('allborders' => array('style' => PHPExcel_Style_Border::BORDER_THIN)));
+				$sheet->getStyle('A' . $row_num . ':G' . $row_num)->applyFromArray($styleArray);
 
 				$row_num++;
 			}
