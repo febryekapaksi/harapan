@@ -29,6 +29,146 @@ class Incoming_check extends Admin_Controller
 		$this->Incoming_check_model->index_incoming_check();
 	}
 
+	public function export_excel_outstanding()
+	{
+		// 1. Ambil Data (Logika sama dengan sebelumnya)
+		$query = "SELECT 
+                det.kode_trans, 
+                inc.tanggal, 
+                det.no_ipp, 
+                SUM(det.qty_oke) as total_qty,
+                SUM(det.qty_oke * det.harga) as total_nominal
+              FROM tr_checked_incoming_detail det
+              JOIN tr_incoming_check inc ON det.kode_trans = inc.kode_trans
+              WHERE YEAR(inc.tanggal) = 2025 AND det.qty_oke > 0
+              GROUP BY det.kode_trans, det.no_ipp";
+
+		$result = $this->db->query($query)->result_array();
+
+		// 2. Load Library PHPExcel (gunakan yang sudah ada di libraries)
+		$this->load->library('PHPExcel');
+		$objPHPExcel = new PHPExcel();
+		$objPHPExcel->setActiveSheetIndex(0);
+		$sheet = $objPHPExcel->getActiveSheet();
+
+		// Set properties
+		$objPHPExcel->getProperties()
+			->setCreator("Harapan System")
+			->setTitle("Outstanding Incoming 2025")
+			->setSubject("Outstanding Incoming Report")
+			->setDescription("Report Outstanding Incoming Check 2025");
+
+		// 3. Header Tabel dengan styling
+		$sheet->setCellValue('A1', 'No');
+		$sheet->setCellValue('B1', 'No TRS Incoming');
+		$sheet->setCellValue('C1', 'Tanggal Incoming');
+		$sheet->setCellValue('D1', 'No IPP (Internal)');
+		$sheet->setCellValue('E1', 'No Surat (PO Asli)');
+		$sheet->setCellValue('F1', 'Total Qty');
+		$sheet->setCellValue('G1', 'Total Nominal');
+
+		// Style header
+		$styleHeader = array(
+			'font' => array(
+				'bold' => true,
+				'color' => array('rgb' => 'FFFFFF')
+			),
+			'fill' => array(
+				'type' => PHPExcel_Style_Fill::FILL_SOLID,
+				'color' => array('rgb' => '4472C4')
+			),
+			'alignment' => array(
+				'horizontal' => PHPExcel_Style_Alignment::HORIZONTAL_CENTER,
+				'vertical' => PHPExcel_Style_Alignment::VERTICAL_CENTER
+			),
+			'borders' => array(
+				'allborders' => array(
+					'style' => PHPExcel_Style_Border::BORDER_THIN
+				)
+			)
+		);
+		$sheet->getStyle('A1:G1')->applyFromArray($styleHeader);
+
+		// Set column width
+		$sheet->getColumnDimension('A')->setWidth(5);
+		$sheet->getColumnDimension('B')->setWidth(20);
+		$sheet->getColumnDimension('C')->setWidth(15);
+		$sheet->getColumnDimension('D')->setWidth(25);
+		$sheet->getColumnDimension('E')->setWidth(25);
+		$sheet->getColumnDimension('F')->setWidth(12);
+		$sheet->getColumnDimension('G')->setWidth(18);
+
+		$row_num = 2;
+		$no = 1;
+
+		foreach ($result as $row) {
+			$arr_ipp = explode(',', $row['no_ipp']);
+			$nomor_surat_array = [];
+			$is_invoiced = false;
+
+			foreach ($arr_ipp as $ipp) {
+				$ipp_clean = trim($ipp);
+				$po = $this->db->select('no_surat')->get_where('tr_purchase_order', ['no_po' => $ipp_clean])->row();
+
+				if ($po) {
+					$no_surat = $po->no_surat;
+					$nomor_surat_array[] = $no_surat;
+
+					// Cek status invoice
+					$check = $this->db->group_start()
+						->like('no_po', $no_surat)
+						->or_like('no_incoming', $row['kode_trans'])
+						->group_end()
+						->get('tr_invoice_po')->num_rows();
+					if ($check > 0) {
+						$is_invoiced = true;
+						break;
+					}
+				}
+			}
+
+			if (!$is_invoiced) {
+				$sheet->setCellValue('A' . $row_num, $no++);
+				$sheet->setCellValue('B' . $row_num, $row['kode_trans']);
+				$sheet->setCellValue('C' . $row_num, $row['tanggal']);
+				$sheet->setCellValue('D' . $row_num, $row['no_ipp']);
+				$sheet->setCellValue('E' . $row_num, implode(', ', $nomor_surat_array));
+				$sheet->setCellValue('F' . $row_num, $row['total_qty']);
+				$sheet->setCellValue('G' . $row_num, $row['total_nominal']);
+
+				// Format number untuk nominal
+				$sheet->getStyle('G' . $row_num)->getNumberFormat()->setFormatCode('#,##0');
+
+				// Border untuk data
+				$sheet->getStyle('A' . $row_num . ':G' . $row_num)->applyFromArray(array(
+					'borders' => array(
+						'allborders' => array(
+							'style' => PHPExcel_Style_Border::BORDER_THIN
+						)
+					)
+				));
+
+				$row_num++;
+			}
+		}
+
+		// 4. Download File
+		$filename = 'Outstanding_Incoming_' . date('Y') . '_' . date('Ymd_His') . '.xlsx';
+
+		header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+		header('Content-Disposition: attachment;filename="' . $filename . '"');
+		header('Cache-Control: max-age=0');
+		header('Cache-Control: max-age=1');
+		header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+		header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . ' GMT');
+		header('Cache-Control: cache, must-revalidate');
+		header('Pragma: public');
+
+		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+		$objWriter->save('php://output');
+		exit;
+	}
+
 	//==========================================================================================================================
 	//===================================================MATERIAL PLANNING======================================================
 	//==========================================================================================================================
