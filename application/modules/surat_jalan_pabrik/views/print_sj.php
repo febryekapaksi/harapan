@@ -168,7 +168,7 @@
                     <td align="center"><?= $i + 1; ?></td>
                     <td><?= $row['id_product']; ?></td>
                     <td><?= $row['product']; ?></td>
-                    <td align="center"><?= number_format($row['qty']); ?></td>
+                    <td align="center"><?= number_format($row['qty'] - $row['qty_retur'] - $row['qty_hilang']); ?></td>
                     <td align="center"><?= strtoupper($row['code']); ?></td>
                     <td></td>
                 </tr>
