@@ -236,7 +236,6 @@ class Product_master extends Admin_Controller
       $label      = (!empty($id)) ? 'Edit' : 'Add';
 
       $dataProcess1 = [
-        'id_material'  => $code_lv4,
         'category'  => 'product',
         'code_lv1'  => $code_lv1,
         'code_lv2'  => $code_lv2,
@@ -289,6 +288,7 @@ class Product_master extends Admin_Controller
 
       // sekalian insert ke warehouse
       $stockData = [
+        'id_material'    => $code_lv4,
         'code_lv1'       => $code_lv1,
         'code_lv2'       => $code_lv2,
         'code_lv3'       => $code_lv3,
