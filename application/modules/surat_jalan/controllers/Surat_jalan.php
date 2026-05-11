@@ -389,11 +389,39 @@ class Surat_jalan extends Admin_Controller
             return;
         }
 
-        $id_sj          = $post['id'];
-        $tgl_diterima   = $post['tgl_diterima'];
-        $penerima       = $post['penerima'];
-        $no_surat_jalan = $post['no_surat_jalan'];
-        $no_delivery    = $post['no_delivery'];
+        // ===== Validasi field wajib =====
+        $id_sj = isset($post['id']) ? (int)$post['id'] : 0;
+        if (!$id_sj) {
+            echo json_encode(['status' => 0, 'pesan' => 'ID Surat Jalan tidak valid.']);
+            return;
+        }
+
+        $tgl_diterima   = isset($post['tgl_diterima'])   ? trim($post['tgl_diterima'])   : '';
+        $penerima       = isset($post['penerima'])       ? trim($post['penerima'])       : '';
+        $no_surat_jalan = isset($post['no_surat_jalan']) ? trim($post['no_surat_jalan']) : '';
+        $no_delivery    = isset($post['no_delivery'])    ? trim($post['no_delivery'])    : '';
+
+        if (!$tgl_diterima || !$no_surat_jalan || !$no_delivery) {
+            echo json_encode(['status' => 0, 'pesan' => 'Field tgl_diterima, no_surat_jalan, dan no_delivery wajib diisi.']);
+            return;
+        }
+
+        // ===== Guard: cegah double-confirm =====
+        $existing = $this->db
+            ->select('status')
+            ->where('id', $id_sj)
+            ->get('surat_jalan')
+            ->row_array();
+
+        if (!$existing) {
+            echo json_encode(['status' => 0, 'pesan' => 'Surat Jalan tidak ditemukan.']);
+            return;
+        }
+
+        if (in_array($existing['status'], ['CONFIRM', 'HILANG', 'RETUR'])) {
+            echo json_encode(['status' => 0, 'pesan' => 'Surat Jalan ini sudah pernah dikonfirmasi, tidak bisa diproses ulang.']);
+            return;
+        }
 
         $sanitized_sj = str_replace(['/', '\\'], '_', $no_surat_jalan);
 
@@ -409,10 +437,12 @@ class Surat_jalan extends Admin_Controller
         ];
 
         // ✅ Upload file dokumen jika ada (di luar transaksi DB)
+        // Catatan: file sudah terupload sebelum transaksi DB dimulai.
+        // Jika DB gagal, file perlu dihapus manual (orphan risk).
         if (!empty($_FILES['file_dokumen']['name'])) {
             $config = [
                 'upload_path'   => './uploads/confirm_sj/',
-                'allowed_types' => '*',
+                'allowed_types' => 'jpg|jpeg|png|pdf|doc|docx|xls|xlsx',
                 'max_size'      => 2048,
                 'file_name'     => 'bukti_confirm_sj_gudang_' . $sanitized_sj
             ];
@@ -429,17 +459,23 @@ class Surat_jalan extends Admin_Controller
         }
 
         // ====== Preload stok agar hemat query ======
+        // Validasi juga struktur tiap item detail sebelum masuk transaksi
         $productIds = [];
-        foreach ($detail as $v) {
-            if (!empty($v['id_product'])) $productIds[] = $v['id_product'];
+        foreach ($detail as $key => $value) {
+            if (empty($value['id_detail']) || empty($value['id_product']) || empty($value['id_so_det'])) {
+                echo json_encode(['status' => 0, 'pesan' => "Data detail ke-{$key} tidak lengkap (id_detail/id_product/id_so_det)."]);
+                return;
+            }
+            $productIds[] = $value['id_product'];
         }
         $productIds = array_values(array_unique($productIds));
 
         $stockMap = [];
         if (!empty($productIds)) {
-            $stocks = $this->db->where_in('code_lv4', $productIds)->get('warehouse_stock')->result_array();
+            // Gunakan id_material sebagai key karena kolom WHERE dan key map harus sama
+            $stocks = $this->db->where_in('id_material', $productIds)->get('warehouse_stock')->result_array();
             foreach ($stocks as $s) {
-                $stockMap[$s['code_lv4']] = $s;
+                $stockMap[$s['id_material']] = $s;
             }
         }
 
@@ -507,7 +543,7 @@ class Surat_jalan extends Admin_Controller
 
                 $config_retur = [
                     'upload_path'   => './uploads/confirm_sj/',
-                    'allowed_types' => '*',
+                    'allowed_types' => 'jpg|jpeg|png|pdf|doc|docx|xls|xlsx',
                     'max_size'      => 2048,
                     'file_name'     => 'retur_' . $sanitized_sj . '_' . $key
                 ];
@@ -568,15 +604,31 @@ class Surat_jalan extends Admin_Controller
             $old_free    = (float)$stok['qty_free'];
 
             // ===== Update warehouse_stock (INTI) =====
-            // stok: -qty_delivery + qty_retur + qty_lebih
-            // booking: -qty_terkirim (fulfilled)
-            // free: diselaraskan jadi qty_stock - qty_booking
-            $this->db->set('qty_stock',   "qty_stock - {$qty_delivery} + {$qty_retur} + {$qty_lebih}", FALSE);
-            $this->db->set('qty_booking', "GREATEST(qty_booking - {$qty_terkirim}, 0)", FALSE);
-            $this->db->set('qty_free',    "qty_stock - qty_booking", FALSE); // pakai value hasil set sebelumnya (MySQL L->R)
+            //
+            // Logika:
+            //   qty_stock   : dikurangi qty_delivery (keluar gudang), ditambah qty_retur + qty_lebih (balik gudang)
+            //   qty_booking : dikurangi qty_terkirim + qty_hilang
+            //                 - qty_terkirim: fulfilled ke customer → booking selesai
+            //                 - qty_hilang  : hilang di jalan → tidak kembali, booking juga harus dilepas
+            //                 - qty_retur   : barang kembali ke gudang → booking dilepas tapi stok naik lagi
+            //                 - qty_lebih   : kelebihan kirim yang balik → tidak pernah di-booking, tidak kurangi booking
+            //   qty_free    : dihitung eksplisit = new_qty_stock - new_qty_booking
+            //                 (tidak pakai "qty_stock - qty_booking" karena MySQL evaluasi L→R
+            //                  bisa ambigu jika ada trigger/versi tertentu)
+            //
+            $qty_booking_kurang = $qty_terkirim + $qty_hilang + $qty_retur;
 
-            $this->db->where('code_lv4', $id_product);
-            // anti minus: stok harus cukup untuk yang dikirim (keluar gudang)
+            $new_qty_stock   = "qty_stock - {$qty_delivery} + {$qty_retur} + {$qty_lebih}";
+            $new_qty_booking = "GREATEST(qty_booking - {$qty_booking_kurang}, 0)";
+            // qty_free dihitung eksplisit dari ekspresi di atas agar tidak bergantung urutan evaluasi MySQL
+            $new_qty_free    = "({$new_qty_stock}) - ({$new_qty_booking})";
+
+            $this->db->set('qty_stock',   $new_qty_stock,   FALSE);
+            $this->db->set('qty_booking', $new_qty_booking, FALSE);
+            $this->db->set('qty_free',    $new_qty_free,    FALSE);
+
+            $this->db->where('id_material', $id_product);
+            // Guard anti-minus: stok fisik harus >= qty yang keluar gudang
             if ($qty_delivery > 0) {
                 $this->db->where('qty_stock >=', $qty_delivery);
             }
@@ -590,18 +642,23 @@ class Surat_jalan extends Admin_Controller
 
             // ===== Update map lokal (biar log berikutnya akurat kalau produk sama muncul lagi) =====
             $new_stock   = $old_stock - $qty_delivery + $qty_retur + $qty_lebih;
-            $new_booking = max($old_booking - $qty_terkirim, 0);
+            $new_booking = max($old_booking - $qty_booking_kurang, 0);
             $new_free    = $new_stock - $new_booking;
 
             $stockMap[$id_product]['qty_stock']   = $new_stock;
             $stockMap[$id_product]['qty_booking'] = $new_booking;
             $stockMap[$id_product]['qty_free']    = $new_free;
 
-            // ===== kartu stok log (opsional dibuat 2 baris: keluar & balik) =====
+            // ===== kartu stok log (2 baris: keluar & balik) =====
             if ($qty_delivery > 0) {
+                // Setelah delivery keluar: stok turun qty_delivery, booking turun qty_booking_kurang
+                $after_delivery_stock   = $old_stock - $qty_delivery;
+                $after_delivery_booking = max($old_booking - $qty_booking_kurang, 0);
+                $after_delivery_free    = $after_delivery_stock - $after_delivery_booking;
+
                 $arr_kartu_stok[] = [
                     'no_transaksi'   => $no_surat_jalan,
-                    'transaksi'      => "Delivery",
+                    'transaksi'      => 'Delivery',
                     'tgl_transaksi'  => $tgl_diterima,
                     'code_lv4'       => $id_product,
                     'nm_product'     => $stok['nm_product'],
@@ -609,24 +666,29 @@ class Surat_jalan extends Admin_Controller
                     'qty_book'       => $old_booking,
                     'qty_free'       => $old_free,
                     'qty_transaksi'  => $qty_delivery * -1,
-                    'qty_akhir'      => $old_stock - $qty_delivery,
-                    'qty_book_akhir' => max($old_booking - $qty_terkirim, 0),
-                    'qty_free_akhir' => ($old_stock - $qty_delivery) - max($old_booking - $qty_terkirim, 0),
+                    'qty_akhir'      => $after_delivery_stock,
+                    'qty_book_akhir' => $after_delivery_booking,
+                    'qty_free_akhir' => $after_delivery_free,
                     'harga_stok'     => (float)$stok['harga_beli'],
                 ];
             }
 
             $balik = $qty_retur + $qty_lebih;
             if ($balik > 0) {
+                // Titik awal baris retur = kondisi setelah delivery keluar
+                $after_delivery_stock   = $old_stock - $qty_delivery;
+                $after_delivery_booking = max($old_booking - $qty_booking_kurang, 0);
+                $after_delivery_free    = $after_delivery_stock - $after_delivery_booking;
+
                 $arr_kartu_stok[] = [
                     'no_transaksi'   => $no_surat_jalan,
-                    'transaksi'      => "Retur/lebih",
+                    'transaksi'      => 'Retur/lebih',
                     'tgl_transaksi'  => $tgl_diterima,
                     'code_lv4'       => $id_product,
                     'nm_product'     => $stok['nm_product'],
-                    'qty'            => $old_stock - $qty_delivery,
-                    'qty_book'       => max($old_booking - $qty_terkirim, 0),
-                    'qty_free'       => ($old_stock - $qty_delivery) - max($old_booking - $qty_terkirim, 0),
+                    'qty'            => $after_delivery_stock,
+                    'qty_book'       => $after_delivery_booking,
+                    'qty_free'       => $after_delivery_free,
                     'qty_transaksi'  => $balik,
                     'qty_akhir'      => $new_stock,
                     'qty_book_akhir' => $new_booking,
@@ -657,11 +719,14 @@ class Surat_jalan extends Admin_Controller
             $this->db->insert_batch('kartu_stok', $arr_kartu_stok);
         }
 
-        // ===== JURNAL (tetap seperti kamu, tapi sekarang berada dalam transaksi) =====
-        $tgl_inv     = date('Y-m-d');
-        $keterangan  = "Confirm Surat Jalan" . $no_surat_jalan;
-        $no_po       = $no_surat_jalan;
-        $total       = round($this->input->post('debet[0]'));
+        // ===== JURNAL =====
+        $tgl_inv    = date('Y-m-d');
+        $keterangan = 'Confirm Surat Jalan ' . $no_surat_jalan;
+        $no_po      = $no_surat_jalan;
+
+        // Fix: $this->input->post('debet[0]') tidak bekerja di CI — harus ambil array dulu
+        $debet_arr = $this->input->post('debet');
+        $total     = is_array($debet_arr) ? round(str_replace(',', '', $debet_arr[0])) : 0;
 
         $Nomor_JV = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
 
