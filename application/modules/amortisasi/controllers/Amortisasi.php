@@ -240,64 +240,67 @@ class Amortisasi extends Admin_Controller
         $ArrKredit = array();
         $ArrJavh   = array();
         $Loop      = 0;
-        $tgl_jurnal = $tahun . '-' . $bulan . '-01';
-        $bln_int    = ltrim($bulan, '0');
+        $tgl_jurnal  = $tahun . '-' . $bulan . '-01';
+        $bln_int     = (int)$bulan;
+
+        // Ambil 1 nomor jurnal untuk seluruh asset dalam periode ini
+        // get_Nomor_Jurnal_Sales sudah otomatis increment counter nomorJC
+        $nomor_jm        = $this->Jurnal_model->get_Nomor_Jurnal_Sales($kdcab, $tgl_jurnal);
+        $total_nilai_susut = 0;
 
         foreach ($ArrAsset as $valx) {
             $Loop++;
+            $total_nilai_susut += $valx['nilai_susut'];
 
             // COA dari asset_category (dinamis)
-            $coaD = !empty($valx['coa_debit'])  ? $valx['coa_debit']  : '6831-00-00';
-            $ketD = !empty($valx['nm_coa_debit']) ? strtoupper($valx['nm_coa_debit']) : 'BIAYA AMORTISASI ASSET';
-            $coaK = !empty($valx['coa_kredit']) ? $valx['coa_kredit'] : '1309-00-00';
+            $coaD = !empty($valx['coa_debit'])    ? $valx['coa_debit']    : '6831-00-00';
+            $ketD = !empty($valx['nm_coa_debit'])  ? strtoupper($valx['nm_coa_debit'])  : 'BIAYA AMORTISASI ASSET';
+            $coaK = !empty($valx['coa_kredit'])   ? $valx['coa_kredit']   : '1309-00-00';
             $ketK = !empty($valx['nm_coa_kredit']) ? strtoupper($valx['nm_coa_kredit']) : 'AKUMULASI AMORTISASI ASSET';
 
-            $nomor_jm = $this->Jurnal_model->get_Nomor_Jurnal_Sales($valx['kdcab'], $tgl_jurnal);
-
             $ArrDebit[$Loop] = array(
-                'tipe'        => 'JV',
-                'nomor'       => $nomor_jm,
-                'tanggal'     => $tgl_jurnal,
+                'tipe'         => 'JV',
+                'nomor'        => $nomor_jm,
+                'tanggal'      => $tgl_jurnal,
                 'no_perkiraan' => $coaD,
-                'keterangan'  => $ketD . ' - ' . strtoupper($valx['nm_category']) . ' - ' . $valx['nm_asset'],
-                'no_reff'     => $valx['kd_asset'],
-                'debet'       => $valx['nilai_susut'],
-                'kredit'      => 0,
-                'jenis_trans' => 'amortisasi asset',
-                'created_on'  => date('Y-m-d h:i:s'),
-                'created_by'  => $this->auth->user_id()
+                'keterangan'   => $ketD . ' - ' . strtoupper($valx['nm_category']) . ' - ' . $valx['nm_asset'],
+                'no_reff'      => $valx['kd_asset'],
+                'debet'        => $valx['nilai_susut'],
+                'kredit'       => 0,
+                'jenis_trans'  => 'amortisasi asset',
+                'created_on'   => date('Y-m-d H:i:s'),
+                'created_by'   => $this->auth->user_id()
             );
 
             $ArrKredit[$Loop] = array(
-                'tipe'        => 'JV',
-                'nomor'       => $nomor_jm,
-                'tanggal'     => $tgl_jurnal,
-                'no_perkiraan' => $coaK,
-                'keterangan'  => $ketK . ' - ' . strtoupper($valx['nm_category']) . ' - ' . $valx['nm_asset'],
-                'no_reff'     => $valx['kd_asset'],
-                'debet'       => 0,
-                'kredit'      => $valx['nilai_susut'],
-                'jenis_trans' => 'amortisasi asset',
-                'created_on'  => date('Y-m-d h:i:s'),
-                'created_by'  => $this->auth->user_id()
-            );
-
-            $ArrJavh[$Loop] = array(
+                'tipe'         => 'JV',
                 'nomor'        => $nomor_jm,
-                'tgl'          => $tgl_jurnal,
-                'jml'          => $valx['nilai_susut'],
-                'kdcab'        => $valx['kdcab'],
-                'koreksi_no'   => '-',
-                'jenis'        => 'JV',
-                'keterangan'   => 'AMORTISASI ASSET ' . strtoupper($valx['nm_category']) . ' - ' . $valx['nm_asset'],
-                'bulan'        => $bln_int,
-                'tahun'        => $tahun,
-                'user_id'      => $user,
-                'tgl_jvkoreksi' => $tgl_jurnal
+                'tanggal'      => $tgl_jurnal,
+                'no_perkiraan' => $coaK,
+                'keterangan'   => $ketK . ' - ' . strtoupper($valx['nm_category']) . ' - ' . $valx['nm_asset'],
+                'no_reff'      => $valx['kd_asset'],
+                'debet'        => 0,
+                'kredit'       => $valx['nilai_susut'],
+                'jenis_trans'  => 'amortisasi asset',
+                'created_on'   => date('Y-m-d H:i:s'),
+                'created_by'   => $this->auth->user_id()
             );
-
-            $this->Jurnal_model->update_Nomor_Jurnal($valx['kdcab'], 'JM');
         }
+
+        // javh: 1 baris per nomor jurnal, jumlah = total semua asset
+        $ArrJavh[] = array(
+            'nomor'         => $nomor_jm,
+            'tgl'           => $tgl_jurnal,
+            'jml'           => $total_nilai_susut,
+            'kdcab'         => $kdcab,
+            'koreksi_no'    => '-',
+            'jenis'         => 'JV',
+            'keterangan'    => 'AMORTISASI ASSET ' . $bulan . '/' . $tahun,
+            'bulan'         => $bln_int,
+            'tahun'         => $tahun,
+            'user_id'       => $user,
+            'tgl_jvkoreksi' => $tgl_jurnal
+        );
 
         // Hapus jurnal lama jika ada - dari database DBACC
         if (!empty($ArrNomorLama)) {

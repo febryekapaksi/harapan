@@ -175,21 +175,21 @@ class Jurnal_model extends CI_Model
 
 	function get_Nomor_Jurnal_Sales($Cabang = '', $Tgl_Inv = '')
 	{
-		// $db2 = $this->load->database('accounting', TRUE);
+		$db2 = $this->load->database('accounting', TRUE);
 		$nocab			= 'A';
 		$bulan_Proses	= date('Y', strtotime($Tgl_Inv));
 		$Urut			= 1;
-		$Query_Cab		= "SELECT subcab,nomorJC FROM " . DBACC . ".pastibisa_tb_cabang WHERE nocab='" . $Cabang . "'";
-		$Pros_Cab		= $this->db->query($Query_Cab);
+		$Query_Cab		= "SELECT subcab,nomorJC FROM pastibisa_tb_cabang WHERE nocab='" . $Cabang . "'";
+		$Pros_Cab		= $db2->query($Query_Cab);
 		$det_Cab		= $Pros_Cab->result_array();
 		if ($det_Cab) {
 			$nocab		= $det_Cab[0]['subcab'];
 			$Urut		= intval($det_Cab[0]['nomorJC']) + 1;
 		}
 		$Format			= $Cabang . '-' . $nocab . 'JV' . date('y', strtotime($Tgl_Inv));
-
 		$Nomor_JS		= $Format . str_pad($Urut, 5, "0", STR_PAD_LEFT);
-
+		$Query_Cab = "UPDATE pastibisa_tb_cabang SET nomorJC=(nomorJC + 1),lastupdate='" . date("Y-m-d") . "' WHERE nocab='" . $Cabang . "'";
+		$db2->query($Query_Cab);
 		return $Nomor_JS;
 	}
 

@@ -24,19 +24,19 @@ class Amortisasi_model extends BF_Model
                 ag.category,
                 ag.nm_category,
                 ag.kdcab,
-                SUM(ag.nilai_susut) AS nilai_susut,
+                ag.nilai_susut,
                 ac.coa_debit,
                 ac.nm_coa_debit,
                 ac.coa_kredit,
                 ac.nm_coa_kredit
             FROM asset_generate ag
-            LEFT JOIN asset a  ON ag.kd_asset = a.kd_asset
+            LEFT JOIN asset a           ON ag.kd_asset = a.kd_asset
             LEFT JOIN asset_category ac ON ag.category = ac.id
             WHERE ag.bulan = '" . $bulan . "'
               AND ag.tahun  = '" . $tahun . "'
               AND a.deleted = 'N'
               " . $where_kdcab . "
-            GROUP BY ag.category, ag.kdcab
+            ORDER BY ag.category, ag.kd_asset
         ";
 
         return $this->db->query($sql)->result_array();
