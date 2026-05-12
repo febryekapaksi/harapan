@@ -61,7 +61,7 @@ class Amortisasi extends Admin_Controller
             'item'      => null
         );
 
-        $this->load->view('Amortisasi/form_item', $dataArr);
+        $this->template->render('form_item', $dataArr);
     }
 
     // -----------------------------------------------------------------------
@@ -82,7 +82,7 @@ class Amortisasi extends Admin_Controller
             'item'      => $item
         );
 
-        $this->load->view('Amortisasi/form_item', $dataArr);
+        $this->template->render('form_item', $dataArr);
     }
 
     // -----------------------------------------------------------------------
