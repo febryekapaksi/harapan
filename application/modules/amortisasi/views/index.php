@@ -127,7 +127,7 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
 <div class="modal fade" id="ModalJadwal" tabindex="-1">
     <div class="modal-dialog" style="width:80%;">
         <div class="modal-content">
-            <div class="modal-header bg-blue">
+            <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 <h4 class="modal-title"><i class="fa fa-list"></i> Jadwal Amortisasi Bulanan</h4>
             </div>
@@ -155,7 +155,7 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
 <div class="modal fade" id="ModalPosting" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-primary">
+            <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
                 <h4 class="modal-title"><i class="fa fa-check-circle"></i> Posting Jurnal Amortisasi</h4>
             </div>
