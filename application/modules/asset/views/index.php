@@ -20,7 +20,7 @@ $ENABLE_DELETE = has_permission('Assets.Delete');
 				<?php endif; ?>
 				<!--<button type='button' id='jurnal' class="btn btn-primary" title="Buat Jurnal"><i class="fa fa-plus">&nbsp;</i>Buat Jurnal</button>-->
 				<button type="button" class="btn btn-info" id="btn-generate-all">
-					<i class="fa fa-refresh"></i> Generate Amortisasi Semua Asset
+					<i class="fa fa-refresh"></i> Generate Depresiasi Semua Asset
 				</button>
 			</div>
 			<div class="box-tool pull-left">
@@ -201,8 +201,8 @@ $ENABLE_DELETE = has_permission('Assets.Delete');
 
 	$('#btn-generate-all').click(function() {
 		swal({
-				title: "Generate Amortisasi?",
-				text: "Akan generate jadwal amortisasi untuk semua asset yang belum ada.",
+				title: "Generate Depresiasi?",
+				text: "Akan generate jadwal depresiasi untuk semua asset yang belum ada.",
 				type: "warning",
 				showCancelButton: true,
 				confirmButtonClass: "btn-success",

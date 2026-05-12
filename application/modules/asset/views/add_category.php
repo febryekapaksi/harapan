@@ -24,7 +24,7 @@ $nm_coa_kredit  = (!empty($data[0]->nm_coa_kredit)) ? $data[0]->nm_coa_kredit : 
 
         <div class="form-group row">
             <div class="col-md-3">
-                <label>COA Beban Amortisasi <small class="text-muted">(Debit)</small></label>
+                <label>COA Beban Depresiasi <small class="text-muted">(Debit)</small></label>
             </div>
             <div class="col-md-9">
                 <div class="input-group">
@@ -45,7 +45,7 @@ $nm_coa_kredit  = (!empty($data[0]->nm_coa_kredit)) ? $data[0]->nm_coa_kredit : 
 
         <div class="form-group row">
             <div class="col-md-3">
-                <label>COA Akumulasi Amortisasi <small class="text-muted">(Kredit)</small></label>
+                <label>COA Akumulasi Depresiasi <small class="text-muted">(Kredit)</small></label>
             </div>
             <div class="col-md-9">
                 <div class="input-group">

@@ -3,7 +3,7 @@
 <div class="box box-primary">
     <div class="box-header with-border">
         <div class="pull-left">
-            <a href="<?= site_url('amortisasi') ?>" class="btn btn-default btn-sm">
+            <a href="<?= site_url('depresiasi') ?>" class="btn btn-default btn-sm">
                 <i class="fa fa-arrow-left"></i> Kembali
             </a>
         </div>
@@ -14,12 +14,11 @@
                 <tr class="bg-blue">
                     <th class="text-center" width="40">#</th>
                     <th class="text-center">Tanggal Proses</th>
-                    <th class="text-center">Kode</th>
-                    <th class="text-center">Nama Item</th>
                     <th class="text-center">Bulan</th>
                     <th class="text-center">Tahun</th>
                     <th class="text-center">Status</th>
                     <th class="text-center">Diproses Oleh</th>
+                    <th class="text-center">Cabang</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -50,7 +49,7 @@
                 }
             },
             aaSorting: [
-                [0, "desc"]
+                [1, "desc"]
             ],
             sPaginationType: "simple_numbers",
             iDisplayLength: 25,

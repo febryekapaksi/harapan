@@ -730,7 +730,7 @@ class Asset extends Admin_Controller
 	}
 
 	// -----------------------------------------------------------------------
-	// GENERATE AMORTISASI - untuk asset yang sudah ada
+	// GENERATE DEPRESIASI - untuk asset yang sudah ada
 	// -----------------------------------------------------------------------
 	public function generate_amortisasi()
 	{
@@ -746,7 +746,7 @@ class Asset extends Admin_Controller
 			$regenerate = $this->input->post('regenerate') ?: $this->input->get('regenerate'); // Y = hapus dan generate ulang
 
 			// Log untuk debug
-			log_message('info', 'Generate amortisasi called - kd_asset: ' . $kd_asset . ', regenerate: ' . $regenerate);
+			log_message('info', 'Generate depresiasi called - kd_asset: ' . $kd_asset . ', regenerate: ' . $regenerate);
 
 			if (empty($kd_asset)) {
 				// Jika tidak ada kd_asset, generate untuk SEMUA asset yang belum ada di asset_generate
@@ -756,7 +756,7 @@ class Asset extends Admin_Controller
 				$this->_generate_single_asset($kd_asset, $regenerate);
 			}
 		} catch (Exception $e) {
-			log_message('error', 'Generate amortisasi error: ' . $e->getMessage());
+			log_message('error', 'Generate depresiasi error: ' . $e->getMessage());
 			echo json_encode([
 				'status' => 0,
 				'pesan' => 'Error: ' . $e->getMessage()
@@ -820,7 +820,7 @@ class Asset extends Admin_Controller
 			$this->db->trans_rollback();
 			echo json_encode([
 				'status' => 0,
-				'pesan' => 'Gagal generate amortisasi. ' . implode(', ', $errors)
+				'pesan' => 'Gagal generate depresiasi. ' . implode(', ', $errors)
 			]);
 		} else {
 			$this->db->trans_commit();
@@ -830,7 +830,7 @@ class Asset extends Admin_Controller
 				'total_generated' => $total_generated,
 				'total_skipped' => $total_skipped
 			]);
-			history("Generate amortisasi untuk {$total_generated} asset");
+			history("Generate depresiasi untuk {$total_generated} asset");
 		}
 	}
 
@@ -858,7 +858,7 @@ class Asset extends Admin_Controller
 		if ($exists > 0 && $regenerate != 'Y') {
 			echo json_encode([
 				'status' => 0,
-				'pesan' => 'Asset sudah memiliki jadwal amortisasi. Gunakan parameter regenerate=Y untuk generate ulang.'
+				'pesan' => 'Asset sudah memiliki jadwal depresiasi. Gunakan parameter regenerate=Y untuk generate ulang.'
 			]);
 			return;
 		}
@@ -879,15 +879,15 @@ class Asset extends Admin_Controller
 			$this->db->trans_rollback();
 			echo json_encode([
 				'status' => 0,
-				'pesan' => 'Gagal generate amortisasi.'
+				'pesan' => 'Gagal generate depresiasi.'
 			]);
 		} else {
 			$this->db->trans_commit();
 			echo json_encode([
 				'status' => 1,
-				'pesan' => "Berhasil generate {$total_months} bulan amortisasi untuk asset {$kd_asset}."
+				'pesan' => "Berhasil generate {$total_months} bulan depresiasi untuk asset {$kd_asset}."
 			]);
-			history("Generate amortisasi untuk asset {$kd_asset}");
+			history("Generate depresiasi untuk asset {$kd_asset}");
 		}
 	}
 

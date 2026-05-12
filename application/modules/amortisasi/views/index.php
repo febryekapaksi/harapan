@@ -5,13 +5,59 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
 ?>
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css'); ?>">
 
+<!-- ===== DASHBOARD SUMMARY CARDS ===== -->
+<div class="row" hidden>
+    <div class="col-md-3 col-sm-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-green"><i class="fa fa-file-text-o"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Kontrak Aktif</span>
+                <span class="info-box-number"><?= number_format($summary['jml_active'] ?? 0) ?></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-blue"><i class="fa fa-check-circle"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Selesai</span>
+                <span class="info-box-number"><?= number_format($summary['jml_completed'] ?? 0) ?></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-yellow"><i class="fa fa-money"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Sudah Diamortisasi</span>
+                <span class="info-box-number" style="font-size:16px;"><?= number_format($summary['total_sudah_amort'] ?? 0) ?></span>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 col-sm-6">
+        <div class="info-box">
+            <span class="info-box-icon bg-red"><i class="fa fa-hourglass-half"></i></span>
+            <div class="info-box-content">
+                <span class="info-box-text">Sisa Belum Diamortisasi</span>
+                <span class="info-box-number" style="font-size:16px;"><?= number_format($summary['total_remaining'] ?? 0) ?></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== TABEL MASTER AMORTISASI ===== -->
 <div class="box box-primary">
     <div class="box-header with-border">
-        <h3 class="box-title"><i class="fa fa-calculator"></i> Jadwal Amortisasi Asset</h3>
+        <h3 class="box-title"><i class="fa fa-file-text-o"></i> Daftar Biaya Dibayar Dimuka</h3>
         <div class="box-tools pull-right">
             <?php if ($ENABLE_ADD) : ?>
-                <button type="button" class="btn btn-success btn-sm" id="btn-proses-otomatis" title="Proses Jurnal Bulan Ini">
-                    <i class="fa fa-magic"></i> Proses Otomatis Bulan Ini
+                <button type="button" class="btn btn-success btn-sm" id="btn-tambah">
+                    <i class="fa fa-plus"></i> Tambah Kontrak
+                </button>
+            <?php endif; ?>
+            <?php if ($ENABLE_MANAGE) : ?>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-posting-bulanan">
+                    <i class="fa fa-magic"></i> Posting Jurnal Bulanan
                 </button>
             <?php endif; ?>
             <a href="<?= site_url('amortisasi/log_jurnal') ?>" class="btn btn-default btn-sm">
@@ -21,32 +67,15 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
     </div>
 
     <div class="box-body">
-        <!-- Filter -->
+        <!-- Filter Status -->
         <div class="row" style="margin-bottom:10px;">
-            <div class="col-md-2">
-                <label>Bulan</label>
-                <select id="filter_bulan" class="form-control input-sm">
-                    <option value="">Semua Bulan</option>
-                    <?php foreach ($bulan_list as $k => $v) : ?>
-                        <option value="<?= $k ?>" <?= ($k == $bulan_now) ? 'selected' : '' ?>><?= $v ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <label>Tahun</label>
-                <select id="filter_tahun" class="form-control input-sm">
-                    <?php for ($y = date('Y'); $y >= date('Y') - 5; $y--) : ?>
-                        <option value="<?= $y ?>" <?= ($y == $tahun_now) ? 'selected' : '' ?>><?= $y ?></option>
-                    <?php endfor; ?>
-                </select>
-            </div>
             <div class="col-md-3">
-                <label>Kategori</label>
-                <select id="filter_kategori" class="form-control input-sm">
-                    <option value="">Semua Kategori</option>
-                    <?php foreach ($kategori as $k) : ?>
-                        <option value="<?= $k['id'] ?>"><?= strtoupper($k['nm_category']) ?></option>
-                    <?php endforeach; ?>
+                <label>Filter Status</label>
+                <select id="filter_status" class="form-control input-sm">
+                    <option value="">Semua Status</option>
+                    <option value="active" selected>Active</option>
+                    <option value="completed">Completed</option>
+                    <option value="terminated">Terminated</option>
                 </select>
             </div>
             <div class="col-md-2">
@@ -61,12 +90,14 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
             <thead>
                 <tr class="bg-blue">
                     <th class="text-center" width="40">#</th>
-                    <th class="text-center">Periode</th>
-                    <th class="text-center">Kategori Asset</th>
-                    <th class="text-center">Cabang</th>
-                    <th class="text-center">Jumlah Asset</th>
-                    <th class="text-center">Total Amortisasi</th>
-                    <th class="text-center">Status Jurnal</th>
+                    <th class="text-center" width="120">Kode</th>
+                    <th class="text-center">Nama Item / Akun Biaya</th>
+                    <th class="text-center">Total Biaya</th>
+                    <th class="text-center">Tgl Mulai</th>
+                    <th class="text-center">Tgl Selesai</th>
+                    <th class="text-center">Sudah Amort</th>
+                    <th class="text-center">Sisa</th>
+                    <th class="text-center">Status</th>
                     <th class="text-center no-sort">Aksi</th>
                 </tr>
             </thead>
@@ -75,48 +106,103 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
     </div>
 </div>
 
-<!-- Modal Detail Asset -->
-<div class="modal fade" id="ModalDetail" tabindex="-1">
-    <div class="modal-dialog" style="width:85%;">
+<!-- ===== MODAL FORM TAMBAH/EDIT ===== -->
+<div class="modal fade" id="ModalForm" tabindex="-1">
+    <div class="modal-dialog" style="width:70%;">
         <div class="modal-content">
-            <div class="modal-header bg-blue">
+            <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                <h4 class="modal-title"><i class="fa fa-list"></i> Detail Asset Amortisasi</h4>
+                <h4 class="modal-title" id="modal_form_title">
+                    <i class="fa fa-plus"></i> Tambah Kontrak Amortisasi
+                </h4>
             </div>
-            <div class="modal-body" id="detail_content">
-                <div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Memuat data...</div>
+            <div class="modal-body" id="form_content">
+                <div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Memuat...</div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal Konfirmasi Posting -->
+<!-- ===== MODAL JADWAL BULANAN ===== -->
+<div class="modal fade" id="ModalJadwal" tabindex="-1">
+    <div class="modal-dialog" style="width:80%;">
+        <div class="modal-content">
+            <div class="modal-header bg-blue">
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-list"></i> Jadwal Amortisasi Bulanan</h4>
+            </div>
+            <div class="modal-body">
+                <div id="info_item" class="alert alert-info" style="margin-bottom:10px;"></div>
+                <table id="tbl_jadwal" class="table table-bordered table-striped table-condensed" width="100%">
+                    <thead>
+                        <tr class="bg-blue">
+                            <th class="text-center" width="40">#</th>
+                            <th class="text-center">Periode</th>
+                            <th class="text-center">Nilai Amortisasi</th>
+                            <th class="text-center">Saldo Awal</th>
+                            <th class="text-center">Saldo Akhir</th>
+                            <th class="text-center">Status Jurnal</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== MODAL POSTING JURNAL BULANAN ===== -->
 <div class="modal fade" id="ModalPosting" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-primary">
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                <h4 class="modal-title"><i class="fa fa-check-circle"></i> Konfirmasi Posting Jurnal</h4>
+                <h4 class="modal-title"><i class="fa fa-check-circle"></i> Posting Jurnal Amortisasi</h4>
             </div>
             <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Bulan</label>
+                            <select id="post_bulan" class="form-control">
+                                <option value="01">Januari</option>
+                                <option value="02">Februari</option>
+                                <option value="03">Maret</option>
+                                <option value="04">April</option>
+                                <option value="05">Mei</option>
+                                <option value="06">Juni</option>
+                                <option value="07">Juli</option>
+                                <option value="08">Agustus</option>
+                                <option value="09">September</option>
+                                <option value="10">Oktober</option>
+                                <option value="11">November</option>
+                                <option value="12">Desember</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Tahun</label>
+                            <select id="post_tahun" class="form-control">
+                                <?php for ($y = date('Y'); $y >= date('Y') - 5; $y--) : ?>
+                                    <option value="<?= $y ?>" <?= ($y == date('Y')) ? 'selected' : '' ?>><?= $y ?></option>
+                                <?php endfor; ?>
+                            </select>
+                        </div>
+                    </div>
+                </div>
                 <div class="alert alert-info">
                     <i class="fa fa-info-circle"></i>
-                    Anda akan memposting jurnal amortisasi untuk periode
-                    <strong id="lbl_periode_posting"></strong>.
-                    <br>Proses ini akan membuat entri jurnal di sistem akuntansi.
-                </div>
-                <div id="preview_posting_content">
-                    <div class="text-center"><i class="fa fa-spinner fa-spin"></i> Memuat preview...</div>
+                    Sistem akan menjurnal <b>semua kontrak aktif</b> yang memiliki jadwal amortisasi pada periode yang dipilih.
+                    <br>Jurnal: <b>(D) Akun Biaya &nbsp;|&nbsp; (K) Biaya Dibayar Dimuka</b>
                 </div>
             </div>
             <div class="modal-footer">
-                <input type="hidden" id="post_bulan" value="">
-                <input type="hidden" id="post_tahun" value="">
                 <button type="button" class="btn btn-default" data-dismiss="modal">
                     <i class="fa fa-times"></i> Batal
                 </button>
                 <button type="button" class="btn btn-primary" id="btn-konfirmasi-posting">
-                    <i class="fa fa-check"></i> Ya, Posting Sekarang
+                    <i class="fa fa-check"></i> Posting Sekarang
                 </button>
             </div>
         </div>
@@ -127,11 +213,21 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
 <script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js'); ?>"></script>
 <script>
     var _dataTable = null;
+    var _jadwalTable = null;
+    var _currentAmortId = null;
 
     $(document).ready(function() {
+        // Set default bulan posting ke bulan sekarang
+        var bln = ('0' + new Date().getMonth()).slice(-2); // bulan lalu (closing)
+        if (bln == '00') bln = '12';
+        $('#post_bulan').val(bln == '00' ? '12' : ('0' + new Date().getMonth()).slice(-2));
+
         initDataTable();
     });
 
+    // -----------------------------------------------------------------------
+    // DataTable master
+    // -----------------------------------------------------------------------
     function initDataTable() {
         if (_dataTable !== null) {
             _dataTable.destroy();
@@ -155,7 +251,7 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
                 }
             },
             aaSorting: [
-                [1, "asc"]
+                [0, "desc"]
             ],
             columnDefs: [{
                 targets: 'no-sort',
@@ -171,177 +267,191 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
                 url: base_url + active_controller + '/data_side',
                 type: "POST",
                 data: function(d) {
-                    d.bulan = $('#filter_bulan').val();
-                    d.tahun = $('#filter_tahun').val();
-                    d.kategori = $('#filter_kategori').val();
+                    d.filter_status = $('#filter_status').val();
                 },
                 cache: false
             }
         });
     }
 
-    // Filter
     $('#btn-filter').on('click', function() {
         initDataTable();
     });
 
-    // Detail asset
-    $(document).on('click', '.btn-detail', function() {
-        var bulan = $(this).data('bulan');
-        var tahun = $(this).data('tahun');
-        var kdcab = $(this).data('kdcab');
-        var category = $(this).data('category');
+    // -----------------------------------------------------------------------
+    // Tambah kontrak baru
+    // -----------------------------------------------------------------------
+    $('#btn-tambah').on('click', function() {
+        $('#modal_form_title').html('<i class="fa fa-plus"></i> Tambah Kontrak Amortisasi');
+        $('#form_content').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Memuat...</div>');
+        $('#ModalForm').modal('show');
+        $.get(base_url + active_controller + '/form_tambah', function(html) {
+            $('#form_content').html(html);
+        });
+    });
 
-        $('#detail_content').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Memuat data...</div>');
-        $('#ModalDetail').modal('show');
+    // -----------------------------------------------------------------------
+    // Edit kontrak
+    // -----------------------------------------------------------------------
+    $(document).on('click', '.btn-edit', function() {
+        var id = $(this).data('id');
+        $('#modal_form_title').html('<i class="fa fa-pencil"></i> Edit Kontrak Amortisasi');
+        $('#form_content').html('<div class="text-center"><i class="fa fa-spinner fa-spin fa-2x"></i> Memuat...</div>');
+        $('#ModalForm').modal('show');
+        $.get(base_url + active_controller + '/form_edit/' + id, function(html) {
+            $('#form_content').html(html);
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    // Simpan form (tambah/edit) – dipanggil dari dalam form_item.php
+    // -----------------------------------------------------------------------
+    $(document).on('submit', '#form-amortisasi', function(e) {
+        e.preventDefault();
+        var $btn = $('#btn-simpan-form');
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Menyimpan...');
 
         $.ajax({
-            url: base_url + active_controller + '/detail',
-            type: 'GET',
-            data: {
-                bulan: bulan,
-                tahun: tahun,
-                kdcab: kdcab
-            },
+            url: base_url + active_controller + '/simpan',
+            type: 'POST',
+            data: $(this).serialize(),
             dataType: 'json',
-            success: function(data) {
-                renderDetail(data, bulan, tahun);
+            success: function(res) {
+                if (res.status == 1) {
+                    $('#ModalForm').modal('hide');
+                    swal({
+                        title: 'Berhasil!',
+                        text: res.pesan,
+                        type: 'success',
+                        timer: 5000,
+                        html: true
+                    });
+                    initDataTable();
+                } else {
+                    swal({
+                        title: 'Gagal!',
+                        text: res.pesan,
+                        type: 'warning'
+                    });
+                }
+                $btn.prop('disabled', false).html('<i class="fa fa-save"></i> Simpan');
             },
             error: function() {
-                $('#detail_content').html('<div class="alert alert-danger">Gagal memuat data.</div>');
+                swal({
+                    title: 'Error!',
+                    text: 'Terjadi kesalahan.',
+                    type: 'error'
+                });
+                $btn.prop('disabled', false).html('<i class="fa fa-save"></i> Simpan');
             }
         });
     });
 
-    function renderDetail(data, bulan, tahun) {
-        var bulan_nama = {
-            '01': 'Januari',
-            '02': 'Februari',
-            '03': 'Maret',
-            '04': 'April',
-            '05': 'Mei',
-            '06': 'Juni',
-            '07': 'Juli',
-            '08': 'Agustus',
-            '09': 'September',
-            '10': 'Oktober',
-            '11': 'November',
-            '12': 'Desember'
-        };
-        var html = '<h5><b>Periode: ' + (bulan_nama[bulan] || bulan) + ' ' + tahun + '</b></h5>';
-        html += '<div style="max-height:400px;overflow-y:auto;">';
-        html += '<table class="table table-bordered table-striped table-condensed">';
-        html += '<thead><tr class="bg-blue">' +
-            '<th>#</th><th>Kode Asset</th><th>Nama Asset</th>' +
-            '<th>Kategori</th><th>Cabang</th>' +
-            '<th>Nilai Perolehan</th><th>Amortisasi/Bln</th>' +
-            '<th>COA Debit</th><th>COA Kredit</th><th>Status</th>' +
-            '</tr></thead><tbody>';
+    // -----------------------------------------------------------------------
+    // Lihat jadwal bulanan
+    // -----------------------------------------------------------------------
+    $(document).on('click', '.btn-detail', function() {
+        var id = $(this).data('id');
+        var nama = $(this).closest('tr').find('td:eq(2)').text().trim();
+        _currentAmortId = id;
 
-        var total = 0;
-        $.each(data, function(i, row) {
-            var flag = (row.flag == 'Y') ?
-                "<span class='badge bg-green'>Dijurnal</span>" :
-                "<span class='badge bg-red'>Belum</span>";
-            total += parseFloat(row.nilai_susut);
-            html += '<tr>' +
-                '<td align="center">' + (i + 1) + '</td>' +
-                '<td>' + row.kd_asset + '</td>' +
-                '<td>' + row.nm_asset + '</td>' +
-                '<td>' + row.nm_category + '</td>' +
-                '<td>' + (row.namacabang || row.kdcab) + '</td>' +
-                '<td align="right">' + numberFormat(row.nilai_asset) + '</td>' +
-                '<td align="right"><b>' + numberFormat(row.nilai_susut) + '</b></td>' +
-                '<td><small>' + (row.coa_debit || '-') + '<br>' + (row.nm_coa_debit || '') + '</small></td>' +
-                '<td><small>' + (row.coa_kredit || '-') + '<br>' + (row.nm_coa_kredit || '') + '</small></td>' +
-                '<td align="center">' + flag + '</td>' +
-                '</tr>';
-        });
+        $('#info_item').html('<i class="fa fa-file-text-o"></i> <b>' + nama + '</b>');
 
-        html += '<tr class="bg-yellow"><td colspan="6"><b>TOTAL</b></td>' +
-            '<td align="right"><b>' + numberFormat(total) + '</b></td>' +
-            '<td colspan="3"></td></tr>';
-        html += '</tbody></table></div>';
-        $('#detail_content').html(html);
-    }
-
-    // Posting jurnal
-    $(document).on('click', '.btn-posting', function() {
-        var bulan = $(this).data('bulan');
-        var tahun = $(this).data('tahun');
-        var bulan_nama = {
-            '01': 'Januari',
-            '02': 'Februari',
-            '03': 'Maret',
-            '04': 'April',
-            '05': 'Mei',
-            '06': 'Juni',
-            '07': 'Juli',
-            '08': 'Agustus',
-            '09': 'September',
-            '10': 'Oktober',
-            '11': 'November',
-            '12': 'Desember'
-        };
-
-        $('#post_bulan').val(bulan);
-        $('#post_tahun').val(tahun);
-        $('#lbl_periode_posting').text((bulan_nama[bulan] || bulan) + ' ' + tahun);
-
-        // Load preview
-        $('#preview_posting_content').html('<div class="text-center"><i class="fa fa-spinner fa-spin"></i> Memuat preview...</div>');
-        $.ajax({
-            url: base_url + active_controller + '/detail',
-            type: 'GET',
-            data: {
-                bulan: bulan,
-                tahun: tahun
+        if (_jadwalTable !== null) {
+            _jadwalTable.destroy();
+        }
+        _jadwalTable = $('#tbl_jadwal').DataTable({
+            processing: true,
+            serverSide: true,
+            stateSave: false,
+            destroy: true,
+            oLanguage: {
+                sSearch: "<b>Cari : </b>",
+                sLengthMenu: "_MENU_ &nbsp;<b>Data Per Halaman</b>",
+                sInfo: "Menampilkan _START_ s/d _END_ dari _TOTAL_ data",
+                sZeroRecords: "Tidak ada data",
+                sEmptyTable: "Tidak ada data tersedia",
+                sLoadingRecords: "Memuat...",
+                oPaginate: {
+                    sPrevious: "Prev",
+                    sNext: "Next"
+                }
             },
-            dataType: 'json',
-            success: function(data) {
-                var html = '<table class="table table-bordered table-condensed">';
-                html += '<thead><tr class="bg-blue"><th>Kategori</th><th>Cabang</th><th>Jml Asset</th><th>Total Amortisasi</th><th>COA Debit</th><th>COA Kredit</th></tr></thead><tbody>';
-                var grouped = {};
-                $.each(data, function(i, row) {
-                    var key = row.category + '_' + row.kdcab;
-                    if (!grouped[key]) {
-                        grouped[key] = {
-                            nm_category: row.nm_category,
-                            kdcab: row.kdcab,
-                            namacabang: row.namacabang,
-                            total: 0,
-                            jml: 0,
-                            coa_debit: row.coa_debit,
-                            nm_coa_debit: row.nm_coa_debit,
-                            coa_kredit: row.coa_kredit,
-                            nm_coa_kredit: row.nm_coa_kredit
-                        };
-                    }
-                    grouped[key].total += parseFloat(row.nilai_susut);
-                    grouped[key].jml++;
-                });
-                var grandTotal = 0;
-                $.each(grouped, function(k, g) {
-                    grandTotal += g.total;
-                    html += '<tr>' +
-                        '<td>' + g.nm_category + '</td>' +
-                        '<td>' + (g.namacabang || g.kdcab) + '</td>' +
-                        '<td align="center">' + g.jml + '</td>' +
-                        '<td align="right"><b>' + numberFormat(g.total) + '</b></td>' +
-                        '<td><small>' + (g.coa_debit || '-') + '</small></td>' +
-                        '<td><small>' + (g.coa_kredit || '-') + '</small></td>' +
-                        '</tr>';
-                });
-                html += '<tr class="bg-yellow"><td colspan="3"><b>GRAND TOTAL</b></td><td align="right"><b>' + numberFormat(grandTotal) + '</b></td><td colspan="2"></td></tr>';
-                html += '</tbody></table>';
-                $('#preview_posting_content').html(html);
+            aaSorting: [
+                [0, "asc"]
+            ],
+            sPaginationType: "simple_numbers",
+            iDisplayLength: 25,
+            aLengthMenu: [
+                [10, 25, 50, 100],
+                [10, 25, 50, 100]
+            ],
+            ajax: {
+                url: base_url + active_controller + '/detail_schedule/' + id,
+                type: "POST",
+                cache: false
             }
         });
 
+        $('#ModalJadwal').modal('show');
+    });
+
+    // -----------------------------------------------------------------------
+    // Terminate kontrak
+    // -----------------------------------------------------------------------
+    $(document).on('click', '.btn-terminate', function() {
+        var id = $(this).data('id');
+        var nama = $(this).data('nama');
+
+        swal({
+            title: 'Stop Amortisasi?',
+            text: 'Kontrak <b>' + nama + '</b> akan dihentikan.\nSisa saldo yang belum diamortisasi akan langsung dijurnalkan sebagai beban.',
+            type: 'warning',
+            html: true,
+            showCancelButton: true,
+            confirmButtonClass: 'btn-danger',
+            confirmButtonText: 'Ya, Hentikan!',
+            cancelButtonText: 'Batal',
+            closeOnConfirm: false
+        }, function(isConfirm) {
+            if (isConfirm) {
+                $.ajax({
+                    url: base_url + active_controller + '/terminate',
+                    type: 'POST',
+                    data: {
+                        id: id
+                    },
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.status == 1) {
+                            swal({
+                                title: 'Berhasil!',
+                                text: res.pesan,
+                                type: 'success',
+                                html: true,
+                                timer: 6000
+                            });
+                            initDataTable();
+                        } else {
+                            swal({
+                                title: 'Gagal!',
+                                text: res.pesan,
+                                type: 'warning'
+                            });
+                        }
+                    }
+                });
+            }
+        });
+    });
+
+    // -----------------------------------------------------------------------
+    // Posting jurnal bulanan
+    // -----------------------------------------------------------------------
+    $('#btn-posting-bulanan').on('click', function() {
         $('#ModalPosting').modal('show');
     });
 
-    // Konfirmasi posting
     $('#btn-konfirmasi-posting').on('click', function() {
         var bulan = $('#post_bulan').val();
         var tahun = $('#post_tahun').val();
@@ -363,7 +473,7 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
                         title: 'Berhasil!',
                         text: res.pesan,
                         type: 'success',
-                        timer: 5000
+                        timer: 6000
                     });
                     initDataTable();
                 } else {
@@ -374,111 +484,16 @@ $ENABLE_VIEW   = has_permission('Amortisasi.View');
                         timer: 7000
                     });
                 }
-                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Ya, Posting Sekarang');
+                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Posting Sekarang');
             },
             error: function() {
                 swal({
                     title: 'Error!',
-                    text: 'Terjadi kesalahan saat proses posting.',
+                    text: 'Terjadi kesalahan saat posting.',
                     type: 'error'
                 });
-                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Ya, Posting Sekarang');
+                $btn.prop('disabled', false).html('<i class="fa fa-check"></i> Posting Sekarang');
             }
         });
     });
-
-    // Batal jurnal
-    $(document).on('click', '.btn-batal', function() {
-        var bulan = $(this).data('bulan');
-        var tahun = $(this).data('tahun');
-        var bulan_nama = {
-            '01': 'Januari',
-            '02': 'Februari',
-            '03': 'Maret',
-            '04': 'April',
-            '05': 'Mei',
-            '06': 'Juni',
-            '07': 'Juli',
-            '08': 'Agustus',
-            '09': 'September',
-            '10': 'Oktober',
-            '11': 'November',
-            '12': 'Desember'
-        };
-
-        swal({
-            title: 'Batal Jurnal?',
-            text: 'Jurnal amortisasi periode ' + (bulan_nama[bulan] || bulan) + ' ' + tahun + ' akan dihapus dari sistem akuntansi.',
-            type: 'warning',
-            showCancelButton: true,
-            confirmButtonClass: 'btn-danger',
-            confirmButtonText: 'Ya, Batalkan!',
-            cancelButtonText: 'Tidak',
-            closeOnConfirm: false
-        }, function(isConfirm) {
-            if (isConfirm) {
-                $.ajax({
-                    url: base_url + active_controller + '/batal_jurnal',
-                    type: 'POST',
-                    data: {
-                        bulan: bulan,
-                        tahun: tahun
-                    },
-                    dataType: 'json',
-                    success: function(res) {
-                        if (res.status == 1) {
-                            swal({
-                                title: 'Berhasil!',
-                                text: res.pesan,
-                                type: 'success',
-                                timer: 5000
-                            });
-                            initDataTable();
-                        } else {
-                            swal({
-                                title: 'Gagal!',
-                                text: res.pesan,
-                                type: 'warning'
-                            });
-                        }
-                    }
-                });
-            }
-        });
-    });
-
-    // Proses otomatis bulan ini
-    $('#btn-proses-otomatis').on('click', function() {
-        var bulan = ('0' + new Date().getMonth() + 1).slice(-2);
-        var tahun = new Date().getFullYear();
-        swal({
-            title: 'Proses Otomatis?',
-            text: 'Sistem akan memproses jurnal amortisasi untuk bulan ini secara otomatis.',
-            type: 'info',
-            showCancelButton: true,
-            confirmButtonText: 'Ya, Proses!',
-            cancelButtonText: 'Batal',
-            closeOnConfirm: false
-        }, function(isConfirm) {
-            if (isConfirm) {
-                $.ajax({
-                    url: base_url + active_controller + '/proses_otomatis',
-                    type: 'GET',
-                    success: function() {
-                        swal({
-                            title: 'Selesai!',
-                            text: 'Proses otomatis selesai.',
-                            type: 'success',
-                            timer: 4000
-                        });
-                        initDataTable();
-                    }
-                });
-            }
-        });
-    });
-
-    function numberFormat(n) {
-        return parseFloat(n).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-    }
 </script>
