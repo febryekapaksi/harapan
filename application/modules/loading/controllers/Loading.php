@@ -424,7 +424,6 @@ class Loading extends Admin_Controller
         foreach ($detail as $key => $value) {
             $no_delivery    = $value['no_delivery'];
 
-
             $ArrDetail[$key]['no_loading']      = $no_loading;
             $ArrDetail[$key]['no_delivery']     = $no_delivery;
             $ArrDetail[$key]['id_spk_detail']   = $value['id_spk_detail'];
@@ -444,6 +443,24 @@ class Loading extends Admin_Controller
         if ($is_edit) {
             $this->db->update('loading_delivery', $ArrHeader, ['no_loading' => $no_loading]);
 
+            // Restore qty_belum_muat dari detail lama sebelum dihapus
+            $old_details = $this->db
+                ->get_where('loading_delivery_detail', ['no_loading' => $no_loading])
+                ->result_array();
+
+            foreach ($old_details as $old) {
+                $spk_old = $this->db->get_where('spk_delivery_detail', ['id' => $old['id_spk_detail']])->row_array();
+                if ($spk_old) {
+                    $restored_belum_muat = (int)$spk_old['qty_belum_muat'] + (int)$old['qty_muat'];
+                    $restored_qty_muat   = max(0, (int)$spk_old['qty_muat'] - (int)$old['qty_muat']);
+                    $this->db->update(
+                        'spk_delivery_detail',
+                        ['qty_belum_muat' => $restored_belum_muat, 'qty_muat' => $restored_qty_muat],
+                        ['id' => $old['id_spk_detail']]
+                    );
+                }
+            }
+
             // Hapus detail lama, insert ulang
             $this->db->delete('loading_delivery_detail', ['no_loading' => $no_loading]);
             if (!empty($ArrDetail)) {
@@ -454,6 +471,23 @@ class Loading extends Admin_Controller
             $insert_id = $this->db->insert_id();
             if (!empty($ArrDetail)) {
                 $this->db->insert_batch('loading_delivery_detail', $ArrDetail);
+            }
+        }
+
+        // Kurangi qty_belum_muat di spk_delivery_detail sesuai qty_muat yang direncanakan
+        foreach ($ArrDetail as $d) {
+            $id_spk_detail = (int)$d['id_spk_detail'];
+            $qty_muat      = (int)$d['qty_muat'];
+
+            $spk = $this->db->get_where('spk_delivery_detail', ['id' => $id_spk_detail])->row_array();
+            if ($spk) {
+                $sisa_baru   = max(0, (int)$spk['qty_belum_muat'] - $qty_muat);
+                $sudah_muat  = (int)$spk['qty_spk'] - $sisa_baru;
+                $this->db->update(
+                    'spk_delivery_detail',
+                    ['qty_belum_muat' => $sisa_baru, 'qty_muat' => $sudah_muat],
+                    ['id' => $id_spk_detail]
+                );
             }
         }
 
@@ -494,70 +528,87 @@ class Loading extends Admin_Controller
 
         $this->db->trans_begin();
 
+        // ── STEP 1: Restore qty_belum_muat dari detail loading yang lama ──────
+        // Supaya tidak double-deduct jika confirm dilakukan ulang
+        $old_details = $this->db
+            ->get_where('loading_delivery_detail', ['no_loading' => $no_loading])
+            ->result_array();
+
+        foreach ($old_details as $old) {
+            $spk_old = $this->db->get_where('spk_delivery_detail', ['id' => $old['id_spk_detail']])->row_array();
+            if ($spk_old) {
+                $restored_belum_muat = (int)$spk_old['qty_belum_muat'] + (int)$old['qty_muat'];
+                $restored_qty_muat   = max(0, (int)$spk_old['qty_muat'] - (int)$old['qty_muat']);
+                // Pastikan tidak melebihi qty_spk
+                $restored_belum_muat = min($restored_belum_muat, (int)$spk_old['qty_spk']);
+                $this->db->update(
+                    'spk_delivery_detail',
+                    ['qty_belum_muat' => $restored_belum_muat, 'qty_muat' => $restored_qty_muat],
+                    ['id' => $old['id_spk_detail']]
+                );
+            }
+        }
+
+        // ── STEP 2: Hitung dan update qty_belum_muat berdasarkan qty_aktual ───
         foreach ($detail as $key => $value) {
             $no_delivery    = $value['no_delivery'];
             $id_spk_detail  = (int)$value['id_spk_detail'];
-            $qty_muat_req   = (int)$value['qty_muat'];   // dari UI (opsional)
-            $qty_aktual     = (int)$value['qty_aktual']; // benar2 dimuat
+            $qty_aktual     = (int)$value['qty_aktual']; // benar-benar dimuat
 
             // simpan histori muatan (detail loading)
-            $ArrDetail[$key]['no_loading']   = $no_loading;
-            $ArrDetail[$key]['no_delivery']  = $no_delivery;
+            $ArrDetail[$key]['no_loading']    = $no_loading;
+            $ArrDetail[$key]['no_delivery']   = $no_delivery;
             $ArrDetail[$key]['id_spk_detail'] = $id_spk_detail;
-            $ArrDetail[$key]['no_so']        = $value['no_so'];
-            $ArrDetail[$key]['customer']     = $value['customer'];
-            $ArrDetail[$key]['id_product']   = $value['id_product'];
-            $ArrDetail[$key]['product']      = $value['product'];
-            $ArrDetail[$key]['qty_muat']     = $qty_aktual;     // muat aktual utk record ini
-            $ArrDetail[$key]['jumlah_berat'] = $value['jumlah_berat'];
-            $ArrDetail[$key]['keterangan']   = $value['keterangan'];
+            $ArrDetail[$key]['no_so']         = $value['no_so'];
+            $ArrDetail[$key]['customer']      = $value['customer'];
+            $ArrDetail[$key]['id_product']    = $value['id_product'];
+            $ArrDetail[$key]['product']       = $value['product'];
+            $ArrDetail[$key]['qty_muat']      = $qty_aktual;
+            $ArrDetail[$key]['jumlah_berat']  = $value['jumlah_berat'];
+            $ArrDetail[$key]['keterangan']    = $value['keterangan'];
 
-            // ambil sisa & rencana dari spk_detail
+            // Baca nilai terbaru dari DB (sudah di-restore di STEP 1)
             $spk = $this->db->get_where('spk_delivery_detail', ['id' => $id_spk_detail])->row_array();
             if (!$spk) {
                 $this->db->trans_rollback();
                 show_404();
             }
 
-            $rencana     = (int)$spk['qty_spk'];          // historis rencana baris
-            $sisa_lama   = (int)$spk['qty_belum_muat'];   // sisa sebelum muat ini
+            $rencana   = (int)$spk['qty_spk'];
+            $sisa_lama = (int)$spk['qty_belum_muat']; // sudah di-restore, ini nilai bersih
 
-            // batasi muat aktual agar tidak melebihi sisa
-            $muat = max(0, min($qty_aktual, $sisa_lama));
+            // Batasi qty_aktual agar tidak melebihi sisa yang tersedia
+            $muat      = max(0, min($qty_aktual, $sisa_lama));
+            $sisa_baru = max(0, $sisa_lama - $muat);
+            $sudah_muat_baru = $rencana - $sisa_baru;
 
-            // hitung sisa & akumulasi baru
-            $sisa_baru     = max(0, $sisa_lama - $muat);
-            $qty_muat_baru = $rencana - $sisa_baru;       // akumulasi total sudah dimuat
-
-            // update spk_detail (tanpa syarat/if)
             $this->db->update(
                 'spk_delivery_detail',
                 [
                     'qty_belum_muat' => $sisa_baru,
-                    'qty_muat'       => $qty_muat_baru
+                    'qty_muat'       => $sudah_muat_baru
                 ],
                 ['id' => $id_spk_detail]
             );
 
-            // catat status header untuk no_delivery ini
-            // kalau ada 1 saja yang belum penuh, status jadi PARTIAL LOADING
+            // Catat status per no_delivery: PARTIAL jika ada yang belum penuh
             if (!isset($headerStatus[$no_delivery])) {
-                $headerStatus[$no_delivery] = ($qty_muat_baru < $rencana) ? 'PARTIAL LOADING' : 'LOADING';
+                $headerStatus[$no_delivery] = ($sisa_baru > 0) ? 'PARTIAL LOADING' : 'LOADING';
             } else {
-                if ($qty_muat_baru < $rencana) {
+                if ($sisa_baru > 0) {
                     $headerStatus[$no_delivery] = 'PARTIAL LOADING';
                 }
             }
         }
 
-        // header loading_delivery + detail
+        // ── STEP 3: Update header + replace detail loading ────────────────────
         $this->db->update('loading_delivery', $ArrHeader, ['no_loading' => $no_loading]);
         $this->db->delete('loading_delivery_detail', ['no_loading' => $no_loading]);
         if (!empty($ArrDetail)) {
             $this->db->insert_batch('loading_delivery_detail', $ArrDetail);
         }
 
-        // set status header SPK SEKALI SAJA per no_delivery
+        // ── STEP 4: Update status header SPK per no_delivery ─────────────────
         foreach ($headerStatus as $nd => $st) {
             $this->db->update('spk_delivery', ['status' => $st], ['no_delivery' => $nd]);
         }
