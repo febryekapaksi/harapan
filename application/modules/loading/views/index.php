@@ -2,9 +2,37 @@
 
 <div class="box box-primary">
     <div class="box-header">
-        <span class="pull-left">
-            <a href="<?= site_url('loading/add') ?>" class='btn btn-primary'>Atur Muatan</a>
-        </span>
+        <div class="row">
+            <div class="col-sm-12">
+                <a href="<?= site_url('loading/add') ?>" class='btn btn-primary'>Atur Muatan</a>
+            </div>
+        </div>
+        <hr>
+        <div class="row" style="align-items:center;">
+            <div class="col-sm-2" style="display:flex;align-items:center;">
+                <label class="form-label" style="margin:0;">Pilih Tanggal Muat</label>
+            </div>
+            <div class="col-sm-2">
+                <input type="date" id="start_date" class="form-control input-sm">
+            </div>
+            <div class="col-sm-1 text-center" style="display:flex;align-items:center;justify-content:center;">
+                <i class="fa fa-arrow-right"></i>
+            </div>
+            <div class="col-sm-2">
+                <input type="date" id="end_date" class="form-control input-sm">
+            </div>
+            <div class="col-sm-3">
+                <button id="btnFilter" class="btn bg-purple btn-sm">
+                    <i class="fa fa-filter"></i> Filter
+                </button>
+                <button id="btnReset" class="btn btn-default btn-sm">
+                    Reset
+                </button>
+                <a id="btnExport" href="javascript:void(0)" class="btn btn-success btn-sm">
+                    <i class="fa fa-file-excel-o"></i> Export Excel
+                </a>
+            </div>
+        </div>
     </div>
     <div class="box-body">
         <div class="table-responsive">
@@ -79,6 +107,28 @@
 <script>
     $(document).ready(function() {
         DataTables()
+
+        $('#btnFilter').on('click', function(e) {
+            e.preventDefault();
+            if ($.fn.dataTable.isDataTable('#tableLoading')) {
+                $('#tableLoading').DataTable().ajax.reload(null, true);
+            }
+        });
+
+        $('#btnReset').on('click', function(e) {
+            e.preventDefault();
+            $('#start_date, #end_date').val('');
+            if ($.fn.dataTable.isDataTable('#tableLoading')) {
+                $('#tableLoading').DataTable().ajax.reload(null, true);
+            }
+        });
+
+        $('#btnExport').on('click', function(e) {
+            e.preventDefault();
+            var start = $('#start_date').val();
+            var end = $('#end_date').val();
+            window.location.href = siteurl + 'loading/export_excel?start_date=' + start + '&end_date=' + end;
+        });
 
         $(document).on('click', '.view-loading', function() {
             const id = $(this).data('id');
@@ -182,7 +232,10 @@
             "ajax": {
                 url: siteurl + active_controller + 'data_side_loading',
                 type: "post",
-                // data: function(d) {},
+                data: function(d) {
+                    d.start_date = $('#start_date').val();
+                    d.end_date = $('#end_date').val();
+                },
                 cache: false,
                 error: function() {
                     $(".my-grid-error").html("");

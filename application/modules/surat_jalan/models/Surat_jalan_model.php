@@ -16,12 +16,17 @@ class Surat_jalan_model extends BF_Model
     {
         $requestData = $_REQUEST;
 
+        $start_date = $this->input->post('start_date');
+        $end_date   = $this->input->post('end_date');
+
         $fetch = $this->get_query_json_surat_jalan(
             $requestData['search']['value'],
             $requestData['order'][0]['column'],
             $requestData['order'][0]['dir'],
             $requestData['start'],
-            $requestData['length']
+            $requestData['length'],
+            $start_date,
+            $end_date
         );
 
         $totalData     = $fetch['totalData'];
@@ -76,7 +81,7 @@ class Surat_jalan_model extends BF_Model
     }
 
 
-    public function get_query_json_surat_jalan($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
+    public function get_query_json_surat_jalan($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $start_date = NULL, $end_date = NULL)
     {
         $columns_order_by = [
             0 => 'sj.no_surat_jalan',
@@ -104,6 +109,8 @@ class Surat_jalan_model extends BF_Model
         $this->db->join('master_customers c', 'so.id_customer = c.id_customer', 'left');
         $this->db->where('sj.pengiriman', 'Gudang');
 
+        if (!empty($start_date)) $this->db->where('sj.delivery_date >=', $start_date);
+        if (!empty($end_date)) $this->db->where('sj.delivery_date <=', $end_date);
 
         if (!empty($like_value)) {
             $this->db->group_start();
@@ -122,6 +129,9 @@ class Surat_jalan_model extends BF_Model
         $this->db->join('sales_order so', 'sj.no_so = so.no_so', 'left');
         $this->db->join('master_customers c', 'so.id_customer = c.id_customer', 'left');
         $this->db->where('sj.pengiriman', 'Gudang');
+
+        if (!empty($start_date)) $this->db->where('sj.delivery_date >=', $start_date);
+        if (!empty($end_date)) $this->db->where('sj.delivery_date <=', $end_date);
 
         if (!empty($like_value)) {
             $this->db->group_start();

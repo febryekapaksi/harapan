@@ -669,4 +669,68 @@ class Surat_jalan_pabrik extends Admin_Controller
 
         $this->load->view('print_sj', $data);
     }
+
+    public function export_excel()
+    {
+        $start = $this->input->get('start_date', true);
+        $end   = $this->input->get('end_date', true);
+
+        $this->db->select('sj.no_surat_jalan, sj.delivery_date, sj.status, c.name_customer');
+        $this->db->from('surat_jalan sj');
+        $this->db->join('sales_order so', 'sj.no_so = so.no_so', 'left');
+        $this->db->join('master_customers c', 'so.id_customer = c.id_customer', 'left');
+        $this->db->where('sj.pengiriman', 'Pabrik');
+        if (!empty($start)) $this->db->where('sj.delivery_date >=', $start);
+        if (!empty($end))   $this->db->where('sj.delivery_date <=', $end);
+        $this->db->order_by('sj.delivery_date', 'DESC');
+
+        $rows = $this->db->get()->result();
+
+        if (empty($rows)) {
+            echo "<script>alert('Data tidak ditemukan'); window.history.back();</script>";
+            return;
+        }
+
+        set_time_limit(0);
+        ini_set('memory_limit', '512M');
+        $this->load->library('PHPExcel');
+
+        $xls   = new PHPExcel();
+        $sheet = $xls->getActiveSheet();
+
+        $periode = ($start && $end) ? $start . ' s/d ' . $end : 'Semua Data';
+        $sheet->setCellValue('A1', 'REPORT SURAT JALAN PABRIK - ' . $periode);
+        $sheet->mergeCells('A1:E2');
+
+        $headers = ['A' => '#', 'B' => 'No. Surat Jalan', 'C' => 'Customer', 'D' => 'Tanggal Kirim', 'E' => 'Status'];
+        $rowHeader = 4;
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue($col . $rowHeader, $label);
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $r = $rowHeader + 1;
+        $no = 1;
+        foreach ($rows as $row) {
+            $sheet->setCellValue('A' . $r, $no++);
+            $sheet->setCellValueExplicit('B' . $r, (string)$row->no_surat_jalan, PHPExcel_Cell_DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('C' . $r, (string)$row->name_customer, PHPExcel_Cell_DataType::TYPE_STRING);
+            if (!empty($row->delivery_date)) {
+                $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->delivery_date));
+                $sheet->setCellValueExplicit('D' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->getStyle('D' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+            }
+            $sheet->setCellValueExplicit('E' . $r, (string)$row->status, PHPExcel_Cell_DataType::TYPE_STRING);
+            $r++;
+        }
+
+        $sheet->setTitle('Surat Jalan Pabrik');
+        $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+        ob_end_clean();
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="Surat_Jalan_Pabrik_' . date('Ymd_His') . '.xls"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit;
+    }
 }

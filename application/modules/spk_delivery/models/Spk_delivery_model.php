@@ -17,13 +17,18 @@ class Spk_delivery_model extends BF_Model
     $controller    = ucfirst(strtolower($this->uri->segment(1)));
     $requestData   = $_REQUEST;
 
+    $start_date = $this->input->post('start_date');
+    $end_date   = $this->input->post('end_date');
+
     $fetch         = $this->get_query_json_spk_deliv(
       $requestData['sales_order'],
       $requestData['search']['value'],
       $requestData['order'][0]['column'],
       $requestData['order'][0]['dir'],
       $requestData['start'],
-      $requestData['length']
+      $requestData['length'],
+      $start_date,
+      $end_date
     );
 
     $totalData     = $fetch['totalData'];
@@ -147,7 +152,7 @@ class Spk_delivery_model extends BF_Model
   }
 
 
-  public function get_query_json_spk_deliv($sales_order = null, $like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
+  public function get_query_json_spk_deliv($sales_order = null, $like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null, $start_date = null, $end_date = null)
   {
     $columns_order_by = [
       0 => 'a.no_delivery',
@@ -167,6 +172,8 @@ class Spk_delivery_model extends BF_Model
     $this->db->join('master_customers c', 'b.id_customer = c.id_customer', 'left');
     $this->db->where('a.deleted_date IS NULL');
     if ($sales_order) $this->db->where('a.no_so', $sales_order);
+    if (!empty($start_date)) $this->db->where('a.tanggal_spk >=', $start_date);
+    if (!empty($end_date)) $this->db->where('a.tanggal_spk <=', $end_date);
     $totalData = $this->db->count_all_results();
 
     // ========================
@@ -178,6 +185,8 @@ class Spk_delivery_model extends BF_Model
     $this->db->join('master_customers c', 'b.id_customer = c.id_customer', 'left');
     $this->db->where('a.deleted_date IS NULL');
     if ($sales_order) $this->db->where('a.no_so', $sales_order);
+    if (!empty($start_date)) $this->db->where('a.tanggal_spk >=', $start_date);
+    if (!empty($end_date)) $this->db->where('a.tanggal_spk <=', $end_date);
     if ($like_value) {
       $this->db->group_start();
       $this->db->like('a.no_so', $like_value);
@@ -211,6 +220,8 @@ class Spk_delivery_model extends BF_Model
     $this->db->where('a.deleted_date IS NULL');
 
     if ($sales_order) $this->db->where('a.no_so', $sales_order);
+    if (!empty($start_date)) $this->db->where('a.tanggal_spk >=', $start_date);
+    if (!empty($end_date)) $this->db->where('a.tanggal_spk <=', $end_date);
     if ($like_value) {
       $this->db->group_start();
       $this->db->like('a.no_so', $like_value);

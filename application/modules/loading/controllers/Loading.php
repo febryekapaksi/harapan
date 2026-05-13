@@ -826,4 +826,84 @@ class Loading extends Admin_Controller
 
         return $result;
     }
+
+    public function export_excel()
+    {
+        $start = $this->input->get('start_date', true);
+        $end   = $this->input->get('end_date', true);
+
+        $sub_list_spk = "
+            SELECT d.no_loading, GROUP_CONCAT(DISTINCT d.no_delivery ORDER BY d.no_delivery SEPARATOR ', ') AS list_spk
+            FROM loading_delivery_detail d GROUP BY d.no_loading
+        ";
+
+        $where = " WHERE 1=1 ";
+        $params = [];
+        if (!empty($start)) {
+            $where .= " AND l.tanggal_muat >= ? ";
+            $params[] = $start;
+        }
+        if (!empty($end)) {
+            $where .= " AND l.tanggal_muat <= ? ";
+            $params[] = $end;
+        }
+
+        $sql = "SELECT l.no_loading, l.nopol, l.pengiriman, l.total_berat, l.kapasitas, l.tanggal_muat, l.status, COALESCE(s.list_spk,'') AS list_spk
+                FROM loading_delivery l LEFT JOIN ($sub_list_spk) s ON s.no_loading = l.no_loading
+                $where ORDER BY l.tanggal_muat DESC";
+
+        $rows = $this->db->query($sql, $params)->result();
+
+        if (empty($rows)) {
+            echo "<script>alert('Data tidak ditemukan'); window.history.back();</script>";
+            return;
+        }
+
+        set_time_limit(0);
+        ini_set('memory_limit', '512M');
+        $this->load->library('PHPExcel');
+
+        $xls   = new PHPExcel();
+        $sheet = $xls->getActiveSheet();
+
+        $periode = ($start && $end) ? $start . ' s/d ' . $end : 'Semua Data';
+        $sheet->setCellValue('A1', 'REPORT MUAT KENDARAAN - ' . $periode);
+        $sheet->mergeCells('A1:H2');
+
+        $headers = ['A' => '#', 'B' => 'No. Muat Kendaraan', 'C' => 'No. SPK Delivery', 'D' => 'Nopol Kendaraan', 'E' => 'Pengiriman', 'F' => 'Total Berat (Kg)', 'G' => 'Tanggal Muat', 'H' => 'Status'];
+        $rowHeader = 4;
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue($col . $rowHeader, $label);
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $statusMap = [0 => 'Draft', 1 => 'Confirm QTY', 2 => 'Confirm Berat', 3 => 'Approved'];
+        $r = $rowHeader + 1;
+        $no = 1;
+        foreach ($rows as $row) {
+            $sheet->setCellValue('A' . $r, $no++);
+            $sheet->setCellValueExplicit('B' . $r, (string)$row->no_loading, PHPExcel_Cell_DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('C' . $r, (string)$row->list_spk, PHPExcel_Cell_DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('D' . $r, (string)$row->nopol, PHPExcel_Cell_DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('E' . $r, (string)$row->pengiriman, PHPExcel_Cell_DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('F' . $r, (float)$row->total_berat, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0.00');
+            if (!empty($row->tanggal_muat)) {
+                $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->tanggal_muat));
+                $sheet->setCellValueExplicit('G' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->getStyle('G' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+            }
+            $sheet->setCellValueExplicit('H' . $r, isset($statusMap[$row->status]) ? $statusMap[$row->status] : (string)$row->status, PHPExcel_Cell_DataType::TYPE_STRING);
+            $r++;
+        }
+
+        $sheet->setTitle('Muat Kendaraan');
+        $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+        ob_end_clean();
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="Muat_Kendaraan_' . date('Ymd_His') . '.xls"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit;
+    }
 }

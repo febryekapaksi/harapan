@@ -85,12 +85,17 @@ class Penawaran_dropship_model extends BF_Model
     {
         $requestData = $_REQUEST;
 
+        $start_date = $this->input->post('start_date');
+        $end_date   = $this->input->post('end_date');
+
         $fetch = $this->get_query_json_penawaran(
             $requestData['search']['value'],
             $requestData['order'][0]['column'],
             $requestData['order'][0]['dir'],
             $requestData['start'],
-            $requestData['length']
+            $requestData['length'],
+            $start_date,
+            $end_date
         );
 
         $totalData = $fetch['totalData'];
@@ -176,7 +181,7 @@ class Penawaran_dropship_model extends BF_Model
         echo json_encode($json_data);
     }
 
-    public function get_query_json_penawaran($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
+    public function get_query_json_penawaran($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null, $start_date = null, $end_date = null)
     {
         $id_karyawan_login = (int) $this->auth->user_id();
         $is_admin = in_array($id_karyawan_login, [7, 94, 95], true);
@@ -190,7 +195,7 @@ class Penawaran_dropship_model extends BF_Model
             5 => 'p.status'
         ];
 
-        $this->apply_filters_penawaran($id_karyawan_login, $is_admin, $like_value);
+        $this->apply_filters_penawaran($id_karyawan_login, $is_admin, $like_value, $start_date, $end_date);
 
         // =====================
         // 1. Hitung totalData
@@ -200,7 +205,7 @@ class Penawaran_dropship_model extends BF_Model
         // ============================
         // 2. Hitung totalFiltered
         // ============================
-        $this->apply_filters_penawaran($id_karyawan_login, $is_admin, $like_value);
+        $this->apply_filters_penawaran($id_karyawan_login, $is_admin, $like_value, $start_date, $end_date);
         $totalFiltered = $this->db->count_all_results();
 
         // ============================
@@ -218,7 +223,7 @@ class Penawaran_dropship_model extends BF_Model
         c.name_customer,
         so.no_so
     ');
-        $this->apply_filters_penawaran($id_karyawan_login, $is_admin, $like_value);
+        $this->apply_filters_penawaran($id_karyawan_login, $is_admin, $like_value, $start_date, $end_date);
 
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
@@ -242,7 +247,7 @@ class Penawaran_dropship_model extends BF_Model
     /**
      * Fungsi privat untuk menyatukan logika filter agar query konsisten
      */
-    private function apply_filters_penawaran($id_karyawan, $is_admin, $like_value)
+    private function apply_filters_penawaran($id_karyawan, $is_admin, $like_value, $start_date = null, $end_date = null)
     {
         $this->db->from('penawaran p');
         $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
@@ -253,6 +258,13 @@ class Penawaran_dropship_model extends BF_Model
 
         if (!$is_admin) {
             $this->db->where('u.id_user', $id_karyawan);
+        }
+
+        if (!empty($start_date)) {
+            $this->db->where('p.quotation_date >=', $start_date);
+        }
+        if (!empty($end_date)) {
+            $this->db->where('p.quotation_date <=', $end_date);
         }
 
         if ($like_value) {

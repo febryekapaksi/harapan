@@ -35,6 +35,9 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 							<button id="btnReset" class="btn btn-default btn-sm">
 								Reset
 							</button>
+							<a id="btnExport" href="javascript:void(0)" class="btn btn-success btn-sm">
+								<i class="fa fa-file-excel-o"></i> Export Excel
+							</a>
 						</td>
 					</tr>
 				</table>
@@ -190,6 +193,13 @@ $ENABLE_DELETE  = has_permission('Sales_order.Delete');
 			if ($.fn.dataTable.isDataTable('#example1')) {
 				$('#example1').DataTable().ajax.reload(null, true);
 			}
+		});
+
+		$('#btnExport').on('click', function(e) {
+			e.preventDefault();
+			var start = $('#start_date').val();
+			var end = $('#end_date').val();
+			window.location.href = base_url + 'sales_order/export_excel?start_date=' + start + '&end_date=' + end;
 		});
 	});
 

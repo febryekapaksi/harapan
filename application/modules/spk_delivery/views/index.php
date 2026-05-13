@@ -7,23 +7,33 @@
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 
 <div class="box box-primary">
-	<!-- <div class="box-header"> -->
-	<!-- <a class="btn btn-primary" style='float:left;' href="<?= base_url('spk_delivery/add') ?>">Create SPK</a>
-		<br> -->
-	<!-- <div class="form-group row">
-			<div class="col-md-10"></div>
-			<div class="col-md-2">
-				<select name='sales_order' id='sales_order' class='form-control input-sm chosen-select'>
-					<option value='0'>All Sales Order</option>
-					<?php
-					foreach ($listSO as $key => $value) {
-						echo "<option value='" . $value['no_so'] . "'>" . $value['no_so'] . "</option>";
-					}
-					?>
-				</select>
+	<div class="box-header">
+		<div class="row" style="align-items:center;">
+			<div class="col-sm-2" style="display:flex;align-items:center;">
+				<label class="form-label" style="margin:0;">Pilih Tanggal SPK</label>
 			</div>
-		</div> -->
-	<!-- </div> -->
+			<div class="col-sm-2">
+				<input type="date" id="start_date" class="form-control input-sm">
+			</div>
+			<div class="col-sm-1 text-center" style="display:flex;align-items:center;justify-content:center;">
+				<i class="fa fa-arrow-right"></i>
+			</div>
+			<div class="col-sm-2">
+				<input type="date" id="end_date" class="form-control input-sm">
+			</div>
+			<div class="col-sm-3">
+				<button id="btnFilter" class="btn bg-purple btn-sm">
+					<i class="fa fa-filter"></i> Filter
+				</button>
+				<button id="btnReset" class="btn btn-default btn-sm">
+					Reset
+				</button>
+				<a id="btnExport" href="javascript:void(0)" class="btn btn-success btn-sm">
+					<i class="fa fa-file-excel-o"></i> Export Excel
+				</a>
+			</div>
+		</div>
+	</div>
 	<!-- /.box-header -->
 	<div class="box-body">
 		<div class="table-responsive">
@@ -86,6 +96,28 @@
 	$(document).ready(function() {
 		var sales_order = $("#sales_order").val();
 		DataTables(sales_order);
+
+		$('#btnFilter').on('click', function(e) {
+			e.preventDefault();
+			if ($.fn.dataTable.isDataTable('#example1')) {
+				$('#example1').DataTable().ajax.reload(null, true);
+			}
+		});
+
+		$('#btnReset').on('click', function(e) {
+			e.preventDefault();
+			$('#start_date, #end_date').val('');
+			if ($.fn.dataTable.isDataTable('#example1')) {
+				$('#example1').DataTable().ajax.reload(null, true);
+			}
+		});
+
+		$('#btnExport').on('click', function(e) {
+			e.preventDefault();
+			var start = $('#start_date').val();
+			var end = $('#end_date').val();
+			window.location.href = siteurl + 'spk_delivery/export_excel?start_date=' + start + '&end_date=' + end;
+		});
 
 		$(document).on('click', '.view-spk', function() {
 			const no_delivery = $(this).data('id');
@@ -204,7 +236,9 @@
 				url: siteurl + active_controller + 'data_side_spk_deliv',
 				type: "post",
 				data: function(d) {
-					d.sales_order = sales_order
+					d.sales_order = sales_order;
+					d.start_date = $('#start_date').val();
+					d.end_date = $('#end_date').val();
 				},
 				cache: false,
 				error: function() {

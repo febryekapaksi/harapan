@@ -16,12 +16,17 @@ class Loading_model extends BF_Model
     {
         $requestData = $_REQUEST;
 
+        $start_date = $this->input->post('start_date');
+        $end_date   = $this->input->post('end_date');
+
         $fetch = $this->get_query_json_loading(
             $requestData['search']['value'],
             $requestData['order'][0]['column'],
             $requestData['order'][0]['dir'],
             $requestData['start'],
-            $requestData['length']
+            $requestData['length'],
+            $start_date,
+            $end_date
         );
 
         $totalData     = $fetch['totalData'];
@@ -105,7 +110,7 @@ class Loading_model extends BF_Model
     }
 
 
-    public function get_query_json_loading($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL)
+    public function get_query_json_loading($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $start_date = NULL, $end_date = NULL)
     {
         // Whitelist kolom utk ORDER BY (gunakan alias yg tersedia di SELECT)
         $columns_order_by = [
@@ -137,11 +142,19 @@ class Loading_model extends BF_Model
     ";
 
         // ---------------------------
-        // WHERE (filter pencarian)
-        // Pakai parameter binding, termasuk EXISTS utk cari di no_delivery
+        // WHERE (filter pencarian + tanggal)
         // ---------------------------
         $where_sql = " WHERE 1=1 ";
         $params = [];
+
+        if (!empty($start_date)) {
+            $where_sql .= " AND l.tanggal_muat >= ? ";
+            $params[] = $start_date;
+        }
+        if (!empty($end_date)) {
+            $where_sql .= " AND l.tanggal_muat <= ? ";
+            $params[] = $end_date;
+        }
 
         if (!empty($like_value)) {
             $like = '%' . $this->db->escape_like_str($like_value) . '%';

@@ -441,6 +441,77 @@ class Sales_order extends Admin_Controller
       ]);
     }
   }
+
+  public function export_excel()
+  {
+    $start = $this->input->get('start_date', true);
+    $end   = $this->input->get('end_date', true);
+
+    $this->db->select('so.no_so, so.tgl_so, so.nilai_so, so.status, p.id_penawaran, p.total_penawaran, p.tipe_penawaran, p.sales, c.name_customer');
+    $this->db->from('penawaran p');
+    $this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
+    $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
+    $this->db->where('p.status', 'A');
+    if (!empty($start)) $this->db->where('so.tgl_so >=', $start);
+    if (!empty($end))   $this->db->where('so.tgl_so <=', $end);
+    $this->db->order_by('so.tgl_so', 'DESC');
+
+    $rows = $this->db->get()->result();
+
+    if (empty($rows)) {
+      echo "<script>alert('Data tidak ditemukan'); window.history.back();</script>";
+      return;
+    }
+
+    set_time_limit(0);
+    ini_set('memory_limit', '512M');
+    $this->load->library('PHPExcel');
+
+    $xls   = new PHPExcel();
+    $sheet = $xls->getActiveSheet();
+
+    $periode = ($start && $end) ? $start . ' s/d ' . $end : 'Semua Data';
+    $sheet->setCellValue('A1', 'REPORT SALES ORDER - ' . $periode);
+    $sheet->mergeCells('A1:H2');
+
+    $headers = ['A' => '#', 'B' => 'No. SO', 'C' => 'No. Penawaran', 'D' => 'Tanggal SO', 'E' => 'Customer', 'F' => 'Sales', 'G' => 'Nilai Penawaran', 'H' => 'Nilai SO', 'I' => 'Tipe', 'J' => 'Status'];
+    $rowHeader = 4;
+    foreach ($headers as $col => $label) {
+      $sheet->setCellValue($col . $rowHeader, $label);
+      $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+
+    $r = $rowHeader + 1;
+    $no = 1;
+    foreach ($rows as $row) {
+      $sheet->setCellValue('A' . $r, $no++);
+      $sheet->setCellValueExplicit('B' . $r, (string)$row->no_so, PHPExcel_Cell_DataType::TYPE_STRING);
+      $sheet->setCellValueExplicit('C' . $r, (string)$row->id_penawaran, PHPExcel_Cell_DataType::TYPE_STRING);
+      if (!empty($row->tgl_so)) {
+        $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->tgl_so));
+        $sheet->setCellValueExplicit('D' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('D' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+      }
+      $sheet->setCellValueExplicit('E' . $r, (string)$row->name_customer, PHPExcel_Cell_DataType::TYPE_STRING);
+      $sheet->setCellValueExplicit('F' . $r, (string)$row->sales, PHPExcel_Cell_DataType::TYPE_STRING);
+      $sheet->setCellValueExplicit('G' . $r, (float)$row->total_penawaran, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+      $sheet->getStyle('G' . $r)->getNumberFormat()->setFormatCode('#,##0.00');
+      $sheet->setCellValueExplicit('H' . $r, (float)$row->nilai_so, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+      $sheet->getStyle('H' . $r)->getNumberFormat()->setFormatCode('#,##0.00');
+      $sheet->setCellValueExplicit('I' . $r, (string)$row->tipe_penawaran, PHPExcel_Cell_DataType::TYPE_STRING);
+      $sheet->setCellValueExplicit('J' . $r, $row->status === 'A' ? 'Deal' : 'Draft', PHPExcel_Cell_DataType::TYPE_STRING);
+      $r++;
+    }
+
+    $sheet->setTitle('Sales Order');
+    $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+    ob_end_clean();
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment;filename="Sales_Order_' . date('Ymd_His') . '.xls"');
+    header('Cache-Control: max-age=0');
+    $writer->save('php://output');
+    exit;
+  }
 }
 
 

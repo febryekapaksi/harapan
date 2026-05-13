@@ -8,9 +8,36 @@
 
 <div class="box box-primary">
     <div class="box-header">
-        <span class="pull-left">
-            <a href="<?= site_url('penawaran_dropship/add') ?>" class='btn btn-primary'><i class="fa fa-plus"></i>&emsp;Penawaran</a>
-        </span>
+        <div class="row" style="margin-bottom:8px;">
+            <div class="col-sm-12">
+                <a href="<?= site_url('penawaran_dropship/add') ?>" class='btn btn-primary'><i class="fa fa-plus"></i>&emsp;Penawaran</a>
+            </div>
+        </div>
+        <div class="row" style="align-items:center;">
+            <div class="col-sm-2" style="display:flex;align-items:center;">
+                <label class="form-label" style="margin:0;">Pilih Tanggal Penawaran</label>
+            </div>
+            <div class="col-sm-2">
+                <input type="date" id="start_date" class="form-control input-sm">
+            </div>
+            <div class="col-sm-1 text-center" style="display:flex;align-items:center;justify-content:center;">
+                <i class="fa fa-arrow-right"></i>
+            </div>
+            <div class="col-sm-2">
+                <input type="date" id="end_date" class="form-control input-sm">
+            </div>
+            <div class="col-sm-3">
+                <button id="btnFilter" class="btn bg-purple btn-sm">
+                    <i class="fa fa-filter"></i> Filter
+                </button>
+                <button id="btnReset" class="btn btn-default btn-sm">
+                    Reset
+                </button>
+                <a id="btnExport" href="javascript:void(0)" class="btn btn-success btn-sm">
+                    <i class="fa fa-file-excel-o"></i> Export Excel
+                </a>
+            </div>
+        </div>
     </div>
     <!-- /.box-header -->
     <div class="box-body">
@@ -67,6 +94,28 @@
 
         var status = $('#status').val()
         DataTables(status);
+
+        $('#btnFilter').on('click', function(e) {
+            e.preventDefault();
+            if ($.fn.dataTable.isDataTable('#example1')) {
+                $('#example1').DataTable().ajax.reload(null, true);
+            }
+        });
+
+        $('#btnReset').on('click', function(e) {
+            e.preventDefault();
+            $('#start_date, #end_date').val('');
+            if ($.fn.dataTable.isDataTable('#example1')) {
+                $('#example1').DataTable().ajax.reload(null, true);
+            }
+        });
+
+        $('#btnExport').on('click', function(e) {
+            e.preventDefault();
+            var start = $('#start_date').val();
+            var end = $('#end_date').val();
+            window.location.href = base_url + 'penawaran_dropship/export_excel?start_date=' + start + '&end_date=' + end;
+        });
 
         $(document).on('click', '.btn-loss', function(e) {
             e.preventDefault();
@@ -134,7 +183,9 @@
                 url: base_url + active_controller + 'data_side_penawaran',
                 type: "post",
                 data: function(d) {
-                    d.status = status
+                    d.status = status;
+                    d.start_date = $('#start_date').val();
+                    d.end_date = $('#end_date').val();
                 },
                 cache: false,
                 error: function() {

@@ -667,6 +667,82 @@ class Penerimaan_cash extends Admin_Controller
 		$dompdf->render();
 		$dompdf->stream("STRUK_$kd_pembayaran.pdf", ["Attachment" => false]);
 	}
+
+	public function export_excel()
+	{
+		$start = $this->input->get('start_date', true);
+		$end   = $this->input->get('end_date', true);
+
+		$user_id = $this->auth->user_id();
+		$department_id = $this->auth->department_id();
+
+		$sub_join = "(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c";
+
+		$this->db->select('a.kd_pembayaran, a.tgl_pembayaran, a.nm_customer, a.keterangan, a.jumlah_pembayaran_idr, c.invoiced, c.total_invoice');
+		$this->db->from('tr_invoice_payment a');
+		$this->db->where('a.tipe_bayar', 'CASH');
+		$this->db->join($sub_join, 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		if ($user_id != 7 && $department_id != 3) {
+			$this->db->where('a.created_by', $user_id);
+		}
+		if (!empty($start)) $this->db->where('a.tgl_pembayaran >=', $start);
+		if (!empty($end))   $this->db->where('a.tgl_pembayaran <=', $end);
+		$this->db->order_by('a.tgl_pembayaran', 'DESC');
+
+		$rows = $this->db->get()->result();
+
+		if (empty($rows)) {
+			echo "<script>alert('Data tidak ditemukan'); window.history.back();</script>";
+			return;
+		}
+
+		set_time_limit(0);
+		ini_set('memory_limit', '512M');
+		$this->load->library('PHPExcel');
+
+		$xls   = new PHPExcel();
+		$sheet = $xls->getActiveSheet();
+
+		$periode = ($start && $end) ? $start . ' s/d ' . $end : 'Semua Data';
+		$sheet->setCellValue('A1', 'REPORT PENERIMAAN CASH - ' . $periode);
+		$sheet->mergeCells('A1:H2');
+
+		$headers = ['A' => '#', 'B' => 'Tgl Penerimaan', 'C' => 'Kode Penerimaan', 'D' => 'Nama Customer', 'E' => 'Keterangan', 'F' => 'No Invoice', 'G' => 'Total Invoice', 'H' => 'Total Penerimaan (IDR)'];
+		$rowHeader = 4;
+		foreach ($headers as $col => $label) {
+			$sheet->setCellValue($col . $rowHeader, $label);
+			$sheet->getColumnDimension($col)->setAutoSize(true);
+		}
+
+		$r = $rowHeader + 1;
+		$no = 1;
+		foreach ($rows as $row) {
+			$sheet->setCellValue('A' . $r, $no++);
+			if (!empty($row->tgl_pembayaran)) {
+				$tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->tgl_pembayaran));
+				$sheet->setCellValueExplicit('B' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+				$sheet->getStyle('B' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+			}
+			$sheet->setCellValueExplicit('C' . $r, (string)$row->kd_pembayaran, PHPExcel_Cell_DataType::TYPE_STRING);
+			$sheet->setCellValueExplicit('D' . $r, (string)$row->nm_customer, PHPExcel_Cell_DataType::TYPE_STRING);
+			$sheet->setCellValueExplicit('E' . $r, (string)$row->keterangan, PHPExcel_Cell_DataType::TYPE_STRING);
+			$sheet->setCellValueExplicit('F' . $r, (string)$row->invoiced, PHPExcel_Cell_DataType::TYPE_STRING);
+			$sheet->setCellValueExplicit('G' . $r, (float)$row->total_invoice, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+			$sheet->getStyle('G' . $r)->getNumberFormat()->setFormatCode('#,##0.00');
+			$sheet->setCellValueExplicit('H' . $r, (float)$row->jumlah_pembayaran_idr, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+			$sheet->getStyle('H' . $r)->getNumberFormat()->setFormatCode('#,##0.00');
+			$r++;
+		}
+
+		$sheet->setTitle('Penerimaan Cash');
+		$writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+		ob_end_clean();
+		header('Content-Type: application/vnd.ms-excel');
+		header('Content-Disposition: attachment;filename="Penerimaan_Cash_' . date('Ymd_His') . '.xls"');
+		header('Cache-Control: max-age=0');
+		$writer->save('php://output');
+		exit;
+	}
 }
 
 

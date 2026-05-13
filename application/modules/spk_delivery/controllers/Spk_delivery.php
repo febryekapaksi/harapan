@@ -469,4 +469,71 @@ class Spk_delivery extends Admin_Controller
   //   $this->template->title('SPK Re-Print');
   //   $this->template->render('reprint_spk');
   // }
+
+  public function export_excel()
+  {
+    $start = $this->input->get('start_date', true);
+    $end   = $this->input->get('end_date', true);
+
+    $this->db->select('a.no_delivery, a.no_so, a.tanggal_spk, a.pengiriman, a.status, c.name_customer');
+    $this->db->from('spk_delivery a');
+    $this->db->join('sales_order d', 'a.no_so = d.no_so', 'left');
+    $this->db->join('penawaran b', 'd.id_penawaran = b.id_penawaran', 'left');
+    $this->db->join('master_customers c', 'b.id_customer = c.id_customer', 'left');
+    $this->db->where('a.deleted_date IS NULL');
+    if (!empty($start)) $this->db->where('a.tanggal_spk >=', $start);
+    if (!empty($end))   $this->db->where('a.tanggal_spk <=', $end);
+    $this->db->order_by('a.tanggal_spk', 'DESC');
+
+    $rows = $this->db->get()->result();
+
+    if (empty($rows)) {
+      echo "<script>alert('Data tidak ditemukan'); window.history.back();</script>";
+      return;
+    }
+
+    set_time_limit(0);
+    ini_set('memory_limit', '512M');
+    $this->load->library('PHPExcel');
+
+    $xls   = new PHPExcel();
+    $sheet = $xls->getActiveSheet();
+
+    $periode = ($start && $end) ? $start . ' s/d ' . $end : 'Semua Data';
+    $sheet->setCellValue('A1', 'REPORT SPK DELIVERY - ' . $periode);
+    $sheet->mergeCells('A1:F2');
+
+    $headers = ['A' => '#', 'B' => 'No. SPK Delivery', 'C' => 'No. Sales Order', 'D' => 'Customer', 'E' => 'Pengiriman', 'F' => 'Tanggal SPK', 'G' => 'Status'];
+    $rowHeader = 4;
+    foreach ($headers as $col => $label) {
+      $sheet->setCellValue($col . $rowHeader, $label);
+      $sheet->getColumnDimension($col)->setAutoSize(true);
+    }
+
+    $r = $rowHeader + 1;
+    $no = 1;
+    foreach ($rows as $row) {
+      $sheet->setCellValue('A' . $r, $no++);
+      $sheet->setCellValueExplicit('B' . $r, (string)$row->no_delivery, PHPExcel_Cell_DataType::TYPE_STRING);
+      $sheet->setCellValueExplicit('C' . $r, (string)$row->no_so, PHPExcel_Cell_DataType::TYPE_STRING);
+      $sheet->setCellValueExplicit('D' . $r, (string)$row->name_customer, PHPExcel_Cell_DataType::TYPE_STRING);
+      $sheet->setCellValueExplicit('E' . $r, (string)$row->pengiriman, PHPExcel_Cell_DataType::TYPE_STRING);
+      if (!empty($row->tanggal_spk)) {
+        $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->tanggal_spk));
+        $sheet->setCellValueExplicit('F' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+      }
+      $sheet->setCellValueExplicit('G' . $r, (string)$row->status, PHPExcel_Cell_DataType::TYPE_STRING);
+      $r++;
+    }
+
+    $sheet->setTitle('SPK Delivery');
+    $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+    ob_end_clean();
+    header('Content-Type: application/vnd.ms-excel');
+    header('Content-Disposition: attachment;filename="SPK_Delivery_' . date('Ymd_His') . '.xls"');
+    header('Cache-Control: max-age=0');
+    $writer->save('php://output');
+    exit;
+  }
 }

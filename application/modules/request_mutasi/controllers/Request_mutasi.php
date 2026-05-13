@@ -68,8 +68,30 @@ class Request_mutasi extends Admin_Controller
         $ke     = $post['ke'];
 
         $kode_mutasi   = $this->Request_mutasi_model->generate_nopn($tgl);
-        $bank_asal     = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE no_perkiraan='$dari'")->row();
-        $bank_tujuan   = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE no_perkiraan='$ke'")->row();
+
+        $q_bank_asal    = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE no_perkiraan=?", [$dari]);
+        $q_bank_tujuan  = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE no_perkiraan=?", [$ke]);
+
+        if (!$q_bank_asal || !$q_bank_tujuan) {
+            $db_err = $this->db->error();
+            echo json_encode([
+                'status' => 2,
+                'pesan'  => 'Gagal mengambil data COA: ' . ($db_err['message'] ?? 'Database ' . DBACC . ' tidak dapat diakses.')
+            ]);
+            return;
+        }
+
+        $bank_asal    = $q_bank_asal->row();
+        $bank_tujuan  = $q_bank_tujuan->row();
+
+        if (!$bank_asal) {
+            echo json_encode(['status' => 2, 'pesan' => "COA bank asal '$dari' tidak ditemukan."]);
+            return;
+        }
+        if (!$bank_tujuan) {
+            echo json_encode(['status' => 2, 'pesan' => "COA bank tujuan '$ke' tidak ditemukan."]);
+            return;
+        }
 
         $this->db->trans_begin();
         $data = array(
@@ -262,8 +284,29 @@ class Request_mutasi extends Admin_Controller
             $kode_mutasi    = $this->Request_mutasi_model->generate_nokm($tgl);
         }
 
-        $bank_asal     = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE no_perkiraan='$dari'")->row();
-        $bank_tujuan   = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE no_perkiraan='$ke'")->row();
+        $q_bank_asal2   = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE no_perkiraan=?", [$dari]);
+        $q_bank_tujuan2 = $this->db->query("SELECT * FROM " . DBACC . ".coa_master WHERE no_perkiraan=?", [$ke]);
+
+        if (!$q_bank_asal2 || !$q_bank_tujuan2) {
+            $db_err = $this->db->error();
+            echo json_encode([
+                'status' => 2,
+                'pesan'  => 'Gagal mengambil data COA: ' . ($db_err['message'] ?? 'Database ' . DBACC . ' tidak dapat diakses.')
+            ]);
+            return;
+        }
+
+        $bank_asal   = $q_bank_asal2->row();
+        $bank_tujuan = $q_bank_tujuan2->row();
+
+        if (!$bank_asal) {
+            echo json_encode(['status' => 2, 'pesan' => "COA bank asal '$dari' tidak ditemukan."]);
+            return;
+        }
+        if (!$bank_tujuan) {
+            echo json_encode(['status' => 2, 'pesan' => "COA bank tujuan '$ke' tidak ditemukan."]);
+            return;
+        }
 
         $this->db->trans_begin();
         $data = array(

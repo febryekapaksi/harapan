@@ -235,12 +235,17 @@ class Penerimaan_cash_model extends BF_Model
 	{
 		$requestData = $_REQUEST;
 
+		$start_date = $this->input->post('start_date');
+		$end_date   = $this->input->post('end_date');
+
 		$fetch = $this->get_query_json_payment_cash(
 			$requestData['search']['value'],
 			$requestData['order'][0]['column'],
 			$requestData['order'][0]['dir'],
 			$requestData['start'],
-			$requestData['length']
+			$requestData['length'],
+			$start_date,
+			$end_date
 		);
 
 		$totalData     = $fetch['totalData'];
@@ -305,7 +310,7 @@ class Penerimaan_cash_model extends BF_Model
 		]);
 	}
 
-	public function get_query_json_payment_cash($like = null, $column_order = null, $column_dir = null, $limit_start = 0, $limit_length = 10)
+	public function get_query_json_payment_cash($like = null, $column_order = null, $column_dir = null, $limit_start = 0, $limit_length = 10, $start_date = null, $end_date = null)
 	{
 		$columns_order_by = [
 			0 => 'a.tgl_pembayaran',
@@ -322,11 +327,13 @@ class Penerimaan_cash_model extends BF_Model
 			}
 		};
 
+		$sub_join = "(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c";
+
 		// === 1. Total Data
 		$this->db->select('a.kd_pembayaran');
 		$this->db->from('tr_invoice_payment a');
 		$this->db->where('a.tipe_bayar', 'CASH');
-		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		$this->db->join($sub_join, 'a.kd_pembayaran = c.kd_pembayaran', 'left');
 		$applyFilterByUser();
 		$totalData = $this->db->count_all_results();
 
@@ -334,7 +341,9 @@ class Penerimaan_cash_model extends BF_Model
 		$this->db->select('a.kd_pembayaran');
 		$this->db->from('tr_invoice_payment a');
 		$this->db->where('a.tipe_bayar', 'CASH');
-		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		$this->db->join($sub_join, 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		if (!empty($start_date)) $this->db->where('a.tgl_pembayaran >=', $start_date);
+		if (!empty($end_date))   $this->db->where('a.tgl_pembayaran <=', $end_date);
 		if ($like) {
 			$this->db->group_start();
 			$this->db->like('a.kd_pembayaran', $like);
@@ -346,16 +355,13 @@ class Penerimaan_cash_model extends BF_Model
 		$totalFiltered = $this->db->count_all_results();
 
 		// === 3. Ambil Data Paginasi
-		$this->db->select('
-        a.*, 
-        c.invoiced, 
-        c.totalinvoiced,
-        c.total_invoice
-    	');
+		$this->db->select('a.*, c.invoiced, c.totalinvoiced, c.total_invoice');
 		$this->db->from('tr_invoice_payment a');
 		$this->db->where('a.tipe_bayar', 'CASH');
-		$this->db->join("(SELECT kd_pembayaran, GROUP_CONCAT(no_invoice SEPARATOR ',') AS invoiced, SUM(total_bayar_idr) AS totalinvoiced, SUM(total_invoice_idr) AS total_invoice FROM tr_invoice_payment_detail GROUP BY kd_pembayaran) c", 'a.kd_pembayaran = c.kd_pembayaran', 'left');
+		$this->db->join($sub_join, 'a.kd_pembayaran = c.kd_pembayaran', 'left');
 		$applyFilterByUser();
+		if (!empty($start_date)) $this->db->where('a.tgl_pembayaran >=', $start_date);
+		if (!empty($end_date))   $this->db->where('a.tgl_pembayaran <=', $end_date);
 		if ($like) {
 			$this->db->group_start();
 			$this->db->like('a.kd_pembayaran', $like);

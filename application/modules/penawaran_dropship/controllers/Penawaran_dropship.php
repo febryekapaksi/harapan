@@ -940,4 +940,80 @@ class Penawaran_dropship extends Admin_Controller
             'harga' => $result
         ];
     }
+
+    public function export_excel()
+    {
+        $start = $this->input->get('start_date', true);
+        $end   = $this->input->get('end_date', true);
+
+        $id_karyawan_login = (int) $this->auth->user_id();
+        $is_admin = in_array($id_karyawan_login, [7, 94, 95], true);
+
+        $this->db->select('p.id_penawaran, p.quotation_date, p.total_penawaran, p.status, p.revisi, c.name_customer, p.sales');
+        $this->db->from('penawaran p');
+        $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
+        $this->db->join('users u', 'c.id_karyawan = u.employee_id', 'left');
+        $this->db->where('p.status !=', 'L');
+        $this->db->where('p.tipe_penawaran', 'Dropship');
+
+        if (!$is_admin) {
+            $this->db->where('u.id_user', $id_karyawan_login);
+        }
+        if (!empty($start)) $this->db->where('p.quotation_date >=', $start);
+        if (!empty($end))   $this->db->where('p.quotation_date <=', $end);
+        $this->db->order_by('p.quotation_date', 'DESC');
+
+        $rows = $this->db->get()->result();
+
+        if (empty($rows)) {
+            echo "<script>alert('Data tidak ditemukan'); window.history.back();</script>";
+            return;
+        }
+
+        set_time_limit(0);
+        ini_set('memory_limit', '512M');
+        $this->load->library('PHPExcel');
+
+        $xls   = new PHPExcel();
+        $sheet = $xls->getActiveSheet();
+
+        $periode = ($start && $end) ? $start . ' s/d ' . $end : 'Semua Data';
+        $sheet->setCellValue('A1', 'REPORT PENAWARAN DROPSHIP - ' . $periode);
+        $sheet->mergeCells('A1:G2');
+
+        $headers = ['A' => '#', 'B' => 'No. Penawaran', 'C' => 'Tanggal Penawaran', 'D' => 'Customer', 'E' => 'Sales', 'F' => 'Nilai Penawaran', 'G' => 'Status'];
+        $rowHeader = 4;
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue($col . $rowHeader, $label);
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $statusMap = ['WA' => 'Waiting Approval', 'A' => 'Approved', 'R' => 'Rejected', 'L' => 'Loss'];
+        $r = $rowHeader + 1;
+        $no = 1;
+        foreach ($rows as $row) {
+            $sheet->setCellValue('A' . $r, $no++);
+            $sheet->setCellValueExplicit('B' . $r, (string)$row->id_penawaran, PHPExcel_Cell_DataType::TYPE_STRING);
+            if (!empty($row->quotation_date)) {
+                $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->quotation_date));
+                $sheet->setCellValueExplicit('C' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->getStyle('C' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+            }
+            $sheet->setCellValueExplicit('D' . $r, (string)$row->name_customer, PHPExcel_Cell_DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('E' . $r, (string)$row->sales, PHPExcel_Cell_DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit('F' . $r, (float)$row->total_penawaran, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->setCellValueExplicit('G' . $r, isset($statusMap[$row->status]) ? $statusMap[$row->status] : $row->status, PHPExcel_Cell_DataType::TYPE_STRING);
+            $r++;
+        }
+
+        $sheet->setTitle('Penawaran Dropship');
+        $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+        ob_end_clean();
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="Penawaran_Dropship_' . date('Ymd_His') . '.xls"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit;
+    }
 }
