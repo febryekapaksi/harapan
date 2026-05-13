@@ -211,12 +211,25 @@ if ($is_edit) {
     });
 
     // Format angka
-    $('#inp_total_debit').on('blur', function() {
-        var val = parseFloat($(this).val().replace(/,/g, '')) || 0;
-        $(this).val(val > 0 ? val.toLocaleString('en-US') : '');
-        hitungPreview();
-    });
+    $('#inp_total_debit').on('input', function() {
+        // Ambil value, hapus semua karakter non-digit
+        var rawVal = $(this).val().replace(/\D/g, '');
 
+        // Ubah ke angka
+        var val = parseFloat(rawVal) || 0;
+
+        // Format kembali dengan separator ribuan (en-US menggunakan koma)
+        if (val > 0) {
+            $(this).val(val.toLocaleString('en-US'));
+        } else {
+            $(this).val('');
+        }
+
+        // Panggil fungsi hitung preview jika ada
+        if (typeof hitungPreview === "function") {
+            hitungPreview();
+        }
+    });
     // Trigger preview saat tanggal berubah manual
     $('#inp_tgl_mulai, #inp_tgl_selesai').on('change', function() {
         hitungPreview();

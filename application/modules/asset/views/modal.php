@@ -78,7 +78,7 @@
 				echo form_input(array('id' => 'qty', 'name' => 'qty', 'class' => 'form-control input-md', 'autocomplete' => 'off', 'placeholder' => 'Qty Assets', 'data-decimal' => '.', 'data-thousand' => '', 'data-precision' => '0', 'data-allow-zero' => false));
 				?>
 			</div>
-			<label class='label-control col-sm-2'><b>Dipresiasi Perbulan</b></label>
+			<label class='label-control col-sm-2'><b>Depresiasi Perbulan</b></label>
 			<div class='col-sm-4'>
 				<?php
 				echo form_input(array('id' => 'value', 'name' => 'value', 'class' => 'form-control input-md', 'autocomplete' => 'off', 'placeholder' => 'Dipresiasi Perbulan', 'readonly' => 'readonly', 'data-decimal' => '.', 'data-thousand' => '', 'data-precision' => '0', 'data-allow-zero' => false));
@@ -112,256 +112,257 @@
 </style>
 
 <script>
-	$(function() {
+	$(document).ready(function() {
 		$('.chosen-select').select2();
 		$('#nilai_asset').maskMoney();
+		// $('#value').autoNumeric('init');
 		$('#qty').maskMoney();
 
 		$('#tanggal').datepicker({
 			format: 'yyyy-mm-dd'
 			// minDate: 0
 		});
-	});
 
-	$(document).on('keyup', '#nilai_asset', function() {
-		var nilai_asset = $('#nilai_asset').val();
-		var qty_asset = $('#qty').val();
-		var depresiasi = parseFloat($('#depresiasi').val());
-		var nilai = parseFloat(nilai_asset.split(',').join(''));
+		$(document).on('keyup', '#nilai_asset', function() {
+			var nilai_asset = $('#nilai_asset').val();
+			var qty_asset = $('#qty').val();
+			var depresiasi = parseFloat($('#depresiasi').val());
+			var nilai = parseFloat(nilai_asset.split(',').join(''));
 
-		var per_bulan = (nilai / (depresiasi * 12));
-		if (isNaN(per_bulan)) {
-			var per_bulan = 0;
-		}
-		$('#value').val(per_bulan.toFixed(0));
-	});
-
-	$(document).on('change', '#depresiasi', function() {
-		var nilai_asset = $('#nilai_asset').val();
-		var qty_asset = $('#qty').val();
-		var depresiasi = parseFloat($('#depresiasi').val());
-		var nilai = parseFloat(nilai_asset.split(',').join(''));
-
-		var per_bulan = (nilai / (depresiasi * 12));
-		if (isNaN(per_bulan)) {
-			var per_bulan = 0;
-		}
-		$('#value').val(per_bulan.toFixed(0));
-	});
-
-	$(document).on('change', '#lokasi_asset', function() {
-		var nilai_asset = $(this).val();
-		// var cost_center = $("#cost_center"); 
-
-		$.ajax({
-			url: base_url + 'index.php/' + active_controller + '/list_center/' + nilai_asset,
-			cache: false,
-			type: "POST",
-			dataType: "json",
-			success: function(data) {
-				// $(cost_center).html(data.option).trigger("chosen:updated");
-				swal.close();
-			},
-			error: function() {
-				swal({
-					title: "Error Message !",
-					text: 'Connection Time Out. Please try again..',
-					type: "warning",
-					timer: 3000,
-					showCancelButton: false,
-					showConfirmButton: false,
-					allowOutsideClick: false
-				});
+			var per_bulan = (nilai / (depresiasi * 12));
+			if (isNaN(per_bulan)) {
+				var per_bulan = 0;
 			}
+			$('#value').val(number_format(per_bulan));
 		});
-	});
 
+		$(document).on('change', '#depresiasi', function() {
+			var nilai_asset = $('#nilai_asset').val();
+			var qty_asset = $('#qty').val();
+			var depresiasi = parseFloat($('#depresiasi').val());
+			var nilai = parseFloat(nilai_asset.split(',').join(''));
 
-	$('#simpan-bro').click(function(e) {
-		e.preventDefault();
-		$(this).prop('disabled', true);
-		var nm_asset = $('#nm_asset').val();
-		var category = $('#category').val();
-		var lokasi_asset = $('#lokasi_asset').val();
-		// var cost_center = $('#cost_center').val();
-		var depresiasi = $('#depresiasi').val();
-		var nilai_asset = $('#nilai_asset').val();
-		var qty = $('#qty').val();
-		var tanggal = $('#tanggal').val();
+			var per_bulan = (nilai / (depresiasi * 12));
+			if (isNaN(per_bulan)) {
+				var per_bulan = 0;
+			}
+			$('#value').val(number_format(per_bulan));
+		});
 
-		if (nm_asset == '' || nm_asset == null) {
-			// $("#error").html("Nama asset masih kosong !!!");
-			// $('#myModal').modal("show");
-			swal({
-				title: "Error Message!",
-				text: 'Nama asset masih kosong ...',
-				type: "warning"
-			});
+		$(document).on('change', '#lokasi_asset', function() {
+			var nilai_asset = $(this).val();
+			// var cost_center = $("#cost_center"); 
 
-			$('#simpan-bro').prop('disabled', false);
-			return false;
-		}
-		if (category == '' || category == null || category == 0) {
-			swal({
-				title: "Error Message!",
-				text: 'Kategori asset belum dipilih ...',
-				type: "warning"
-			});
-
-			$('#simpan-bro').prop('disabled', false);
-			return false;
-		}
-
-		if (lokasi_asset == '' || lokasi_asset == null || lokasi_asset == 0) {
-			swal({
-				title: "Error Message!",
-				text: 'Department belum dipilih ...',
-				type: "warning"
-			});
-
-			$('#simpan-bro').prop('disabled', false);
-			return false;
-		}
-
-		// if (cost_center == '' || cost_center == null || cost_center == 0) {
-		// 	swal({
-		// 		title: "Error Message!",
-		// 		text: 'Cost Center belum dipilih ...',
-		// 		type: "warning"
-		// 	});
-
-		// 	$('#simpan-bro').prop('disabled', false);
-		// 	return false;
-		// }
-
-		if (depresiasi == '' || depresiasi == null || depresiasi == 0) {
-			swal({
-				title: "Error Message!",
-				text: 'Jangka waktu asset belum dipilih ...',
-				type: "warning"
-			});
-
-			$('#simpan-bro').prop('disabled', false);
-			return false;
-		}
-		if (nilai_asset == '' || nilai_asset == null || nilai_asset == 0) {
-			swal({
-				title: "Error Message!",
-				text: 'Nilai asset belum dipilih ...',
-				type: "warning"
-			});
-
-			$('#simpan-bro').prop('disabled', false);
-			return false;
-		}
-		if (qty == '' || qty == null || qty == 0) {
-			swal({
-				title: "Error Message!",
-				text: 'Qty asset belum dipilih ...',
-				type: "warning"
-			});
-
-			$('#simpan-bro').prop('disabled', false);
-			return false;
-		}
-		if (tanggal == '' || tanggal == null || tanggal == 0) {
-			swal({
-				title: "Error Message!",
-				text: 'Tanggal asset belum dipilih ...',
-				type: "warning"
-			});
-
-			$('#simpan-bro').prop('disabled', false);
-			return false;
-		}
-		// swal({
-		// title	: "Error Message!",
-		// text	: 'STOP',
-		// type	: "warning"
-		// });
-
-		// return false;
-
-		swal({
-				title: "Are you sure?",
-				text: "You will not be able to process again this data!",
-				type: "warning",
-				showCancelButton: true,
-				confirmButtonClass: "btn-danger",
-				confirmButtonText: "Yes, Process it!",
-				cancelButtonText: "No, cancel process!",
-				closeOnConfirm: false,
-				closeOnCancel: false
-			},
-			function(isConfirm) {
-				if (isConfirm) {
-					// loading_spinner();
-					var formData = new FormData($('#form_proses_bro')[0]);
-					var baseurl = siteurl + 'asset/saved';
-					$.ajax({
-						url: baseurl,
-						type: "POST",
-						data: formData,
-						cache: false,
-						dataType: 'json',
-						processData: false,
-						contentType: false,
-						success: function(data) {
-							if (data.status == 1) {
-								swal({
-									title: "Save Success!",
-									text: data.pesan,
-									type: "success",
-									timer: 7000
-								});
-								window.location.href = siteurl + 'asset';
-							} else {
-								if (data.status == 2) {
-									swal({
-										title: "Save Failed!",
-										text: data.pesan,
-										type: "warning",
-										timer: 7000
-									});
-								} else if (data.status == 3) {
-									swal({
-										title: "Save Failed!",
-										text: data.pesan,
-										type: "warning",
-										timer: 7000
-									});
-								} else {
-									swal({
-										title: "Save Failed!",
-										text: data.pesan,
-										type: "warning",
-										timer: 7000,
-										showCancelButton: false,
-										showConfirmButton: false,
-										allowOutsideClick: false
-									});
-								}
-								$('#simpan-bro').prop('disabled', false);
-							}
-						},
-						error: function() {
-							swal({
-								title: "Error Message !",
-								text: 'An Error Occured During Process. Please try again..',
-								type: "warning",
-								timer: 7000,
-								showCancelButton: false,
-								showConfirmButton: false,
-								allowOutsideClick: false
-							});
-							$('#simpan-bro').prop('disabled', false);
-						}
+			$.ajax({
+				url: base_url + 'index.php/' + active_controller + '/list_center/' + nilai_asset,
+				cache: false,
+				type: "POST",
+				dataType: "json",
+				success: function(data) {
+					// $(cost_center).html(data.option).trigger("chosen:updated");
+					swal.close();
+				},
+				error: function() {
+					swal({
+						title: "Error Message !",
+						text: 'Connection Time Out. Please try again..',
+						type: "warning",
+						timer: 3000,
+						showCancelButton: false,
+						showConfirmButton: false,
+						allowOutsideClick: false
 					});
-				} else {
-					swal("Cancelled", "Data can be process again :)", "error");
-					$('#simpan-bro').prop('disabled', false);
-					return false;
 				}
 			});
+		});
+
+
+		$('#simpan-bro').click(function(e) {
+			e.preventDefault();
+			$(this).prop('disabled', true);
+			var nm_asset = $('#nm_asset').val();
+			var category = $('#category').val();
+			var lokasi_asset = $('#lokasi_asset').val();
+			// var cost_center = $('#cost_center').val();
+			var depresiasi = $('#depresiasi').val();
+			var nilai_asset = $('#nilai_asset').val();
+			var qty = $('#qty').val();
+			var tanggal = $('#tanggal').val();
+
+			if (nm_asset == '' || nm_asset == null) {
+				// $("#error").html("Nama asset masih kosong !!!");
+				// $('#myModal').modal("show");
+				swal({
+					title: "Error Message!",
+					text: 'Nama asset masih kosong ...',
+					type: "warning"
+				});
+
+				$('#simpan-bro').prop('disabled', false);
+				return false;
+			}
+			if (category == '' || category == null || category == 0) {
+				swal({
+					title: "Error Message!",
+					text: 'Kategori asset belum dipilih ...',
+					type: "warning"
+				});
+
+				$('#simpan-bro').prop('disabled', false);
+				return false;
+			}
+
+			if (lokasi_asset == '' || lokasi_asset == null || lokasi_asset == 0) {
+				swal({
+					title: "Error Message!",
+					text: 'Department belum dipilih ...',
+					type: "warning"
+				});
+
+				$('#simpan-bro').prop('disabled', false);
+				return false;
+			}
+
+			// if (cost_center == '' || cost_center == null || cost_center == 0) {
+			// 	swal({
+			// 		title: "Error Message!",
+			// 		text: 'Cost Center belum dipilih ...',
+			// 		type: "warning"
+			// 	});
+
+			// 	$('#simpan-bro').prop('disabled', false);
+			// 	return false;
+			// }
+
+			if (depresiasi == '' || depresiasi == null || depresiasi == 0) {
+				swal({
+					title: "Error Message!",
+					text: 'Jangka waktu asset belum dipilih ...',
+					type: "warning"
+				});
+
+				$('#simpan-bro').prop('disabled', false);
+				return false;
+			}
+			if (nilai_asset == '' || nilai_asset == null || nilai_asset == 0) {
+				swal({
+					title: "Error Message!",
+					text: 'Nilai asset belum dipilih ...',
+					type: "warning"
+				});
+
+				$('#simpan-bro').prop('disabled', false);
+				return false;
+			}
+			if (qty == '' || qty == null || qty == 0) {
+				swal({
+					title: "Error Message!",
+					text: 'Qty asset belum dipilih ...',
+					type: "warning"
+				});
+
+				$('#simpan-bro').prop('disabled', false);
+				return false;
+			}
+			if (tanggal == '' || tanggal == null || tanggal == 0) {
+				swal({
+					title: "Error Message!",
+					text: 'Tanggal asset belum dipilih ...',
+					type: "warning"
+				});
+
+				$('#simpan-bro').prop('disabled', false);
+				return false;
+			}
+			// swal({
+			// title	: "Error Message!",
+			// text	: 'STOP',
+			// type	: "warning"
+			// });
+
+			// return false;
+
+			swal({
+					title: "Are you sure?",
+					text: "You will not be able to process again this data!",
+					type: "warning",
+					showCancelButton: true,
+					confirmButtonClass: "btn-danger",
+					confirmButtonText: "Yes, Process it!",
+					cancelButtonText: "No, cancel process!",
+					closeOnConfirm: false,
+					closeOnCancel: false
+				},
+				function(isConfirm) {
+					if (isConfirm) {
+						// loading_spinner();
+						var formData = new FormData($('#form_proses_bro')[0]);
+						var baseurl = siteurl + 'asset/saved';
+						$.ajax({
+							url: baseurl,
+							type: "POST",
+							data: formData,
+							cache: false,
+							dataType: 'json',
+							processData: false,
+							contentType: false,
+							success: function(data) {
+								if (data.status == 1) {
+									swal({
+										title: "Save Success!",
+										text: data.pesan,
+										type: "success",
+										timer: 7000
+									});
+									window.location.href = siteurl + 'asset';
+								} else {
+									if (data.status == 2) {
+										swal({
+											title: "Save Failed!",
+											text: data.pesan,
+											type: "warning",
+											timer: 7000
+										});
+									} else if (data.status == 3) {
+										swal({
+											title: "Save Failed!",
+											text: data.pesan,
+											type: "warning",
+											timer: 7000
+										});
+									} else {
+										swal({
+											title: "Save Failed!",
+											text: data.pesan,
+											type: "warning",
+											timer: 7000,
+											showCancelButton: false,
+											showConfirmButton: false,
+											allowOutsideClick: false
+										});
+									}
+									$('#simpan-bro').prop('disabled', false);
+								}
+							},
+							error: function() {
+								swal({
+									title: "Error Message !",
+									text: 'An Error Occured During Process. Please try again..',
+									type: "warning",
+									timer: 7000,
+									showCancelButton: false,
+									showConfirmButton: false,
+									allowOutsideClick: false
+								});
+								$('#simpan-bro').prop('disabled', false);
+							}
+						});
+					} else {
+						swal("Cancelled", "Data can be process again :)", "error");
+						$('#simpan-bro').prop('disabled', false);
+						return false;
+					}
+				});
+		});
 	});
 </script>
