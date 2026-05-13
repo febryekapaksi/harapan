@@ -37,7 +37,7 @@
                             <td align="right"><?= number_format($record->nilai_request) ?></td>
                             <td style="padding-left:20px">
                                 <a href="<?= base_url('request_mutasi/approval/' . $record->kd_mutasi) ?>" class='btn btn-sm btn-success' title='Approval'><i class='fa fa-check'></i></a>
-                                <a href="<?= base_url('approval_mutasi/printout/' . $record->kd_mutasi) ?>" class='btn btn-sm btn-primary' title='Print' target="_blank"><i class='fa fa-print'></i></a>
+                                <a href="<?= base_url('request_mutasi/printout/' . $record->kd_mutasi) ?>" class='btn btn-sm btn-primary' title='Print' target="_blank"><i class='fa fa-print'></i></a>
                             </td>
 
                         </tr>

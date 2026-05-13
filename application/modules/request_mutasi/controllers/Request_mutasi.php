@@ -167,6 +167,160 @@ class Request_mutasi extends Admin_Controller
         $this->template->render('add', $data);
     }
 
+    /**
+     * Simpan realisasi/aktual mutasi dari form add.php
+     * Dipanggil via AJAX POST dari view add.php
+     * URL: request_mutasi/save_mutasi
+     */
+    public function save_mutasi()
+    {
+        $post = $this->input->post();
+
+        $no_request  = $post['no_request'];
+        $dari        = $post['dari'];
+        $ke          = $post['ke'];
+        $keterangan  = $post['keterangan'];
+        $kurs        = str_replace(',', '', $post['kurs'] ?? '1');
+        $tgl         = $post['tgl'];                                    // tanggal aktual
+        $nilai_req   = str_replace(',', '', $post['nilai']);            // nilai request (readonly)
+        $rupiah      = str_replace(',', '', $post['rupiah']);           // nilai aktual yang diisi user
+
+        // Ambil data request asal
+        $request = $this->db->get_where('tr_request_mutasi', ['kd_mutasi' => $no_request])->row();
+        if (!$request) {
+            echo json_encode(['status' => 2, 'pesan' => 'Data request mutasi tidak ditemukan.']);
+            return;
+        }
+
+        // Generate kode mutasi aktual
+        $kode_aktual = $this->_generate_kode_aktual($tgl);
+
+        $this->db->trans_begin();
+
+        // 1. Insert ke tabel aktual
+        $data_aktual = [
+            'kd_mutasi_aktual'  => $kode_aktual,
+            'kd_mutasi_request' => $no_request,
+            'tgl_request'       => $request->tgl_request,
+            'tgl_mutasi'        => date('Y-m-d', strtotime($tgl)),
+            'bank_asal'         => $dari,
+            'bank_tujuan'       => $ke,
+            'nama_bank_asal'    => $request->nama_bank_asal,
+            'nama_bank_tujuan'  => $request->nama_bank_tujuan,
+            'mata_uang'         => $request->mata_uang,
+            'kurs'              => $kurs,
+            'nilai_request'     => $nilai_req,
+            'nilai_aktual'      => $rupiah,
+            'keterangan'        => $keterangan,
+            'created_by'        => $this->auth->user_name(),
+            'created_on'        => date('Y-m-d H:i:s'),
+        ];
+        $this->db->insert('tr_request_mutasi_aktual', $data_aktual);
+
+        // 2. Update status request menjadi selesai (status = 1)
+        $this->db->update('tr_request_mutasi', ['status' => '1'], ['kd_mutasi' => $no_request]);
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            echo json_encode(['status' => 2, 'pesan' => 'Gagal menyimpan data mutasi.']);
+            return;
+        }
+
+        // 3. Buat jurnal BUM (Bank Uang Masuk) untuk mutasi antar bank
+        $jurnal_ok = $this->_save_jurnal_mutasi_aktual($kode_aktual, $dari, $ke, $rupiah, $keterangan, $tgl, $request->mata_uang, $nilai_req);
+
+        if (!$jurnal_ok) {
+            $this->db->trans_rollback();
+            echo json_encode(['status' => 2, 'pesan' => 'Gagal membuat jurnal mutasi.']);
+            return;
+        }
+
+        $this->db->trans_commit();
+        echo json_encode([
+            'status' => 1,
+            'nomor'  => $kode_aktual,
+            'pesan'  => 'Mutasi berhasil disimpan.'
+        ]);
+    }
+
+    /**
+     * Generate kode untuk mutasi aktual: MTR-YYMM + 5 digit urut
+     */
+    private function _generate_kode_aktual($tgl)
+    {
+        $prefix = 'MTR-' . date('ym', strtotime($tgl));
+
+        $row = $this->db->query(
+            "SELECT MAX(kd_mutasi_aktual) AS max_id FROM tr_request_mutasi_aktual WHERE kd_mutasi_aktual LIKE ?",
+            [$prefix . '%']
+        )->row_array();
+
+        $next = $row && $row['max_id'] ? ((int) substr($row['max_id'], -5) + 1) : 1;
+        return $prefix . str_pad($next, 5, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Buat jurnal untuk realisasi mutasi aktual (debit bank tujuan, kredit bank asal)
+     */
+    private function _save_jurnal_mutasi_aktual($kode_aktual, $bank_asal, $bank_tujuan, $nilai_idr, $keterangan, $tgl, $mata_uang, $nilai_valas)
+    {
+        $tgl_jurnal = date('Y-m-d', strtotime($tgl));
+        $Nomor_JV   = $this->Jurnal_model->get_Nomor_Jurnal_BUM('101', $tgl_jurnal);
+
+        // Header jurnal
+        $this->db->insert(DBACC . '.jarh', [
+            'nomor'         => $Nomor_JV,
+            'tgl'           => $tgl_jurnal,
+            'jml'           => $nilai_idr,
+            'kd_pembayaran' => $kode_aktual,
+            'kdcab'         => '101',
+            'jenis_reff'    => 'BUM',
+            'no_reff'       => $kode_aktual,
+            'terima_dari'   => $keterangan,
+            'jenis_ar'      => 'BUM',
+            'note'          => $keterangan,
+            'batal'         => '0',
+        ]);
+
+        // Detail jurnal: debit bank tujuan, kredit bank asal
+        $this->db->insert_batch(DBACC . '.jurnal', [
+            [
+                'nomor'              => $Nomor_JV,
+                'tanggal'            => $tgl_jurnal,
+                'tipe'               => 'BUM',
+                'no_perkiraan'       => $bank_tujuan,
+                'keterangan'         => $keterangan,
+                'no_reff'            => $kode_aktual,
+                'debet'              => $nilai_idr,
+                'kredit'             => 0,
+                'nilai_valas_debet'  => $nilai_valas,
+                'nilai_valas_kredit' => 0,
+                'created_on'         => date('Y-m-d H:i:s'),
+                'created_by'         => $this->auth->user_name(),
+            ],
+            [
+                'nomor'              => $Nomor_JV,
+                'tanggal'            => $tgl_jurnal,
+                'tipe'               => 'BUM',
+                'no_perkiraan'       => $bank_asal,
+                'keterangan'         => $keterangan,
+                'no_reff'            => $kode_aktual,
+                'debet'              => 0,
+                'kredit'             => $nilai_idr,
+                'nilai_valas_debet'  => 0,
+                'nilai_valas_kredit' => $nilai_valas,
+                'created_on'         => date('Y-m-d H:i:s'),
+                'created_by'         => $this->auth->user_name(),
+            ],
+        ]);
+
+        // Update counter BUM dan simpan nomor jurnal ke aktual
+        $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum = nobum + 1 WHERE nocab = '101'");
+        $this->db->update('tr_request_mutasi_aktual', ['jurnal' => $Nomor_JV], ['kd_mutasi_aktual' => $kode_aktual]);
+
+        return ($this->db->affected_rows() >= 0);
+    }
+
     public function approval($id)
     {
         $data = $this->Request_mutasi_model->GetDataApprove($id);
@@ -339,6 +493,8 @@ class Request_mutasi extends Admin_Controller
                 $jurnal_status = $this->save_jurnal_BUK($kode_mutasi);
             } elseif ($jenis == 'terima') {
                 $jurnal_status = $this->save_jurnal_BUM($kode_mutasi);
+            } else {
+                $jurnal_status = true; // jenis lain tidak butuh jurnal
             }
 
             if (!$jurnal_status) {
@@ -486,6 +642,48 @@ class Request_mutasi extends Admin_Controller
         return ($this->db->affected_rows() > 0);
     }
 
+
+    /**
+     * Printout untuk request mutasi (sebelum realisasi)
+     * URL: request_mutasi/printout/{kd_mutasi}
+     */
+    public function printout($kd_mutasi)
+    {
+        $data = $this->db->get_where('tr_request_mutasi', ['kd_mutasi' => $kd_mutasi])->row();
+        if (!$data) show_404();
+
+        $this->load->view('printout', ['data' => $data]);
+    }
+
+    /**
+     * Printout untuk realisasi/aktual mutasi
+     * URL: request_mutasi/printout_mutasi/{kd_mutasi_aktual}
+     */
+    public function printout_mutasi($kd_mutasi_aktual)
+    {
+        $data = $this->db->get_where('tr_request_mutasi_aktual', ['kd_mutasi_aktual' => $kd_mutasi_aktual])->row();
+        if (!$data) show_404();
+
+        // Ambil data request asal untuk info tambahan
+        $request = $this->db->get_where('tr_request_mutasi', ['kd_mutasi' => $data->kd_mutasi_request])->row();
+
+        $this->load->view('print_mutasi', [
+            'data'    => $data,
+            'request' => $request,
+        ]);
+    }
+
+    /**
+     * Printout untuk transaksi bank (keluar/masuk)
+     * URL: request_mutasi/printout_transaksi/{kd_mutasi}
+     */
+    public function printout_transaksi($kd_mutasi)
+    {
+        $data = $this->db->get_where('tr_request_mutasi_admin', ['kd_mutasi' => $kd_mutasi])->row();
+        if (!$data) show_404();
+
+        $this->load->view('print_transaksi', ['data' => $data]);
+    }
 
     // fungsi fungsi yang dipake di View
     function terbilang()

@@ -179,13 +179,11 @@
 
     // fungsi untuk di view
     function total() {
-        var kurs = $('#kurs').val();
-        var nilai = $('#nilai').val();
-        var kurs = getNum($('#kurs').val().split(",").join(""));
-        var nilai = getNum($('#nilai').val().split(",").join(""));
+        var kurs = parseFloat($('#kurs').val().replace(/,/g, '')) || 1;
+        var nilai = parseFloat($('#nilai').val().replace(/,/g, '')) || 0;
 
-        var jumlah = parseFloat(nilai) * parseFloat(kurs);
-        $('#transaksi').val(jumlah);
+        var jumlah = nilai * kurs;
+        $('#transaksi').val(jumlah.toLocaleString('id-ID'));
 
         fn_terbilang();
     }

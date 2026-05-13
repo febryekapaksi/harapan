@@ -113,4 +113,67 @@
     var url_save = siteurl + 'request_mutasi/save_mutasi/';
     $('.select2').select2();
     $('.divide').divide();
+
+    function total() {
+        var nilai = parseFloat($('#nilai').val().replace(/,/g, '')) || 0;
+        var kurs = parseFloat($('#kurs').val().replace(/,/g, '')) || 1;
+        var hasil = nilai * kurs;
+        $('#rupiah').val(hasil.toLocaleString('id-ID'));
+    }
+
+    $('#frm_data').on('submit', function(e) {
+        e.preventDefault();
+
+        swal({
+            title: "Konfirmasi",
+            text: "Pastikan data sudah benar sebelum disimpan.",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#00a65a",
+            confirmButtonText: "Ya, simpan!",
+            cancelButtonText: "Batal",
+            closeOnConfirm: false,
+            closeOnCancel: true
+        }, function(isConfirm) {
+            if (!isConfirm) return;
+
+            $.ajax({
+                url: url_save,
+                type: 'POST',
+                data: $('#frm_data').serialize(),
+                dataType: 'json',
+                success: function(res) {
+                    if (res.status == 1) {
+                        swal({
+                            title: "Berhasil!",
+                            text: res.pesan + ' No: ' + res.nomor,
+                            type: "success",
+                            timer: 3000,
+                            showConfirmButton: false
+                        });
+                        setTimeout(function() {
+                            window.location.href = base_url + 'request_mutasi/mutasi';
+                        }, 3000);
+                    } else {
+                        swal({
+                            title: "Gagal!",
+                            text: res.pesan,
+                            type: "error",
+                            timer: 5000,
+                            showConfirmButton: false
+                        });
+                    }
+                },
+                error: function() {
+                    swal({
+                        title: "Error!",
+                        text: "Terjadi kesalahan, silakan coba lagi.",
+                        type: "error",
+                        timer: 3000,
+                        showConfirmButton: false
+                    });
+                }
+            });
+        });
+    });
 </script>

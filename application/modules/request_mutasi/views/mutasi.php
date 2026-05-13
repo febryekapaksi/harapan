@@ -29,7 +29,12 @@
                         <tr>
                             <td><?= $numb; ?></td>
                             <td><?= date('d-F-Y', strtotime($record->tgl_request)) ?></td>
-                            <td><?= $record->kd_mutasi ?></td>
+                            <td>
+                                <?= $record->kd_mutasi ?>
+                                <?php if (!empty($record->kd_mutasi_request)): ?>
+                                    <br><small class="text-muted"><?= $record->kd_mutasi_request ?></small>
+                                <?php endif; ?>
+                            </td>
                             <td><?= $record->keterangan ?></td>
                             <td><?= $record->nama_bank_asal ?></td>
                             <td><?= $record->nama_bank_tujuan ?></td>
@@ -37,7 +42,6 @@
                             <td style="padding-left:20px">
                                 <a href="<?= base_url('request_mutasi/printout_mutasi/' . $record->kd_mutasi) ?>" class='btn btn-sm btn-primary' title='Print' target="_blank"><i class='fa fa-print'></i></a>
                             </td>
-
                         </tr>
                 <?php }
                 }  ?>
