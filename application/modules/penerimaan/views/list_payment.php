@@ -2,11 +2,12 @@
 
 <div class="box box-primary">
     <div class="box-header">
-        <div class="row" style="margin-bottom:8px;">
+        <div class="row">
             <div class="col-sm-12">
                 <a href="<?= site_url('penerimaan/add') ?>" class='btn btn-success'><i class="fa fa-plus"></i>&emsp; Buat Penerimaan</a>
             </div>
         </div>
+        <hr>
         <div class="row" style="align-items:center;">
             <div class="col-sm-2" style="display:flex;align-items:center;">
                 <label class="form-label" style="margin:0;">Pilih Tanggal Penerimaan</label>

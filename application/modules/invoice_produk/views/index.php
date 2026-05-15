@@ -4,10 +4,10 @@ $ENABLE_MANAGE  = has_permission('Invoice_Produk.Manage');
 $ENABLE_VIEW    = has_permission('Invoice_Produk.View');
 $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 ?>
-<link rel="stylesheet" href="https://cdn.datatables.net/2.1.2/css/dataTables.dataTables.min.css">
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 <style>
 	.font-11 {
-		fonts-size: 11px;
+		font-size: 11px;
 	}
 </style>
 <div class="box box-primary">
@@ -20,7 +20,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 		</ul>
 
 		<div class="tab_invoice table-responsive" style="margin-top: 1rem;">
-			<table class="table table-bordered datatable">
+			<table id="tblInvoice" class="table table-bordered">
 				<thead class="bg-blue">
 					<tr>
 						<th class="text-center">No. SO</th>
@@ -177,8 +177,8 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 <!-- /.modal -->
 
 <!-- DataTables -->
-
-<script src="https://cdn.datatables.net/2.1.2/js/dataTables.min.js"></script>
+<script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="<?= base_url('assets/js/autoNumeric.js') ?>"></script>
 
@@ -186,13 +186,33 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 <!-- page script -->
 <script type="text/javascript">
 	function loadmod() {
-		$('.datatable').dataTable();
+		// Destroy existing DataTable instance if any before re-init
+		if ($.fn.DataTable && $.fn.DataTable.isDataTable('#tblInvoice')) {
+			$('#tblInvoice').DataTable().destroy();
+		}
+		$('#tblInvoice').DataTable({
+			"ordering": true,
+			"paging": true,
+			"searching": true,
+			"info": true,
+			"destroy": true,
+			"responsive": true,
+			"bAutoWidth": true,
+			"sPaginationType": "simple_numbers",
+			"iDisplayLength": 50,
+			"aLengthMenu": [
+				[10, 20, 50, 100, 150],
+				[10, 20, 50, 100, 150]
+			],
+			"columnDefs": [{
+				"targets": -1, // kolom Action (terakhir) tidak bisa di-sort
+				"orderable": false,
+			}]
+		});
 		$('.auto_num').autoNumeric('init');
 	}
 	$(document).ready(function() {
 		loadmod();
-
-
 	});
 
 	function change_tab(tipe, startDate = null, endDate = null) {

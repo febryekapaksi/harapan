@@ -719,7 +719,7 @@ class Invoice_produk extends Admin_Controller
 	{
 		$tipe = $this->input->post('tipe');
 
-		$hasil = '<table class="table table-bordered datatable" data-ordering="false">';
+		$hasil = '';
 
 		$tipe  = $this->input->post('tipe', TRUE);
 		$start = $this->input->post('start_date', TRUE);
@@ -734,7 +734,7 @@ class Invoice_produk extends Admin_Controller
 		$end   = $norm($end);
 
 		if ($tipe == 'dp') {
-			$hasil .= '
+			$hasil .= '<table id="tblInvoice" class="table table-bordered">
 				<thead>
 					<tr>
 						<th class="text-center">No. SO</th>
@@ -837,9 +837,7 @@ class Invoice_produk extends Admin_Controller
 							</button>
 						</div>
 					</div>
-				';
-
-			$hasil .= '
+					<table id="tblInvoice" class="table table-bordered">
 					<thead class="bg-blue">
 						<tr>
 						<th class="text-center">No. DO</th>
@@ -853,7 +851,7 @@ class Invoice_produk extends Admin_Controller
 						</tr>
 					</thead>
 					<tbody>
-					';
+				';
 
 			// Query + filter tanggal
 			$this->db
@@ -979,7 +977,7 @@ class Invoice_produk extends Admin_Controller
 		}
 
 		if ($tipe == 'retensi') {
-			$hasil .= '
+			$hasil .= '<table id="tblInvoice" class="table table-bordered">
 				<thead>
 					<tr>
 						<th class="text-center">No. SO</th>
@@ -1032,7 +1030,7 @@ class Invoice_produk extends Admin_Controller
 		}
 
 		if ($tipe == 'jaminan') {
-			$hasil .= '
+			$hasil .= '<table id="tblInvoice" class="table table-bordered">
 				<thead>
 					<tr>
 						<th class="text-center">No. SO</th>
