@@ -229,28 +229,35 @@ class Gl_interface extends Admin_Controller
         $memo          = !empty($header['memo']) ? json_decode($header['memo'], true) : [];
         $id_supplier   = $memo['id_supplier']   ?? null;
         $nama_supplier = $memo['nama_supplier'] ?? null;
+        $jenis_transaksi = $memo['jenis_transaksi'] ?? null;
 
         $details = $this->db->get_where('gl_interface_detail', ['id_gl_interface' => $id])->result_array();
         if (empty($details)) {
             throw new Exception('Detail jurnal kosong');
         }
 
-        // ── Generate nomor jurnal baru saat posting ──
+        // ── Pakai nomor yang sudah ada, atau generate baru jika belum ada ──
         $tgl_posting = $header['tgl'] ?? date('Y-m-d');
-        if ($jenis === 'JV') {
-            $nomor = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_posting);
+        if (!empty($header['nomor'])) {
+            // Nomor sudah di-generate saat transaksi asal (misal: incoming check)
+            $nomor = $header['nomor'];
         } else {
-            $nomor = $this->Jurnal_model->get_no_buk('HSJ');
+            // Generate nomor baru (untuk transaksi yang belum punya nomor)
+            if ($jenis === 'JV') {
+                $nomor = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_posting);
+            } else {
+                $nomor = $this->Jurnal_model->get_no_buk('HSJ');
+            }
+
+            if (empty($nomor)) {
+                throw new Exception('Gagal generate nomor jurnal');
+            }
+
+            // Simpan nomor yang baru di-generate ke header
+            $this->db->update('gl_interface', ['nomor' => $nomor], ['id' => $id]);
         }
 
-        if (empty($nomor)) {
-            throw new Exception('Gagal generate nomor jurnal');
-        }
-
-        // ── Update nomor di gl_interface header ──
-        $this->db->update('gl_interface', ['nomor' => $nomor], ['id' => $id]);
-
-        // ── Update no_batch di semua gl_interface_detail ──
+        // ── Pastikan no_batch di detail sudah terisi dengan nomor ──
         $this->db->update('gl_interface_detail', ['no_batch' => $nomor], ['id_gl_interface' => $id]);
 
         // Refresh details setelah update
@@ -266,7 +273,8 @@ class Gl_interface extends Admin_Controller
                 foreach ($details as &$line) {
                     if ($line['no_perkiraan'] === '2101-01-06') {
                         $line['kredit'] = round($line['kredit'] + $selisih);
-                        $this->db->update('gl_interface_detail',
+                        $this->db->update(
+                            'gl_interface_detail',
                             ['kredit' => $line['kredit']],
                             ['id'     => $line['id']]
                         );
@@ -283,6 +291,7 @@ class Gl_interface extends Admin_Controller
                 'nomor'      => $nomor,
                 'tgl'        => $header['tgl'],
                 'jml'        => $header['jml'] ?? array_sum(array_column($details, 'debet')),
+                'koreksi_no' => '-',
                 'kdcab'      => $header['kdcab'],
                 'jenis'      => 'JV',
                 'keterangan' => $header['keterangan'],
@@ -300,6 +309,7 @@ class Gl_interface extends Admin_Controller
                 'jenis_ap'     => 'V',
                 'bayar_kepada' => $nama_supplier ?? '',
                 'kdcab'        => $header['kdcab'],
+                'koreksi_no' => '-',
                 'jenis_reff'   => 'BUK',
                 'no_reff'      => $memo['no_reff'] ?? '',
                 'note'         => $header['keterangan'],
@@ -324,31 +334,18 @@ class Gl_interface extends Admin_Controller
             ];
 
             // Tambahan kolom untuk JV (incoming)
-            if ($jenis === 'JV') {
-                $jurnal_row['id_material'] = $line['id_material'] ?? null;
-                $jurnal_row['nm_material'] = $line['nm_material'] ?? null;
-                $jurnal_row['id_gudang']   = $line['id_gudang'] ?? null;
-                $jurnal_row['no_coil']     = $line['no_coil'] ?? null;
-            }
+            // if ($jenis === 'JV') {
+            //     $jurnal_row['id_material'] = $line['id_material'] ?? null;
+            //     $jurnal_row['nm_material'] = $line['nm_material'] ?? null;
+            //     $jurnal_row['id_gudang']   = $line['id_gudang'] ?? null;
+            //     $jurnal_row['no_coil']     = $line['no_coil'] ?? null;
+            // }
 
             $this->db->insert(DBACC . '.jurnal', $jurnal_row);
 
-            // Kartu hutang untuk baris kredit (JV incoming)
-            if ($jenis === 'JV' && $header['jenis_transaksi'] === 'incoming' && $line['kredit'] > 0) {
-                $this->db->insert('tr_kartu_hutang', [
-                    'tipe'          => $line['tipe'],
-                    'nomor'         => $nomor,
-                    'tanggal'       => $line['tanggal'],
-                    'no_perkiraan'  => $line['no_perkiraan'],
-                    'keterangan'    => $line['keterangan'],
-                    'no_reff'       => $line['no_reff'],
-                    'debet'         => 0,
-                    'kredit'        => $line['kredit'],
-                    'id_supplier'   => $id_supplier,
-                    'nama_supplier' => $nama_supplier,
-                    'no_request'    => $line['no_request'] ?? '',
-                ]);
-            }
+            // Kartu hutang untuk JV incoming:
+            // Sudah diinsert dengan nomor yang benar saat process_check_material.
+            // Tidak perlu insert atau update lagi saat posting.
         }
 
         // ── Kartu hutang untuk receive invoice ──
