@@ -442,8 +442,9 @@ class Surat_jalan extends Admin_Controller
         if (!empty($_FILES['file_dokumen']['name'])) {
             $config = [
                 'upload_path'   => './uploads/confirm_sj/',
-                'allowed_types' => 'jpg|jpeg|png|pdf|doc|docx|xls|xlsx',
-                'max_size'      => 2048,
+                'allowed_types' => 'jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx',
+                'max_size'      => 5120,
+                'detect_mime'   => FALSE,
                 'file_name'     => 'bukti_confirm_sj_gudang_' . $sanitized_sj
             ];
 
@@ -543,8 +544,9 @@ class Surat_jalan extends Admin_Controller
 
                 $config_retur = [
                     'upload_path'   => './uploads/confirm_sj/',
-                    'allowed_types' => 'jpg|jpeg|png|pdf|doc|docx|xls|xlsx',
-                    'max_size'      => 2048,
+                    'allowed_types' => 'jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx',
+                    'max_size'      => 5120,
+                    'detect_mime'   => FALSE,
                     'file_name'     => 'retur_' . $sanitized_sj . '_' . $key
                 ];
 

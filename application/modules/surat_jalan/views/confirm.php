@@ -86,7 +86,7 @@
                                 <label>Upload Dokumen <span class="text-red">*</span></label>
                             </div>
                             <div class="col-sm-8">
-                                <input type="file" name="file_dokumen" class="form-control" required>
+                                <input type="file" name="file_dokumen" class="form-control" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" required>
                             </div>
                         </div>
                     </div>
@@ -140,7 +140,7 @@
                                                 <textarea class="form-control reason-retur" name="detail[<?= $i ?>][reason]" disabled></textarea>
                                             </td>
                                             <td align="center">
-                                                <input type="file" class="form-control file-retur" name="detail[<?= $i ?>][file_bukti]" disabled>
+                                                <input type="file" class="form-control file-retur" name="detail[<?= $i ?>][file_bukti]" accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx" disabled>
                                             </td>
                                             <td align="center">
                                                 <input type="number" class="form-control text-center qty-lebih" name="detail[<?= $i ?>][qty_lebih]" min="0" value="0">

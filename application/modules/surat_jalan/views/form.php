@@ -94,81 +94,88 @@
                         </div>
                     </div>
                 </div>
-            </div>
 
+                <input type="hidden" name="is_retur" id="is_retur" value="0">
+                <input type="hidden" name="no_retur_spk" id="no_retur_spk" value="">
+                <div class="col-md-12">
+                    <div class="col-md-12">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr bgcolor='#9acfea'>
+                                    <th>
+                                        <center>Tanggal</center>
+                                    </th>
+                                    <th>
+                                        <center>Tipe</center>
+                                    </th>
+                                    <th>
+                                        <center>No. COA</center>
+                                    </th>
+                                    <th>
+                                        <center>Nama. COA</center>
+                                    </th>
+                                    <th>
+                                        <center>Debit</center>
+                                    </th>
+                                    <th>
+                                        <center>Kredit</center>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr bgcolor='#DCDCDC'>
+                                    <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                    <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+                                    <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-02" class="form-control" readonly /></td>
+                                    <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang In Transit" class="form-control" readonly /></td>
+                                    <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control text-right" readonly />
+                                        <input type="text" id="debet21" name="debet2[]" value="" class="form-control text-right" readonly />
+                                    </td>
+                                    <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control text-right" readonly />
+                                        <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control text-right" readonly />
+                                    </td>
 
+                                </tr>
+                                <tr bgcolor='#DCDCDC'>
+                                    <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                    <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+                                    <td><input type="text" id="no_coa2" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
+                                    <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
+                                    <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control text-right" readonly />
+                                        <input type="text" id="debet22" name="debet2[]" value="0" class="form-control text-right" readonly />
+                                    </td>
+                                    <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control text-right" readonly />
+                                        <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control text-right" readonly />
+                                    </td>
 
-            <h5>Informasi Jurnal</h5>
-            <table class="table table-bordered table-hover">
-                <thead>
-                    <tr bgcolor='#9acfea'>
-                        <th>
-                            <center>Tanggal</center>
-                        </th>
-                        <th>
-                            <center>Tipe</center>
-                        </th>
-                        <th>
-                            <center>No. COA</center>
-                        </th>
-                        <th>
-                            <center>Nama. COA</center>
-                        </th>
-                        <th>
-                            <center>Debit</center>
-                        </th>
-                        <th>
-                            <center>Kredit</center>
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr bgcolor='#DCDCDC'>
-                        <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-                        <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
-                        <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-02" class="form-control" readonly /></td>
-                        <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang In Transit" class="form-control" readonly /></td>
-                        <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control text-right" readonly />
-                            <input type="text" id="debet21" name="debet2[]" value="" class="form-control text-right" readonly />
-                        </td>
-                        <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control text-right" readonly />
-                            <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control text-right" readonly />
-                        </td>
+                                </tr>
+                                <tr bgcolor='#DCDCDC'>
+                                    <td colspan="4" align="right"><b>TOTAL</b></td>
+                                    <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control text-right" readonly />
+                                        <input type="text" id="total31" name="total3" value="" class="form-control text-right" readonly />
+                                    </td>
+                                    <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control text-right" readonly />
+                                        <input type="text" id="total41" name="total4" value="" class="form-control text-right" readonly />
+                                    </td>
 
-                    </tr>
-                    <tr bgcolor='#DCDCDC'>
-                        <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
-                        <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
-                        <td><input type="text" id="no_coa2" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
-                        <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
-                        <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control text-right" readonly />
-                            <input type="text" id="debet22" name="debet2[]" value="0" class="form-control text-right" readonly />
-                        </td>
-                        <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control text-right" readonly />
-                            <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control text-right" readonly />
-                        </td>
+                                </tr>
+                        </table>
+                    </div>
+                </div>
 
-                    </tr>
-                    <tr bgcolor='#DCDCDC'>
-                        <td colspan="4" align="right"><b>TOTAL</b></td>
-                        <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control text-right" readonly />
-                            <input type="text" id="total31" name="total3" value="" class="form-control text-right" readonly />
-                        </td>
-                        <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control text-right" readonly />
-                            <input type="text" id="total41" name="total4" value="" class="form-control text-right" readonly />
-                        </td>
-
-                    </tr>
-            </table>
-
-            <div class="form-group row">
-                <div class="col-md-12 text-center">
-                    <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
-                    <a class="btn btn-default" onclick="window.history.back(); return false;">
-                        <i class="fa fa-reply"></i> Batal
-                    </a>
+                <div class="form-group row">
+                    <div class="col-md-12 text-center">
+                        <button type="submit" class="btn btn-primary" name="save" id="save"><i class="fa fa-save"></i> Save</button>
+                        <a class="btn btn-default" onclick="window.history.back(); return false;">
+                            <i class="fa fa-reply"></i> Batal
+                        </a>
+                    </div>
                 </div>
             </div>
+
+
+
+
         </form>
     </div>
 </div>
@@ -268,10 +275,17 @@
                                 alamat: row.alamat,
                                 pengiriman: row.pengiriman,
                                 weight: row.weight,
+                                // no_retur diisi dari kolom spk_delivery.no_retur
+                                // fallback: cek notes = 'Barang Retur' untuk data lama
+                                no_retur: row.no_retur || (row.notes === 'Barang Retur' ? row.notes : null),
                                 items: []
                             };
                         }
                         grouped[row.no_delivery].items.push(row);
+                        // tandai group apakah berasal dari retur
+                        if (row.no_retur || row.notes === 'Barang Retur') {
+                            grouped[row.no_delivery].no_retur = row.no_retur || 'RETUR';
+                        }
                     });
                     groupedSpk = grouped;
 
@@ -397,6 +411,34 @@
             $('#total31').val(number_format(totalCostbook));
             $('#total41').val(number_format(totalCostbook));
 
+            // Set COA jurnal berdasarkan apakah SPK ini dari retur atau bukan
+            // const isRetur = groupedSpk[selectedSpk].no_retur ? true : false;
+            // if (isRetur) {
+            //     // Jurnal Surat Jalan RETUR:
+            //     // Debit  : 1104-01-04 Persediaan Barang Reject
+            //     // Kredit : 1104-01-03 Persediaan Barang In Customer
+            //     $('#no_coa1').val('1104-01-04');
+            //     $('#nama_coa1').val('Persediaan Barang Reject');
+            //     $('#no_coa2').val('1104-01-03');
+            //     $('#nama_coa2').val('Persediaan Barang In Customer');
+            //     $('#is_retur').val('1');
+            //     $('#no_retur_spk').val(groupedSpk[selectedSpk].no_retur);
+            //     $('#jurnal-retur-badge').show();
+            //     $('#jurnal-biasa-badge').hide();
+            // } else {
+            //     // Jurnal Surat Jalan BIASA:
+            //     // Debit  : 1104-01-02 Persediaan Barang In Transit
+            //     // Kredit : 1104-01-01 Persediaan Barang Warehouse
+            //     $('#no_coa1').val('1104-01-02');
+            //     $('#nama_coa1').val('Persediaan Barang In Transit');
+            //     $('#no_coa2').val('1104-01-01');
+            //     $('#nama_coa2').val('Persediaan Barang Warehouse');
+            //     $('#is_retur').val('0');
+            //     $('#no_retur_spk').val('');
+            //     $('#jurnal-retur-badge').hide();
+            //     $('#jurnal-biasa-badge').show();
+            // }
+
             $('#tableSpk tbody').html(html);
             $('#getSpk').prop('disabled', true);
             $('#modalViewLoading').modal('hide');
@@ -408,6 +450,21 @@
             $('#tableSpk tbody').empty();
             $('#delivery_address').val('');
             $('#getSpk').prop('disabled', false);
+            // Reset jurnal ke default (biasa)
+            // $('#no_coa1').val('1104-01-02');
+            // $('#nama_coa1').val('Persediaan Barang In Transit');
+            // $('#no_coa2').val('1104-01-01');
+            // $('#nama_coa2').val('Persediaan Barang Warehouse');
+            // $('#is_retur').val('0');
+            // $('#no_retur_spk').val('');
+            // $('#debet1').val('');
+            // $('#debet21').val('');
+            // $('#kredit2').val('');
+            // $('#kredit22').val('');
+            // $('#total31').val('');
+            // $('#total41').val('');
+            // $('#jurnal-retur-badge').hide();
+            // $('#jurnal-biasa-badge').show();
         });
 
         //SAVE SURAT JALAN
