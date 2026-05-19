@@ -165,6 +165,40 @@ class Retur_produk extends Admin_Controller
         echo json_encode($res);
     }
 
+    public function view($id_retur = null)
+    {
+        if (!$id_retur) {
+            show_404();
+        }
+
+        $retur = $this->db
+            ->select('r.id as id_retur, r.no_retur, r.no_surat_jalan, r.no_so, r.id_customer, r.nm_customer, r.alasan, r.tgl_retur, r.total_harga, r.tipe, r.status, r.created_date')
+            ->from('tr_retur r')
+            ->where('r.id', $id_retur)
+            ->get()
+            ->row_array();
+
+        if (!$retur) {
+            show_error("Data Retur tidak ditemukan.", 404);
+        }
+
+        $detail = $this->db
+            ->select('rd.*')
+            ->from('tr_retur_detail rd')
+            ->where('rd.no_retur', $retur['no_retur'])
+            ->get()
+            ->result_array();
+
+        $data = [
+            'retur'  => $retur,
+            'detail' => $detail,
+        ];
+
+        $this->template->title("Detail Retur {$retur['no_retur']}");
+        $this->template->page_icon('fa fa-eye');
+        $this->template->render('view', $data);
+    }
+
     public function req_spk($id_retur = null)
     {
         if (!$id_retur) {
@@ -234,6 +268,7 @@ class Retur_produk extends Admin_Controller
             'created_by'       => $this->auth->user_id(),
             'created_date'     => date('Y-m-d H:i:s'),
             'notes'            => $notes,
+            'no_retur'         => $no_retur,  // penanda bahwa SPK ini berasal dari proses retur
         ];
 
         $ArrDetail = [];
