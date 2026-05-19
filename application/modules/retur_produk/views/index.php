@@ -31,6 +31,57 @@
         DataTables()
     });
 
+    function closeRetur(id_sj) {
+        swal({
+            title: "Close Retur?",
+            text: "Barang retur tidak akan dikirim ulang. Piutang akan mengikuti nilai confirm awal. Lanjutkan?",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonClass: "btn-danger",
+            confirmButtonText: "Ya, Close",
+            cancelButtonText: "Batal",
+            closeOnConfirm: true,
+            closeOnCancel: true
+        }, function(isConfirm) {
+            if (!isConfirm) return;
+
+            $.ajax({
+                url: siteurl + 'retur_produk/close_retur',
+                type: 'POST',
+                data: {
+                    id_sj: id_sj
+                },
+                dataType: 'json',
+                success: function(res) {
+                    if (res.status == 1) {
+                        swal({
+                            title: "Berhasil",
+                            text: res.pesan,
+                            type: "success",
+                            timer: 3000
+                        });
+                        $('#example1').DataTable().ajax.reload();
+                    } else {
+                        swal({
+                            title: "Gagal",
+                            text: res.pesan,
+                            type: "warning",
+                            timer: 4000
+                        });
+                    }
+                },
+                error: function() {
+                    swal({
+                        title: "Error",
+                        text: "Terjadi kesalahan, coba lagi.",
+                        type: "error",
+                        timer: 3000
+                    });
+                }
+            });
+        });
+    }
+
     function DataTables() {
         var dataTable = $('#example1').DataTable({
             "processing": true,

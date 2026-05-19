@@ -65,10 +65,12 @@
                         </div>
                         <div class="col-md-8">
                             <?php
-                            if ($retur['status'] == 1) {
-                                echo "<span class='badge bg-yellow' style='font-size:13px;padding:6px 10px;'>Proses Retur</span>";
+                            if ($retur['status'] == 3) {
+                                echo "<span class='badge bg-red' style='font-size:13px;padding:6px 10px;'>Closed</span>";
                             } elseif ($retur['status'] == 2) {
                                 echo "<span class='badge bg-green' style='font-size:13px;padding:6px 10px;'>On Loading</span>";
+                            } elseif ($retur['status'] == 1) {
+                                echo "<span class='badge bg-yellow' style='font-size:13px;padding:6px 10px;'>Proses Retur</span>";
                             } else {
                                 echo "<span class='badge bg-blue' style='font-size:13px;padding:6px 10px;'>Belum Proses</span>";
                             }

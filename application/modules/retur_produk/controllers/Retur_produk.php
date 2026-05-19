@@ -234,6 +234,140 @@ class Retur_produk extends Admin_Controller
         $this->template->render('req_spk', $data);
     }
 
+    public function close_retur()
+    {
+        $id_sj = (int) $this->input->post('id_sj');
+
+        if (!$id_sj) {
+            echo json_encode(['status' => 0, 'pesan' => 'ID Surat Jalan tidak valid.']);
+            return;
+        }
+
+        // Ambil data surat_jalan + customer untuk isi tr_retur
+        $sj = $this->db
+            ->select('sj.id, sj.no_surat_jalan, sj.no_so, so.id_customer, mc.name_customer')
+            ->from('surat_jalan sj')
+            ->join('sales_order so', 'sj.no_so = so.no_so', 'left')
+            ->join('master_customers mc', 'so.id_customer = mc.id_customer', 'left')
+            ->where('sj.id', $id_sj)
+            ->get()
+            ->row_array();
+
+        if (!$sj) {
+            echo json_encode(['status' => 0, 'pesan' => 'Surat Jalan tidak ditemukan.']);
+            return;
+        }
+
+        // Cek apakah sudah ada tr_retur
+        $retur = $this->db
+            ->select('id, status')
+            ->where('no_surat_jalan', $sj['no_surat_jalan'])
+            ->get('tr_retur')
+            ->row_array();
+
+        // Guard: jika sudah On Loading (status 2) tidak bisa di-close
+        if ($retur && $retur['status'] == 2) {
+            echo json_encode(['status' => 0, 'pesan' => 'Retur sudah On Loading, tidak bisa di-close.']);
+            return;
+        }
+
+        // Guard: jika sudah Closed (status 3)
+        if ($retur && $retur['status'] == 3) {
+            echo json_encode(['status' => 0, 'pesan' => 'Retur sudah berstatus Closed.']);
+            return;
+        }
+
+        $this->db->trans_begin();
+
+        if ($retur) {
+            // Sudah ada tr_retur (status 1 = Proses Retur) → update ke Closed
+            $this->db->update('tr_retur', ['status' => 3], ['id' => $retur['id']]);
+        } else {
+            // Belum ada tr_retur (Belum Proses) → buat nomor dan insert header + detail
+            $Ym  = date('ym');
+            $SQL = "SELECT MAX(no_retur) as maxM FROM tr_retur WHERE no_retur LIKE 'RT/G/{$Ym}/%'";
+            $result    = $this->db->query($SQL)->result_array();
+            $angkaUrut = $result[0]['maxM'];
+
+            if ($angkaUrut) {
+                $parts  = explode('/', $angkaUrut);
+                $urutan = isset($parts[3]) ? (int)$parts[3] : 0;
+            } else {
+                $urutan = 0;
+            }
+            $urutan++;
+            $no_retur = "RT/G/{$Ym}/" . sprintf('%04d', $urutan);
+
+            // Ambil detail produk retur dari surat_jalan_detail
+            $sql_detail = "
+                SELECT
+                    sjd.id_so_det,
+                    sjd.id_product,
+                    sjd.product        AS nm_product,
+                    sjd.qty_retur,
+                    COALESCE(sod.harga_penawaran, 0)              AS harga,
+                    (sjd.qty_retur * COALESCE(sod.harga_penawaran, 0)) AS total
+                FROM surat_jalan_detail sjd
+                LEFT JOIN sales_order_detail sod ON sjd.id_so_det = sod.id
+                WHERE sjd.id_sj = ?
+                  AND sjd.qty_retur != 0
+                ORDER BY sjd.id_so_det
+            ";
+            $detail_retur = $this->db->query($sql_detail, [$id_sj])->result_array();
+
+            // Hitung grand total
+            $total_harga = array_sum(array_column($detail_retur, 'total'));
+
+            // Insert header tr_retur
+            $this->db->insert('tr_retur', [
+                'no_retur'       => $no_retur,
+                'no_surat_jalan' => $sj['no_surat_jalan'],
+                'no_so'          => $sj['no_so'],
+                'id_customer'    => $sj['id_customer'],
+                'nm_customer'    => $sj['name_customer'],
+                'alasan'         => 'Retur di-close, tidak perlu kirim ulang.',
+                'tipe'           => 'Gudang',
+                'total_harga'    => $total_harga,
+                'tgl_retur'      => date('Y-m-d'),
+                'created_by'     => $this->auth->user_id(),
+                'created_date'   => date('Y-m-d H:i:s'),
+                'status'         => 3,
+                'jenis_retur'    => 1,
+            ]);
+
+            // Insert detail tr_retur_detail
+            if (!empty($detail_retur)) {
+                $ArrDetail = [];
+                foreach ($detail_retur as $d) {
+                    $ArrDetail[] = [
+                        'no_retur'       => $no_retur,
+                        'no_surat_jalan' => $sj['no_surat_jalan'],
+                        'id_so_det'      => $d['id_so_det'],
+                        'id_product'     => $d['id_product'],
+                        'nm_product'     => $d['nm_product'],
+                        'qty_retur'      => $d['qty_retur'],
+                        'alasan'         => 'Close - tidak perlu kirim ulang',
+                        'harga'          => $d['harga'],
+                        'total'          => $d['total'],
+                        'created_by'     => $this->auth->user_id(),
+                        'created_date'   => date('Y-m-d H:i:s'),
+                    ];
+                }
+                $this->db->insert_batch('tr_retur_detail', $ArrDetail);
+            }
+        }
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            echo json_encode(['status' => 0, 'pesan' => 'Gagal menyimpan data.']);
+            return;
+        }
+
+        $this->db->trans_commit();
+        history("Close Retur SJ: " . $sj['no_surat_jalan']);
+        echo json_encode(['status' => 1, 'pesan' => 'Retur berhasil di-close. Piutang mengikuti nilai confirm awal.']);
+    }
+
     public function save_spk()
     {
         $data = $this->input->post();

@@ -150,6 +150,7 @@
                                             <input type="hidden" name="detail[<?= $i ?>][id_product]" value="<?= $row['id_product'] ?>">
                                             <input type="hidden" class="costbook" name="detail[<?= $i ?>][costbook]" value="<?= $row['costbook']; ?>">
                                             <input type="hidden" class="total-costbook" name="detail[<?= $i ?>][total_costbook]">
+                                            <input type="hidden" class="total-retur" name="detail[<?= $i ?>][total_retur]">
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -211,6 +212,19 @@
                                         </td>
                                         <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control text-right" readonly />
                                             <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control text-right" readonly />
+                                        </td>
+
+                                    </tr>
+                                    <tr bgcolor='#DCDCDC'>
+                                        <td><input type="date" id="tgl_jurnal4" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                        <td><input type="text" id="type5" name="type[]" value="JV" class="form-control" readonly /></td>
+                                        <td><input type="text" id="no_coa4" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
+                                        <td><input type="text" id="nama_coa4" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
+                                        <td><input type="hidden" id="debet4" name="debet[]" value="0" class="form-control text-right" readonly />
+                                            <input type="text" id="debet24" name="debet2[]" value="0" class="form-control text-right" readonly />
+                                        </td>
+                                        <td><input type="hidden" id="kredit4" name="kredit[]" value="0" class="form-control text-right" readonly />
+                                            <input type="text" id="kredit24" name="kredit2[]" value="0" class="form-control text-right" readonly />
                                         </td>
 
                                     </tr>
@@ -356,25 +370,45 @@
     // hitung ulang total untuk satu baris
     function recalcRow(row) {
         const qtyTerkirim = parseFloat(row.find('.qty-terkirim').val()) || 0;
+        const qtyRetur = parseFloat(row.find('.qty-retur').val()) || 0;
         const costbook = parseFloat(row.find('.costbook').val()) || 0;
         const lineTotal = qtyTerkirim * costbook;
+        const returTotal = qtyRetur * costbook;
 
         row.find('.total-costbook').val(lineTotal);
+        row.find('.total-retur').val(returTotal);
     }
 
     // hitung ulang grand total dari seluruh baris
     function recalcGrandTotal() {
         let sum = 0;
+        let sumRetur = 0;
         $('.total-costbook').each(function() {
             sum += parseFloat($(this).val()) || 0;
         });
+        $('.total-retur').each(function() {
+            sumRetur += parseFloat($(this).val()) || 0;
+        });
+
+        const totalIntransit = sum + sumRetur;
+
         $('#grandTotal').val(number_format(sum));
+
+        // COA 1104-01-03 Persediaan Barang In Customer → Debit = grand total (terkirim)
         $('#debet1').val(number_format(sum));
         $('#debet21').val(number_format(sum));
-        $('#kredit2').val(number_format(sum));
-        $('#kredit22').val(number_format(sum));
-        $('#total31').val(number_format(sum));
-        $('#total41').val(number_format(sum));
+
+        // COA 1104-01-02 Persediaan Barang In Transit → Kredit = grand total + nilai retur
+        $('#kredit2').val(number_format(totalIntransit));
+        $('#kredit22').val(number_format(totalIntransit));
+
+        // COA 1104-01-01 Persediaan Barang Warehouse → Debit = nilai retur (melawan kredit intransit)
+        $('#debet4').val(number_format(sumRetur));
+        $('#debet24').val(number_format(sumRetur));
+
+        // Total debit = sum + sumRetur, total kredit = totalIntransit
+        $('#total31').val(number_format(totalIntransit));
+        $('#total41').val(number_format(totalIntransit));
     }
 
     function validateQty(input) {

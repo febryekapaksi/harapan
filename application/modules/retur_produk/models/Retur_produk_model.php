@@ -36,19 +36,22 @@ class Retur_produk_model extends BF_Model
             $status = '';
 
             $createRetur = "<a href='" . site_url('retur_produk/add/' . $row['id_sj']) . "' title='Create Retur' class='btn btn-sm btn-success'><i class='fa fa-paper-plane'></i></a>";
-            $reqLoading = "<a href='" . base_url("retur_produk/req_spk/{$row['id_retur']}") . "' class='btn btn-sm btn-info' title='Request SPK'><i class='fa fa-truck'></i> SPK</a>";
-            $viewRetur = "<a href='" . site_url('retur_produk/view/' . $row['id_retur']) . "' title='View Retur' class='btn btn-sm btn-warning'><i class='fa fa-eye'></i></a>";
+            $reqLoading  = "<a href='" . base_url("retur_produk/req_spk/{$row['id_retur']}") . "' class='btn btn-sm btn-info' title='Request SPK'><i class='fa fa-truck'></i> SPK</a>";
+            $viewRetur   = "<a href='" . site_url('retur_produk/view/' . $row['id_retur']) . "' title='View Retur' class='btn btn-sm btn-warning'><i class='fa fa-eye'></i></a>";
+            $closeBtn    = "<button onclick=\"closeRetur('{$row['id_sj']}')\" title='Close - Tidak perlu kirim ulang' class='btn btn-sm btn-danger'><i class='fa fa-times-circle'></i> Close</button>";
 
-
-            if ($row['status'] == 1) {
-                $status = "<span class='badge bg-yellow'>Proses Retur</span>";
-                $action = $reqLoading;
-            } else if ($row['status'] == 2) {
-                $status = " <span class='badge bg-green'>On Loading</span>";
+            if ($row['status'] == 3) {
+                $status = "<span class='badge bg-red'>Closed</span>";
                 $action = $viewRetur;
+            } else if ($row['status'] == 2) {
+                $status = "<span class='badge bg-green'>On Loading</span>";
+                $action = $viewRetur;
+            } else if ($row['status'] == 1) {
+                $status = "<span class='badge bg-yellow'>Proses Retur</span>";
+                $action = $reqLoading . ' ' . $closeBtn;
             } else {
-                $status = " <span class='badge bg-blue'>Belum Proses</span>";
-                $action = $createRetur;
+                $status = "<span class='badge bg-blue'>Belum Proses</span>";
+                $action = $createRetur . ' ' . $closeBtn;
             }
 
 
