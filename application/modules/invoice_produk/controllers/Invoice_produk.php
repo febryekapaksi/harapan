@@ -508,6 +508,18 @@ class Invoice_produk extends Admin_Controller
 		$this->db->trans_begin();
 
 		if ($post['tipe_billing'] == 'delivery') {
+			// Guard: tolak jika semua barang di SJ ini sudah retur (qty_terkirim = 0 semua)
+			$total_terkirim = $this->db
+				->select_sum('qty_terkirim', 'total_terkirim')
+				->where('no_surat_jalan', $post['id_billing'])
+				->get('surat_jalan_detail')
+				->row('total_terkirim');
+
+			if ((float)$total_terkirim <= 0) {
+				echo json_encode(['status' => false, 'message' => 'Invoice tidak dapat dibuat karena semua barang pada surat jalan ini telah diretur.']);
+				return;
+			}
+
 			$delivery_date = $this->db->select('delivery_date')
 				->where('no_surat_jalan', $post['id_billing'])
 				->limit(1)->get('surat_jalan')->row('delivery_date');
@@ -863,6 +875,8 @@ class Invoice_produk extends Admin_Controller
 				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
 				->where('sj.status !=', 'ON DELIVER')
 				->where('sj.status IS NOT NULL')
+				// Exclude SJ yang semua barangnya retur (total qty_terkirim = 0) dan belum punya invoice
+				->where('(i.id_invoice IS NOT NULL OR (SELECT COALESCE(SUM(sjd.qty_terkirim),0) FROM surat_jalan_detail sjd WHERE sjd.no_surat_jalan = sj.no_surat_jalan) > 0)')
 				// ->where('i.is_cancel IS NULL')
 				->order_by('sj.created_at', 'DESC', false);
 
