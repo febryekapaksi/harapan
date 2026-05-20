@@ -875,8 +875,16 @@ class Invoice_produk extends Admin_Controller
 				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
 				->where('sj.status !=', 'ON DELIVER')
 				->where('sj.status IS NOT NULL')
-				// Exclude SJ yang semua barangnya retur (total qty_terkirim = 0) dan belum punya invoice
-				->where('(i.id_invoice IS NOT NULL OR (SELECT COALESCE(SUM(sjd.qty_terkirim),0) FROM surat_jalan_detail sjd WHERE sjd.no_surat_jalan = sj.no_surat_jalan) > 0)')
+				// Tampilkan hanya jika: sudah punya invoice (tetap tampil untuk view/print)
+				// ATAU data relasi SO+customer valid DAN ada barang yang terkirim (qty_terkirim > 0)
+				->where('(
+					i.id_invoice IS NOT NULL
+					OR (
+						b.no_so IS NOT NULL
+						AND c.id_customer IS NOT NULL
+						AND (SELECT COALESCE(SUM(sjd.qty_terkirim),0) FROM surat_jalan_detail sjd WHERE sjd.no_surat_jalan = sj.no_surat_jalan) > 0
+					)
+				)')
 				// ->where('i.is_cancel IS NULL')
 				->order_by('sj.created_at', 'DESC', false);
 
