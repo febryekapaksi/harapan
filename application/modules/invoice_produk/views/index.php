@@ -185,11 +185,17 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 
 <!-- page script -->
 <script type="text/javascript">
-	function loadmod() {
+	function loadmod(activeTab) {
 		// Destroy existing DataTable instance if any before re-init
 		if ($.fn.DataTable && $.fn.DataTable.isDataTable('#tblInvoice')) {
 			$('#tblInvoice').DataTable().destroy();
 		}
+
+		// Kolom index 2 = Tgl. Kirim pada tab delivery, tidak ada default sort untuk tab lain
+		var defaultOrder = (activeTab === 'delivery') ? [
+			[2, 'desc']
+		] : [];
+
 		$('#tblInvoice').DataTable({
 			"ordering": true,
 			"paging": true,
@@ -204,6 +210,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 				[10, 20, 50, 100, 150],
 				[10, 20, 50, 100, 150]
 			],
+			"order": defaultOrder,
 			"columnDefs": [{
 				"targets": -1, // kolom Action (terakhir) tidak bisa di-sort
 				"orderable": false,
@@ -212,7 +219,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 		$('.auto_num').autoNumeric('init');
 	}
 	$(document).ready(function() {
-		loadmod();
+		loadmod('dp');
 	});
 
 	function change_tab(tipe, startDate = null, endDate = null) {
@@ -242,7 +249,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 			dataType: 'json',
 			success: function(result) {
 				$('.tab_invoice').html(result.hasil);
-				loadmod();
+				loadmod(tipe);
 			},
 			error: function() {
 				swal({
