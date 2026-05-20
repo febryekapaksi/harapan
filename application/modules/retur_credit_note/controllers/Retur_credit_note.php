@@ -84,88 +84,238 @@ class Retur_credit_note extends Admin_Controller
     {
         $post = $this->input->post();
 
-        $detail = $post['detail'];
-        $tipe = $post['pengiriman'];
+        $detail          = $post['detail'];
+        $tipe            = $post['pengiriman'];
+        $id_invoice_lama = $post['id_invoice'];
+        $no_surat_jalan  = $post['id_billing'];
+        $grand_total_retur = (float) str_replace(',', '', $post['grand_total']);
+        $nilai_inv_baru    = (float) str_replace(',', '', $post['nilai_inv_baru']);
 
-        // UNTUK BUAT NOMOR RETUR
+        // =============================================
+        // GENERATE NOMOR RETUR
+        // =============================================
         $Ym = date('ym');
         if ($tipe == 'Pabrik') {
             $SQL = "SELECT MAX(no_retur) as maxM FROM tr_retur WHERE no_retur LIKE 'CN/P/{$Ym}/%'";
+        } else {
+            $SQL = "SELECT MAX(no_retur) as maxM FROM tr_retur WHERE no_retur LIKE 'CN/G/{$Ym}/%'";
         }
-        $SQL = "SELECT MAX(no_retur) as maxM FROM tr_retur WHERE no_retur LIKE 'CN/G/{$Ym}/%'";
-        $result = $this->db->query($SQL)->result_array();
+        $result    = $this->db->query($SQL)->result_array();
         $angkaUrut = $result[0]['maxM'];
 
         if ($angkaUrut) {
-            $parts = explode('/', $angkaUrut);
-            $urutan = isset($parts[3]) ? (int)$parts[3] : 0;
+            $parts   = explode('/', $angkaUrut);
+            $urutan  = isset($parts[3]) ? (int)$parts[3] : 0;
         } else {
             $urutan = 0;
         }
-
         $urutan++;
-        $formatUrut = sprintf('%04s', $urutan);
+        $formatUrut = sprintf('%04d', $urutan);
+        $no_retur   = ($tipe == 'Pabrik') ? "CN/P/{$Ym}/{$formatUrut}" : "CN/G/{$Ym}/{$formatUrut}";
 
-        if ($tipe == 'Pabrik') {
-            $no_retur = "CN/P/{$Ym}/{$formatUrut}";
+        // =============================================
+        // AMBIL DATA INVOICE LAMA
+        // =============================================
+        $inv_lama = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $id_invoice_lama])->row();
+        if (!$inv_lama) {
+            echo json_encode(['status' => 0, 'pesan' => 'Invoice tidak ditemukan.']);
+            return;
         }
-        $no_retur = "CN/G/{$Ym}/{$formatUrut}";
-        $no_surat_jalan = $post['id_billing'];
 
-        $ArrHeader = [
-            'no_retur'         => $no_retur,
-            'no_surat_jalan'   => $no_surat_jalan,
-            'no_so'            => $post['id_so'],
-            'id_invoice'       => $post['id_invoice'],
-            'id_customer'      => $post['id_customer'],
-            'nm_customer'      => $post['nm_customer'],
-            'alasan'           => $post['alasan'],
-            'tipe'             => $tipe,
-            'total_harga'      => str_replace(',', '', $post['grand_total']),
-            'tgl_retur'        => date('Y-m-d', strtotime($post['tgl_retur'])),
-            'created_by'       => $this->auth->user_id(),
-            'created_date'     => date('Y-m-d H:i:s'),
-            'status'           => 1,
-            'jenis_retur'      => 2
-        ];
+        // Cek total yang sudah dibayar
+        $total_sudah_bayar = (float) $this->db
+            ->select('COALESCE(SUM(total_bayar_idr), 0) AS total', false)
+            ->from('tr_invoice_payment_detail')
+            ->where('no_invoice', $id_invoice_lama)
+            ->get()->row()->total;
 
-        // Prepare Detail
+        // =============================================
+        // SIAPKAN DETAIL RETUR (hanya item qty_retur > 0)
+        // =============================================
         $ArrDetail = [];
         foreach ($detail as $key => $value) {
-            $ArrDetail[$key] = [
-                'no_retur'        => $no_retur,
-                'no_surat_jalan'  => $no_surat_jalan,
-                'id_so_det'       => $value['id_so_det'],
-                'id_product'      => $value['id_produk'],
-                'nm_product'      => $value['nm_produk'],
-                'qty_retur'       => $value['qty'],
-                'alasan'          => $value['alasan_retur'],
-                'harga'           => str_replace(',', '', $value['harga']),
-                'total'           => str_replace(',', '', $value['total']),
-                'created_by'      => $this->auth->user_id(),
-                'created_date'    => date('Y-m-d H:i:s'),
+            $qty_retur = (float) $value['qty_retur'];
+            if ($qty_retur <= 0) continue;
+
+            $harga_raw = (float) str_replace(',', '', $value['harga_raw']);
+            $total_raw = $qty_retur * $harga_raw;
+
+            $ArrDetail[] = [
+                'no_retur'       => $no_retur,
+                'no_surat_jalan' => $no_surat_jalan,
+                'id_so_det'      => $value['id_so_det'],
+                'id_product'     => $value['id_produk'],
+                'nm_product'     => $value['nm_produk'],
+                'qty_retur'      => $qty_retur,
+                'alasan'         => $value['alasan_retur'],
+                'harga'          => $harga_raw,
+                'total'          => $total_raw,
+                'created_by'     => $this->auth->user_id(),
+                'created_date'   => date('Y-m-d H:i:s'),
             ];
         }
 
-        // Simpan ke DB
-        $this->db->trans_start();
-
-        $this->db->insert('tr_retur', $ArrHeader);
-
-        $this->db->insert_batch('tr_retur_detail', $ArrDetail);
-
-        $this->db->trans_complete();
-
-        if ($this->db->trans_status() === FALSE) {
-            $this->db->trans_rollback();
-            $res = ['status' => 0, 'pesan' => 'Gagal menyimpan data.'];
-        } else {
-            $this->db->trans_commit();
-            $res = ['status' => 1, 'pesan' => 'Data berhasil disimpan.'];
-            history("Create Request Retur : " . $no_retur);
+        if (empty($ArrDetail)) {
+            echo json_encode(['status' => 0, 'pesan' => 'Tidak ada item yang diretur.']);
+            return;
         }
 
-        echo json_encode($res);
+        // =============================================
+        // HITUNG PIUTANG BARU
+        // Piutang baru = nilai_inv_baru - total_sudah_bayar
+        // Jika sudah bayar lebih dari nilai baru, piutang = 0
+        // =============================================
+        $piutang_baru = max(0, $nilai_inv_baru - $total_sudah_bayar);
+        $sts_baru     = ($piutang_baru <= 0) ? 0 : 1;
+
+        // =============================================
+        // TRANSAKSI DB
+        // =============================================
+        $this->db->trans_begin();
+
+        try {
+            // 1. Simpan header retur
+            $ArrHeader = [
+                'no_retur'       => $no_retur,
+                'no_surat_jalan' => $no_surat_jalan,
+                'no_so'          => $post['id_so'],
+                'id_invoice'     => $id_invoice_lama,
+                'id_customer'    => $post['id_customer'],
+                'nm_customer'    => $post['nm_customer'],
+                'alasan'         => $post['alasan'],
+                'tipe'           => $tipe,
+                'total_harga'    => $grand_total_retur,
+                'nilai_inv_baru' => $nilai_inv_baru,
+                'tgl_retur'      => date('Y-m-d', strtotime($post['tgl_retur'])),
+                'created_by'     => $this->auth->user_id(),
+                'created_date'   => date('Y-m-d H:i:s'),
+                'status'         => 1,
+                'jenis_retur'    => 2
+            ];
+            $this->db->insert('tr_retur', $ArrHeader);
+
+            // 2. Simpan detail retur
+            $this->db->insert_batch('tr_retur_detail', $ArrDetail);
+
+            // 3. Update invoice lama: is_cancel=1, grand_total & piutang disesuaikan
+            $this->db->update('tr_invoice_sales', [
+                'is_cancel'   => 1,
+                'grand_total' => $nilai_inv_baru,
+                'piutang'     => $piutang_baru,
+                'sts'         => $sts_baru,
+                'updated_by'  => $this->auth->user_id(),
+                'updated_on'  => date('Y-m-d H:i:s'),
+            ], ['id_invoice' => $id_invoice_lama]);
+
+            // 4. Jurnal koreksi (membalik sebagian nilai piutang yang di-credit note)
+            $this->_buat_jurnal_credit_note(
+                $no_retur,
+                $post['tgl_retur'],
+                $id_invoice_lama,
+                $post['id_customer'],
+                $post['nm_customer'],
+                $grand_total_retur
+            );
+
+            if ($this->db->trans_status() === FALSE) {
+                throw new Exception('DB Error saat menyimpan.');
+            }
+
+            $this->db->trans_commit();
+
+            history("Create Credit Note : " . $no_retur);
+
+            $pesan = 'Credit note berhasil disimpan.';
+            if ($nilai_inv_baru > 0) {
+                $pesan .= ' Nilai invoice diperbarui menjadi Rp ' . number_format($nilai_inv_baru, 0, ',', '.');
+            } else {
+                $pesan .= ' Invoice telah di-cancel penuh.';
+            }
+
+            echo json_encode(['status' => 1, 'pesan' => $pesan]);
+        } catch (Exception $e) {
+            $this->db->trans_rollback();
+            echo json_encode(['status' => 0, 'pesan' => 'Gagal: ' . $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Buat jurnal koreksi untuk credit note.
+     * Membalik piutang sebesar nilai retur: Kredit Piutang Dagang, Debit Retur Penjualan.
+     */
+    private function _buat_jurnal_credit_note($no_retur, $tgl_retur, $id_invoice, $id_customer, $nm_customer, $nilai_retur)
+    {
+        $this->load->model('jurnal_nomor/Jurnal_model');
+
+        $tgl = date('Y-m-d', strtotime($tgl_retur));
+        $Nomor_JV = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl);
+
+        $keterangan = "Credit Note {$no_retur} atas Invoice {$id_invoice} A/n {$nm_customer}";
+
+        // Header jurnal
+        $this->db->insert(DBACC . '.javh', [
+            'nomor'         => $Nomor_JV,
+            'tgl'           => $tgl,
+            'jml'           => $nilai_retur,
+            'koreksi_no'    => '-',
+            'kdcab'         => '101',
+            'jenis'         => 'JV',
+            'keterangan'    => $keterangan,
+            'bulan'         => date('m', strtotime($tgl)),
+            'tahun'         => date('Y', strtotime($tgl)),
+            'user_id'       => $this->auth->user_id(),
+            'memo'          => '',
+            'tgl_jvkoreksi' => $tgl,
+            'ho_valid'      => ''
+        ]);
+
+        // Detail jurnal:
+        // Debit  : Retur Penjualan (4xxx atau sesuai COA retur penjualan)
+        // Kredit : Piutang Dagang
+        $det_jurnal = [
+            [
+                'nomor'        => $Nomor_JV,
+                'tanggal'      => $tgl,
+                'tipe'         => 'JV',
+                'no_perkiraan' => '4101-01-02', // Retur Penjualan — sesuaikan dengan COA perusahaan
+                'keterangan'   => $keterangan,
+                'no_reff'      => $no_retur,
+                'debet'        => $nilai_retur,
+                'kredit'       => 0,
+                'created_by'   => $this->auth->user_id(),
+                'created_on'   => date('Y-m-d H:i:s'),
+            ],
+            [
+                'nomor'        => $Nomor_JV,
+                'tanggal'      => $tgl,
+                'tipe'         => 'JV',
+                'no_perkiraan' => '1102-01-01', // Piutang Dagang
+                'keterangan'   => $keterangan,
+                'no_reff'      => $no_retur,
+                'debet'        => 0,
+                'kredit'       => $nilai_retur,
+                'created_by'   => $this->auth->user_id(),
+                'created_on'   => date('Y-m-d H:i:s'),
+            ],
+        ];
+        $this->db->insert_batch(DBACC . '.jurnal', $det_jurnal);
+
+        // Kartu piutang: kurangi piutang customer
+        $this->db->insert('tr_kartu_piutang', [
+            'tipe'          => 'JV',
+            'nomor'         => $Nomor_JV,
+            'tanggal'       => $tgl,
+            'no_perkiraan'  => '1102-01-01',
+            'keterangan'    => $keterangan,
+            'no_reff'       => $id_invoice,
+            'debet'         => 0,
+            'kredit'        => $nilai_retur,
+            'id_supplier'   => $id_customer,
+            'nama_supplier' => $nm_customer,
+        ]);
+
+        // Update counter nomor jurnal
+        $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC+1 WHERE nocab='101'");
     }
 
     public function req_spk($id_retur = null)
@@ -284,6 +434,29 @@ class Retur_credit_note extends Admin_Controller
                 'status' => 1
             ]);
         }
+    }
+
+    /**
+     * Endpoint AJAX: ambil history credit note untuk satu invoice.
+     * Dipanggil dari form penerimaan cash/bank.
+     * GET: ?id_invoice=INV-OM-xx-xx-xxx
+     */
+    public function get_cn_history()
+    {
+        $id_invoice = $this->input->get('id_invoice', TRUE);
+        if (!$id_invoice) {
+            echo json_encode([]);
+            return;
+        }
+
+        $data = $this->db
+            ->select('r.no_retur, r.tgl_retur, r.total_harga as nilai_retur, r.nilai_inv_baru, r.nm_customer, r.alasan')
+            ->from('tr_retur r')
+            ->where('r.id_invoice', $id_invoice)
+            ->order_by('r.tgl_retur', 'ASC')
+            ->get()->result();
+
+        echo json_encode($data);
     }
 
     public function view($id)

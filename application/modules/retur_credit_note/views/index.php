@@ -7,6 +7,7 @@
                 <thead>
                     <tr class="bg-blue">
                         <th>#</th>
+                        <th>No. Surat Jalan</th>
                         <th>No. Retur</th>
                         <th>Tgl. Retur</th>
                         <th>No. Invoice</th>

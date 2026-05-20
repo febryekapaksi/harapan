@@ -51,6 +51,7 @@ class Retur_credit_note_model extends BF_Model
 
 
             $nestedData[] = "<div class='text-center'>{$urut}</div>";
+            $nestedData[] = "<div class='text-center'>" . strtoupper($row['no_sj']) . "</div>";
             $nestedData[] = "<div class='text-center'>" . strtoupper($row['no_retur']) . "</div>";
             $nestedData[] = "<div class='text-center'>" . (($row['tgl_retur'] != null) ? date('d/M/Y', strtotime($row['tgl_retur'])) : '') . "</div>";
             $nestedData[] = "<div class='text-center'>" . strtoupper($row['id_invoice']) . "</div>";
@@ -88,7 +89,7 @@ class Retur_credit_note_model extends BF_Model
         // =============================
         // 1. Hitung totalData
         // =============================
-        $this->db->select('r.id as id_retur, r.no_retur, i.id_invoice, i.id_billing, i.id_so, r.tgl_retur, r.status, i.nm_customer');
+        $this->db->select('r.id as id_retur, r.no_retur, i.id_invoice, i.id_billing, i.id_so, r.tgl_retur, r.status, i.nm_customer, i.id_billing as no_sj');
         $this->db->from('tr_invoice_sales i');
         $this->db->join('tr_retur r', 'i.id_invoice = r.id_invoice', 'left');
         $this->db->where('i.is_cancel', 1);
@@ -98,7 +99,7 @@ class Retur_credit_note_model extends BF_Model
         // =============================
         // 2. Hitung totalFiltered
         // =============================
-        $this->db->select('r.id as id_retur, r.no_retur, i.id_invoice, i.id_billing, i.id_so, r.tgl_retur, r.status, i.nm_customer');
+        $this->db->select('r.id as id_retur, r.no_retur, i.id_invoice, i.id_billing, i.id_so, r.tgl_retur, r.status, i.nm_customer, i.id_billing as no_sj');
         $this->db->from('tr_invoice_sales i');
         $this->db->join('tr_retur r', 'i.id_invoice = r.id_invoice', 'left');
         $this->db->where('i.is_cancel', 1);
@@ -116,7 +117,7 @@ class Retur_credit_note_model extends BF_Model
         // =============================
         // 3. Ambil data paginasi
         // =============================
-        $this->db->select('r.id as id_retur, r.no_retur, i.id_invoice, i.id_billing, i.id_so, r.tgl_retur, r.status, i.nm_customer');
+        $this->db->select('r.id as id_retur, r.no_retur, i.id_invoice, i.id_billing, i.id_so, r.tgl_retur, r.status, i.nm_customer, i.id_billing as no_sj');
         $this->db->from('tr_invoice_sales i');
         $this->db->join('tr_retur r', 'i.id_invoice = r.id_invoice', 'left');
         $this->db->where('i.is_cancel', 1);

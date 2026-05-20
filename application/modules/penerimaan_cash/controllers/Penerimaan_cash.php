@@ -86,7 +86,9 @@ class Penerimaan_cash extends Admin_Controller
 			(i.grand_total - IFNULL(bayar.total_bayar, 0)) as sisa_tagihan,
             DATE_FORMAT(i.created_on, "%d/%b/%Y") as tgl_inv,
             DATE_FORMAT(i.tgl_so, "%d/%b/%Y") as tgl_so,
-            c.name_customer
+            c.name_customer,
+            IFNULL(cn.jumlah_cn, 0) as jumlah_cn,
+            IFNULL(cn.total_nilai_cn, 0) as total_nilai_cn
         ')
 			->from('tr_invoice_sales i')
 			->join('master_customers c', 'c.id_customer = i.id_customer', 'left')
@@ -96,6 +98,9 @@ class Penerimaan_cash extends Admin_Controller
 			->join('(SELECT no_invoice, SUM(total_bayar_idr) as total_bayar 
          FROM tr_invoice_payment_detail 
          GROUP BY no_invoice) bayar', 'bayar.no_invoice = i.id_invoice', 'left')
+			->join('(SELECT id_invoice, COUNT(*) as jumlah_cn, SUM(total_harga) as total_nilai_cn
+         FROM tr_retur
+         GROUP BY id_invoice) cn', 'cn.id_invoice = i.id_invoice', 'left')
 			->where('(i.grand_total > IFNULL(bayar.total_bayar, 0))', null, false)
 			->order_by('i.created_on', 'ASC')
 			->get()

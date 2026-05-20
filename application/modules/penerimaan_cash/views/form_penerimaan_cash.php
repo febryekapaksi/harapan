@@ -139,7 +139,7 @@
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal Daftar Invoice -->
 <div class="modal fade" id="ModalInv" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -157,7 +157,8 @@
                             <th>Tanggal SO</th>
                             <th>No SO</th>
                             <th>Total Invoice</th>
-                            <th></th>
+                            <th class="text-center">CN</th>
+                            <th class="text-center">Pilih</th>
                         </tr>
                     </thead>
 
@@ -166,6 +167,43 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-success" id="btnPilihInv">Pilih</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal History Credit Note -->
+<div class="modal fade" id="ModalCNHistory" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <div class="modal-content">
+            <div class="modal-header bg-orange">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title"><i class="fa fa-history"></i> History Credit Note</h4>
+            </div>
+            <div class="modal-body">
+                <p id="cn-invoice-label" class="text-bold"></p>
+                <table class="table table-bordered table-striped" id="tableCNHistory">
+                    <thead class="bg-orange">
+                        <tr>
+                            <th>No. Retur</th>
+                            <th>Tgl. Retur</th>
+                            <th class="text-right">Nilai Retur</th>
+                            <th class="text-right">Nilai Inv. Baru</th>
+                            <th>Alasan</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                    <tfoot>
+                        <tr class="bg-yellow">
+                            <th colspan="2" class="text-right">Total Nilai Retur</th>
+                            <th class="text-right" id="cn-total-retur">0</th>
+                            <th colspan="2"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Tutup</button>
             </div>
         </div>
     </div>
@@ -292,20 +330,32 @@
                             if (item.name_customer !== currentCustomer) {
                                 html += `
                                             <tr style="background-color:#f0f0f0; font-weight:bold;">
-                                                <td colspan="7">Customer: ${item.name_customer}</td>
+                                                <td colspan="8">Customer: ${item.name_customer}</td>
                                             </tr>
                                         `;
                                 currentCustomer = item.name_customer;
+                            }
+
+                            // Badge credit note jika ada
+                            let cnBadge = '';
+                            let cnBtn = '';
+                            if (parseInt(item.jumlah_cn) > 0) {
+                                cnBadge = `<span class="badge bg-orange" title="Pernah ada credit note">CN</span>`;
+                                cnBtn = `<button type="button" class="btn btn-xs btn-warning btn-lihat-cn" 
+                                              data-invoice="${item.id_invoice}" title="Lihat history credit note">
+                                              <i class="fa fa-history"></i>
+                                           </button>`;
                             }
 
                             html += `
                         	<tr>
                                 <td class="text-center">${no++}</td>
                                 <td>${item.tgl_inv}</td>
-                                <td>${item.id_invoice}</td>
+                                <td>${item.id_invoice} ${cnBadge}</td>
                                 <td>${item.tgl_so ?? '-'}</td>
                                 <td>${item.id_so ?? '-'}</td>
-                                <td class="text-right">${parseFloat(item.sisa_tagihan).toLocaleString()}</td>
+                                <td class="text-right">${parseFloat(item.sisa_tagihan).toLocaleString('id-ID')}</td>
+                                <td class="text-center">${cnBtn}</td>
                                 <td class="text-center">
                                   <input type="checkbox" class="select-inv" data-inv='${JSON.stringify(item)}' 
                                     ${selectedInvoiceIds.includes(item.id_invoice) ? 'checked' : ''}>
@@ -319,26 +369,6 @@
                     // Cekbox chaining logic
                     const checkboxes = $('#tableModalInv .select-inv');
                     checkboxes.prop('disabled', false); //sementara biar aktip semua 
-
-                    // checkboxes.prop('disabled', true); // awalnya semua disabled
-                    // if (checkboxes.length > 0) checkboxes.eq(0).prop('disabled', false); // kecuali yang pertama
-
-                    // checkboxes.on('change', function() {
-                    //     const idx = checkboxes.index(this);
-                    //     const checked = $(this).prop('checked');
-
-                    //     if (checked) {
-                    //         // Aktifkan checkbox berikutnya
-                    //         if (idx + 1 < checkboxes.length) {
-                    //             checkboxes.eq(idx + 1).prop('disabled', false);
-                    //         }
-                    //     } else {
-                    //         // Uncheck & disable semua checkbox setelahnya
-                    //         for (let i = idx + 1; i < checkboxes.length; i++) {
-                    //             checkboxes.eq(i).prop('checked', false).prop('disabled', true);
-                    //         }
-                    //     }
-                    // });
 
                     $('#ModalInv').modal('show');
                 },
@@ -522,6 +552,48 @@
         $('#totalTerima').on('input', function() {
             console.log('input terima');
             updateInvoiceTotals();
+        });
+
+        // Handler tombol lihat history credit note
+        $(document).on('click', '.btn-lihat-cn', function() {
+            const id_invoice = $(this).data('invoice');
+            $('#cn-invoice-label').text('Invoice: ' + id_invoice);
+            $('#tableCNHistory tbody').html('<tr><td colspan="5" class="text-center"><i class="fa fa-spinner fa-spin"></i> Memuat...</td></tr>');
+            $('#ModalCNHistory').modal('show');
+
+            $.ajax({
+                url: siteurl + 'retur_credit_note/get_cn_history',
+                type: 'GET',
+                data: {
+                    id_invoice: id_invoice
+                },
+                dataType: 'json',
+                success: function(data) {
+                    let html = '';
+                    let totalRetur = 0;
+                    if (!data || data.length === 0) {
+                        html = '<tr><td colspan="5" class="text-center">Tidak ada data credit note.</td></tr>';
+                    } else {
+                        data.forEach(function(cn) {
+                            const nilaiRetur = parseFloat(cn.nilai_retur || 0);
+                            const nilaiInvBaru = parseFloat(cn.nilai_inv_baru || 0);
+                            totalRetur += nilaiRetur;
+                            html += `<tr>
+                                <td>${cn.no_retur}</td>
+                                <td>${cn.tgl_retur}</td>
+                                <td class="text-right">${nilaiRetur.toLocaleString('id-ID')}</td>
+                                <td class="text-right">${nilaiInvBaru.toLocaleString('id-ID')}</td>
+                                <td>${cn.alasan || '-'}</td>
+                            </tr>`;
+                        });
+                    }
+                    $('#tableCNHistory tbody').html(html);
+                    $('#cn-total-retur').text(totalRetur.toLocaleString('id-ID'));
+                },
+                error: function() {
+                    $('#tableCNHistory tbody').html('<tr><td colspan="5" class="text-center text-red">Gagal memuat data.</td></tr>');
+                }
+            });
         });
     });
 

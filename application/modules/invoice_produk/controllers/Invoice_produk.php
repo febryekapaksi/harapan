@@ -867,12 +867,13 @@ class Invoice_produk extends Admin_Controller
 
 			// Query + filter tanggal
 			$this->db
-				->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.id_invoice, i.created_on, i.is_cancel, sj.created_at')
+				->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.id_invoice, i.created_on, i.is_cancel, sj.created_at, COALESCE(sjd_sum.total_terkirim, 0) AS total_terkirim')
 				->from('surat_jalan sj')
 				->join('tr_invoice_sales i', 'sj.no_surat_jalan = i.id_billing AND i.tipe_billing="delivery"', 'left')
 				->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
 				->join('sales_order b', 'b.no_so = sj.no_so', 'left')
 				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
+				->join('(SELECT no_surat_jalan, SUM(qty_terkirim) AS total_terkirim FROM surat_jalan_detail GROUP BY no_surat_jalan) sjd_sum', 'sjd_sum.no_surat_jalan = sj.no_surat_jalan', 'left')
 				->where('sj.status !=', 'ON DELIVER')
 				->where('sj.status IS NOT NULL')
 				// Tampilkan hanya jika: sudah punya invoice (tetap tampil untuk view/print)
@@ -882,10 +883,11 @@ class Invoice_produk extends Admin_Controller
 					OR (
 						b.no_so IS NOT NULL
 						AND c.id_customer IS NOT NULL
-						AND (SELECT COALESCE(SUM(sjd.qty_terkirim),0) FROM surat_jalan_detail sjd WHERE sjd.no_surat_jalan = sj.no_surat_jalan) > 0
+						AND COALESCE(sjd_sum.total_terkirim, 0) > 0
 					)
 				)')
 				// ->where('i.is_cancel IS NULL')
+				->order_by('sj.delivery_date', 'DESC', false)
 				->order_by('sj.created_at', 'DESC', false);
 
 			// Pakai tanggal invoice jika ada, fallback ke tanggal SJ (ganti sj.created_on ke kolom tanggal SJ-mu jika berbeda)

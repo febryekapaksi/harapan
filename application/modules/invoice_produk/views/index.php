@@ -165,7 +165,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 					...
 				</div>
 				<div class="modal-footer">
-					<button type="submit" id="cancelInvoice" class="btn btn-warning"><i class="fa fa-ban"></i> Cancel Invoice</button>
+					<button type="submit" id="cancelInvoice" class="btn btn-warning"><i class="fa fa-ban"></i> Retur Credit Note</button>
 					<button type="button" class="btn btn-danger" data-dismiss="modal">
 						<span class="glyphicon glyphicon-remove"></span> Close
 					</button>
