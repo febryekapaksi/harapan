@@ -94,7 +94,7 @@ class Penerimaan_cash extends Admin_Controller
 			->join('master_customers c', 'c.id_customer = i.id_customer', 'left')
 			->where('i.id_customer', $id_customer)
 			->where('i.sts', 1)
-			->where('i.is_cancel', null)
+			->where('(i.is_cancel IS NULL OR i.is_cancel = 2)', null, false)
 			->join('(SELECT no_invoice, SUM(total_bayar_idr) as total_bayar 
          FROM tr_invoice_payment_detail 
          GROUP BY no_invoice) bayar', 'bayar.no_invoice = i.id_invoice', 'left')

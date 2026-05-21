@@ -384,41 +384,20 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 
 		const form = document.getElementById('frm-view');
 		const formData = new FormData(form);
+		const id_invoice = $(form).find('input[name="id_invoice"]').val();
 
 		swal({
-			title: "Warning!",
-			text: "Are you sure to cancel this invoice?",
+			title: "Request Retur Credit Note?",
+			text: "Invoice akan masuk ke antrian retur. Gudang akan membuat Surat Jalan Retur, lalu Finance memproses Credit Note.",
 			type: "warning",
 			showCancelButton: true,
-			confirmButtonText: "Yes, Cancel Invoice",
-			confirmButtonColor: "#00a65a",
+			confirmButtonText: "Ya, Request Retur",
+			confirmButtonColor: "#f39c12",
 			cancelButtonColor: "#c9302c"
 		}, function(confirm) {
 			if (confirm) {
-				$.ajax({
-					type: 'POST',
-					url: siteurl + active_controller + 'cancel_invoice',
-					data: formData,
-					contentType: false,
-					processData: false,
-					dataType: 'json',
-					success: function(result) {
-						if (result.status) {
-							swal({
-								title: 'Success!',
-								text: result.message,
-								type: 'success'
-							}, function() {
-								window.location.href = siteurl + active_controller;
-							});
-						} else {
-							swal('Failed!', 'Invoice has not been canceled!', 'warning');
-						}
-					},
-					error: function() {
-						swal('Error!', 'Please try again later!', 'error');
-					}
-				});
+				// Redirect ke form request retur
+				window.location.href = siteurl + 'retur_credit_note/add/' + id_invoice;
 			}
 		});
 	});

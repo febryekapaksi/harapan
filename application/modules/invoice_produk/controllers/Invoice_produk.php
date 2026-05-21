@@ -975,22 +975,30 @@ class Invoice_produk extends Admin_Controller
 				$edit = '<button type="button" class="btn btn-sm btn-success create_invoice_modal" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" title="Create"><i class="fa fa-check"></i></button>';
 
 				$check_invoice_dp = $this->db->get_where('tr_invoice_sales', ['id_billing' => $item->no_surat_jalan, 'tipe_billing' => 'delivery'])->num_rows();
-				if ($item->is_cancel != null) {
-					$button = '<span class="badge bg-red">Credit Note</span>';
+				if ($item->is_cancel == 1) {
+					$button = '<span class="badge bg-red">Credit Note (Full)</span>';
+				} elseif ($item->is_cancel == 2) {
+					$get_invoice_dp = $this->db->get_where('tr_invoice_sales', ['id_billing' => $item->no_surat_jalan, 'tipe_billing' => 'delivery'])->row();
+					$view  = '<button type="button" class="btn btn-sm btn-info view_invoice_modal_delivery" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '"><i class="fa fa-eye"></i></button>';
+					$print = '<a href="invoice_produk/print_invoice_delivery/' . $get_invoice_dp->id_invoice . '" target="_blank" class="btn btn-sm btn-primary" title="Print Invoice"><i class="fa fa-print"></i></a>';
+					$button = $view . ' ' . $print . ' <span class="badge bg-orange">CN Partial</span>';
 				} else {
 					if ($check_invoice_dp > 0) {
 						$get_invoice_dp = $this->db->get_where('tr_invoice_sales', ['id_billing' => $item->no_surat_jalan, 'tipe_billing' => 'delivery'])->row();
-
-						$view = '<button type="button" class="btn btn-sm btn-info view_invoice_modal_delivery" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '"><i class="fa fa-eye"></i></button>';
-
-						$print = '<a href="invoice_produk/print_invoice_delivery/' .  $get_invoice_dp->id_invoice . '" target="_blank" class="btn btn-sm btn-primary print_invoice_delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '" title="Print Invoice"><i class="fa fa-print"></i></a>';
-
-						$button = $view . ' ' . $print;
+						$retur_row = $this->db->get_where('tr_retur', ['id_invoice' => $get_invoice_dp->id_invoice])->row();
+						$view  = '<button type="button" class="btn btn-sm btn-info view_invoice_modal_delivery" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '"><i class="fa fa-eye"></i></button>';
+						$print = '<a href="invoice_produk/print_invoice_delivery/' . $get_invoice_dp->id_invoice . '" target="_blank" class="btn btn-sm btn-primary print_invoice_delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '" title="Print Invoice"><i class="fa fa-print"></i></a>';
+						if ($retur_row && $retur_row->status == 0) {
+							$button = $view . ' ' . $print . ' <span class="badge bg-yellow" style="color:#333;">Retur Pending</span>';
+						} elseif ($retur_row && $retur_row->status == 1) {
+							$button = $view . ' ' . $print . ' <span class="badge bg-blue">Menunggu CN</span>';
+						} else {
+							$button = $view . ' ' . $print;
+						}
 					} else {
 						$button = $edit;
 					}
 				}
-
 				$hasil .=	 '<td class="text-center">
 								' . $button . '
 							</td>';

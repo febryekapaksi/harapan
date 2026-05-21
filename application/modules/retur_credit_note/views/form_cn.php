@@ -1,0 +1,168 @@
+<?php
+$grand_total_retur = 0;
+foreach ($detail as $dt) {
+    $grand_total_retur += $dt['total'];
+}
+$nilai_inv_baru = $grand_total_inv - $grand_total_retur;
+?>
+
+<div class="box box-danger">
+    <div class="box-body">
+
+        <?php if ($total_sudah_bayar > 0): ?>
+            <div class="alert alert-warning">
+                <strong><i class="fa fa-exclamation-triangle"></i> Perhatian!</strong>
+                Invoice ini sudah pernah menerima pembayaran sebesar
+                <strong>Rp <?= number_format($total_sudah_bayar, 0, ',', '.') ?></strong>.
+                Piutang baru setelah CN: <strong>Rp <?= number_format(max(0, $nilai_inv_baru - $total_sudah_bayar), 0, ',', '.') ?></strong>.
+            </div>
+        <?php endif; ?>
+
+        <form id="form-cn">
+            <input type="hidden" name="no_retur" value="<?= $retur['no_retur'] ?>">
+            <input type="hidden" name="id_invoice" value="<?= $retur['id_invoice'] ?>">
+            <input type="hidden" name="grand_total_asli" id="grand_total_asli" value="<?= $grand_total_inv ?>">
+            <input type="hidden" name="total_sudah_bayar" value="<?= $total_sudah_bayar ?>">
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>No. Retur</label>
+                        <input type="text" class="form-control" value="<?= $retur['no_retur'] ?>" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>No. Invoice</label>
+                        <input type="text" class="form-control" value="<?= $retur['id_invoice'] ?>" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>No. SJ Retur</label>
+                        <input type="text" class="form-control" value="<?= $retur['no_sjr'] ?>" readonly>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label>Customer</label>
+                        <input type="text" class="form-control" value="<?= $retur['nm_customer'] ?>" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Credit Note <span class="text-red">*</span></label>
+                        <input type="date" class="form-control" name="tgl_retur" required value="<?= date('Y-m-d') ?>">
+                    </div>
+                </div>
+            </div>
+
+            <hr>
+            <h4>Detail Item Retur (dari Surat Jalan Retur)</h4>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped">
+                    <thead class="bg-red">
+                        <tr>
+                            <th>No</th>
+                            <th>ID Produk</th>
+                            <th>Nama Produk</th>
+                            <th class="text-center">Qty Retur</th>
+                            <th class="text-right">Harga</th>
+                            <th class="text-right">Total Retur</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php $no = 0;
+                        foreach ($detail as $dt): $no++; ?>
+                            <tr>
+                                <td class="text-center"><?= $no ?></td>
+                                <td><?= $dt['id_product'] ?></td>
+                                <td><?= $dt['nm_product'] ?></td>
+                                <td class="text-center"><?= $dt['qty_retur'] ?></td>
+                                <td class="text-right"><?= number_format($dt['harga'], 0, ',', '.') ?></td>
+                                <td class="text-right total_item_raw_display"><?= number_format($dt['total'], 0, ',', '.') ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                    <tfoot class="bg-gray">
+                        <tr>
+                            <th colspan="5" class="text-right">Total Nilai Retur</th>
+                            <th class="text-right">
+                                <input type="text" class="form-control input-sm text-right bg-red" id="grand_total_display"
+                                    readonly value="<?= number_format($grand_total_retur, 0, ',', '.') ?>">
+                                <input type="hidden" name="grand_total" id="grand_total" value="<?= $grand_total_retur ?>">
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="text-right">Nilai Invoice Asal</th>
+                            <th class="text-right">
+                                <input type="text" class="form-control input-sm text-right" readonly
+                                    value="<?= number_format($grand_total_inv, 0, ',', '.') ?>">
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="text-right">Sudah Dibayar</th>
+                            <th class="text-right">
+                                <input type="text" class="form-control input-sm text-right" readonly
+                                    value="<?= number_format($total_sudah_bayar, 0, ',', '.') ?>">
+                            </th>
+                        </tr>
+                        <tr>
+                            <th colspan="5" class="text-right">Nilai Invoice Baru (Sisa)</th>
+                            <th class="text-right">
+                                <input type="text" class="form-control input-sm text-right" id="nilai_inv_baru_display"
+                                    readonly value="<?= number_format($nilai_inv_baru, 0, ',', '.') ?>">
+                                <input type="hidden" name="nilai_inv_baru" id="nilai_inv_baru" value="<?= $nilai_inv_baru ?>">
+                            </th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="text-center" style="margin-top:20px;">
+                <button type="submit" class="btn btn-danger"><i class="fa fa-check"></i> Proses Credit Note</button>
+                <a class="btn btn-default" href="<?= site_url('retur_credit_note') ?>"><i class="fa fa-reply"></i> Batal</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function() {
+        $('#form-cn').submit(function(e) {
+            e.preventDefault();
+            swal({
+                title: "Proses Credit Note?",
+                text: "Tindakan ini akan mengubah nilai invoice dan membuat jurnal koreksi. Tidak dapat dibatalkan.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonText: "Ya, Proses",
+                confirmButtonColor: "#dd4b39"
+            }, function(confirm) {
+                if (!confirm) return;
+                var formData = new FormData($('#form-cn')[0]);
+                $.ajax({
+                    url: siteurl + 'retur_credit_note/save_cn',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.status == 1) {
+                            swal({
+                                title: 'Berhasil!',
+                                text: res.pesan,
+                                type: 'success',
+                                timer: 5000
+                            });
+                            setTimeout(function() {
+                                window.location.href = siteurl + 'retur_credit_note';
+                            }, 1500);
+                        } else {
+                            swal('Gagal', res.pesan, 'warning');
+                        }
+                    },
+                    error: function() {
+                        swal('Error', 'Terjadi kesalahan.', 'error');
+                    }
+                });
+            });
+        });
+    });
+</script>
