@@ -369,7 +369,7 @@
                             </tr>
                     `;
 
-                            // Render history CN inline jika ada
+                            // Render history CN inline jika ada (info only, tanpa checkbox)
                             if (item.cn_rows && item.cn_rows.length > 0) {
                                 let nilaiAwal = parseFloat(item.nilai_asli || 0);
                                 let cnHtml = '';
@@ -377,12 +377,6 @@
                                     const nilaiRetur = parseFloat(cn.nilai_retur || 0);
                                     const nilaiInvBaru = parseFloat(cn.nilai_inv_baru || 0);
                                     cnHtml += `<tr>
-                                        <td class="text-center">
-                                            <input type="checkbox" class="select-cn"
-                                                data-invoice="${item.id_invoice}"
-                                                data-no-retur="${cn.no_retur}"
-                                                data-nilai-retur="${nilaiRetur}">
-                                        </td>
                                         <td>${cn.no_retur}</td>
                                         <td>${cn.tgl_retur}</td>
                                         <td class="text-right">${nilaiAwal.toLocaleString('id-ID')}</td>
@@ -398,13 +392,11 @@
                                         <table class="table table-condensed table-bordered" style="margin:0; font-size:12px; background:#fff8f0;">
                                             <thead>
                                                 <tr class="bg-orange" style="color:#fff;">
-                                                    <th colspan="7" style="padding:4px 8px;">
+                                                    <th colspan="6" style="padding:4px 8px;">
                                                         <i class="fa fa-history"></i> History Credit Note — ${item.id_invoice}
-                                                        <small style="font-weight:normal;"> (centang CN untuk memotong tagihan)</small>
                                                     </th>
                                                 </tr>
                                                 <tr style="background:#fde8c8;">
-                                                    <th class="text-center" style="width:30px;">Pakai</th>
                                                     <th>No. Retur</th>
                                                     <th>Tgl. Retur</th>
                                                     <th class="text-right">Nilai Inv. Asal</th>
@@ -468,19 +460,6 @@
                 return;
             }
 
-            // Kumpulkan CN yang di-centang per invoice
-            const cnTerpilih = {}; // { id_invoice: [ {no_retur, nilai_retur}, ... ] }
-            $('.select-cn:checked').each(function() {
-                const idInv = $(this).data('invoice');
-                const noRetur = $(this).data('no-retur');
-                const nilaiRetur = parseFloat($(this).data('nilai-retur')) || 0;
-                if (!cnTerpilih[idInv]) cnTerpilih[idInv] = [];
-                cnTerpilih[idInv].push({
-                    no_retur: noRetur,
-                    nilai_retur: nilaiRetur
-                });
-            });
-
             let rowIndex = $('#tableInv tbody tr').length;
 
             selectedInvoices.forEach((inv) => {
@@ -488,47 +467,26 @@
 
                 selectedInvoiceIds.push(inv.id_invoice);
                 rowIndex++;
-
-                // Hitung total potongan CN yang dipilih untuk invoice ini
-                const cnList = cnTerpilih[inv.id_invoice] || [];
-                const totalPotonganCN = cnList.reduce((sum, cn) => sum + cn.nilai_retur, 0);
-                const nominalAsli = parseFloat(inv.sisa_tagihan || inv.grand_total || 0);
-                const nominalBayar = Math.max(0, nominalAsli - totalPotonganCN);
-
-                // Buat hidden input untuk CN yang dipilih
-                let cnHiddenInputs = '';
-                cnList.forEach(function(cn, i) {
-                    cnHiddenInputs += `
-                        <input type="hidden" name="detail[${rowIndex}][cn][${i}][no_retur]" value="${cn.no_retur}">
-                        <input type="hidden" name="detail[${rowIndex}][cn][${i}][nilai_retur]" value="${cn.nilai_retur}">
-                    `;
-                });
-
-                // Label info CN jika ada potongan
-                const cnInfo = totalPotonganCN > 0 ?
-                    `<br><small class="text-orange"><i class="fa fa-scissors"></i> Potong CN: ${totalPotonganCN.toLocaleString('id-ID')}</small>` :
-                    '';
+                const nominal = parseFloat(inv.sisa_tagihan || inv.grand_total || 0);
 
                 $('#tableInv tbody').append(`
                     <tr>
                         <td class="text-center">${rowIndex}</td>
-                        <td>${inv.id_invoice}${cnInfo}</td>
+                        <td>${inv.id_invoice}</td>
                         <td>
-                            <input type="text" name="detail[${rowIndex}][tagihan]" class="form-control input-sm text-right tagihan moneyFormat" value="${nominalAsli}" readonly />
+                            <input type="text" name="detail[${rowIndex}][tagihan]" class="form-control input-sm text-right tagihan moneyFormat" value="${nominal}" readonly />
                         </td>
                         <td>
-                            <input type="text" name="detail[${rowIndex}][sisa_invoice]" class="form-control input-sm text-right sisa_invoice moneyFormat" value="${nominalAsli}" readonly/>
+                            <input type="text" name="detail[${rowIndex}][sisa_invoice]" class="form-control input-sm text-right sisa_invoice moneyFormat" value="${nominal}" readonly/>
                         </td>
                         <td>
-                            <input type="text" name="detail[${rowIndex}][total_bayar]" class="form-control input-sm text-right total_bayar moneyFormat" value="${nominalBayar}" readonly/>
+                            <input type="text" name="detail[${rowIndex}][total_bayar]" class="form-control input-sm text-right total_bayar moneyFormat" value="${nominal}" readonly/>
                         </td>
                         <td class="text-center">
                             <button class="btn btn-danger btn-sm btn-remove"><i class="fa fa-trash"></i></button>
                         </td>
                         <input type="hidden" name="detail[${rowIndex}][id_invoice]" value="${inv.id_invoice}">
                         <input type="hidden" name="detail[${rowIndex}][id_so]" value="${inv.id_so}">
-                        <input type="hidden" name="detail[${rowIndex}][potongan_cn]" value="${totalPotonganCN}">
-                        ${cnHiddenInputs}
                     </tr>
                 `);
             });
