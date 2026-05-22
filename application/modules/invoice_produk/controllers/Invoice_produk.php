@@ -698,7 +698,11 @@ class Invoice_produk extends Admin_Controller
 			echo json_encode(['status' => false, 'message' => 'Gagal menyimpan data Invoice.']);
 		} else {
 			$this->db->trans_commit();
-			echo json_encode(['status' => true, 'message' => 'Data Invoice berhasil disimpan.']);
+			echo json_encode([
+				'status'       => true,
+				'message'      => 'Data Invoice berhasil disimpan.',
+				'redirect_url' => base_url("invoice_produk/print_invoice_delivery/{$id_invoice}")
+			]);
 		}
 	}
 

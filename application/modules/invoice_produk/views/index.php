@@ -365,7 +365,10 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 								text: result.message,
 								type: 'success'
 							}, function() {
-								window.location.href = siteurl + active_controller;
+								window.open(result.redirect_url, '_blank');
+								setTimeout(() => {
+									window.location.href = siteurl + active_controller;
+								}, 1000);
 							});
 						} else {
 							swal('Failed!', 'Invoice has not been created!', 'warning');
