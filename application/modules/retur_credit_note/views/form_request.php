@@ -72,6 +72,7 @@
                                     <input type="hidden" name="detail[<?= $no ?>][id_so_det]" value="<?= $dt['id_so_det'] ?>">
                                     <input type="hidden" name="detail[<?= $no ?>][qty]" value="<?= $dt['qty'] ?>">
                                     <input type="hidden" name="detail[<?= $no ?>][harga_raw]" value="<?= $dt['harga'] ?>">
+                                    <input type="hidden" name="detail[<?= $no ?>][harga_beli]" value="<?= $dt['harga_beli'] ?>">
                                     <input type="hidden" name="detail[<?= $no ?>][total_raw]" value="<?= $dt['total'] ?>">
                                     <?= $dt['id_produk'] ?>
                                 </td>

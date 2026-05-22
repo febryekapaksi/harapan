@@ -71,6 +71,7 @@
                                     <input type="hidden" name="detail[<?= $no ?>][nm_product]" value="<?= $dt['nm_product'] ?>">
                                     <input type="hidden" name="detail[<?= $no ?>][id_so_det]" value="<?= $dt['id_so_det'] ?>">
                                     <input type="hidden" name="detail[<?= $no ?>][harga_raw]" value="<?= $dt['harga'] ?>">
+                                    <input type="hidden" name="detail[<?= $no ?>][harga_beli]" value="<?= $dt['harga_beli'] ?>">
                                     <?= $dt['id_product'] ?>
                                 </td>
                                 <td><?= $dt['nm_product'] ?></td>
@@ -99,6 +100,81 @@
                             </th>
                         </tr>
                     </tfoot>
+                </table>
+            </div>
+
+            <hr>
+            <h4>Informasi Jurnal</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr bgcolor="#9acfea">
+                            <th class="text-center">Tanggal</th>
+                            <th class="text-center">Tipe</th>
+                            <th class="text-center">No. COA</th>
+                            <th>Nama COA</th>
+                            <th class="text-center">Debit</th>
+                            <th class="text-center">Kredit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Baris 1: Kredit Persediaan Barang Warehouse -->
+                        <tr bgcolor="#DCDCDC">
+                            <td>
+                                <input type="date" name="tgl_jurnal[]" class="form-control" value="<?= date('Y-m-d') ?>" readonly>
+                            </td>
+                            <td>
+                                <input type="text" name="type[]" class="form-control" value="JV" readonly>
+                            </td>
+                            <td>
+                                <input type="text" name="no_coa[]" class="form-control" value="1104-01-01" readonly>
+                            </td>
+                            <td>
+                                <input type="text" name="nama_coa[]" class="form-control" value="Persediaan Barang Warehouse" readonly>
+                            </td>
+                            <td>
+                                <input type="hidden" name="debet[]" id="debet_row1" value="0">
+                                <input type="text" class="form-control text-right" id="debet_row1_display" value="0" readonly>
+                            </td>
+                            <td>
+                                <input type="hidden" name="kredit[]" id="kredit_row1" value="0">
+                                <input type="text" class="form-control text-right" id="kredit_row1_display" value="0" readonly>
+                            </td>
+                        </tr>
+                        <!-- Baris 2: Debit HPP -->
+                        <tr bgcolor="#DCDCDC">
+                            <td>
+                                <input type="date" name="tgl_jurnal[]" class="form-control" value="<?= date('Y-m-d') ?>" readonly>
+                            </td>
+                            <td>
+                                <input type="text" name="type[]" class="form-control" value="JV" readonly>
+                            </td>
+                            <td>
+                                <input type="text" name="no_coa[]" class="form-control" value="5101-01-01" readonly>
+                            </td>
+                            <td>
+                                <input type="text" name="nama_coa[]" class="form-control" value="HPP" readonly>
+                            </td>
+                            <td>
+                                <input type="hidden" name="debet[]" id="debet_row2" value="0">
+                                <input type="text" class="form-control text-right" id="debet_row2_display" value="0" readonly>
+                            </td>
+                            <td>
+                                <input type="hidden" name="kredit[]" id="kredit_row2" value="0">
+                                <input type="text" class="form-control text-right" id="kredit_row2_display" value="0" readonly>
+                            </td>
+                        </tr>
+                        <!-- Baris Total -->
+                        <tr bgcolor="#DCDCDC">
+                            <td colspan="4" class="text-right"><strong>TOTAL</strong></td>
+                            <td class="text-right">
+                                <input type="text" class="form-control text-right" id="total_debet_display" value="0" readonly>
+                            </td>
+                            <td class="text-right">
+                                <input type="text" class="form-control text-right" id="total_kredit_display" value="0" readonly>
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
 
@@ -131,6 +207,7 @@
             $row.find('.total_item').text(total.toLocaleString('id-ID'));
             $row.find('.total_item_raw').val(total);
             hitungGrandTotal();
+            hitungJurnal();
         });
 
         function hitungGrandTotal() {
@@ -140,6 +217,40 @@
             });
             $('#grand_total_sjr').text(total.toLocaleString('id-ID'));
         }
+
+        // Hitung total nilai jurnal = SUM(qty_retur * harga_beli) per baris
+        function hitungJurnal() {
+            var totalHargaBeli = 0;
+            $('tbody tr').each(function() {
+                var $row = $(this);
+                var qtyInput = $row.find('.qty_retur_input');
+                if (qtyInput.length === 0) return; // skip baris non-detail
+                var qty = parseFloat(qtyInput.val()) || 0;
+                var hargaBeli = parseFloat($row.find('input[name$="[harga_beli]"]').val()) || 0;
+                totalHargaBeli += qty * hargaBeli;
+            });
+
+            var formatted = totalHargaBeli.toLocaleString('id-ID');
+
+            // Baris 1: 1104-01-01 Persediaan Barang Warehouse → Kredit
+            $('#debet_row1').val(0);
+            $('#debet_row1_display').val('0');
+            $('#kredit_row1').val(totalHargaBeli);
+            $('#kredit_row1_display').val(formatted);
+
+            // Baris 2: 5101-01-01 HPP → Debit
+            $('#debet_row2').val(totalHargaBeli);
+            $('#debet_row2_display').val(formatted);
+            $('#kredit_row2').val(0);
+            $('#kredit_row2_display').val('0');
+
+            // Total
+            $('#total_debet_display').val(formatted);
+            $('#total_kredit_display').val(formatted);
+        }
+
+        // Hitung jurnal saat halaman pertama kali load
+        hitungJurnal();
 
         $('#form-sjr').submit(function(e) {
             e.preventDefault();

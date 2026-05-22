@@ -59,11 +59,14 @@ class Retur_credit_note extends Admin_Controller
                    dt.id_produk, dt.nm_produk,
                    round(dt.qty) as qty,
                    dt.harga,
+                   sod.harga_beli,
                    round(dt.qty * dt.harga) as total
             FROM tr_invoice_sales_detail dt
             JOIN surat_jalan_detail sjd
                 ON dt.id_delivery = sjd.no_surat_jalan
                 AND dt.id_produk  = sjd.id_product
+            JOIN sales_order_detail sod 
+                ON sjd.id_so_det = sod.id
             WHERE dt.id_invoice = ?
             ORDER BY dt.id_invoice
         ";
@@ -126,6 +129,7 @@ class Retur_credit_note extends Admin_Controller
                 'nm_product'     => $value['nm_produk'],
                 'qty_retur'      => (float)$value['qty'],
                 'harga'          => (float)str_replace(',', '', $value['harga_raw']),
+                'harga_beli'     => (float)str_replace(',', '', $value['harga_beli']),
                 'total'          => (float)str_replace(',', '', $value['total_raw']),
                 'created_by'     => $this->auth->user_id(),
                 'created_date'   => date('Y-m-d H:i:s'),
@@ -198,6 +202,7 @@ class Retur_credit_note extends Admin_Controller
         $no_retur   = $post['no_retur'];
         $no_sj_asal = $post['no_sj_asal'];
         $no_sjr     = $no_sj_asal . 'R';
+        $no_invoice = $post['no_invoice'];
 
         // Cek duplikat no_sjr
         $cek = $this->db->get_where('surat_jalan_retur', ['no_sjr' => $no_sjr])->num_rows();
@@ -210,7 +215,7 @@ class Retur_credit_note extends Admin_Controller
         $ArrHeader = [
             'no_sjr'       => $no_sjr,
             'no_sj_asal'   => $no_sj_asal,
-            'no_invoice'   => $post['no_invoice'],
+            'no_invoice'   => $no_invoice,
             'no_so'        => $post['no_so'],
             'id_customer'  => $post['id_customer'],
             'nm_customer'  => $post['nm_customer'],
@@ -221,10 +226,12 @@ class Retur_credit_note extends Admin_Controller
         ];
 
         $ArrDetail = [];
+        $total_harga_beli = 0;
         foreach ($post['detail'] as $value) {
             $qty_retur = (float)$value['qty_retur'];
             if ($qty_retur <= 0) continue;
-            $harga = (float)str_replace(',', '', $value['harga_raw']);
+            $harga      = (float)str_replace(',', '', $value['harga_raw']);
+            $harga_beli = (float)str_replace(',', '', $value['harga_beli']);
             $ArrDetail[] = [
                 'no_sjr'       => $no_sjr,
                 'id_product'   => $value['id_product'],
@@ -236,6 +243,7 @@ class Retur_credit_note extends Admin_Controller
                 'created_by'   => $this->auth->user_id(),
                 'created_date' => date('Y-m-d H:i:s'),
             ];
+            $total_harga_beli += $qty_retur * $harga_beli;
         }
 
         if (empty($ArrDetail)) {
@@ -248,6 +256,63 @@ class Retur_credit_note extends Admin_Controller
         $this->db->insert_batch('surat_jalan_retur_detail', $ArrDetail);
         // Update status tr_retur → 1 (SJ Retur sudah dibuat), simpan no_sjr
         $this->db->update('tr_retur', ['status' => 1, 'no_sjr' => $no_sjr], ['no_retur' => $no_retur]);
+
+        // =========================================================
+        // JURNAL: Saat buat Surat Jalan Retur
+        // Kredit : 1104-01-01 Persediaan Barang Warehouse (qty * harga_beli)
+        // Debit  : 5101-01-01 HPP                         (qty * harga_beli)
+        // =========================================================
+        if ($total_harga_beli > 0) {
+            $this->load->model('jurnal_nomor/Jurnal_model');
+            $tgl_sjr    = date('Y-m-d', strtotime($post['tgl_sjr']));
+            $Nomor_JV   = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_sjr);
+            $keterangan = "SJ Retur {$no_sjr} asal SJ {$no_sj_asal} atas INV {$no_invoice}";
+
+            $this->db->insert(DBACC . '.javh', [
+                'nomor'         => $Nomor_JV,
+                'tgl'           => $tgl_sjr,
+                'jml'           => $total_harga_beli,
+                'koreksi_no'    => '-',
+                'kdcab'         => '101',
+                'jenis'         => 'JV',
+                'keterangan'    => $keterangan,
+                'bulan'         => date('m', strtotime($tgl_sjr)),
+                'tahun'         => date('Y', strtotime($tgl_sjr)),
+                'user_id'       => $this->auth->user_id(),
+                'memo'          => '',
+                'tgl_jvkoreksi' => $tgl_sjr,
+                'ho_valid'      => ''
+            ]);
+
+            $this->db->insert_batch(DBACC . '.jurnal', [
+                [
+                    'tipe'         => 'JV',
+                    'nomor'        => $Nomor_JV,
+                    'tanggal'      => $tgl_sjr,
+                    'no_perkiraan' => '1104-01-01',
+                    'keterangan'   => $keterangan,
+                    'no_reff'      => $no_sjr,
+                    'debet'        => 0,
+                    'kredit'       => $total_harga_beli,
+                    'created_by'   => $this->auth->user_id(),
+                    'created_on'   => date('Y-m-d H:i:s'),
+                ],
+                [
+                    'tipe'         => 'JV',
+                    'nomor'        => $Nomor_JV,
+                    'tanggal'      => $tgl_sjr,
+                    'no_perkiraan' => '5101-01-01',
+                    'keterangan'   => $keterangan,
+                    'no_reff'      => $no_sjr,
+                    'debet'        => $total_harga_beli,
+                    'kredit'       => 0,
+                    'created_by'   => $this->auth->user_id(),
+                    'created_on'   => date('Y-m-d H:i:s'),
+                ],
+            ]);
+
+            $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC+1 WHERE nocab='101'");
+        }
 
         if ($this->db->trans_status() === FALSE) {
             $this->db->trans_rollback();
