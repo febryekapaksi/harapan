@@ -212,7 +212,7 @@ class Warehouse_model extends BF_Model
             $nestedData[] = number_format($row['qty_book']);             // AWAL: booking
             $nestedData[] = number_format($row['qty_free']);             // AWAL: free stock
             $nestedData[] = number_format($row['qty_transaksi']);        // TRANSAKSI: in/out
-            $nestedData[] = number_format($row['qty_book_akhir']);       // TRANSAKSI: booking
+            $nestedData[] = number_format($row['qty_book_akhir'] - $row['qty_book']); // TRANSAKSI: delta booking
             $nestedData[] = number_format($row['qty_akhir']);            // AKHIR: stock
             $nestedData[] = number_format($row['qty_book_akhir']);       // AKHIR: booking
             $nestedData[] = number_format($row['qty_free_akhir']);       // AKHIR: free stock
