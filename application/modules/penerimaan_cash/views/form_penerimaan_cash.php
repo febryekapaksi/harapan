@@ -208,35 +208,39 @@
         </div>
     </div>
 </div>
-<div class="modal-content">
-    <div class="modal-header">
-        <button type="button" class="close d-none" id="btn-close-otp" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title">Verifikasi OTP</h4>
-    </div>
-    <div class="modal-body text-center">
-        <p id="otp-message">Kode OTP telah dikirim ke WhatsApp Anda.</p>
+<!-- Modal OTP -->
+<div class="modal fade" id="modal-otp" tabindex="-1" role="dialog" aria-labelledby="modalOtpLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form id="otp-form">
+                <div class="modal-header">
+                    <button type="button" class="close d-none" id="btn-close-otp" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                    <h4 class="modal-title" id="modalOtpLabel">Verifikasi OTP</h4>
+                </div>
+                <div class="modal-body text-center">
+                    <p id="otp-message">Kode OTP telah dikirim ke WhatsApp Anda.</p>
 
-        <div class="d-flex justify-content-center gap-2 otp-input-container mb-3">
-            <input type="text" class="otp-input" maxlength="1" />
-            <input type="text" class="otp-input" maxlength="1" />
-            <input type="text" class="otp-input" maxlength="1" />
-            <input type="text" class="otp-input" maxlength="1" />
-            <input type="text" class="otp-input" maxlength="1" />
-            <input type="text" class="otp-input" maxlength="1" />
+                    <div class="d-flex justify-content-center gap-2 otp-input-container mb-3">
+                        <input type="text" class="otp-input" maxlength="1" />
+                        <input type="text" class="otp-input" maxlength="1" />
+                        <input type="text" class="otp-input" maxlength="1" />
+                        <input type="text" class="otp-input" maxlength="1" />
+                        <input type="text" class="otp-input" maxlength="1" />
+                        <input type="text" class="otp-input" maxlength="1" />
+                    </div>
+
+                    <input type="hidden" name="otp_code" id="otp_code_combined">
+                    <input type="hidden" name="kd_pembayaran" id="otp-kd-pembayaran">
+
+                    <div id="countdown-text">Kirim ulang dalam <span id="otp-timer">180</span> detik</div>
+                    <button type="button" id="resend-otp-btn" class="btn btn-link" style="display:none;">Kirim ulang OTP</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success btn-block">Verifikasi</button>
+                </div>
+            </form>
         </div>
-
-        <input type="hidden" name="otp_code" id="otp_code_combined">
-        <input type="hidden" name="kd_pembayaran" id="otp-kd-pembayaran">
-
-        <div id="countdown-text">Kirim ulang dalam <span id="otp-timer">60</span> detik</div>
-        <button type="button" id="resend-otp-btn" class="btn btn-link" style="display:none;">Kirim ulang OTP</button>
     </div>
-    <div class="modal-footer">
-        <button type="submit" class="btn btn-success w-100">Verifikasi</button>
-    </div>
-</div>
-</form>
-</div>
 </div>
 
 <script src="<?= base_url('assets/plugins/select2/select2.full.min.js') ?>"></script>
