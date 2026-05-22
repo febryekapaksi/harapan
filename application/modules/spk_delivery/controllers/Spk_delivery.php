@@ -297,11 +297,47 @@ class Spk_delivery extends Admin_Controller
 
     // --- PROSES PENGHAPUSAN BERTAHAP ---
 
-    // 2. Hapus dari level SPK dulu (Detail lalu Header)
+    // 2. Kembalikan booking warehouse_stock dari SO detail sebelum dihapus
+    $so_details = $this->db->get_where('sales_order_detail', ['no_so' => $no_so])->result_array();
+    foreach ($so_details as $det) {
+      $code_lv4         = $det['id_product'];
+      $qty_order        = floatval($det['qty_order']);
+      $use_qty_free_det = floatval($det['use_qty_free']);
+      // Kembalikan booking dan free ke kondisi sebelum SO ini dibuat
+      $this->db->query("
+        UPDATE warehouse_stock
+        SET qty_booking  = GREATEST(qty_booking - ?, 0),
+            use_qty_free = GREATEST(use_qty_free - ?, 0),
+            qty_free     = qty_free + ?
+        WHERE code_lv4 = ?
+      ", [$qty_order, $use_qty_free_det, $use_qty_free_det, $code_lv4]);
+
+      // Catat reversal di kartu stok
+      $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+      if ($stok_now) {
+        $this->db->insert('kartu_stok', [
+          'no_transaksi'   => $no_delivery,
+          'transaksi'      => 'Cancel SPK',
+          'tgl_transaksi'  => date('Y-m-d H:i:s'),
+          'code_lv4'       => $code_lv4,
+          'nm_product'     => $det['product'],
+          'qty'            => floatval($stok_now['qty_stock']),
+          'qty_book'       => floatval($stok_now['qty_booking']),
+          'qty_free'       => floatval($stok_now['qty_free']),
+          'qty_transaksi'  => 0,
+          'qty_akhir'      => floatval($stok_now['qty_stock']),
+          'qty_book_akhir' => max(0, floatval($stok_now['qty_booking']) - $qty_order),
+          'qty_free_akhir' => floatval($stok_now['qty_free']) + $use_qty_free_det,
+          'harga_stok'     => floatval($det['harga_beli']),
+        ]);
+      }
+    }
+
+    // 3. Hapus dari level SPK dulu (Detail lalu Header)
     $this->db->delete('spk_delivery_detail', ['no_delivery' => $no_delivery]);
     $this->db->delete('spk_delivery', ['no_delivery' => $no_delivery]);
 
-    // 3. Setelah SPK bersih, baru hapus level Sales Order (Detail lalu Header)
+    // 4. Setelah SPK bersih, baru hapus level Sales Order (Detail lalu Header)
     $this->db->delete('sales_order_detail', ['no_so' => $no_so]);
     $this->db->delete('sales_order', ['no_so' => $no_so]);
 

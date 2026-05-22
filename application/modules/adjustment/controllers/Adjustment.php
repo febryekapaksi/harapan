@@ -159,6 +159,45 @@ class Adjustment extends Admin_Controller
           'status'  => 1
         );
         move_warehouse_adjustment($ArrStock, $id_gudang_dari, $id_gudang_ke, $kode_trans, $adjustment_type);
+
+        // Catat ke kartu stok setelah warehouse_stock sudah diupdate oleh move_warehouse_adjustment
+        $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_material])->row_array();
+        if ($stok_now) {
+          $qty_oke_float = floatval($qty_oke);
+
+          // Hitung kondisi SEBELUM adjustment berdasarkan tipe
+          if ($adjustment_type == 'plus') {
+            $qty_before      = floatval($stok_now['qty_stock']) - $qty_oke_float;
+            $qty_free_before = floatval($stok_now['qty_free']) - $qty_oke_float;
+            $qty_transaksi   = $qty_oke_float;   // positif = masuk
+          } elseif ($adjustment_type == 'minus') {
+            $qty_before      = floatval($stok_now['qty_stock']) + $qty_oke_float;
+            $qty_free_before = floatval($stok_now['qty_free']) + $qty_oke_float;
+            $qty_transaksi   = $qty_oke_float * -1; // negatif = keluar
+          } else {
+            // mutasi: stok total tidak berubah, hanya pindah gudang
+            $qty_before      = floatval($stok_now['qty_stock']);
+            $qty_free_before = floatval($stok_now['qty_free']);
+            $qty_transaksi   = 0;
+          }
+
+          $this->db->insert('kartu_stok', [
+            'no_transaksi'   => $kode_trans,
+            'transaksi'      => 'Adjustment ' . ucfirst($adjustment_type),
+            'tgl_transaksi'  => date('Y-m-d H:i:s'),
+            'code_lv4'       => $id_material,
+            'nm_product'     => $nm_material,
+            'qty'            => $qty_before,
+            'qty_book'       => floatval($stok_now['qty_booking']),
+            'qty_free'       => $qty_free_before,
+            'qty_transaksi'  => $qty_transaksi,
+            'qty_akhir'      => floatval($stok_now['qty_stock']),
+            'qty_book_akhir' => floatval($stok_now['qty_booking']),
+            'qty_free_akhir' => floatval($stok_now['qty_free']),
+            'harga_stok'     => floatval($stok_now['harga_beli']),
+          ]);
+        }
+
         history("Adjustment product " . $adjustment_type . " : " . $kode_trans);
       }
       echo json_encode($Arr_Data);

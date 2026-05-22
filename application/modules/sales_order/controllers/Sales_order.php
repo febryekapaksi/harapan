@@ -221,7 +221,22 @@ class Sales_order extends Admin_Controller
     }
 
     // Hapus dan simpan ulang product
+    // Saat UPDATE: kembalikan dulu booking lama ke warehouse_stock sebelum dihapus
     if ($is_update) {
+      $old_details = $this->db->get_where('sales_order_detail', ['no_so' => $no_so])->result_array();
+      foreach ($old_details as $old) {
+        $old_code = $old['id_product'];
+        $old_use_qty_free = floatval($old['use_qty_free']);
+        $old_qty_order    = floatval($old['qty_order']);
+        // Kembalikan booking dan free ke kondisi sebelum SO ini
+        $this->db->query("
+          UPDATE warehouse_stock
+          SET qty_booking  = GREATEST(qty_booking - ?, 0),
+              use_qty_free = GREATEST(use_qty_free - ?, 0),
+              qty_free     = qty_free + ?
+          WHERE code_lv4 = ?
+        ", [$old_qty_order, $old_use_qty_free, $old_use_qty_free, $old_code]);
+      }
       $this->db->delete('sales_order_detail', ['no_so' => $no_so]);
     }
 
@@ -231,23 +246,25 @@ class Sales_order extends Admin_Controller
       $detail = [];
       foreach ($_POST['product'] as $pro) {
         $code_lv4 = $pro['code_lv4'];
+        // Baca stok SETELAH rollback (untuk update) atau stok saat ini (untuk insert)
         $stok = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
 
         if ($stok) {
-          $qty_booking_lama = floatval($stok['qty_booking']);
-          $qty_free_lama    = floatval($stok['qty_free']);
+          $qty_booking_lama  = floatval($stok['qty_booking']);
+          $qty_free_lama     = floatval($stok['qty_free']);
           $use_qty_free_lama = floatval($stok['use_qty_free']);
 
-          $qty_free_reset   = $qty_free_lama + $use_qty_free_lama;
-          $qty_booking_baru = $is_update ? $pro['qty'] : $qty_booking_lama + $pro['qty'];
-
           $use_qty_free_baru = floatval($pro['use_qty_free']);
-          $qty_free_baru     = $qty_free_reset - $use_qty_free_baru;
+          $qty_order_baru    = floatval($pro['qty']);
+
+          // Booking selalu akumulasi dari kondisi saat ini (sudah di-rollback untuk update)
+          $qty_booking_baru = $qty_booking_lama + $qty_order_baru;
+          $qty_free_baru    = $qty_free_lama - $use_qty_free_baru;
 
           // update warehouse
           $this->db->where('code_lv4', $code_lv4)->update('warehouse_stock', [
             'qty_booking'  => $qty_booking_baru,
-            'use_qty_free' => $use_qty_free_baru,
+            'use_qty_free' => $use_qty_free_lama + $use_qty_free_baru,
             'qty_free'     => $qty_free_baru
           ]);
 
@@ -257,7 +274,7 @@ class Sales_order extends Admin_Controller
             'id_penawaran'      => $pro['id_penawaran'],
             'id_product'        => $pro['id_product'],
             'product'           => $pro['product_name'],
-            'qty_order'         => $pro['qty'],
+            'qty_order'         => $qty_order_baru,
             'qty_free'          => $qty_free_baru,
             'use_qty_free'      => $use_qty_free_baru,
             'qty_propose'       => $pro['pr'],
@@ -274,6 +291,8 @@ class Sales_order extends Admin_Controller
           ];
 
           // insert kartu_stok
+          // qty/qty_book/qty_free = kondisi SEBELUM transaksi ini
+          // qty_transaksi = 0 karena stok fisik tidak berubah, hanya booking berubah
           $arr_kartu_stok[] = [
             'no_transaksi'      => $no_so,
             'transaksi'         => "Sales Order",
@@ -281,10 +300,10 @@ class Sales_order extends Admin_Controller
             'code_lv4'          => $code_lv4,
             'nm_product'        => $pro['product_name'],
             'qty'               => floatval($stok['qty_stock']),
-            'qty_book'          => $qty_booking_lama - $use_qty_free_baru,
-            'qty_free'          => $qty_free_lama + $use_qty_free_baru,
+            'qty_book'          => $qty_booking_lama,
+            'qty_free'          => $qty_free_lama,
             'qty_transaksi'     => 0,
-            'qty_akhir'         => $stok['qty_stock'],
+            'qty_akhir'         => floatval($stok['qty_stock']),
             'qty_book_akhir'    => $qty_booking_baru,
             'qty_free_akhir'    => $qty_free_baru,
             'harga_stok'        => $pro['harga_beli']

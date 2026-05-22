@@ -773,11 +773,13 @@ class Incoming_check_model extends BF_Model
                         'tgl_transaksi'  => date('Y-m-d H:i:s'),
                         'code_lv4'       => $id_material,
                         'nm_product'     => $nm_material,
-                        'qty'            => $qty_in,
-                        'qty_free'       => $qty_in,
-                        'qty_transaksi'  => $qty_in,
-                        'qty_akhir'      => $qty_in,
-                        'qty_free_akhir' => $qty_in,
+                        'qty'            => 0,        // stok fisik sebelum transaksi (belum ada)
+                        'qty_book'       => 0,        // booking sebelum transaksi
+                        'qty_free'       => 0,        // free sebelum transaksi
+                        'qty_transaksi'  => $qty_in,  // barang masuk (positif)
+                        'qty_akhir'      => $qty_in,  // stok fisik setelah masuk
+                        'qty_book_akhir' => 0,        // booking tidak berubah
+                        'qty_free_akhir' => $qty_in,  // free setelah masuk = qty_in
                         'harga_stok'     => $harga_in
                     ]);
                 } else {
@@ -804,7 +806,7 @@ class Incoming_check_model extends BF_Model
                     $this->db->update('warehouse_stock', [
                         'incoming'    => $qty_in,
                         'qty_stock'   => $qty_stock_akhir,
-                        'qty_free'    => $qty_free_awal, // sesuai kode lama kamu
+                        'qty_free'    => $qty_free_akhir, // FIX: qty_free harus naik sesuai barang masuk
                         'harga_beli'  => $costbook,
                         'total_nilai' => $nilai_inventory,
                         'update_by'   => $this->auth->user_id(),
@@ -821,13 +823,13 @@ class Incoming_check_model extends BF_Model
                         'tgl_transaksi'   => date('Y-m-d H:i:s'),
                         'code_lv4'        => $id_material,
                         'nm_product'      => $nm_material,
-                        'qty'             => $qty_stock_awal,
-                        'qty_book'        => $qty_booking,
-                        'qty_free'        => $qty_free_awal,
-                        'qty_transaksi'   => $qty_in,
-                        'qty_book_akhir'  => $qty_booking,
-                        'qty_free_akhir'  => $qty_free_akhir,
-                        'qty_akhir'       => $qty_stock_akhir,
+                        'qty'             => $qty_stock_awal,      // stok fisik sebelum transaksi
+                        'qty_book'        => $qty_booking,         // booking sebelum transaksi
+                        'qty_free'        => $qty_free_awal,       // free sebelum transaksi
+                        'qty_transaksi'   => $qty_in,              // barang masuk (positif)
+                        'qty_book_akhir'  => $qty_booking,         // booking tidak berubah saat incoming
+                        'qty_free_akhir'  => $qty_free_akhir,      // free setelah masuk = qty_free_awal + qty_in
+                        'qty_akhir'       => $qty_stock_akhir,     // stok fisik setelah masuk
                         'harga_stok'      => $costbook
                     ]);
                 }
