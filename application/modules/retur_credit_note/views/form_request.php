@@ -86,7 +86,7 @@
                 </table>
             </div>
 
-            <div class="text-center" style="margin-top:20px;">
+            <div class="text-center">
                 <button type="submit" class="btn btn-warning"><i class="fa fa-paper-plane"></i> Kirim Request Retur</button>
                 <a class="btn btn-default" onclick="window.history.back(); return false;"><i class="fa fa-reply"></i> Batal</a>
             </div>

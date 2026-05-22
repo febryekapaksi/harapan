@@ -348,9 +348,18 @@ class Retur_credit_note extends Admin_Controller
         }
 
         // Ambil detail dari SJ Retur (qty sudah final dari gudang)
+        // Join ke tr_retur_detail untuk ambil harga_beli
         $detail = $this->db
-            ->get_where('surat_jalan_retur_detail', ['no_sjr' => $retur['no_sjr']])
-            ->result_array();
+            ->select('sjrd.*, trd.harga_beli')
+            ->from('surat_jalan_retur_detail sjrd')
+            ->join(
+                'tr_retur_detail trd',
+                'trd.no_retur = ' . $this->db->escape($retur['no_retur']) .
+                    ' AND trd.id_product = sjrd.id_product',
+                'left'
+            )
+            ->where('sjrd.no_sjr', $retur['no_sjr'])
+            ->get()->result_array();
 
         // Ambil data invoice untuk hitung total sudah bayar
         $inv = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $retur['id_invoice']])->row_array();
@@ -393,6 +402,18 @@ class Retur_credit_note extends Admin_Controller
         $id_invoice_lama = $post['id_invoice'];
         $grand_total_retur = (float)str_replace(',', '', $post['grand_total']);
         $nilai_inv_baru    = (float)str_replace(',', '', $post['nilai_inv_baru']);
+
+        // Ambil total harga_beli dari tr_retur_detail untuk jurnal
+        $retur_detail = $this->db
+            ->select('qty_retur, harga_beli')
+            ->from('tr_retur_detail')
+            ->where('no_retur', $no_retur)
+            ->get()->result_array();
+
+        $total_retur_penjualan = 0;
+        foreach ($retur_detail as $rd) {
+            $total_retur_penjualan += (float)$rd['qty_retur'] * (float)$rd['harga_beli'];
+        }
 
         $inv_lama = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $id_invoice_lama])->row();
         if (!$inv_lama) {
@@ -438,7 +459,8 @@ class Retur_credit_note extends Admin_Controller
                 $id_invoice_lama,
                 $inv_lama->id_customer,
                 $inv_lama->nm_customer,
-                $grand_total_retur
+                $grand_total_retur,
+                $total_retur_penjualan
             );
 
             if ($this->db->trans_status() === FALSE) {
@@ -498,25 +520,43 @@ class Retur_credit_note extends Admin_Controller
             ->from('tr_retur r')
             ->where('r.id_invoice', $id_invoice)
             ->order_by('r.tgl_retur', 'ASC')
-            ->get()->result();
+            ->get()->result_array();
 
-        echo json_encode($data);
+        // Ambil nilai invoice asal dari kolom nilai_asli
+        $inv = $this->db
+            ->select('nilai_asli')
+            ->from('tr_invoice_sales')
+            ->where('id_invoice', $id_invoice)
+            ->get()->row_array();
+
+        echo json_encode([
+            'nilai_inv_asal' => (float)($inv['nilai_asli'] ?? 0),
+            'rows'           => $data,
+        ]);
     }
 
     // =========================================================
     // PRIVATE: Jurnal koreksi credit note
+    // Debit  : 1102-01-01 Piutang Dagang     = grand_total_retur (qty * harga include PPN)
+    // Kredit : 4102-01-01 Retur Penjualan    = total_retur_penjualan (qty * harga_beli)
+    // Kredit : 2103-01-01 PPN Keluaran       = grand_total_retur - total_retur_penjualan
     // =========================================================
-    private function _buat_jurnal_credit_note($no_retur, $tgl_retur, $id_invoice, $id_customer, $nm_customer, $nilai_retur)
+    private function _buat_jurnal_credit_note($no_retur, $tgl_retur, $id_invoice, $id_customer, $nm_customer, $nilai_retur, $total_retur_penjualan = 0)
     {
         $this->load->model('jurnal_nomor/Jurnal_model');
         $tgl        = date('Y-m-d', strtotime($tgl_retur));
         $Nomor_JV   = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl);
         $keterangan = "Credit Note {$no_retur} atas Invoice {$id_invoice} A/n {$nm_customer}";
 
+        // Hitung komponen jurnal
+        $nilai_piutang      = $nilai_retur;                                  // Debit Piutang Dagang
+        $nilai_retur_penj   = $total_retur_penjualan;                        // Kredit Retur Penjualan (harga_beli * qty)
+        $nilai_ppn_keluaran = $nilai_piutang - $nilai_retur_penj;            // Kredit PPN Keluaran (selisih)
+
         $this->db->insert(DBACC . '.javh', [
             'nomor'         => $Nomor_JV,
             'tgl'           => $tgl,
-            'jml'           => $nilai_retur,
+            'jml'           => $nilai_piutang,
             'koreksi_no'    => '-',
             'kdcab'         => '101',
             'jenis'         => 'JV',
@@ -530,29 +570,44 @@ class Retur_credit_note extends Admin_Controller
         ]);
 
         $this->db->insert_batch(DBACC . '.jurnal', [
+            // Debit: Piutang Dagang
             [
+                'tipe'         => 'JV',
                 'nomor'        => $Nomor_JV,
-                'tanggal' => $tgl,
-                'tipe' => 'JV',
-                'no_perkiraan' => '4101-01-02',
-                'keterangan'   => $keterangan,
-                'no_reff' => $no_retur,
-                'debet'        => $nilai_retur,
-                'kredit' => 0,
-                'created_by'   => $this->auth->user_id(),
-                'created_on' => date('Y-m-d H:i:s'),
-            ],
-            [
-                'nomor'        => $Nomor_JV,
-                'tanggal' => $tgl,
-                'tipe' => 'JV',
+                'tanggal'      => $tgl,
                 'no_perkiraan' => '1102-01-01',
                 'keterangan'   => $keterangan,
-                'no_reff' => $no_retur,
-                'debet'        => 0,
-                'kredit' => $nilai_retur,
+                'no_reff'      => $no_retur,
+                'debet'        => $nilai_piutang,
+                'kredit'       => 0,
                 'created_by'   => $this->auth->user_id(),
-                'created_on' => date('Y-m-d H:i:s'),
+                'created_on'   => date('Y-m-d H:i:s'),
+            ],
+            // Kredit: Retur Penjualan
+            [
+                'tipe'         => 'JV',
+                'nomor'        => $Nomor_JV,
+                'tanggal'      => $tgl,
+                'no_perkiraan' => '4102-01-01',
+                'keterangan'   => $keterangan,
+                'no_reff'      => $no_retur,
+                'debet'        => 0,
+                'kredit'       => $nilai_retur_penj,
+                'created_by'   => $this->auth->user_id(),
+                'created_on'   => date('Y-m-d H:i:s'),
+            ],
+            // Kredit: PPN Keluaran
+            [
+                'tipe'         => 'JV',
+                'nomor'        => $Nomor_JV,
+                'tanggal'      => $tgl,
+                'no_perkiraan' => '2103-01-01',
+                'keterangan'   => $keterangan,
+                'no_reff'      => $no_retur,
+                'debet'        => 0,
+                'kredit'       => $nilai_ppn_keluaran,
+                'created_by'   => $this->auth->user_id(),
+                'created_on'   => date('Y-m-d H:i:s'),
             ],
         ]);
 
@@ -564,7 +619,7 @@ class Retur_credit_note extends Admin_Controller
             'keterangan'    => $keterangan,
             'no_reff'       => $id_invoice,
             'debet'         => 0,
-            'kredit'        => $nilai_retur,
+            'kredit'        => $nilai_piutang,
             'id_supplier'   => $id_customer,
             'nama_supplier' => $nm_customer,
         ]);

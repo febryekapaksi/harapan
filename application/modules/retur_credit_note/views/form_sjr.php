@@ -178,7 +178,7 @@
                 </table>
             </div>
 
-            <div class="text-center" style="margin-top:20px;">
+            <div class="text-center">
                 <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Simpan Surat Jalan Retur</button>
                 <a class="btn btn-default" href="<?= site_url('retur_credit_note') ?>"><i class="fa fa-reply"></i> Batal</a>
             </div>

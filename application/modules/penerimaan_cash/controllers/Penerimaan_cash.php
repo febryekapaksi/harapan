@@ -68,7 +68,7 @@ class Penerimaan_cash extends Admin_Controller
 	{
 		$id_customer = $this->input->get('id_customer', TRUE);
 
-		$data = $this->db
+		$rows = $this->db
 			->select('
             i.id_invoice,
             i.id_so,
@@ -104,10 +104,25 @@ class Penerimaan_cash extends Admin_Controller
 			->where('(i.grand_total > IFNULL(bayar.total_bayar, 0))', null, false)
 			->order_by('i.created_on', 'ASC')
 			->get()
-			->result();
+			->result_array();
 
+		// Sertakan detail CN per invoice agar bisa ditampilkan inline
+		foreach ($rows as &$inv) {
+			if ((int)$inv['jumlah_cn'] > 0) {
+				$inv['cn_rows'] = $this->db
+					->select('no_retur, tgl_retur, total_harga as nilai_retur, nilai_inv_baru, alasan')
+					->from('tr_retur')
+					->where('id_invoice', $inv['id_invoice'])
+					->where('status', 2)
+					->order_by('tgl_retur', 'ASC')
+					->get()->result_array();
+			} else {
+				$inv['cn_rows'] = [];
+			}
+		}
+		unset($inv);
 
-		echo json_encode($data);
+		echo json_encode($rows);
 	}
 
 	// public function save_tanpa_otp()

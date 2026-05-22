@@ -75,7 +75,11 @@ $nilai_inv_baru = $grand_total_inv - $grand_total_retur;
                                 <td><?= $dt['nm_product'] ?></td>
                                 <td class="text-center"><?= $dt['qty_retur'] ?></td>
                                 <td class="text-right"><?= number_format($dt['harga'], 0, ',', '.') ?></td>
-                                <td class="text-right total_item_raw_display"><?= number_format($dt['total'], 0, ',', '.') ?></td>
+                                <td class="text-right total_item_raw_display">
+                                    <?= number_format($dt['total'], 0, ',', '.') ?>
+                                    <input type="hidden" class="harga_beli_raw" value="<?= $dt['harga_beli'] ?? 0 ?>">
+                                    <input type="hidden" class="qty_retur_raw" value="<?= $dt['qty_retur'] ?>">
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -114,7 +118,59 @@ $nilai_inv_baru = $grand_total_inv - $grand_total_retur;
                 </table>
             </div>
 
-            <div class="text-center" style="margin-top:20px;">
+            <hr>
+            <h4>Informasi Jurnal</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr bgcolor="#9acfea">
+                            <th class="text-center">Tanggal</th>
+                            <th class="text-center">Tipe</th>
+                            <th class="text-center">No. COA</th>
+                            <th class="text-center">Nama COA</th>
+                            <th class="text-center">Debit</th>
+                            <th class="text-center">Kredit</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Baris 1: Debit Piutang Dagang -->
+                        <tr bgcolor="#DCDCDC">
+                            <td><input type="date" class="form-control" value="<?= date('Y-m-d') ?>" readonly></td>
+                            <td><input type="text" class="form-control" value="JV" readonly></td>
+                            <td><input type="text" class="form-control" value="1102-01-01" readonly></td>
+                            <td><input type="text" class="form-control" value="Piutang Dagang" readonly></td>
+                            <td><input type="text" class="form-control text-right" id="jrn_piutang_display" value="0" readonly></td>
+                            <td><input type="text" class="form-control text-right" value="0" readonly></td>
+                        </tr>
+                        <!-- Baris 2: Kredit Retur Penjualan -->
+                        <tr bgcolor="#DCDCDC">
+                            <td><input type="date" class="form-control" value="<?= date('Y-m-d') ?>" readonly></td>
+                            <td><input type="text" class="form-control" value="JV" readonly></td>
+                            <td><input type="text" class="form-control" value="4102-01-01" readonly></td>
+                            <td><input type="text" class="form-control" value="Retur Penjualan" readonly></td>
+                            <td><input type="text" class="form-control text-right" value="0" readonly></td>
+                            <td><input type="text" class="form-control text-right" id="jrn_retur_display" value="0" readonly></td>
+                        </tr>
+                        <!-- Baris 3: Kredit PPN Keluaran -->
+                        <tr bgcolor="#DCDCDC">
+                            <td><input type="date" class="form-control" value="<?= date('Y-m-d') ?>" readonly></td>
+                            <td><input type="text" class="form-control" value="JV" readonly></td>
+                            <td><input type="text" class="form-control" value="2103-01-01" readonly></td>
+                            <td><input type="text" class="form-control" value="PPN Keluaran" readonly></td>
+                            <td><input type="text" class="form-control text-right" value="0" readonly></td>
+                            <td><input type="text" class="form-control text-right" id="jrn_ppn_display" value="0" readonly></td>
+                        </tr>
+                        <!-- Total -->
+                        <tr bgcolor="#DCDCDC">
+                            <td colspan="4" class="text-right"><strong>TOTAL</strong></td>
+                            <td><input type="text" class="form-control text-right" id="jrn_total_debet_display" value="0" readonly></td>
+                            <td><input type="text" class="form-control text-right" id="jrn_total_kredit_display" value="0" readonly></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="text-center">
                 <button type="submit" class="btn btn-danger"><i class="fa fa-check"></i> Proses Credit Note</button>
                 <a class="btn btn-default" href="<?= site_url('retur_credit_note') ?>"><i class="fa fa-reply"></i> Batal</a>
             </div>
@@ -124,6 +180,37 @@ $nilai_inv_baru = $grand_total_inv - $grand_total_retur;
 
 <script>
     $(document).ready(function() {
+
+        // Hitung jurnal saat halaman load
+        hitungJurnalCN();
+
+        function hitungJurnalCN() {
+            // Total Retur = grand_total (qty * harga include PPN) → Piutang Dagang debit
+            var totalRetur = parseFloat($('#grand_total').val()) || 0;
+
+            // Retur Penjualan = SUM(qty_retur * harga_beli)
+            var totalReturPenjualan = 0;
+            $('.harga_beli_raw').each(function() {
+                var $td = $(this).closest('td');
+                var qty = parseFloat($td.find('.qty_retur_raw').val()) || 0;
+                var hargaBeli = parseFloat($(this).val()) || 0;
+                totalReturPenjualan += qty * hargaBeli;
+            });
+
+            // PPN Keluaran = selisih
+            var ppnKeluaran = totalRetur - totalReturPenjualan;
+
+            var fmt = function(n) {
+                return n.toLocaleString('id-ID');
+            };
+
+            $('#jrn_piutang_display').val(fmt(totalRetur));
+            $('#jrn_retur_display').val(fmt(totalReturPenjualan));
+            $('#jrn_ppn_display').val(fmt(ppnKeluaran));
+            $('#jrn_total_debet_display').val(fmt(totalRetur));
+            $('#jrn_total_kredit_display').val(fmt(totalRetur));
+        }
+
         $('#form-cn').submit(function(e) {
             e.preventDefault();
             swal({
