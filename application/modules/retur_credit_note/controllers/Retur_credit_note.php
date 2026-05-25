@@ -360,6 +360,16 @@ class Retur_credit_note extends Admin_Controller
         ", [$retur['no_sjr']]);
         $detail = $detail_query ? $detail_query->result_array() : [];
 
+        // DEBUG SEMENTARA - hapus setelah fix
+        log_message(
+            'error',
+            'DEBUG form_cn id=' . $id_retur
+                . ' | no_retur=' . $retur['no_retur']
+                . ' | no_sjr=' . $retur['no_sjr']
+                . ' | detail_count=' . count($detail)
+                . ' | last_query=' . $this->db->last_query()
+        );
+
         // Ambil data invoice untuk hitung total sudah bayar
         $inv = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $retur['id_invoice']])->row_array();
 
