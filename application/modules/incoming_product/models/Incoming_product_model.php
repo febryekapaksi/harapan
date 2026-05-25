@@ -358,28 +358,35 @@ class Incoming_product_model extends BF_Model
         $jumlah_mat = 0;
         $valid = 1;
         foreach ($addInMat as $val => $valx) {
-            $qtyIN      = str_replace(',', '', $valx['qty_in']);
-            $qty_sisa   = $valx['qty_sisa'];
+            // Pastikan qty_in dikonversi ke float agar perbandingan akurat
+            $qtyIN      = floatval(str_replace(',', '', $valx['qty_in']));
+            $qty_sisa   = floatval($valx['qty_sisa']);
+
+            // Lewati baris yang tidak diisi (qty 0 atau kosong)
+            if ($qtyIN <= 0) {
+                continue;
+            }
 
             if ($qtyIN > $qty_sisa) {
                 $valid = 2;
+                break; // langsung hentikan loop agar tidak ada data yang tersimpan sebagian
             } else {
                 $get_trans_po = $this->db->get_where('dt_trans_po', ['id' => $valx['id']])->row();
-                if ($qtyIN > 0) {
-                    $this->db->insert('tr_incoming_check_detail', [
-                        'kode_trans'        => $kodecollect,
-                        'no_ipp'            => $no_po,
-                        'id_po_detail'      => $valx['id'],
-                        'id_material_req'   => $get_trans_po->idmaterial,
-                        'id_material'       => $get_trans_po->idmaterial,
-                        'nm_material'       => $get_trans_po->namamaterial,
-                        'harga'             => $get_trans_po->hargasatuan,
-                        'qty_order'         => $qtyIN,
-                        'keterangan'        => $valx['keterangan']
-                    ]);
-                }
 
-                $update_qty_in = $this->db->update('dt_trans_po', [
+                // Simpan per no_po masing-masing item, bukan gabungan semua no_po
+                $this->db->insert('tr_incoming_check_detail', [
+                    'kode_trans'        => $kodecollect,
+                    'no_ipp'            => $get_trans_po->no_po,
+                    'id_po_detail'      => $valx['id'],
+                    'id_material_req'   => $get_trans_po->idmaterial,
+                    'id_material'       => $get_trans_po->idmaterial,
+                    'nm_material'       => $get_trans_po->namamaterial,
+                    'harga'             => $get_trans_po->hargasatuan,
+                    'qty_order'         => $qtyIN,
+                    'keterangan'        => $valx['keterangan']
+                ]);
+
+                $this->db->update('dt_trans_po', [
                     'qty_in' => ($get_trans_po->qty_in + $qtyIN),
                     'keterangan' => $valx['keterangan']
                 ], [

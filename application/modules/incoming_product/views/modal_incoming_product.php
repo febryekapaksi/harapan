@@ -89,7 +89,9 @@
                                 $ttl_qty_ng = $get_qty_ng_oke['ttl_qty_ng'];
                                 $ttl_qty_oke = $get_qty_ng_oke['ttl_qty_oke'];
 
-                                $get_qty_incoming_check = $this->db->select('IF(SUM(qty_order) IS NULL, 0, SUM(qty_order)) AS ttl_qty_incoming_check')->get_where('tr_incoming_check_detail', ['no_ipp' => $valx['no_po'], 'id_material' => $valx['idmaterial']])->row_array();
+                                // Cek total qty yang sudah pernah di-incoming berdasarkan id_po_detail
+                                // agar cocok dengan cara simpan di process_in_product (per id_po_detail)
+                                $get_qty_incoming_check = $this->db->select('IF(SUM(qty_order) IS NULL, 0, SUM(qty_order)) AS ttl_qty_incoming_check')->get_where('tr_incoming_check_detail', ['id_po_detail' => $valx['id']])->row_array();
 
                                 $ttl_qty_incoming_check = $get_qty_incoming_check['ttl_qty_incoming_check'];
                                 $check_tr_incoming_check = $this->db->select('IF(SUM(a.qty_oke + a.qty_ng) IS NULL, 0, SUM(a.qty_oke + a.qty_ng)) AS ttl_checked_incoming')->get_where('tr_checked_incoming_detail a', ['no_ipp' => $valx['no_po'], 'id_material' => $valx['idmaterial']])->row_array();
