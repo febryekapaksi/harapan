@@ -349,26 +349,27 @@ class Retur_credit_note extends Admin_Controller
 
         // Ambil detail dari SJ Retur (qty sudah final dari gudang)
         // Join ke tr_retur_detail untuk ambil harga_beli
-        $detail = $this->db
-            ->select('sjrd.*, trd.harga_beli')
-            ->from('surat_jalan_retur_detail sjrd')
-            ->join(
-                'tr_retur_detail trd',
-                'trd.no_retur = ' . $this->db->escape($retur['no_retur']) .
-                    ' AND trd.id_product = sjrd.id_product',
-                'left'
-            )
-            ->where('sjrd.no_sjr', $retur['no_sjr'])
-            ->get()->result_array();
+        $no_retur_escaped = $this->db->escape($retur['no_retur']);
+        $no_sjr_escaped   = $this->db->escape($retur['no_sjr']);
+        $detail_query = $this->db->query("
+            SELECT sjrd.*, trd.harga_beli
+            FROM surat_jalan_retur_detail sjrd
+            LEFT JOIN tr_retur_detail trd
+                ON trd.no_retur = {$no_retur_escaped}
+                AND trd.id_product = sjrd.id_product
+            WHERE sjrd.no_sjr = {$no_sjr_escaped}
+        ");
+        $detail = $detail_query ? $detail_query->result_array() : [];
 
         // Ambil data invoice untuk hitung total sudah bayar
         $inv = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $retur['id_invoice']])->row_array();
 
-        $total_sudah_bayar = (float)$this->db
+        $bayar_query = $this->db
             ->select('COALESCE(SUM(total_bayar_idr), 0) AS total', false)
             ->from('tr_invoice_payment_detail')
             ->where('no_invoice', $retur['id_invoice'])
-            ->get()->row()->total;
+            ->get();
+        $total_sudah_bayar = ($bayar_query && $bayar_query->row()) ? (float)$bayar_query->row()->total : 0.0;
 
         $grand_total_inv = (float)($inv['grand_total'] ?? 0);
 
