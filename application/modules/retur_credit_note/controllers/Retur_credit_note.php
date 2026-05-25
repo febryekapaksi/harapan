@@ -339,9 +339,8 @@ class Retur_credit_note extends Admin_Controller
         }
 
         $retur = $this->db
-            ->select('r.*, i.id_billing as no_sj_asal')
+            ->select('r.*')
             ->from('tr_retur r')
-            ->join('tr_invoice_sales i', 'i.id_invoice = r.id_invoice', 'left')
             ->where('r.id', $id_retur)
             ->get()->row_array();
 
