@@ -187,12 +187,6 @@ class Report_pembelian_model extends BF_Model
 
     public function get_query_history_pemebelian($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $tgl_dari = NULL, $tgl_sampai = NULL)
     {
-        $subquery_pr = "(
-        SELECT no_pr, po_number AS no_po, 'Product' AS tipe_pr FROM material_planning_base_on_produksi
-        UNION ALL
-        SELECT no_pengajuan AS no_pr, no_po, 'Rutin' AS tipe_pr FROM rutin_non_planning_header
-        ) AS pr_combined";
-
         $columns_order_by = [
             1 => 'pr_combined.no_pr',
             2 => 'po.no_po',
@@ -201,61 +195,82 @@ class Report_pembelian_model extends BF_Model
             5 => 'pa.id'
         ];
 
-        $this->db->select('
-        pr_combined.no_pr as permintaan_barang,
-        pr_combined.tipe_pr,
-        po.no_surat as pesanan_pembelian,
-        ic.kode_trans as penerimaan_barang,
-        inv.id as faktur_pembelian,
-        pa.id as pembayaran_pembelian,
-        po.tanggal as tgl_po
-    ');
+        // Bangun WHERE conditions secara manual agar bisa dipakai di COUNT dan data query
+        $where_parts = [];
+        $binds       = [];
 
-        $this->db->from($subquery_pr, false);
-
-        $this->db->join('tr_purchase_order po', 'po.no_po = pr_combined.no_po', 'left');
-        $this->db->join('tr_incoming_check ic', 'ic.no_ipp = po.no_po', 'left');
-        $this->db->join('tr_invoice_po inv', 'inv.no_po = po.no_surat', 'left');
-        $this->db->join('payment_approve pa', 'pa.no_doc = inv.id', 'left');
-
-        // Filter Tanggal
         if (!empty($tgl_dari) && !empty($tgl_sampai)) {
-            $this->db->where('po.tanggal >=', $tgl_dari);
-            $this->db->where('po.tanggal <=', $tgl_sampai);
+            $where_parts[] = 'po.tanggal >= ?';
+            $binds[]       = $tgl_dari;
+            $where_parts[] = 'po.tanggal <= ?';
+            $binds[]       = $tgl_sampai;
         }
 
-        // Filter Search
         if (!empty($like_value)) {
-            $this->db->group_start();
-            $this->db->like('pr_combined.no_pr', $like_value);
-            $this->db->or_like('po.no_po', $like_value);
-            $this->db->or_like('inv.id', $like_value);
-            $this->db->group_end();
+            $like_escaped  = '%' . $this->db->escape_like_str($like_value) . '%';
+            $where_parts[] = "(pr_combined.no_pr LIKE ? OR po.no_po LIKE ? OR inv.id LIKE ?)";
+            $binds[]       = $like_escaped;
+            $binds[]       = $like_escaped;
+            $binds[]       = $like_escaped;
         }
 
-        // Hitung total dengan clone lalu get() + num_rows()
-        // Tidak pakai count_all_results() karena subquery UNION menyebabkan syntax error double parentheses
-        $temp_db = clone $this->db;
-        $count_query = $temp_db->get();
-        $totalData = $count_query->num_rows();
+        $where_sql = !empty($where_parts) ? 'WHERE ' . implode(' AND ', $where_parts) : '';
+
+        $base_from = "FROM (
+            SELECT no_pr, po_number AS no_po, 'Product' AS tipe_pr FROM material_planning_base_on_produksi
+            UNION ALL
+            SELECT no_pengajuan AS no_pr, no_po, 'Rutin' AS tipe_pr FROM rutin_non_planning_header
+        ) AS pr_combined
+        LEFT JOIN tr_purchase_order po  ON po.no_po   = pr_combined.no_po
+        LEFT JOIN tr_incoming_check ic  ON ic.no_ipp  = po.no_po
+        LEFT JOIN tr_invoice_po inv     ON inv.no_po  = po.no_surat
+        LEFT JOIN payment_approve pa    ON pa.no_doc  = inv.id";
+
+        // Hitung total dengan raw query — aman untuk subquery UNION
+        $count_sql    = "SELECT COUNT(*) AS total {$base_from} {$where_sql}";
+        $count_result = $this->db->query($count_sql, $binds);
+        $totalData    = ($count_result) ? (int) $count_result->row()->total : 0;
         $totalFiltered = $totalData;
 
+        // Tentukan ORDER BY
         if (isset($columns_order_by[$column_order])) {
-            $this->db->order_by($columns_order_by[$column_order], $column_dir);
+            $order_col = $columns_order_by[$column_order];
+            $order_dir = (strtolower($column_dir) === 'asc') ? 'ASC' : 'DESC';
         } else {
-            $this->db->order_by('po.tanggal', 'desc');
+            $order_col = 'po.tanggal';
+            $order_dir = 'DESC';
         }
 
+        $order_sql = "ORDER BY {$order_col} {$order_dir}";
+
+        // LIMIT
+        $limit_sql = '';
         if ($limit_length != -1) {
-            $this->db->limit($limit_length, $limit_start);
+            $limit_start  = (int) $limit_start;
+            $limit_length = (int) $limit_length;
+            $limit_sql    = "LIMIT {$limit_start}, {$limit_length}";
         }
 
-        $query = $this->db->get();
+        // Data query
+        $data_sql = "SELECT
+            pr_combined.no_pr  AS permintaan_barang,
+            pr_combined.tipe_pr,
+            po.no_surat        AS pesanan_pembelian,
+            ic.kode_trans      AS penerimaan_barang,
+            inv.id             AS faktur_pembelian,
+            pa.id              AS pembayaran_pembelian,
+            po.tanggal         AS tgl_po
+        {$base_from}
+        {$where_sql}
+        {$order_sql}
+        {$limit_sql}";
+
+        $query = $this->db->query($data_sql, $binds);
 
         return [
-            'totalData' => $totalData,
+            'totalData'     => $totalData,
             'totalFiltered' => $totalFiltered,
-            'query' => $query
+            'query'         => $query
         ];
     }
 
