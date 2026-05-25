@@ -233,8 +233,11 @@ class Report_pembelian_model extends BF_Model
             $this->db->group_end();
         }
 
+        // Hitung total dengan clone lalu get() + num_rows()
+        // Tidak pakai count_all_results() karena subquery UNION menyebabkan syntax error double parentheses
         $temp_db = clone $this->db;
-        $totalData = $temp_db->count_all_results('', false);
+        $count_query = $temp_db->get();
+        $totalData = $count_query->num_rows();
         $totalFiltered = $totalData;
 
         if (isset($columns_order_by[$column_order])) {
