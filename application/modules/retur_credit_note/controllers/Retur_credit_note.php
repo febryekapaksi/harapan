@@ -214,6 +214,7 @@ class Retur_credit_note extends Admin_Controller
 
         $ArrHeader = [
             'no_sjr'       => $no_sjr,
+            'no_retur'     => $no_retur,
             'no_sj_asal'   => $no_sj_asal,
             'no_invoice'   => $no_invoice,
             'no_so'        => $post['no_so'],
@@ -234,6 +235,7 @@ class Retur_credit_note extends Admin_Controller
             $harga_beli = (float)str_replace(',', '', $value['harga_beli']);
             $ArrDetail[] = [
                 'no_sjr'       => $no_sjr,
+                'no_retur'     => $no_retur,
                 'id_product'   => $value['id_product'],
                 'nm_product'   => $value['nm_product'],
                 'qty_retur'    => $qty_retur,
@@ -348,17 +350,15 @@ class Retur_credit_note extends Admin_Controller
         }
 
         // Ambil detail dari SJ Retur (qty sudah final dari gudang)
-        // Join ke tr_retur_detail untuk ambil harga_beli
-        $no_retur_escaped = $this->db->escape($retur['no_retur']);
-        $no_sjr_escaped   = $this->db->escape($retur['no_sjr']);
+        // Join ke tr_retur_detail via no_retur yang kini tersimpan di surat_jalan_retur_detail
         $detail_query = $this->db->query("
             SELECT sjrd.*, trd.harga_beli
             FROM surat_jalan_retur_detail sjrd
             LEFT JOIN tr_retur_detail trd
-                ON trd.no_retur = {$no_retur_escaped}
+                ON trd.no_retur = sjrd.no_retur
                 AND trd.id_product = sjrd.id_product
-            WHERE sjrd.no_sjr = {$no_sjr_escaped}
-        ");
+            WHERE sjrd.no_sjr = ?
+        ", [$retur['no_sjr']]);
         $detail = $detail_query ? $detail_query->result_array() : [];
 
         // Ambil data invoice untuk hitung total sudah bayar
