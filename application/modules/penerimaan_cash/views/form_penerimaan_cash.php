@@ -253,6 +253,8 @@
         let selectedIds = [];
         let selectedInvoices = [];
         let selectedInvoiceIds = [];
+        let selectedCnIds = []; // array no_retur CN yang dipilih
+        let selectedCnData = {}; // map no_retur => {id_invoice, nilai}
 
         $('.select2').select2({
             width: '100%'
@@ -263,13 +265,21 @@
         });
 
         $(document).on('click', '.btn-remove', function() {
-            const id_invoice = $(this).closest('tr').find('td:nth-child(2)').text();
+            const $row = $(this).closest('tr');
+            const id_invoice = $row.find('input[name*="[id_invoice]"]').val();
 
-            // Hapus dari array selected
+            // Hapus dari array selected invoice
             selectedInvoiceIds = selectedInvoiceIds.filter(id => id !== id_invoice);
 
+            // Hapus CN terkait dari state
+            $row.find('input[name*="[cn]"][name*="[no_retur]"]').each(function() {
+                const no_retur = $(this).val();
+                selectedCnIds = selectedCnIds.filter(id => id !== no_retur);
+                delete selectedCnData[no_retur];
+            });
+
             // Hapus baris
-            $(this).closest('tr').remove();
+            $row.remove();
 
             // Re-number baris
             $('#tableInv tbody tr').each(function(i, row) {
@@ -338,64 +348,50 @@
                             // Badge credit note jika ada
                             let cnBadge = '';
                             if (parseInt(item.jumlah_cn) > 0) {
-                                cnBadge = `<span class="badge bg-orange" title="Pernah ada credit note">CN</span>`;
+                                cnBadge = `<span class="badge bg-orange" title="Ada credit note">CN</span>`;
                             }
 
+                            const invChecked = selectedInvoiceIds.includes(item.id_invoice) ? 'checked' : '';
+
                             html += `
-                        	<tr>
+                        	<tr class="inv-row" data-invoice="${item.id_invoice}">
                                 <td class="text-center">${no++}</td>
                                 <td>${item.tgl_inv}</td>
                                 <td>${item.id_invoice} ${cnBadge}</td>
                                 <td>${item.tgl_so ?? '-'}</td>
                                 <td>${item.id_so ?? '-'}</td>
-                                <td class="text-right">${parseFloat(item.sisa_tagihan).toLocaleString('id-ID')}</td>
+                                <td class="text-right inv-sisa-tagihan" data-original="${parseFloat(item.sisa_tagihan)}">${parseFloat(item.sisa_tagihan).toLocaleString('id-ID')}</td>
                                 <td class="text-center">
-                                  <input type="checkbox" class="select-inv" data-inv='${JSON.stringify(item)}' 
-                                    ${selectedInvoiceIds.includes(item.id_invoice) ? 'checked' : ''}>
+                                  <input type="checkbox" class="select-inv" data-inv='${JSON.stringify(item)}' ${invChecked}>
                                 </td>
                             </tr>
                     `;
 
-                            // Render history CN inline jika ada (info only)
+                            // Baris CN di bawah invoice (jika ada)
                             if (item.cn_rows && item.cn_rows.length > 0) {
-                                let nilaiAwal = parseFloat(item.nilai_asli || 0);
-                                let cnHtml = '';
                                 item.cn_rows.forEach(function(cn) {
-                                    const nilaiRetur = parseFloat(cn.nilai_retur || 0);
-                                    const nilaiInvBaru = parseFloat(cn.nilai_inv_baru || 0);
-                                    cnHtml += `<tr>
-                                        <td>${cn.no_retur}</td>
-                                        <td>${cn.tgl_retur}</td>
-                                        <td class="text-right">${nilaiAwal.toLocaleString('id-ID')}</td>
-                                        <td class="text-right">${nilaiRetur.toLocaleString('id-ID')}</td>
-                                        <td class="text-right">${nilaiInvBaru.toLocaleString('id-ID')}</td>
-                                        <td>${cn.alasan || '-'}</td>
+                                    const cnVal = parseFloat(cn.nilai_retur || 0);
+                                    const cnChecked = selectedCnIds.includes(cn.no_retur) ? 'checked' : '';
+                                    html += `
+                                    <tr class="cn-row" data-invoice="${item.id_invoice}" data-no-retur="${cn.no_retur}" style="background-color:#fff8e1;">
+                                        <td></td>
+                                        <td colspan="1" class="text-muted" style="padding-left:30px;">
+                                            <i class="fa fa-level-down text-orange"></i>
+                                            <small class="text-orange"><b>Credit Note</b></small>
+                                        </td>
+                                        <td class="text-orange"><small>${cn.no_retur}</small></td>
+                                        <td colspan="2"><small class="text-muted">${cn.tgl_retur || '-'}</small></td>
+                                        <td class="text-right text-orange"><small><b>- ${cnVal.toLocaleString('id-ID')}</b></small></td>
+                                        <td class="text-center">
+                                            <input type="checkbox" class="select-cn"
+                                                data-invoice="${item.id_invoice}"
+                                                data-no-retur="${cn.no_retur}"
+                                                data-nilai="${cnVal}"
+                                                ${cnChecked}
+                                                ${selectedInvoiceIds.includes(item.id_invoice) ? '' : 'disabled'}>
+                                        </td>
                                     </tr>`;
-                                    nilaiAwal = nilaiInvBaru;
                                 });
-                                html += `
-                                <tr>
-                                    <td colspan="8" style="padding:0; background:#fff8f0;">
-                                        <table class="table table-condensed table-bordered" style="margin:0; font-size:12px; background:#fff8f0;">
-                                            <thead>
-                                                <tr class="bg-orange" style="color:#fff;">
-                                                    <th colspan="6" style="padding:4px 8px;">
-                                                        <i class="fa fa-history"></i> History Credit Note — ${item.id_invoice}
-                                                    </th>
-                                                </tr>
-                                                <tr style="background:#fde8c8;">
-                                                    <th>No. Retur</th>
-                                                    <th>Tgl. Retur</th>
-                                                    <th class="text-right">Nilai Inv. Asal</th>
-                                                    <th class="text-right">Nilai Retur</th>
-                                                    <th class="text-right">Nilai Inv. Baru</th>
-                                                    <th>Alasan</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>${cnHtml}</tbody>
-                                        </table>
-                                    </td>
-                                </tr>`;
                             }
                         });
                     }
@@ -404,6 +400,40 @@
                     // Cekbox chaining logic
                     const checkboxes = $('#tableModalInv .select-inv');
                     checkboxes.prop('disabled', false); //sementara biar aktip semua 
+
+                    // Handler checkbox CN: update tampilan sisa tagihan invoice di modal
+                    $('#tableModalInv').off('change', '.select-cn').on('change', '.select-cn', function() {
+                        const id_invoice = $(this).data('invoice');
+                        const $invRow = $('#tableModalInv tr.inv-row[data-invoice="' + id_invoice + '"]');
+                        const $sisaCell = $invRow.find('.inv-sisa-tagihan');
+                        const originalVal = parseFloat($sisaCell.data('original')) || 0;
+
+                        let totalCnChecked = 0;
+                        $('#tableModalInv tr.cn-row[data-invoice="' + id_invoice + '"] .select-cn:checked').each(function() {
+                            totalCnChecked += parseFloat($(this).data('nilai')) || 0;
+                        });
+
+                        const sisaBaru = originalVal - totalCnChecked;
+                        $sisaCell.text(sisaBaru.toLocaleString('id-ID'));
+                    });
+
+                    // Handler checkbox invoice: enable/disable CN di bawahnya
+                    $('#tableModalInv').off('change', '.select-inv').on('change', '.select-inv', function() {
+                        const invData = $(this).data('inv');
+                        const id_invoice = invData.id_invoice;
+                        const isChecked = $(this).is(':checked');
+                        const $cnRows = $('#tableModalInv tr.cn-row[data-invoice="' + id_invoice + '"]');
+
+                        if (isChecked) {
+                            $cnRows.find('.select-cn').prop('disabled', false);
+                        } else {
+                            $cnRows.find('.select-cn').prop('checked', false).prop('disabled', true);
+                            const $invRow = $('#tableModalInv tr.inv-row[data-invoice="' + id_invoice + '"]');
+                            const $sisaCell = $invRow.find('.inv-sisa-tagihan');
+                            const originalVal = parseFloat($sisaCell.data('original')) || 0;
+                            $sisaCell.text(originalVal.toLocaleString('id-ID'));
+                        }
+                    });
 
                     $('#ModalInv').modal('show');
                 },
@@ -427,6 +457,33 @@
                 return;
             }
 
+            // Kumpulkan CN yang dipilih per invoice
+            const cnByInvoice = {};
+            const cnDetailByInvoice = {};
+            $('.select-cn:checked').each(function() {
+                const id_invoice = $(this).data('invoice');
+                const no_retur = $(this).data('no-retur');
+                const nilai = parseFloat($(this).data('nilai')) || 0;
+
+                if (!cnByInvoice[id_invoice]) {
+                    cnByInvoice[id_invoice] = 0;
+                    cnDetailByInvoice[id_invoice] = [];
+                }
+                cnByInvoice[id_invoice] += nilai;
+                cnDetailByInvoice[id_invoice].push({
+                    no_retur,
+                    nilai
+                });
+
+                if (!selectedCnIds.includes(no_retur)) {
+                    selectedCnIds.push(no_retur);
+                    selectedCnData[no_retur] = {
+                        id_invoice,
+                        nilai
+                    };
+                }
+            });
+
             let rowIndex = $('#tableInv tbody tr').length;
 
             selectedInvoices.forEach((inv) => {
@@ -434,14 +491,34 @@
 
                 selectedInvoiceIds.push(inv.id_invoice);
                 rowIndex++;
-                const nominal = parseFloat(inv.sisa_tagihan || inv.grand_total || 0);
+
+                const totalCn = cnByInvoice[inv.id_invoice] || 0;
+                const cnDetails = cnDetailByInvoice[inv.id_invoice] || [];
+                const sisaTagihan = parseFloat(inv.sisa_tagihan || inv.grand_total || 0);
+                const nominal = sisaTagihan - totalCn;
+
+                // Hidden inputs CN
+                let cnHiddenInputs = '';
+                cnDetails.forEach(function(cn, ci) {
+                    cnHiddenInputs += `
+                        <input type="hidden" name="detail[${rowIndex}][cn][${ci}][no_retur]" value="${cn.no_retur}">
+                        <input type="hidden" name="detail[${rowIndex}][cn][${ci}][nilai]" value="${cn.nilai}">
+                    `;
+                });
+
+                // Label CN
+                let cnLabel = '';
+                if (cnDetails.length > 0) {
+                    const cnList = cnDetails.map(cn => `${cn.no_retur} (-${cn.nilai.toLocaleString('id-ID')})`).join(', ');
+                    cnLabel = `<br><small class="text-orange"><i class="fa fa-minus-circle"></i> Credit Note: ${cnList}</small>`;
+                }
 
                 $('#tableInv tbody').append(`
                     <tr>
                         <td class="text-center">${rowIndex}</td>
-                        <td>${inv.id_invoice}</td>
+                        <td>${inv.id_invoice}${cnLabel}</td>
                         <td>
-                            <input type="text" name="detail[${rowIndex}][tagihan]" class="form-control text-right tagihan auto_num" value="${nominal}" readonly />
+                            <input type="text" name="detail[${rowIndex}][tagihan]" class="form-control text-right tagihan auto_num" value="${sisaTagihan}" readonly />
                         </td>
                         <td>
                             <input type="text" name="detail[${rowIndex}][sisa_invoice]" class="form-control text-right sisa_invoice auto_num" value="${nominal}" readonly/>
@@ -454,6 +531,8 @@
                         </td>
                         <input type="hidden" name="detail[${rowIndex}][id_invoice]" value="${inv.id_invoice}">
                         <input type="hidden" name="detail[${rowIndex}][id_so]" value="${inv.id_so}">
+                        <input type="hidden" name="detail[${rowIndex}][total_cn]" value="${totalCn}">
+                        ${cnHiddenInputs}
                     </tr>
                 `);
             });
@@ -681,7 +760,60 @@
         let totalBayar = parseFloat($('#totalTerima').val().replace(/,/g, '')) || 0;
 
         // =========================
-        // BANK (DEBIT)
+        // PIUTANG + CN
+        // =========================
+        $('#tableInv tbody tr').each(function() {
+            const $row = $(this);
+            const invoiceRaw = $row.find('td:eq(1)').clone();
+            invoiceRaw.find('small, br').remove();
+            const invoice = invoiceRaw.text().trim();
+
+            const bayar = parseFloat($row.find('.total_bayar').val().replace(/,/g, '')) || 0;
+            const totalCn = parseFloat($row.find('input[name*="[total_cn]"]').val()) || 0;
+            const totalKreditInv = bayar + totalCn;
+
+            if (totalKreditInv > 0) {
+                jurnalHTML += `
+            <tr>
+                <td><input type="date" name="tgl_jurnal[]" value="${today}" class="form-control" readonly></td>
+                <td><input type="text" name="type[]" value="JV" class="form-control" readonly></td>
+                <td><input type="text" name="no_coa[]" value="1102-01-01" class="form-control" readonly></td>
+                <td><input type="text" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly></td>
+                <td><textarea name="keterangan[]" class="form-control" readonly>Pembayaran Invoice ${invoice} A/n ${customerName}</textarea></td>
+
+                <td><input type="hidden" name="debet[]" value="0">
+                <input type="text" value="0" class="form-control text-right" readonly></td>
+
+                <td><input type="hidden" name="kredit[]" value="${totalKreditInv}">
+                <input type="text" value="${number_format(totalKreditInv,2)}" class="form-control text-right" readonly></td>
+            </tr>
+            `;
+                totalKredit += totalKreditInv;
+            }
+
+            // Baris CN: Debit Retur Penjualan (offset agar jurnal balance)
+            if (totalCn > 0) {
+                jurnalHTML += `
+            <tr>
+                <td><input type="date" name="tgl_jurnal[]" value="${today}" class="form-control" readonly></td>
+                <td><input type="text" name="type[]" value="JV" class="form-control" readonly></td>
+                <td><input type="text" name="no_coa[]" value="4102-01-01" class="form-control" readonly></td>
+                <td><input type="text" name="nama_coa[]" value="Retur Penjualan" class="form-control" readonly></td>
+                <td><textarea name="keterangan[]" class="form-control" readonly>Penggunaan Credit Note Invoice ${invoice} A/n ${customerName}</textarea></td>
+
+                <td><input type="hidden" name="debet[]" value="${totalCn}">
+                <input type="text" value="${number_format(totalCn,2)}" class="form-control text-right" readonly></td>
+
+                <td><input type="hidden" name="kredit[]" value="0">
+                <input type="text" value="0" class="form-control text-right" readonly></td>
+            </tr>
+            `;
+                totalDebit += totalCn;
+            }
+        });
+
+        // =========================
+        // PENERIMAAN (DEBIT)
         // =========================
         if (totalBayar > 0) {
             jurnalHTML += `
@@ -706,33 +838,6 @@
             totalDebit += totalBayar;
         }
 
-        // =========================
-        // PIUTANG
-        // =========================
-        $('#tableInv tbody tr').each(function() {
-
-            const invoice = $(this).find('td:eq(1)').text();
-            const bayar = parseFloat($(this).find('.total_bayar').val().replace(/,/g, '')) || 0;
-            if (bayar > 0) {
-                jurnalHTML += `
-            <tr>
-                <td><input type="date" name="tgl_jurnal[]" value="${today}" class="form-control" readonly></td>
-                <td><input type="text" name="type[]" value="JV" class="form-control" readonly></td>
-                <td><input type="text" name="no_coa[]" value="1102-01-01" class="form-control" readonly></td>
-                <td><input type="text" name="nama_coa[]" value="Piutang Dagang" class="form-control" readonly></td>
-                <td><textarea name="keterangan[]" class="form-control" readonly>Pembayaran Invoice ${invoice} A/n ${customerName}</textarea></td>
-
-                <td><input type="hidden" name="debet[]" value="0">
-                <input type="text" value="0" class="form-control text-right" readonly></td>
-
-                <td><input type="hidden" name="kredit[]" value="${bayar}">
-                <input type="text" value="${number_format(bayar,2)}" class="form-control text-right" readonly></td>
-            </tr>
-            `;
-                totalKredit += bayar;
-            }
-        });
-
         $('#tableJurnal tbody').html(jurnalHTML);
 
         $('#totalDebit').val(number_format(totalDebit, 2));
@@ -752,30 +857,27 @@
     function updateInvoiceTotals() {
         let totalInvoice = 0;
         let sisaBayar = getNum($('#totalTerima').val().split(',').join(''));
-        let nilaiBayar = getNum($('#totalTerima').val().split(',').join(''));
 
         $('#tableInv tbody tr').each(function() {
             const $tr = $(this);
 
-            // total invoice per baris
             const tagihan = getNum($tr.find('.tagihan').val().split(',').join(''));
-            totalInvoice += tagihan;
+            const totalCn = parseFloat($tr.find('input[name*="[total_cn]"]').val()) || 0;
+            const tagihanEfektif = tagihan - totalCn; // tagihan setelah dikurangi CN
 
-            // alokasi pembayaran
+            totalInvoice += tagihanEfektif;
+
             let bayar = 0;
-            if (sisaBayar >= tagihan) {
-                bayar = tagihan;
-                sisaBayar -= tagihan;
+            if (sisaBayar >= tagihanEfektif) {
+                bayar = tagihanEfektif;
+                sisaBayar -= tagihanEfektif;
             } else if (sisaBayar > 0) {
                 bayar = sisaBayar;
                 sisaBayar = 0;
             }
 
-            const sisa = Math.max(0, tagihan - bayar);
+            const sisa = Math.max(0, tagihanEfektif - bayar);
 
-            console.log(sisa)
-
-            // tulis kembali dengan number_format (2 desimal)
             $tr.find('.total_bayar').val(number_format(bayar, 2));
             $tr.find('.sisa_invoice').val(number_format(sisa, 2));
         });

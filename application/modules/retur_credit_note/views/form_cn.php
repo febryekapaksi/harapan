@@ -215,7 +215,7 @@ $nilai_inv_baru = $grand_total_inv - $grand_total_retur;
             e.preventDefault();
             swal({
                 title: "Proses Credit Note?",
-                text: "Tindakan ini akan mengubah nilai invoice dan membuat jurnal koreksi. Tidak dapat dibatalkan.",
+                text: "Tindakan ini akan mencatat Credit Note dan membuat jurnal koreksi. Nilai piutang invoice tidak akan berubah. Tidak dapat dibatalkan.",
                 type: "warning",
                 showCancelButton: true,
                 confirmButtonText: "Ya, Proses",

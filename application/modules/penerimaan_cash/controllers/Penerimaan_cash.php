@@ -114,6 +114,7 @@ class Penerimaan_cash extends Admin_Controller
 					->from('tr_retur')
 					->where('id_invoice', $inv['id_invoice'])
 					->where('status', 2)
+					->where('used_in_invoice IS NULL', null, false)  // hanya CN yang belum dipakai
 					->order_by('tgl_retur', 'ASC')
 					->get()->result_array();
 			} else {
@@ -350,6 +351,7 @@ class Penerimaan_cash extends Admin_Controller
 				$total_bayar  = floatval(str_replace(',', '', $row['total_bayar']));
 				$tagihan      = floatval(str_replace(',', '', $row['tagihan']));
 				$sisa_invoice = floatval(str_replace(',', '', $row['sisa_invoice']));
+				$total_cn     = isset($row['total_cn']) ? (float)$row['total_cn'] : 0;
 
 				$this->db->insert('tr_invoice_payment_detail', [
 					'kd_pembayaran'      => $kd,
@@ -361,6 +363,7 @@ class Penerimaan_cash extends Admin_Controller
 					'total_invoice_idr'  => $tagihan,
 					'total_bayar_idr'    => $total_bayar,
 					'sisa_invoice_idr'   => $sisa_invoice,
+					'total_cn_idr'       => $total_cn,
 					'id_customer'        => $header['id_customer'],
 					'nm_customer'        => $header['nm_customer'],
 					'created_by'         => $this->auth->user_id(),
@@ -368,10 +371,35 @@ class Penerimaan_cash extends Admin_Controller
 					'tipe_bayar'         => "CASH"
 				]);
 
-				// update invoice
-				$this->db->set('total_bayar', "COALESCE(total_bayar,0) + {$total_bayar}", false);
-				$this->db->set('piutang', $sisa_invoice, false);
-				$this->db->set('sts', "CASE WHEN {$sisa_invoice} <= 0 THEN 0 ELSE 1 END", false);
+				// Tandai CN yang digunakan
+				if (!empty($row['cn']) && is_array($row['cn'])) {
+					foreach ($row['cn'] as $cn_item) {
+						if (!empty($cn_item['no_retur'])) {
+							$this->db->update('tr_retur', [
+								'used_in_invoice' => $kd,
+								'used_date'       => date('Y-m-d'),
+							], ['no_retur' => $cn_item['no_retur']]);
+						}
+					}
+				}
+
+				// update invoice — sisa piutang = grand_total - total bayar - total CN
+				$sum_bayar = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
+					->from('tr_invoice_payment_detail')
+					->where('no_invoice', $row['id_invoice'])
+					->get()->row()->total;
+
+				$sum_cn = $this->db->select('COALESCE(SUM(total_cn_idr),0) AS total', false)
+					->from('tr_invoice_payment_detail')
+					->where('no_invoice', $row['id_invoice'])
+					->get()->row()->total;
+
+				$sisa_piutang = (float)$inv->grand_total - (float)$sum_bayar - (float)$sum_cn;
+				if ($sisa_piutang < 0) $sisa_piutang = 0;
+
+				$this->db->set('total_bayar', $sum_bayar, false);
+				$this->db->set('piutang', $sisa_piutang, false);
+				$this->db->set('sts', "CASE WHEN {$sisa_piutang} <= 0 THEN 0 ELSE 1 END", false);
 				$this->db->where('id_invoice', $row['id_invoice']);
 				$this->db->update('tr_invoice_sales');
 			}
@@ -472,12 +500,11 @@ class Penerimaan_cash extends Admin_Controller
 		foreach ($detail as $row) {
 
 			$total_bayar = floatval(str_replace(',', '', $row['total_bayar']));
+			$total_cn    = isset($row['total_cn']) ? (float)$row['total_cn'] : 0;
 
+			// Kredit piutang dari pembayaran cash
 			if ($total_bayar > 0) {
-
-
-
-				$data_piutang = [
+				$this->db->insert('tr_kartu_piutang', [
 					'tipe'          => 'JV',
 					'nomor'         => $Nomor_JV,
 					'tanggal'       => $header['tgl_pembayaran'],
@@ -488,9 +515,9 @@ class Penerimaan_cash extends Admin_Controller
 					'kredit'        => $total_bayar,
 					'id_supplier'   => $header['id_customer'],
 					'nama_supplier' => $customer->name_customer,
-				];
+				]);
 
-				$data_piutang_sales = [
+				$this->db->insert('tr_kartu_piutang_sales', [
 					'tipe'          => 'JV',
 					'nomor'         => $Nomor_JV,
 					'tanggal'       => $header['tgl_pembayaran'],
@@ -499,12 +526,33 @@ class Penerimaan_cash extends Admin_Controller
 					'no_reff'       => $row['id_invoice'],
 					'debet'         => $total_bayar,
 					'kredit'        => 0,
-					'id_sales'   	=> $customer->id_karyawan,
-					'nama_sales' 	=> $customer->nm_karyawan,
-				];
+					'id_sales'      => $customer->id_karyawan,
+					'nama_sales'    => $customer->nm_karyawan,
+				]);
+			}
 
-				$this->db->insert('tr_kartu_piutang', $data_piutang);
-				$this->db->insert('tr_kartu_piutang_sales', $data_piutang_sales);
+			// Kredit piutang dari CN
+			if ($total_cn > 0) {
+				$cn_nos = [];
+				if (!empty($row['cn']) && is_array($row['cn'])) {
+					foreach ($row['cn'] as $cn_item) {
+						$cn_nos[] = $cn_item['no_retur'];
+					}
+				}
+				$ket_cn = 'PENGGUNAAN CREDIT NOTE ' . implode(', ', $cn_nos) . ' INV ' . $row['id_invoice'] . ' A/n ' . $customer->name_customer;
+
+				$this->db->insert('tr_kartu_piutang', [
+					'tipe'          => 'JV',
+					'nomor'         => $Nomor_JV,
+					'tanggal'       => $header['tgl_pembayaran'],
+					'no_perkiraan'  => '1102-01-01',
+					'keterangan'    => $ket_cn,
+					'no_reff'       => $row['id_invoice'],
+					'debet'         => 0,
+					'kredit'        => $total_cn,
+					'id_supplier'   => $header['id_customer'],
+					'nama_supplier' => $customer->name_customer,
+				]);
 			}
 		}
 

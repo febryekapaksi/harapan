@@ -398,11 +398,10 @@ class Retur_credit_note extends Admin_Controller
             return;
         }
 
-        $post            = $this->input->post();
-        $no_retur        = $post['no_retur'];
-        $id_invoice_lama = $post['id_invoice'];
+        $post              = $this->input->post();
+        $no_retur          = $post['no_retur'];
+        $id_invoice_lama   = $post['id_invoice'];
         $grand_total_retur = (float)str_replace(',', '', $post['grand_total']);
-        $nilai_inv_baru    = (float)str_replace(',', '', $post['nilai_inv_baru']);
 
         // Ambil total harga_beli dari tr_retur_detail untuk jurnal
         $retur_detail = $this->db
@@ -422,33 +421,20 @@ class Retur_credit_note extends Admin_Controller
             return;
         }
 
-        $total_sudah_bayar = (float)$this->db
-            ->select('COALESCE(SUM(total_bayar_idr), 0) AS total', false)
-            ->from('tr_invoice_payment_detail')
-            ->where('no_invoice', $id_invoice_lama)
-            ->get()->row()->total;
-
-        $piutang_baru = max(0, $nilai_inv_baru - $total_sudah_bayar);
-        $sts_baru     = ($piutang_baru <= 0) ? 0 : 1;
-        $flag_cancel  = ($nilai_inv_baru <= 0) ? 1 : 2;
-
         $this->db->trans_begin();
 
         try {
             // Update tr_retur: simpan total_harga dan status=2
+            // Nilai invoice TIDAK diubah — piutang tetap sama, CN hanya dicatat
             $this->db->update('tr_retur', [
-                'total_harga'    => $grand_total_retur,
-                'nilai_inv_baru' => $nilai_inv_baru,
-                'tgl_retur'      => date('Y-m-d', strtotime($post['tgl_retur'])),
-                'status'         => 2,
+                'total_harga' => $grand_total_retur,
+                'tgl_retur'   => date('Y-m-d', strtotime($post['tgl_retur'])),
+                'status'      => 2,
             ], ['no_retur' => $no_retur]);
 
-            // Update invoice
+            // Tandai invoice bahwa ada credit note (is_cancel=2), tanpa mengubah grand_total/piutang/sts
             $this->db->update('tr_invoice_sales', [
-                'is_cancel'  => $flag_cancel,
-                'grand_total' => $nilai_inv_baru,
-                'piutang'    => $piutang_baru,
-                'sts'        => $sts_baru,
+                'is_cancel'  => 2,
                 'updated_by' => $this->auth->user_id(),
                 'updated_on' => date('Y-m-d H:i:s'),
             ], ['id_invoice' => $id_invoice_lama]);
@@ -471,13 +457,7 @@ class Retur_credit_note extends Admin_Controller
             $this->db->trans_commit();
             history("Credit Note: " . $no_retur);
 
-            $pesan = 'Credit Note berhasil disimpan.';
-            if ($nilai_inv_baru > 0) {
-                $pesan .= ' Nilai invoice baru: Rp ' . number_format($nilai_inv_baru, 0, ',', '.');
-            } else {
-                $pesan .= ' Invoice telah di-cancel penuh.';
-            }
-            echo json_encode(['status' => 1, 'pesan' => $pesan]);
+            echo json_encode(['status' => 1, 'pesan' => 'Credit Note ' . $no_retur . ' berhasil disimpan. Nilai piutang invoice tidak berubah.']);
         } catch (Exception $e) {
             $this->db->trans_rollback();
             echo json_encode(['status' => 0, 'pesan' => 'Gagal: ' . $e->getMessage()]);
