@@ -33,15 +33,15 @@
                 style="margin-bottom:0;">
                 <thead>
                     <tr class="bg-blue" style="color:#fff;">
-                        <th class="text-center" style="position:sticky;top:0;z-index:2;background:#337ab7;">Tanggal</th>
-                        <th class="text-center" style="position:sticky;top:0;z-index:2;background:#337ab7;">Kode Penerimaan Cash</th>
-                        <th class="text-center" style="position:sticky;top:0;z-index:2;background:#337ab7;">Invoice</th>
-                        <th class="text-right" style="position:sticky;top:0;z-index:2;background:#337ab7;">Nilai Penerimaan</th>
-                        <th style="position:sticky;top:0;z-index:2;background:#337ab7;">Customer</th>
-                        <th class="text-center" style="position:sticky;top:0;z-index:2;background:#337ab7;">Tanggal<br><small>(Setor)</small></th>
-                        <th class="text-center" style="position:sticky;top:0;z-index:2;background:#337ab7;">Kode Setor</th>
-                        <th class="text-right" style="position:sticky;top:0;z-index:2;background:#337ab7;">Setor Kasir Penjualan</th>
-                        <th class="text-right" style="position:sticky;top:0;z-index:2;background:#337ab7;">Saldo</th>
+                        <th class="text-center">Tanggal</th>
+                        <th class="text-center">Kode Penerimaan Cash</th>
+                        <th class="text-center">Invoice</th>
+                        <th class="text-right">Nilai Penerimaan</th>
+                        <th>Customer</th>
+                        <th class="text-center">Tanggal<br><small>(Setor)</small></th>
+                        <th class="text-center">Kode Setor</th>
+                        <th class="text-right">Setor Kasir Penjualan</th>
+                        <th class="text-right">Saldo</th>
                     </tr>
                 </thead>
                 <tbody>
