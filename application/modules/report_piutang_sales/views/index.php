@@ -27,10 +27,10 @@
                 style="margin-bottom:0;">
                 <thead>
                     <tr class="bg-blue">
-                        <th style="width:40px; position:sticky;top:0;z-index:2;background:#337ab7;color:#fff;">No</th>
-                        <th style="position:sticky;top:0;z-index:2;background:#337ab7;color:#fff;">Nama Sales</th>
-                        <th class="text-right" style="position:sticky;top:0;z-index:2;background:#337ab7;color:#fff;">Saldo Piutang</th>
-                        <th class="text-center" style="width:100px; position:sticky;top:0;z-index:2;background:#337ab7;color:#fff;">Action</th>
+                        <th style="width:40px; ">No</th>
+                        <th style="">Nama Sales</th>
+                        <th class="text-right" style="">Saldo Piutang</th>
+                        <th class="text-center" style="width:100px; ">Action</th>
                     </tr>
                 </thead>
                 <tbody>

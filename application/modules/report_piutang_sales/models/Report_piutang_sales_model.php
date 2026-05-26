@@ -26,33 +26,43 @@ class Report_piutang_sales_model extends BF_Model
     public function get_piutang_per_sales($tanggal = null)
     {
         $sql = "
+        SELECT
+            u.id_user,
+            u.nm_lengkap,
+            SUM(
+                p.jumlah_pembayaran_idr
+                - COALESCE(s.total_setor, 0)
+            ) AS saldo_piutang
+        FROM tr_invoice_payment p
+        JOIN users u
+            ON u.id_user = p.created_by
+
+        LEFT JOIN (
             SELECT
-                u.id_user,
-                u.nm_lengkap,
-                SUM(
-                    p.jumlah_pembayaran_idr
-                    - COALESCE(skd.total_penerimaan, 0)
-                ) AS saldo_piutang
-            FROM tr_invoice_payment p
-            JOIN users u
-                ON u.id_user = p.created_by
-            LEFT JOIN tr_setor_kasir_detail skd
-                ON skd.kd_pembayaran = p.kd_pembayaran
-            WHERE u.department_id = 2
-              AND (p.is_cancel IS NULL OR p.is_cancel != 'YES')
-        ";
+                kd_pembayaran,
+                SUM(total_penerimaan) AS total_setor
+            FROM tr_setor_kasir_detail
+            GROUP BY kd_pembayaran
+        ) s
+            ON s.kd_pembayaran = p.kd_pembayaran
+
+        WHERE u.department_id = 2
+          AND (p.is_cancel IS NULL OR p.is_cancel != 'YES')
+          AND p.tipe_bayar = 'CASH'
+    ";
 
         $params = [];
+
         if (!empty($tanggal)) {
-            $sql     .= " AND DATE(p.tgl_pembayaran) <= ? ";
+            $sql .= " AND DATE(p.tgl_pembayaran) <= ? ";
             $params[] = $tanggal;
         }
 
         $sql .= "
-            GROUP BY u.id_user, u.nm_lengkap
-            HAVING saldo_piutang > 0
-            ORDER BY u.nm_lengkap ASC
-        ";
+        GROUP BY u.id_user, u.nm_lengkap
+        HAVING saldo_piutang > 0
+        ORDER BY u.nm_lengkap ASC
+    ";
 
         return $this->db->query($sql, $params)->result_array();
     }
@@ -76,38 +86,51 @@ class Report_piutang_sales_model extends BF_Model
     public function get_detail_piutang($id_user, $tanggal = null)
     {
         $sql = "
+        SELECT
+            p.tgl_pembayaran,
+            p.kd_pembayaran,
+            p.no_invoice,
+            p.jumlah_pembayaran_idr AS nilai_penerimaan,
+            p.nm_customer,
+            s.tgl_setor,
+            s.kode_setor,
+            COALESCE(s.total_setor, 0) AS setor_kasir_penjualan,
+            (
+                p.jumlah_pembayaran_idr
+                - COALESCE(s.total_setor, 0)
+            ) AS saldo
+
+        FROM tr_invoice_payment p
+
+        LEFT JOIN (
             SELECT
-                p.tgl_pembayaran,
-                p.kd_pembayaran,
-                p.no_invoice,
-                p.jumlah_pembayaran_idr             AS nilai_penerimaan,
-                p.nm_customer,
-                sk.tgl_setor,
-                sk.id                               AS kode_setor,
-                COALESCE(skd.total_penerimaan, 0)   AS setor_kasir_penjualan,
-                (p.jumlah_pembayaran_idr - COALESCE(skd.total_penerimaan, 0)) AS saldo
-            FROM tr_invoice_payment p
-            LEFT JOIN tr_setor_kasir_detail skd
-                ON skd.kd_pembayaran = p.kd_pembayaran
+                skd.kd_pembayaran,
+                SUM(skd.total_penerimaan) AS total_setor,
+                MAX(sk.tgl_setor) AS tgl_setor,
+                MAX(sk.id) AS kode_setor
+            FROM tr_setor_kasir_detail skd
             LEFT JOIN tr_setor_kasir sk
                 ON sk.id = skd.id_setor_kasir
-            WHERE p.created_by = ?
-              AND (p.is_cancel IS NULL OR p.is_cancel != 'YES')
-              AND p.tipe_bayar = 'CASH'
-        ";
+            GROUP BY skd.kd_pembayaran
+        ) s
+            ON s.kd_pembayaran = p.kd_pembayaran
+
+        WHERE p.created_by = ?
+          AND (p.is_cancel IS NULL OR p.is_cancel != 'YES')
+          AND p.tipe_bayar = 'CASH'
+    ";
 
         $params = [$id_user];
 
         if (!empty($tanggal)) {
-            $sql     .= " AND DATE(p.tgl_pembayaran) <= ? ";
+            $sql .= " AND DATE(p.tgl_pembayaran) <= ? ";
             $params[] = $tanggal;
         }
 
-        // Hanya tampilkan yang masih ada saldo (belum penuh disetor)
         $sql .= "
-            HAVING saldo > 0
-            ORDER BY p.tgl_pembayaran ASC, p.kd_pembayaran ASC
-        ";
+        HAVING saldo > 0
+        ORDER BY p.tgl_pembayaran ASC, p.kd_pembayaran ASC
+    ";
 
         return $this->db->query($sql, $params)->result_array();
     }
