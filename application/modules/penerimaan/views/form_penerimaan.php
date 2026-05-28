@@ -125,6 +125,13 @@
                                         </th>
                                         <th colspan="4"></th>
                                     </tr>
+                                    <tr class="bg-info">
+                                        <th colspan="4" class="text-right">Pembulatan</th>
+                                        <th>
+                                            <input type="text" name="pembulatan" class="form-control input-sm moneyFormat text-right" id="pembulatan" value="0" placeholder="0">
+                                        </th>
+                                        <th colspan="4"></th>
+                                    </tr>
                                     <tr class="bg-info" hidden>
                                         <th colspan="4" class="text-right">Kontrol</th>
                                         <th>
@@ -613,6 +620,14 @@
             calculateSelisihDanKontrol(totalBank, totalInvoice);
         });
 
+        // Pembulatan: update kontrol & jurnal saat diisi
+        $('#pembulatan').on('input', function() {
+            const totalBank = parseFloat($('#totalBank').val().replace(/,/g, '')) || 0;
+            const totalBayarInvoice = parseFloat($('#totalBayarInvoice').val().replace(/,/g, '')) || 0;
+            calculateSelisihDanKontrol(totalBank, totalBayarInvoice);
+            generateJurnal();
+        });
+
         // Handler tombol lihat history credit note
         $(document).on('click', '.btn-lihat-cn', function() {
             const id_invoice = $(this).data('invoice');
@@ -784,6 +799,43 @@
             totalDebit += biayaAdmin;
         }
 
+        // =========================
+        // BIAYA PEMBULATAN
+        // =========================
+        let pembulatan = parseFloat($('#pembulatan').val().replace(/,/g, '')) || 0;
+
+        if (pembulatan > 0) {
+            // Kumpulkan no invoice dari semua baris
+            let invoiceList = [];
+            $('#tableInv tbody tr').each(function() {
+                const $row = $(this);
+                const invoiceRaw = $row.find('td:eq(1)').clone();
+                invoiceRaw.find('small, br').remove();
+                const inv = invoiceRaw.text().trim();
+                if (inv) invoiceList.push(inv);
+            });
+            const keteranganPembulatan = invoiceList.length > 0 ?
+                'Biaya Pembulatan untuk pembayaran Invoice ' + invoiceList.join(', ') :
+                'Biaya Pembulatan';
+
+            jurnalHTML += `
+        <tr>
+            <td><input type="date" name="tgl_jurnal[]" value="${today}" class="form-control" readonly></td>
+            <td><input type="text" name="type[]" value="BUM" class="form-control" readonly></td>
+            <td><input type="text" name="no_coa[]" value="7201-01-06" class="form-control" readonly></td>
+            <td><input type="text" name="nama_coa[]" value="Biaya Pembulatan" class="form-control" readonly></td>
+            <td><textarea name="keterangan[]" class="form-control" readonly>${keteranganPembulatan}</textarea></td>
+
+            <td><input type="hidden" name="debet[]" value="0">
+            <input type="text" value="0" class="form-control text-right" readonly></td>
+
+            <td><input type="hidden" name="kredit[]" value="${pembulatan}">
+            <input type="text" value="${number_format(pembulatan,2)}" class="form-control text-right" readonly></td>
+        </tr>
+        `;
+            totalKredit += pembulatan;
+        }
+
         $('#tableJurnal tbody').html(jurnalHTML);
 
         $('#totalDebit').val(number_format(totalDebit, 2));
@@ -847,9 +899,10 @@
     function calculateSelisihDanKontrol(totalBank, totalBayarInvoice) {
         const biayaAdm = parseFloat($('#biayaAdm').val().replace(/,/g, '')) || 0;
         const lebihBayar = parseFloat($('#lebihBayar').val().replace(/,/g, '')) || 0;
+        const pembulatan = parseFloat($('#pembulatan').val().replace(/,/g, '')) || 0;
 
         const selisih = totalBank - totalBayarInvoice;
-        const kontrol = selisih + biayaAdm - lebihBayar;
+        const kontrol = selisih + biayaAdm - lebihBayar - pembulatan;
 
         $('#selisih').val(number_format(selisih, 2));
         $('#kontrol').val(number_format(kontrol, 2));
