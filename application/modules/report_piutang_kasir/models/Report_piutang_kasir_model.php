@@ -41,7 +41,11 @@ class Report_piutang_kasir_model extends BF_Model
             ) sbd ON sbd.id_setor_kasir = sk.id
             LEFT JOIN tr_setor_bank sb ON sb.id = sbd.id_setor_bank
             WHERE DATE_FORMAT(sk.tgl_setor, '%Y-%m') = ?
-            ORDER BY sk.tgl_setor ASC, sk.id ASC
+            ORDER BY
+                COALESCE(sb.tgl_setor, '9999-12-31') ASC,
+                COALESCE(sbd.id_setor_bank, 'ZZZZZZZZZ') ASC,
+                sk.tgl_setor ASC,
+                sk.id ASC
         ";
 
         return $this->db->query($sql, [$bulan])->result_array();
