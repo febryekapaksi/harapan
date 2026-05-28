@@ -161,16 +161,6 @@
 <script>
     $(document).ready(function() {
 
-        // Tampilkan swal saat pertama buka halaman tanpa filter
-        <?php if (empty($bulan)): ?>
-            swal({
-                title: 'Pilih Period',
-                text: 'Silakan pilih bulan terlebih dahulu untuk menampilkan data.',
-                type: 'info',
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#2E75B6'
-            });
-        <?php endif; ?>
 
         $('#btnFilter').on('click', function() {
             var bulan = $('#inputBulan').val();
