@@ -25,30 +25,37 @@ class Report_piutang_sales_model extends BF_Model
      */
     public function get_piutang_per_sales($tanggal = null)
     {
+        // Wrap per-row saldo dulu, lalu SUM hanya yang saldo > 0
+        // agar konsisten dengan get_detail_piutang yang pakai HAVING saldo > 0
         $sql = "
         SELECT
-            u.id_user,
-            u.nm_lengkap,
-            SUM(
-                p.jumlah_pembayaran_idr
-                - COALESCE(s.total_setor, 0)
-            ) AS saldo_piutang
-        FROM tr_invoice_payment p
-        JOIN users u
-            ON u.id_user = p.created_by
-
-        LEFT JOIN (
+            id_user,
+            nm_lengkap,
+            SUM(saldo_per_row) AS saldo_piutang
+        FROM (
             SELECT
-                kd_pembayaran,
-                SUM(total_penerimaan) AS total_setor
-            FROM tr_setor_kasir_detail
-            GROUP BY kd_pembayaran
-        ) s
-            ON s.kd_pembayaran = p.kd_pembayaran
+                u.id_user,
+                u.nm_lengkap,
+                (
+                    p.jumlah_pembayaran_idr
+                    - COALESCE(s.total_setor, 0)
+                ) AS saldo_per_row
+            FROM tr_invoice_payment p
+            JOIN users u
+                ON u.id_user = p.created_by
 
-        WHERE u.department_id = 2
-          AND (p.is_cancel IS NULL OR p.is_cancel != 'YES')
-          AND p.tipe_bayar = 'CASH'
+            LEFT JOIN (
+                SELECT
+                    kd_pembayaran,
+                    SUM(total_penerimaan) AS total_setor
+                FROM tr_setor_kasir_detail
+                GROUP BY kd_pembayaran
+            ) s
+                ON s.kd_pembayaran = p.kd_pembayaran
+
+            WHERE u.department_id = 2
+              AND (p.is_cancel IS NULL OR p.is_cancel != 'YES')
+              AND p.tipe_bayar = 'CASH'
     ";
 
         $params = [];
@@ -59,9 +66,10 @@ class Report_piutang_sales_model extends BF_Model
         }
 
         $sql .= "
-        GROUP BY u.id_user, u.nm_lengkap
-        HAVING saldo_piutang > 0
-        ORDER BY u.nm_lengkap ASC
+            HAVING saldo_per_row > 0
+        ) sub
+        GROUP BY id_user, nm_lengkap
+        ORDER BY nm_lengkap ASC
     ";
 
         return $this->db->query($sql, $params)->result_array();
