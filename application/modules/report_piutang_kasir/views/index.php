@@ -77,7 +77,7 @@
 
                     <!-- Tabel Gabungan -->
                     <div class="col-md-12">
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height:700px; overflow-y:auto;">
                             <table class="table table-striped table-bordered" id="tbl-piutang">
                                 <thead>
                                     <tr>
