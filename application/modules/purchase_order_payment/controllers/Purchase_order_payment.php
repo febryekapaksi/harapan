@@ -917,13 +917,13 @@ class Purchase_order_payment extends Admin_Controller
 							'keterangan' => 'Receive Invoice Incoming ' . $post['nomor_po'] . ', FP:' . $post['nomor_faktur_pajak'] . ', Sup:' . $nama,
 							'no_reff' => $post['nomor_invoice'],
 							'debet' => 0,
-							'kredit' => $nilai_incoming + $nilai_ppn,
+							'kredit' => $totalunbill + $nilai_ppn,
 							'no_request' => $post['nomor_po'],
 							'jenis_jurnal' => $jenis_jurnal,
 							'nocust' => $kode_supplier,
 							'stspos' => '1'
 						);
-						$totalap = $nilai_incoming + $nilai_ppn;
+						$totalap = $totalunbill + $nilai_ppn;
 						$coaap = $rec->no_perkiraan;
 					}
 
@@ -2008,11 +2008,13 @@ class Purchase_order_payment extends Admin_Controller
 		}
 
 		// 6. Hitung Total Invoice
+		// Gunakan SUM(total_harga) dari tr_checked_incoming_detail agar konsisten
+		// dengan data_incoming di save_invoice (yang dipakai sebagai dasar jurnal debet Unbill)
 		$total_invoice = 0;
 		$query_ttl = "
-        SELECT (c.qty_oke * b.hargasatuan) as subtotal FROM tr_incoming_check_detail a 
-        JOIN dt_trans_po b ON b.id = a.id_po_detail 
-        JOIN tr_checked_incoming_detail c ON c.kode_trans = a.kode_trans AND c.id_detail = a.id
+        SELECT SUM(b.total_harga) as subtotal
+        FROM tr_incoming_check_detail a
+        JOIN tr_checked_incoming_detail b ON b.id_detail = a.id
         WHERE a.kode_trans IN ($in_clause)
         UNION ALL
 
@@ -2079,9 +2081,9 @@ class Purchase_order_payment extends Admin_Controller
 
 		// 8. Final Calculation
 		$total_invoice_final = $total_invoice * $kurs_terima_barang;
-		$base = $total_invoice_final - $uang_muka_idr;
-		$dpp = $base * (11 / 12);
-		$nilai_ppn = $dpp * (12 / 100);
+		// Nilai PPN diambil dari total_ppn PO (sudah diakumulasi di step 2), dikali kurs
+		// agar konsisten dengan nilai_ppn yang dipakai di jurnal save_invoice
+		$nilai_ppn = $ppn_asli * $kurs_terima_barang;
 
 		$nilai_req_payment = (($total_invoice_final + $nilai_ppn) - $uang_muka_idr);
 
