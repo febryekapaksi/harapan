@@ -971,7 +971,7 @@ class Purchase_order_payment extends Admin_Controller
 
 		//auto jurnal
 
-		$tanggal = $post['invoice_date_real'];
+		$tanggal = $post['invoice_date'];
 		$Bln	= substr($tanggal, 5, 2);
 		$Thn	= substr($tanggal, 0, 4);
 		$total	= 0;

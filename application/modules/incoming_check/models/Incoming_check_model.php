@@ -930,7 +930,7 @@ class Incoming_check_model extends BF_Model
 
             // ===== 10) JURNAL (JV) → generate nomor sekarang, simpan ke gl_interface (pending) =====
             $tgl_inv    = date('Y-m-d');
-            $keterangan = "Incoming atas PO nomor " . $no_surat;
+            $keterangan = "Incoming " . $kode_trans . " atas PO nomor " . $no_surat;
 
             $debetArr = str_replace(',', '', $this->input->post('debet'));
             $kreditArr = str_replace(',', '', $this->input->post('kredit'));
