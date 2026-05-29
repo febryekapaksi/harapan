@@ -13,8 +13,8 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 <div class="box box-primary">
 	<div class="box-body">
 		<ul class="nav nav-tabs" role="tablist">
-			<li role="presentation" class="dp_tab tab_pin active"><a onclick="change_tab('dp')">Invoice DP</a></li>
-			<li role="presentation" class="delivery_tab tab_pin"><a onclick="change_tab('delivery')">Invoice Delivery</a></li>
+			<li role="presentation" class="dp_tab tab_pin"><a onclick="change_tab('dp')">Invoice DP</a></li>
+			<li role="presentation" class="delivery_tab tab_pin active"><a onclick="change_tab('delivery')">Invoice Delivery</a></li>
 			<!-- <li role="presentation" class="retensi_tab tab_pin"><a onclick="change_tab('retensi')">Invoice Retensi</a></li> -->
 			<!-- <li role="presentation" class="jaminan_tab tab_pin"><a onclick="change_tab('jaminan')">Invoice Jaminan</a></li> -->
 		</ul>
@@ -205,7 +205,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 			"responsive": true,
 			"bAutoWidth": true,
 			"sPaginationType": "simple_numbers",
-			"iDisplayLength": 50,
+			"iDisplayLength": 10,
 			"aLengthMenu": [
 				[10, 20, 50, 100, 150],
 				[10, 20, 50, 100, 150]
@@ -220,6 +220,8 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 	}
 	$(document).ready(function() {
 		loadmod('dp');
+
+		change_tab('delivery')
 	});
 
 	function change_tab(tipe, startDate = null, endDate = null) {
