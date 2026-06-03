@@ -289,7 +289,8 @@ class Penerimaan_cash extends Admin_Controller
 		$url = 'https://app.whacenter.com/api/send';
 
 		$data = [
-			'device_id' => '532c60ddc0f2c1184b396488c804413e', //punya harapan
+			'device_id' => '34ee66bd167985a7317a49f60498db55', //punya harapan
+			// 'device_id' => '532c60ddc0f2c1184b396488c804413e', //punya harapan lama
 			// 'device_id' => '0d0750bc2fc55e9e86b4da9dde60cfd9', punya gue
 			'number' => $number, // format: 628xxx
 			'message' => $message
