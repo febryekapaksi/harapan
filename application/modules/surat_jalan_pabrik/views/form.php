@@ -111,6 +111,9 @@
             width: '100%'
         });
 
+        // Disable save button by default
+        $('#save').prop('disabled', true);
+
         $('#spk_delivery').on('change', function() {
             const no_delivery = $(this).val();
 
@@ -119,9 +122,38 @@
                 $('#delivery_address').val('');
                 $('#no_so').val('');
                 $('#no_delivery').val('');
+                $('#save').prop('disabled', true);
                 return;
             }
 
+            // SweetAlert konfirmasi PO sudah incoming
+            swal({
+                title: "Konfirmasi",
+                text: "Apakah PO untuk SPK ini sudah di-incoming?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-success",
+                confirmButtonText: "Ya, sudah incoming",
+                cancelButtonText: "Belum",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    // PO sudah incoming — load data dan aktifkan save
+                    loadSpkDetail(no_delivery);
+                } else {
+                    // PO belum incoming — kosongkan tabel dan disable save
+                    $('#tableSpk tbody').empty();
+                    $('#delivery_address').val('');
+                    $('#no_so').val('');
+                    $('#no_delivery').val('');
+                    $('#save').prop('disabled', true);
+                    swal("Info", "Silakan incoming PO terlebih dahulu sebelum membuat Surat Jalan.", "info");
+                }
+            });
+        });
+
+        function loadSpkDetail(no_delivery) {
             $.ajax({
                 url: siteurl + 'surat_jalan_pabrik/get_spk_detail',
                 type: 'GET',
@@ -133,17 +165,17 @@
 
                     if (!data.header || data.detail.length === 0) {
                         swal("Peringatan", "SPK tidak memiliki detail atau sudah digunakan.", "warning");
+                        $('#save').prop('disabled', true);
                         return;
                     }
 
-                    // ✅ Set data ke form
+                    // Set data ke form
                     $('#delivery_address').val(data.header.delivery_address || '');
                     $('#pengiriman').val(data.header.pengiriman || '');
                     $('#no_delivery').val(data.header.no_delivery || '');
                     $('#no_so').val(data.header.no_so || '');
 
                     let html = '';
-
 
                     data.detail.forEach((item, index) => {
                         html += `
@@ -168,12 +200,15 @@
                     });
 
                     $('#tableSpk tbody').html(html);
+                    // Aktifkan tombol save
+                    $('#save').prop('disabled', false);
                 },
                 error: function() {
                     swal("Error", "Gagal mengambil data SPK!", "error");
+                    $('#save').prop('disabled', true);
                 }
             });
-        });
+        }
 
         //SAVE SURAT JALAN
         $('#data-form').submit(function(e) {
