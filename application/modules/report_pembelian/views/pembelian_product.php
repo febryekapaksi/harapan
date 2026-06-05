@@ -28,7 +28,6 @@
                 <thead>
                     <tr class="bg-blue">
                         <th width="50" class="text-center">No</th>
-                        <th width="150" class="text-center">No Invoice</th>
                         <th class="text-center">Nama Barang</th>
                         <th width="150" class="text-center">Kts (Unit#1)</th>
                         <th width="200" class="text-center">Total Pembelian</th>
@@ -81,7 +80,7 @@
             "searching": true,
             "responsive": true,
             "aaSorting": [
-                [4, "desc"]
+                [3, "desc"]
             ],
             "columnDefs": [{
                     "targets": [0],
@@ -90,14 +89,10 @@
                 },
                 {
                     "targets": [1],
-                    "className": "text-center"
-                },
-                {
-                    "targets": [2],
                     "className": "text-left"
                 },
                 {
-                    "targets": [3, 4],
+                    "targets": [2, 3],
                     "className": "text-right"
                 }
             ],
@@ -117,7 +112,7 @@
                 cache: false,
                 error: function() {
                     $(".my-grid-error").html("");
-                    $("#tableItem").append('<tbody class="my-grid-error"><tr><th colspan="5">No data found in the server</th></tr></tbody>');
+                    $("#tableItem").append('<tbody class="my-grid-error"><tr><th colspan="4">No data found in the server</th></tr></tbody>');
                     $("#tableItem_processing").css("display", "none");
                 }
             }

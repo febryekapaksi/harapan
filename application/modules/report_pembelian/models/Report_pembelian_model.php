@@ -358,7 +358,6 @@ class Report_pembelian_model extends BF_Model
         foreach ($query->result_array() as $row) {
             $nestedData = [];
             $nestedData[] = "<div class='text-center'>{$urut}</div>";
-            $nestedData[] = "<b>" . $row['no_invoice'] . "</b>";
             $nestedData[] = "<b>" . $row['nama_barang'] . "</b>";
             $nestedData[] = "<div class='text-right'>" . number_format($row['total_qty'], 0) . "</div>";
             $nestedData[] = "<div class='text-right'>Rp " . number_format($row['total_nominal'], 2) . "</div>";
@@ -380,15 +379,13 @@ class Report_pembelian_model extends BF_Model
     public function get_query_pembelian_per_barang($like_value = NULL, $column_order = NULL, $column_dir = NULL, $limit_start = NULL, $limit_length = NULL, $tgl_dari = NULL, $tgl_sampai = NULL)
     {
         $columns_order_by = [
-            1 => 'inv.id',
-            2 => 'dt.namamaterial',
-            3 => 'total_qty',
-            4 => 'total_nominal'
+            1 => 'dt.namamaterial',
+            2 => 'total_qty',
+            3 => 'total_nominal'
         ];
 
         $this->db->select('
         dt.idmaterial,
-        inv.id as no_invoice,
         dt.namamaterial as nama_barang,
         SUM(ic.qty_oke) as total_qty,
         SUM(ic.harga * ic.qty_oke) as total_nominal
@@ -410,11 +407,10 @@ class Report_pembelian_model extends BF_Model
             $this->db->group_start();
             $this->db->like('dt.namamaterial', $like_value);
             $this->db->or_like('dt.idmaterial', $like_value);
-            $this->db->or_like('inv.id', $like_value);
             $this->db->group_end();
         }
 
-        $this->db->group_by(['inv.id', 'dt.namamaterial']);
+        $this->db->group_by('dt.namamaterial');
 
         $temp_db = clone $this->db;
         $query_total = $temp_db->get();
@@ -444,7 +440,6 @@ class Report_pembelian_model extends BF_Model
     {
         $this->db->select('
         dt.idmaterial,
-        inv.id as no_invoice,
         dt.namamaterial as nama_barang,
         SUM(ic.qty_oke) as total_qty,
         SUM(ic.harga * ic.qty_oke) as total_nominal
@@ -461,13 +456,10 @@ class Report_pembelian_model extends BF_Model
         }
 
         if (!empty($like_value)) {
-            $this->db->group_start();
             $this->db->like('dt.namamaterial', $like_value);
-            $this->db->or_like('inv.id', $like_value);
-            $this->db->group_end();
         }
 
-        $this->db->group_by(['inv.id', 'dt.namamaterial']);
+        $this->db->group_by('dt.namamaterial');
         $this->db->order_by('total_nominal', 'desc');
 
         return $this->db->get()->result();

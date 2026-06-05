@@ -267,8 +267,8 @@ class Report_pembelian extends Admin_Controller
         // Judul & Periode
         // =========================
         $sheet->setCellValue('A1', 'LAPORAN PEMBELIAN PER BARANG');
-        $sheet->mergeCells('A1:E1');
-        $sheet->getStyle('A1:E1')->applyFromArray($styleTitle);
+        $sheet->mergeCells('A1:D1');
+        $sheet->getStyle('A1:D1')->applyFromArray($styleTitle);
 
         $periodeText = 'Periode: ';
         if (!empty($tgl_dari) && !empty($tgl_sampai)) {
@@ -277,18 +277,17 @@ class Report_pembelian extends Admin_Controller
             $periodeText .= 'Semua Periode';
         }
         $sheet->setCellValue('A2', $periodeText);
-        $sheet->mergeCells('A2:E2');
-        $sheet->getStyle('A2:E2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->mergeCells('A2:D2');
+        $sheet->getStyle('A2:D2')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
         // =========================
         // Header Kolom (Baris 4)
         // =========================
         $headers = [
             'A' => 'No',
-            'B' => 'No Invoice',
-            'C' => 'Nama Barang',
-            'D' => 'Kts (Unit#1)',
-            'E' => 'Total Pembelian (Nominal)'
+            'B' => 'Nama Barang',
+            'C' => 'Kts (Unit#1)',
+            'D' => 'Total Pembelian (Nominal)'
         ];
 
         $rowHeader = 4;
@@ -309,34 +308,31 @@ class Report_pembelian extends Admin_Controller
 
         if (!empty($rows)) {
             foreach ($rows as $row) {
-                $no_invoice  = isset($row->no_invoice) ? (string)$row->no_invoice : '-';
                 $nama_barang = isset($row->nama_barang) ? (string)$row->nama_barang : '-';
                 $qty         = isset($row->total_qty) ? (float)$row->total_qty : 0;
                 $nominal     = isset($row->total_nominal) ? (float)$row->total_nominal : 0;
 
                 // Set Values
                 $sheet->setCellValueExplicit("A{$rowNum}", (string)$no++, PHPExcel_Cell_DataType::TYPE_STRING);
-                $sheet->setCellValueExplicit("B{$rowNum}", $no_invoice, PHPExcel_Cell_DataType::TYPE_STRING);
-                $sheet->setCellValueExplicit("C{$rowNum}", $nama_barang, PHPExcel_Cell_DataType::TYPE_STRING);
-                $sheet->setCellValueExplicit("D{$rowNum}", $qty, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-                $sheet->setCellValueExplicit("E{$rowNum}", $nominal, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("B{$rowNum}", $nama_barang, PHPExcel_Cell_DataType::TYPE_STRING);
+                $sheet->setCellValueExplicit("C{$rowNum}", $qty, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->setCellValueExplicit("D{$rowNum}", $nominal, PHPExcel_Cell_DataType::TYPE_NUMERIC);
 
                 // Format Angka
-                $sheet->getStyle("D{$rowNum}")->getNumberFormat()->setFormatCode('#,##0');
-                $sheet->getStyle("E{$rowNum}")->getNumberFormat()->setFormatCode('#,##0.00');
+                $sheet->getStyle("C{$rowNum}")->getNumberFormat()->setFormatCode('#,##0');
+                $sheet->getStyle("D{$rowNum}")->getNumberFormat()->setFormatCode('#,##0.00');
 
                 // Apply style body
-                $sheet->getStyle("A{$rowNum}:E{$rowNum}")->applyFromArray($tableBody);
+                $sheet->getStyle("A{$rowNum}:D{$rowNum}")->applyFromArray($tableBody);
                 $sheet->getStyle("A{$rowNum}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle("B{$rowNum}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-                $sheet->getStyle("D{$rowNum}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                $sheet->getStyle("C{$rowNum}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
                 $rowNum++;
             }
         } else {
             $sheet->setCellValue("A{$rowNum}", 'Data tidak ditemukan');
-            $sheet->mergeCells("A{$rowNum}:E{$rowNum}");
-            $sheet->getStyle("A{$rowNum}:E{$rowNum}")->applyFromArray($tableBody);
+            $sheet->mergeCells("A{$rowNum}:D{$rowNum}");
+            $sheet->getStyle("A{$rowNum}:D{$rowNum}")->applyFromArray($tableBody);
             $sheet->getStyle("A{$rowNum}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
         }
 
