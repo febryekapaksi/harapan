@@ -93,20 +93,20 @@ class Report_inventory_model extends BF_Model
         ];
 
         // ---- total data
-        $this->db->from('warehouse_stock_backup s');
+        $this->db->from('warehouse_stock_per_days s');
         $this->db->join('warehouse w', 's.id_gudang = w.id', 'left');
         if ($tanggal !== null && $tanggal !== '') {
-            $this->db->where('DATE(s.tanggal_backup)', $tanggal);
+            $this->db->like('s.tanggal_backup', $tanggal);
         } else {
             $this->db->where('0=1', null, false); // <<— paksa kosong ketika tanggal kosong
         }
         $totalData = $this->db->count_all_results();
 
         // ---- total filtered
-        $this->db->from('warehouse_stock_backup s');
+        $this->db->from('warehouse_stock_per_days s');
         $this->db->join('warehouse w', 's.id_gudang = w.id', 'left');
         if ($tanggal !== null && $tanggal !== '') {
-            $this->db->where('DATE(s.tanggal_backup)', $tanggal);
+            $this->db->like('s.tanggal_backup', $tanggal);
         } else {
             $this->db->where('0=1', null, false);
         }
@@ -122,10 +122,10 @@ class Report_inventory_model extends BF_Model
         // ---- main query
         $this->db->select('s.id, s.id_material, s.code_product, s.nm_product, s.qty_stock, s.qty_booking,
                        s.qty_free, w.nm_gudang, s.tanggal_backup, s.harga_beli, s.total_nilai');
-        $this->db->from('warehouse_stock_backup s');
+        $this->db->from('warehouse_stock_per_days s');
         $this->db->join('warehouse w', 's.id_gudang = w.id', 'left');
         if ($tanggal !== null && $tanggal !== '') {
-            $this->db->where('DATE(s.tanggal_backup)', $tanggal);
+            $this->db->like('s.tanggal_backup', $tanggal);
         } else {
             $this->db->where('0=1', null, false);
         }
@@ -169,9 +169,9 @@ class Report_inventory_model extends BF_Model
             s.harga_beli,
             s.total_nilai
         ');
-        $this->db->from('warehouse_stock_backup s');
+        $this->db->from('warehouse_stock_per_days s');
         $this->db->join('warehouse w', 's.id_gudang = w.id', 'left');
-        $this->db->where('DATE(s.tanggal_backup)', $tanggal);
+        $this->db->like('s.tanggal_backup', $tanggal);
         $this->db->order_by('s.tanggal_backup', 'desc');
         return $this->db->get()->result_array();
     }
