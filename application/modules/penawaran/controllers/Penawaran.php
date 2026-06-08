@@ -582,12 +582,22 @@ class Penawaran extends Admin_Controller
         $outstanding = (!empty($row_piutang['outstanding_piutang'])) ? (float)$row_piutang['outstanding_piutang'] : 0;
 
         // B) SO Baru (status A)
+       /* $row_so = $this->db
+            ->select('SUM(s.grand_total) AS so_baru', false)
+            ->from('sales_order s')
+            ->where('s.id_customer', $id_customer)
+            ->where('s.status', 'A')
+            ->where("(s.status_spk IS NULL OR s.status_spk != 'Belum SPK')", null, false)
+            ->get()
+            ->row_array();*/
+
         $row_so = $this->db
             ->select('SUM(s.grand_total) AS so_baru', false)
             ->from('sales_order s')
             ->where('s.id_customer', $id_customer)
             ->where('s.status', 'A')
-            ->where("(s.status_spk IS NULL OR s.status_spk = 'Belum SPK')", null, false)
+            ->where_in('s.status_spk', ['SPK Sebagian', 'SPK Lengkap'])
+            ->where("s.no_so NOT IN (SELECT sj.no_so FROM surat_jalan sj WHERE sj.no_so IS NOT NULL)", null, false)
             ->get()
             ->row_array();
 
