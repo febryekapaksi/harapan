@@ -290,8 +290,8 @@ class Penerimaan_cash extends Admin_Controller
 
 		$data = [
 			//'device_id' => '34ee66bd167985a7317a49f60498db55', //punya harapan
-			'device_id' => '532c60ddc0f2c1184b396488c804413e', //punya harapan
-			// 'device_id' => '0d0750bc2fc55e9e86b4da9dde60cfd9', punya gue
+			//'device_id' => '532c60ddc0f2c1184b396488c804413e', //punya harapan 8001
+			'device_id' => 'fa9df5e220c9436b7ecac99c737bd4e6', //harapan 998
 			'number' => $number, // format: 628xxx
 			'message' => $message
 		];
