@@ -108,7 +108,7 @@ class Report_inventory extends Admin_Controller
             $sheet->setCellValue('H' . $r, $row['nm_gudang']);
 
             // tanggal → serial excel
-            $excelDate = PHPExcel_Shared_Date::PHPToExcel(strtotime($row['tanggal_backup']));
+            $excelDate = PHPExcel_Shared_Date::PHPToExcel(strtotime($row['tgl_backup']));
             $sheet->setCellValueExplicit('I' . $r, $excelDate, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('I' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
 
