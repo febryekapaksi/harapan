@@ -254,13 +254,13 @@ class Warehouse_model extends BF_Model
         $this->db->select('ks.id');
         $this->db->from('kartu_stok ks');
         $this->db->where('ks.deleted', null);
-        $this->db->order_by('ks.tgl_transaksi', 'desc');
+        $this->db->order_by('ks.id', 'desc');
         $totalData = $this->db->count_all_results();
 
         $this->db->select('ks.id');
         $this->db->from('kartu_stok ks');
         $this->db->where('ks.deleted', null);
-        $this->db->order_by('ks.tgl_transaksi', 'desc');
+        $this->db->order_by('ks.id', 'desc');
 
         if (!empty($like_value)) {
             $this->db->group_start();
@@ -278,7 +278,7 @@ class Warehouse_model extends BF_Model
     ');
         $this->db->from('kartu_stok ks');
         $this->db->where('ks.deleted', null);
-        $this->db->order_by('ks.tgl_transaksi', 'desc');
+        $this->db->order_by('ks.id', 'desc');
 
         if (!empty($like_value)) {
             $this->db->group_start();
@@ -292,7 +292,7 @@ class Warehouse_model extends BF_Model
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
         } else {
-            $this->db->order_by('ks.tgl_transaksi', 'desc');
+            $this->db->order_by('ks.id', 'desc');
         }
 
         if ($limit_length != -1) {
