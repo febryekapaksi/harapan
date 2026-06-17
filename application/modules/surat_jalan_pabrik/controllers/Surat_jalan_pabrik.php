@@ -170,20 +170,28 @@ class Surat_jalan_pabrik extends Admin_Controller
                 'total_berat'     => $value['weight'],
                 'id_so_det'       => $id_so_det,
             ];
-
-            // Update ke SPK dan SO Detail
-            $this->db->update('spk_delivery', ['status' => 'ON DELIVER'], ['no_delivery' => $post['no_delivery']]);
-            $this->db->update('sales_order_detail', [
-                'qty_delivery' => $qty,
-                'status_kirim' => '1',
-                'tgl_delivery' => date('Y-m-d H:i:s', strtotime($post['delivery_date']))
-            ], ['id' => $id_so_det]);
         }
 
-        // Simpan ke DB
+        // Simpan ke DB — semua operasi di dalam satu transaksi
         $this->db->trans_start();
 
         if ($is_update) {
+            // Saat UPDATE: kembalikan dulu qty_delivery dari detail SJ lama sebelum diganti
+            $old_sj_detail = $this->db->get_where('surat_jalan_detail', ['id_sj' => $id_sj])->result_array();
+            foreach ($old_sj_detail as $old) {
+                $this->db->set('qty_delivery', 'qty_delivery - ' . (int)$old['qty'], FALSE);
+                $this->db->set('status_kirim', '0');
+                $this->db->where('id', $old['id_so_det']);
+                $this->db->update('sales_order_detail');
+
+                // Kembalikan stok yang sudah diturunkan saat SJ lama dibuat
+                $this->db->set('qty_stock',   'qty_stock + '   . (int)$old['qty'], FALSE);
+                $this->db->set('qty_booking', 'qty_booking + ' . (int)$old['qty'], FALSE);
+                $this->db->set('qty_free',    'qty_stock - qty_booking', FALSE);
+                $this->db->where('id_material', $old['id_product']);
+                $this->db->update('warehouse_stock');
+            }
+
             $this->db->update('surat_jalan', $ArrHeader, ['id' => $id_sj]);
             $this->db->delete('surat_jalan_detail', ['id_sj' => $id_sj]);
 
@@ -191,6 +199,29 @@ class Surat_jalan_pabrik extends Admin_Controller
                 $row['id_sj'] = $id_sj;
             }
             $this->db->insert_batch('surat_jalan_detail', $ArrDetail);
+
+            // Update SPK, SO detail, dan warehouse_stock dengan nilai baru
+            foreach ($detail as $value) {
+                $qty        = (int)$value['qty'];
+                $id_product = $value['id_product'];
+                $id_so_det  = $value['id_so_det'];
+
+                $this->db->update('spk_delivery', ['status' => 'ON DELIVER'], ['no_delivery' => $post['no_delivery']]);
+
+                $this->db->set('qty_delivery', 'qty_delivery + ' . $qty, FALSE);
+                $this->db->set('status_kirim', '1');
+                $this->db->set('tgl_delivery', date('Y-m-d H:i:s', strtotime($post['delivery_date'])));
+                $this->db->where('id', $id_so_det);
+                $this->db->update('sales_order_detail');
+
+                // Turunkan stok saat SJ dibuat — barang sudah keluar gudang fisik
+                $this->db->set('qty_stock',   'qty_stock - '   . $qty, FALSE);
+                $this->db->set('qty_booking', 'GREATEST(qty_booking - ' . $qty . ', 0)', FALSE);
+                $this->db->set('qty_free',    '(qty_stock - ' . $qty . ') - GREATEST(qty_booking - ' . $qty . ', 0)', FALSE);
+                $this->db->where('id_material', $id_product);
+                $this->db->where('qty_stock >=', $qty);
+                $this->db->update('warehouse_stock');
+            }
         } else {
             $this->db->insert('surat_jalan', $ArrHeader);
             $id_sj = $this->db->insert_id();
@@ -200,6 +231,76 @@ class Surat_jalan_pabrik extends Admin_Controller
                 $row['id_sj']  = $id_sj;
             }
             $this->db->insert_batch('surat_jalan_detail', $ArrDetail);
+
+            // Preload stok untuk kartu stok — baca sebelum diubah
+            $productIds = array_unique(array_column($detail, 'id_product'));
+            $stockRows  = $this->db->where_in('id_material', $productIds)->get('warehouse_stock')->result_array();
+            $stockMap   = [];
+            foreach ($stockRows as $s) {
+                $stockMap[$s['id_material']] = $s;
+            }
+
+            $arr_kartu_stok_sj = [];
+
+            // Update SPK, SO detail, warehouse_stock, dan kartu stok
+            foreach ($detail as $value) {
+                $qty        = (int)$value['qty'];
+                $id_product = $value['id_product'];
+                $id_so_det  = $value['id_so_det'];
+
+                $this->db->update('spk_delivery', ['status' => 'ON DELIVER'], ['no_delivery' => $post['no_delivery']]);
+
+                $this->db->set('qty_delivery', 'qty_delivery + ' . $qty, FALSE);
+                $this->db->set('status_kirim', '1');
+                $this->db->set('tgl_delivery', date('Y-m-d H:i:s', strtotime($post['delivery_date'])));
+                $this->db->where('id', $id_so_det);
+                $this->db->update('sales_order_detail');
+
+                // Turunkan stok saat SJ dibuat — barang sudah keluar gudang fisik
+                $stok        = $stockMap[$id_product] ?? null;
+                $old_stock   = $stok ? (float)$stok['qty_stock']   : 0;
+                $old_booking = $stok ? (float)$stok['qty_booking'] : 0;
+                $old_free    = $stok ? (float)$stok['qty_free']    : 0;
+
+                $new_stock   = $old_stock - $qty;
+                $new_booking = max($old_booking - $qty, 0);
+                $new_free    = $new_stock - $new_booking;
+
+                $this->db->set('qty_stock',   $new_stock,   FALSE);
+                $this->db->set('qty_booking', $new_booking, FALSE);
+                $this->db->set('qty_free',    $new_free,    FALSE);
+                $this->db->where('id_material', $id_product);
+                $this->db->where('qty_stock >=', $qty); // guard anti-minus
+                $this->db->update('warehouse_stock');
+
+                // Update map lokal agar kartu stok berikutnya akurat
+                if (isset($stockMap[$id_product])) {
+                    $stockMap[$id_product]['qty_stock']   = $new_stock;
+                    $stockMap[$id_product]['qty_booking'] = $new_booking;
+                    $stockMap[$id_product]['qty_free']    = $new_free;
+                }
+
+                // Kartu stok: barang keluar gudang saat SJ dibuat
+                $arr_kartu_stok_sj[] = [
+                    'no_transaksi'   => $no_surat_jalan,
+                    'transaksi'      => 'Surat Jalan Pabrik',
+                    'tgl_transaksi'  => $post['delivery_date'],
+                    'code_lv4'       => $id_product,
+                    'nm_product'     => $value['product'],
+                    'qty'            => $old_stock,
+                    'qty_book'       => $old_booking,
+                    'qty_free'       => $old_free,
+                    'qty_transaksi'  => $qty * -1,
+                    'qty_akhir'      => $new_stock,
+                    'qty_book_akhir' => $new_booking,
+                    'qty_free_akhir' => $new_free,
+                    'harga_stok'     => $stok ? (float)$stok['harga_beli'] : 0,
+                ];
+            }
+
+            if (!empty($arr_kartu_stok_sj)) {
+                $this->db->insert_batch('kartu_stok', $arr_kartu_stok_sj);
+            }
         }
 
         // ===== JURNAL =====
