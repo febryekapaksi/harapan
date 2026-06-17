@@ -400,12 +400,15 @@ class Surat_jalan_pabrik extends Admin_Controller
         ];
 
         // ✅ Upload file dokumen jika ada (di luar transaksi DB)
+        // Catatan: file sudah terupload sebelum transaksi DB dimulai.
+        // Jika DB gagal, file perlu dihapus manual (orphan risk).
         if (!empty($_FILES['file_dokumen']['name'])) {
             $config = [
                 'upload_path'   => './uploads/confirm_sj/',
-                'allowed_types' => 'jpg|jpeg|png|pdf|doc|docx|xls|xlsx',
-                'max_size'      => 2048,
-                'file_name'     => 'bukti_confirm_sj_pabrik_' . $sanitized_sj,
+                'allowed_types' => 'jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx',
+                'max_size'      => 5120,
+                // 'detect_mime'   => FALSE,
+                'file_name'     => 'bukti_confirm_sj_pabrik_' . $sanitized_sj
             ];
 
             $this->upload->initialize($config);
@@ -419,16 +422,32 @@ class Surat_jalan_pabrik extends Admin_Controller
             $ArrUpdate['file_dokumen'] = $uploadData['file_name'];
         }
 
+        // ====== Preload stok agar hemat query ======
+        $productIds = [];
+        foreach ($detail as $key => $value) {
+            $productIds[] = $value['id_product'];
+        }
+        $productIds = array_values(array_unique($productIds));
+
+        $stockMap = [];
+        if (!empty($productIds)) {
+            $stocks = $this->db->where_in('id_material', $productIds)->get('warehouse_stock')->result_array();
+            foreach ($stocks as $s) {
+                $stockMap[$s['id_material']] = $s;
+            }
+        }
+
+        // ====== Siapkan batch update surat_jalan_detail & kartu_stok ======
         $ArrDetailBatch = [];
         $arr_kartu_stok = [];
 
-        // Helper rollback
+        // Helper rollback cepat
         $fail = function ($msg) {
             $this->db->trans_rollback();
             echo json_encode(['status' => 0, 'pesan' => $msg]);
         };
 
-        // ====== MULAI TRANSAKSI ======
+        // ====== MULAI TRANSAKSI (semua update DB di dalam ini) ======
         $this->db->trans_begin();
 
         // Update header SJ (status diset setelah loop)
@@ -479,9 +498,10 @@ class Surat_jalan_pabrik extends Admin_Controller
 
                 $config_retur = [
                     'upload_path'   => './uploads/confirm_sj/',
-                    'allowed_types' => 'jpg|jpeg|png|pdf|doc|docx|xls|xlsx',
-                    'max_size'      => 2048,
-                    'file_name'     => 'retur_' . $sanitized_sj . '_' . $key,
+                    'allowed_types' => 'jpg|jpeg|png|gif|webp|pdf|doc|docx|xls|xlsx',
+                    'max_size'      => 5120,
+                    // 'detect_mime'   => FALSE,
+                    'file_name'     => 'retur_' . $sanitized_sj . '_' . $key
                 ];
 
                 $this->upload->initialize($config_retur);
@@ -529,31 +549,34 @@ class Surat_jalan_pabrik extends Admin_Controller
             // Catatan: ini dropship dari pabrik — stok gudang TIDAK dikurangi saat delivery
             // (barang tidak lewat gudang). Hanya qty_lebih yang masuk kembali ke gudang.
             // qty_retur dari pabrik juga masuk ke gudang (barang fisik kembali ke gudang kita).
-            $balik_ke_gudang = $qty_retur + $qty_lebih;
+            $balik = $qty_retur + $qty_lebih;
 
-            // Ambil stok saat ini untuk keperluan log kartu stok
-            $stok = $this->db
-                ->get_where('warehouse_stock', ['id_material' => $id_product])
-                ->row_array();
+            // ===== Ambil stok dari map (hemat query) =====
+            $stok = isset($stockMap[$id_product]) ? $stockMap[$id_product] : null;
 
-            if ($balik_ke_gudang > 0) {
+            if ($balik > 0) {
                 if (empty($stok)) {
-                    $fail("Data warehouse tidak ditemukan untuk produk: {$id_product}.");
+                    $fail("Stok warehouse tidak ditemukan untuk produk: {$id_product}.");
                     return;
                 }
 
                 $old_stock   = (float)$stok['qty_stock'];
                 $old_booking = (float)$stok['qty_booking'];
                 $old_free    = (float)$stok['qty_free'];
-                $new_stock   = $old_stock + $balik_ke_gudang;
-                $new_free    = $new_stock - $old_booking;
+                $new_stock   = $old_stock + $balik;
+                $new_booking = $old_booking; // booking tidak berubah
+                $new_free    = $new_stock - $new_booking;
 
                 // qty_stock naik, qty_booking tidak berubah (tidak pernah di-booking dari pabrik),
                 // qty_free naik sesuai barang yang masuk
-                $this->db->set('qty_stock', "qty_stock + {$balik_ke_gudang}", FALSE);
-                $this->db->set('qty_free',  "qty_free  + {$balik_ke_gudang}", FALSE);
+                $this->db->set('qty_stock', 'qty_stock + ' . $balik, FALSE);
+                $this->db->set('qty_free',  'qty_free + '  . $balik, FALSE);
                 $this->db->where('id_material', $id_product);
                 $this->db->update('warehouse_stock');
+
+                // Update map lokal
+                $stockMap[$id_product]['qty_stock'] = $new_stock;
+                $stockMap[$id_product]['qty_free']  = $new_free;
 
                 $arr_kartu_stok[] = [
                     'no_transaksi'   => $no_surat_jalan,
@@ -564,9 +587,9 @@ class Surat_jalan_pabrik extends Admin_Controller
                     'qty'            => $old_stock,
                     'qty_book'       => $old_booking,
                     'qty_free'       => $old_free,
-                    'qty_transaksi'  => $balik_ke_gudang,
+                    'qty_transaksi'  => $balik,
                     'qty_akhir'      => $new_stock,
-                    'qty_book_akhir' => $old_booking,
+                    'qty_book_akhir' => $new_booking,
                     'qty_free_akhir' => $new_free,
                     'harga_stok'     => (float)($stok['harga_beli'] ?? 0),
                 ];
