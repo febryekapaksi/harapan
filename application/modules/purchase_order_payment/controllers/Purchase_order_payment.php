@@ -2008,13 +2008,13 @@ class Purchase_order_payment extends Admin_Controller
 		}
 
 		// 6. Hitung Total Invoice
-		// Gunakan SUM(total_harga) dari tr_checked_incoming_detail agar konsisten
-		// dengan data_incoming di save_invoice (yang dipakai sebagai dasar jurnal debet Unbill)
+		// Dihitung dari qty_oke * hargasatuan agar konsisten dengan Grand Total di detail view
 		$total_invoice = 0;
 		$query_ttl = "
-        SELECT SUM(b.total_harga) as subtotal
+        SELECT SUM(b.qty_oke * c.hargasatuan) as subtotal
         FROM tr_incoming_check_detail a
         JOIN tr_checked_incoming_detail b ON b.id_detail = a.id
+        JOIN dt_trans_po c ON c.id = a.id_po_detail
         WHERE a.kode_trans IN ($in_clause)
         UNION ALL
 
