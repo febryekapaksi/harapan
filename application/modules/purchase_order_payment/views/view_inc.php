@@ -167,9 +167,10 @@
                             LEFT JOIN dt_trans_po b ON b.id = a.id_po_detail
                             LEFT JOIN tr_purchase_order c ON c.no_po  = b.no_po
                             LEFT JOIN new_inventory_4 d ON d.code_lv4 = a.id_material 
-                            JOIN tr_checked_incoming_detail e ON e.kode_trans = a.kode_trans AND e.id_material = a.id_material
+                            JOIN tr_checked_incoming_detail e ON e.kode_trans = a.kode_trans AND e.id_detail = a.id
                         WHERE
                             a.kode_trans = '" . $id_incoming . "'
+                        GROUP BY a.id
 
                         UNION ALL
 
@@ -184,8 +185,44 @@
                             LEFT JOIN dt_trans_po b ON b.id = a.no_ipp
                             LEFT JOIN tr_purchase_order c ON c.no_po  = b.no_po
                             LEFT JOIN accessories d ON d.id = a.id_material 
+                            LEFT JOIN warehouse_adjustment e ON e.kode_trans = a.kode_trans
                         WHERE
-                            a.kode_trans = '" . $id_incoming . "'
+                            a.kode_trans = '" . $id_incoming . "' AND e.category = 'incoming stok'
+                        GROUP BY a.id
+
+                        UNION ALL
+
+                        SELECT
+                            a.qty_oke as qty_order,
+                            a.qty_oke as qty_po,
+                            c.harga as hargasatuan,
+                            d.no_pr as no_surat,
+                            d.nm_barang as nm_material
+                        FROM
+                            warehouse_adjustment_detail a
+                            LEFT JOIN warehouse_adjustment b ON b.kode_trans = a.kode_trans
+                            LEFT JOIN tr_pr_detail_kasbon c ON c.id_kasbon = b.no_ipp AND c.id_detail = a.id_material
+                            LEFT JOIN rutin_non_planning_detail d ON d.id = a.id_material
+                        WHERE
+                            a.kode_trans = '" . $id_incoming . "' AND b.category = 'incoming non rutin'
+                        GROUP BY a.id
+
+                        UNION ALL
+
+                        SELECT 
+                            a.qty_oke as qty_order,
+                            b.qty as qty_po,
+                            b.hargasatuan as hargasatuan,
+                            c.no_surat as no_surat,
+                            a.nm_material as nm_material
+                        FROM
+                            warehouse_adjustment_detail a
+                            LEFT JOIN tr_purchase_order c ON c.no_surat = a.no_ipp
+                            LEFT JOIN dt_trans_po b ON b.no_po = c.no_po AND b.namamaterial = a.nm_material
+                            LEFT JOIN warehouse_adjustment e ON e.kode_trans = a.kode_trans
+                        WHERE
+                            a.kode_trans = '" . $id_incoming . "' AND e.category = 'incoming asset'
+                        GROUP BY a.id
                     ")->result();
                     if (!$get_detail_inc) {
                         print_r($this->db->error($get_detail_inc));
