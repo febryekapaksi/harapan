@@ -307,71 +307,47 @@ class Purchase_order_payment extends Admin_Controller
 		$get_invoice = $this->db->get_where('tr_invoice_po', ['id' => $id])->row_array();
 		$kode_trans = str_replace(', ', ',', $get_invoice['no_incoming']);
 		$no_incoming = explode(',', $kode_trans);
-		// echo '<pre>';
-		// print_r($no_incoming);
-		// echo '</pre>';
-		// die();
 
-		// print_r("SELECT
-		// 		a.nm_material as nm_material,
-		// 		b.hargasatuan as hargasatuan,
-		// 		b.qty as qty_po,
-		// 		c.no_surat as no_surat,
-		// 		(d.qty_ng + d.qty_oke) as qty_incoming
-		// 	FROM
-		// 		tr_incoming_check_detail a
-		// 		LEFT JOIN dt_trans_po b ON b.id = a.id_po_detail
-		// 		LEFT JOIN tr_purchase_order c ON c.no_po = b.no_po
-		// 		LEFT JOIN tr_checked_incoming_detail d ON d.id_detail = a.id
-		// 	WHERE
-		// 		a.kode_trans IN ('" . str_replace(",", "','", $id_po) . "')
+		// Hitung ulang Total Incoming dari data detail (sama seperti rec_invoice_btn)
+		$in_clause = "'" . implode("','", $no_incoming) . "'";
 
-		// 	UNION ALL
+		$total_invoice = 0;
+		$query_ttl = "
+			SELECT SUM(b.qty_oke * c.hargasatuan) as subtotal
+			FROM tr_incoming_check_detail a
+			JOIN tr_checked_incoming_detail b ON b.id_detail = a.id
+			JOIN dt_trans_po c ON c.id = a.id_po_detail
+			WHERE a.kode_trans IN ($in_clause)
+			UNION ALL
 
-		// 	SELECT
-		// 		a.nm_material as nm_material,
-		// 		b.hargasatuan as hargasatuan,
-		// 		b.qty as qty_po,
-		// 		c.no_surat as no_surat,
-		// 		(a.qty_oke + a.qty_rusak) as qty_incoming
-		// 	FROM
-		// 		warehouse_adjustment_detail a
-		// 		LEFT JOIN dt_trans_po b ON b.id = a.no_ipp
-		// 		LEFT JOIN tr_purchase_order c ON c.no_po = b.no_po
-		// 	WHERE
-		// 		a.kode_trans IN ('" . str_replace(",", "','", $id_po) . "')");
-		// 		exit;
+			SELECT (a.qty_oke * b.hargasatuan) FROM warehouse_adjustment_detail a 
+			JOIN dt_trans_po b ON b.id = a.no_ipp 
+			LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
+			WHERE a.kode_trans IN ($in_clause) AND c.category = 'incoming stok'
+			UNION ALL
 
-		// $get_detail_incoming = $this->db->query("
-		// 	SELECT
-		// 		a.nm_material as nm_material,
-		// 		b.hargasatuan as hargasatuan,
-		// 		b.qty as qty_po,
-		// 		c.no_surat as no_surat,
-		// 		(d.qty_ng + d.qty_oke) as qty_incoming
-		// 	FROM
-		// 		tr_incoming_check_detail a
-		// 		LEFT JOIN dt_trans_po b ON b.id = a.id_po_detail
-		// 		LEFT JOIN tr_purchase_order c ON c.no_po = b.no_po
-		// 		LEFT JOIN tr_checked_incoming_detail d ON d.id_detail = a.id
-		// 	WHERE
-		// 		a.kode_trans IN ('" . str_replace(",", "','", $id_po) . "')
+			SELECT (a.qty_oke * b.harga) FROM warehouse_adjustment_detail a 
+			JOIN tr_pr_detail_kasbon b ON b.id_detail = a.id_po_detail AND b.id_kasbon = a.no_ipp 
+			LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
+			WHERE a.kode_trans IN ($in_clause) AND c.category = 'incoming non rutin'
+			UNION ALL
 
-		// 	UNION ALL
+			SELECT (a.qty_oke * d.hargasatuan) FROM warehouse_adjustment_detail a 
+			JOIN tr_purchase_order b ON b.no_surat = a.no_ipp 
+			JOIN dt_trans_po d ON d.no_po = b.no_po AND a.nm_material = d.namamaterial 
+			LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
+			WHERE a.kode_trans IN ($in_clause) AND c.category = 'incoming asset'
+		";
+		$res_ttl = $this->db->query($query_ttl)->result();
+		foreach ($res_ttl as $row) $total_invoice += $row->subtotal;
 
-		// 	SELECT
-		// 		a.nm_material as nm_material,
-		// 		b.hargasatuan as hargasatuan,
-		// 		b.qty as qty_po,
-		// 		c.no_surat as no_surat,
-		// 		(a.qty_oke + a.qty_rusak) as qty_incoming
-		// 	FROM
-		// 		warehouse_adjustment_detail a
-		// 		LEFT JOIN dt_trans_po b ON b.id = a.no_ipp
-		// 		LEFT JOIN tr_purchase_order c ON c.no_po = b.no_po
-		// 	WHERE
-		// 		a.kode_trans IN ('" . str_replace(",", "','", $id_po) . "')
-		// ")->result_array();
+		// Override total_pembelian dan nilai_ppn dengan perhitungan ulang
+		$kurs = (!empty($get_invoice['kurs']) && $get_invoice['kurs'] > 0) ? $get_invoice['kurs'] : 1;
+		$total_invoice_final = $total_invoice * $kurs;
+		$nilai_ppn = $total_invoice_final * 11 / 100;
+
+		$get_invoice['total_pembelian'] = $total_invoice;
+		$get_invoice['nilai_ppn'] = $nilai_ppn;
 
 		$this->template->set('data_invoice', $get_invoice);
 		$this->template->set('no_incoming', $no_incoming);
