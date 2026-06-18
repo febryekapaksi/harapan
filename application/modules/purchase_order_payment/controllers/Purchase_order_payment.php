@@ -2081,9 +2081,8 @@ class Purchase_order_payment extends Admin_Controller
 
 		// 8. Final Calculation
 		$total_invoice_final = $total_invoice * $kurs_terima_barang;
-		// Nilai PPN diambil dari total_ppn PO (sudah diakumulasi di step 2), dikali kurs
-		// agar konsisten dengan nilai_ppn yang dipakai di jurnal save_invoice
-		$nilai_ppn = $ppn_asli * $kurs_terima_barang;
+		// PPN dihitung 11% dari total invoice final
+		$nilai_ppn = $total_invoice_final * 11 / 100;
 
 		$nilai_req_payment = (($total_invoice_final + $nilai_ppn) - $uang_muka_idr);
 
