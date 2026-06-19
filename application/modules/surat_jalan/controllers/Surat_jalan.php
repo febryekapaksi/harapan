@@ -263,9 +263,15 @@ class Surat_jalan extends Admin_Controller
             }
             $this->db->insert_batch('surat_jalan_detail', $ArrDetail);
 
-            // Preload stok untuk kartu stok — baca sebelum diubah
+            // Preload stok untuk kartu stok — baca dengan FOR UPDATE agar tidak race condition
             $productIds = array_unique(array_column($detail, 'id_product'));
-            $stockRows  = $this->db->where_in('id_material', $productIds)->get('warehouse_stock')->result_array();
+            $ids_escaped = array_map(function($id) {
+                return $this->db->escape($id);
+            }, $productIds);
+            $ids_str = implode(',', $ids_escaped);
+            $stockRows = $this->db->query(
+                "SELECT * FROM warehouse_stock WHERE id_material IN ({$ids_str}) FOR UPDATE"
+            )->result_array();
             $stockMap   = [];
             foreach ($stockRows as $s) {
                 $stockMap[$s['id_material']] = $s;
@@ -572,13 +578,7 @@ class Surat_jalan extends Admin_Controller
         $productIds = array_values(array_unique($productIds));
 
         $stockMap = [];
-        if (!empty($productIds)) {
-            // Gunakan id_material sebagai key karena kolom WHERE dan key map harus sama
-            $stocks = $this->db->where_in('id_material', $productIds)->get('warehouse_stock')->result_array();
-            foreach ($stocks as $s) {
-                $stockMap[$s['id_material']] = $s;
-            }
-        }
+        // Stok akan dibaca di dalam transaksi dengan FOR UPDATE (lihat di bawah)
 
         // ====== Siapkan batch update surat_jalan_detail & kartu_stok ======
         $ArrDetailBatch = [];
@@ -592,6 +592,20 @@ class Surat_jalan extends Admin_Controller
 
         // ====== MULAI TRANSAKSI (semua update DB di dalam ini) ======
         $this->db->trans_begin();
+
+        // Baca stok dengan FOR UPDATE di dalam transaksi agar tidak race condition
+        if (!empty($productIds)) {
+            $ids_escaped = array_map(function($id) {
+                return $this->db->escape($id);
+            }, $productIds);
+            $ids_str = implode(',', $ids_escaped);
+            $stocks = $this->db->query(
+                "SELECT * FROM warehouse_stock WHERE id_material IN ({$ids_str}) FOR UPDATE"
+            )->result_array();
+            foreach ($stocks as $s) {
+                $stockMap[$s['id_material']] = $s;
+            }
+        }
 
         // update surat_jalan header
         // status diset setelah loop (berdasarkan flag)

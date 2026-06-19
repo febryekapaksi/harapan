@@ -232,9 +232,15 @@ class Surat_jalan_pabrik extends Admin_Controller
             }
             $this->db->insert_batch('surat_jalan_detail', $ArrDetail);
 
-            // Preload stok untuk kartu stok — baca sebelum diubah
+            // Preload stok untuk kartu stok — baca dengan FOR UPDATE agar tidak race condition
             $productIds = array_unique(array_column($detail, 'id_product'));
-            $stockRows  = $this->db->where_in('id_material', $productIds)->get('warehouse_stock')->result_array();
+            $ids_escaped = array_map(function($id) {
+                return $this->db->escape($id);
+            }, $productIds);
+            $ids_str = implode(',', $ids_escaped);
+            $stockRows = $this->db->query(
+                "SELECT * FROM warehouse_stock WHERE id_material IN ({$ids_str}) FOR UPDATE"
+            )->result_array();
             $stockMap   = [];
             foreach ($stockRows as $s) {
                 $stockMap[$s['id_material']] = $s;
@@ -632,10 +638,11 @@ class Surat_jalan_pabrik extends Admin_Controller
             // qty_retur dari pabrik juga masuk ke gudang (barang fisik kembali ke gudang kita).
             $balik_ke_gudang = $qty_retur + $qty_lebih;
 
-            // Ambil stok saat ini untuk keperluan log kartu stok
-            $stok = $this->db
-                ->get_where('warehouse_stock', ['id_material' => $id_product])
-                ->row_array();
+            // Ambil stok saat ini untuk keperluan log kartu stok — FOR UPDATE agar tidak race condition
+            $stok = $this->db->query(
+                "SELECT * FROM warehouse_stock WHERE id_material = ? FOR UPDATE",
+                [$id_product]
+            )->row_array();
 
             if ($balik_ke_gudang > 0) {
                 if (empty($stok)) {
