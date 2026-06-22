@@ -122,9 +122,12 @@ date_default_timezone_set("Asia/Bangkok");
 	?>
 	<table width=800>
 		<tr>
-			<td rowspan=2 width="100"><img src="<?= base_url("assets/images/ori_logo.jpg") ?>" width="80"></td>
-			<td colspan=2>
-				<h1>PT. ORIGA MULIA FRP</h1>
+			<td rowspan=2 width="150"><img src="<?= base_url("assets/images/logo_sbf.png") ?>" width="140"></td>
+			<td>
+				<b style="font-size:14px;">PT Surya Bangun Fajar</b><br>
+				Jl. Kalijaga No.35 Kel. Pegambiran Kec. Lemahwungkuk<br>
+				Kota Cirebon Jawa Barat 45113<br>
+				Indonesia
 			</td>
 		</tr>
 		<tr>
