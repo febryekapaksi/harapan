@@ -406,6 +406,14 @@ class Penerimaan extends Admin_Controller
         $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum=nobum+1 WHERE nocab='101'");
     }
 
+    public function print($kd_bayar)
+    {
+        $data = array(
+            'kodebayar' => $kd_bayar,
+        );
+        $this->load->view('print_penerimaan', $data);
+    }
+
     public function export_excel()
     {
         $start = $this->input->get('start_date', true);
