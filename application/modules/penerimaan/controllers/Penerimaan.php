@@ -184,11 +184,19 @@ class Penerimaan extends Admin_Controller
             // =========================
             // DETAIL + UPDATE INVOICE
             // =========================
-            foreach ($detail as $row) {
+            foreach ($detail as $idx => $row) {
+
+                if (empty($row['id_invoice'])) {
+                    continue; // skip baris yang tidak punya invoice
+                }
 
                 $invoice = $this->db
                     ->get_where('tr_invoice_sales', ['id_invoice' => $row['id_invoice']])
                     ->row();
+
+                if (!$invoice) {
+                    throw new Exception("Invoice {$row['id_invoice']} tidak ditemukan");
+                }
 
                 $total_bayar  = str_replace(',', '', ($row['total_bayar']));
                 $tagihan      = str_replace(',', '', ($row['tagihan']));
@@ -214,6 +222,10 @@ class Penerimaan extends Admin_Controller
                 ];
 
                 $this->db->insert('tr_invoice_payment_detail', $data_detail);
+
+                if ($this->db->affected_rows() == 0) {
+                    throw new Exception("Gagal insert detail untuk invoice {$row['id_invoice']}");
+                }
 
                 // Tandai CN yang digunakan pada penerimaan ini
                 if (!empty($row['cn']) && is_array($row['cn'])) {
