@@ -204,15 +204,7 @@ class Adjustment extends Admin_Controller
           //   Minus → Debit 5101-01-03 (Selisih Stock Opname), Kredit 1104-01-01 (Persediaan Barang Warehouse)
           //   Plus  → Debit 1104-01-01 (Persediaan Barang Warehouse), Kredit 5101-01-03 (Selisih Stock Opname)
           if ($adjustment_type == 'plus' || $adjustment_type == 'minus') {
-            // Ambil harga beli dari warehouse_stock, fallback dari product_costing
-            $harga_beli = floatval($stok_now['harga_beli']);
-            if ($harga_beli <= 0) {
-              $pc = $this->db->select('harga_beli')->get_where('product_costing', ['code_lv4' => $id_material, 'status' => 'A'])->row();
-              if ($pc) {
-                $harga_beli = floatval($pc->harga_beli);
-              }
-            }
-
+            $harga_beli = floatval(@$stok_now['harga_beli']);
             $nilai_adjustment = $qty_oke_float * $harga_beli;
 
             $tgl_jurnal   = date('Y-m-d');
@@ -224,14 +216,13 @@ class Adjustment extends Admin_Controller
             if ($adjustment_type == 'minus') {
               $debet_coa  = $COA_SELISIH_STOCK;
               $kredit_coa = $COA_PERSEDIAAN;
-            } else { // plus
+            } else {
               $debet_coa  = $COA_PERSEDIAAN;
               $kredit_coa = $COA_SELISIH_STOCK;
             }
 
             // Insert ke gl_interface (staging jurnal)
-            $gl_header = [
-              'nomor'            => null, // akan di-generate saat posting
+            $this->db->insert('gl_interface', [
               'tgl'              => $tgl_jurnal,
               'jml'              => $nilai_adjustment,
               'kdcab'            => '101',
@@ -251,9 +242,7 @@ class Adjustment extends Admin_Controller
                 'harga_beli'      => $harga_beli,
               ]),
               'created_at'       => $this->datetime,
-            ];
-
-            $this->db->insert('gl_interface', $gl_header);
+            ]);
             $id_gl_interface = $this->db->insert_id();
 
             if ($id_gl_interface) {
@@ -261,7 +250,6 @@ class Adjustment extends Admin_Controller
               $this->db->insert('gl_interface_detail', [
                 'id_gl_interface' => $id_gl_interface,
                 'tipe'            => 'JV',
-                'no_batch'        => null,
                 'tanggal'         => $tgl_jurnal,
                 'no_perkiraan'    => $debet_coa,
                 'keterangan'      => $keterangan_j,
@@ -274,7 +262,6 @@ class Adjustment extends Admin_Controller
               $this->db->insert('gl_interface_detail', [
                 'id_gl_interface' => $id_gl_interface,
                 'tipe'            => 'JV',
-                'no_batch'        => null,
                 'tanggal'         => $tgl_jurnal,
                 'no_perkiraan'    => $kredit_coa,
                 'keterangan'      => $keterangan_j,
