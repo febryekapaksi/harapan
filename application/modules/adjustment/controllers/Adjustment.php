@@ -147,13 +147,11 @@ class Adjustment extends Admin_Controller
       $this->db->trans_complete();
 
       if ($this->db->trans_status() === FALSE) {
-        $this->db->trans_rollback();
         $Arr_Data  = array(
           'pesan'    => 'Save process failed. Please try again later ...',
           'status'  => 0
         );
       } else {
-        $this->db->trans_commit();
         $Arr_Data  = array(
           'pesan'    => 'Save process success. Thanks ...',
           'status'  => 1
