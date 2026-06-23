@@ -80,7 +80,23 @@ class Adjustment extends Admin_Controller
       $urut2        = sprintf('%04s', $urutan2);
       $kode_trans    = "ADJ" . $Ym . $urut2;
 
-      $nm_material  = get_name('new_inventory_4', 'nama', 'code_lv4', $id_material);
+      $nm_material  = '';
+      // Coba ambil dari new_inventory_4
+      $row_inv4 = $this->db->select('nama')->get_where('new_inventory_4', ['code_lv4' => $id_material])->row();
+      if ($row_inv4) {
+        $nm_material = $row_inv4->nama;
+      }
+      // Fallback: ambil dari warehouse_stock
+      if (empty($nm_material)) {
+        $row_ws = $this->db->select('nm_product')->get_where('warehouse_stock', ['id_material' => $id_material])->row();
+        if ($row_ws) {
+          $nm_material = $row_ws->nm_product;
+        }
+      }
+      // Fallback terakhir
+      if (empty($nm_material)) {
+        $nm_material = $id_material;
+      }
 
       $ArrHeader = array(
         'kode_trans'         => $kode_trans,
