@@ -162,6 +162,10 @@ class Adjustment extends Admin_Controller
 
         // Catat ke kartu stok setelah warehouse_stock sudah diupdate oleh move_warehouse_adjustment
         $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_material])->row_array();
+        // Fallback: cari pakai id_material kalau code_lv4 tidak ketemu
+        if (empty($stok_now)) {
+          $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $id_material])->row_array();
+        }
         if ($stok_now) {
           $qty_oke_float = floatval($qty_oke);
 
@@ -202,50 +206,59 @@ class Adjustment extends Admin_Controller
           //   Minus → Debit 5101-01-03 (Selisih Stock Opname), Kredit 1104-01-01 (Persediaan Barang Warehouse)
           //   Plus  → Debit 1104-01-01 (Persediaan Barang Warehouse), Kredit 5101-01-03 (Selisih Stock Opname)
           if ($adjustment_type == 'plus' || $adjustment_type == 'minus') {
-            $nilai_adjustment = $qty_oke_float * floatval($stok_now['harga_beli']);
-
-            if ($nilai_adjustment > 0) {
-              $tgl_jurnal   = date('Y-m-d');
-              $keterangan_j = 'Adjustment ' . ucfirst($adjustment_type) . ' - ' . $kode_trans . ' - ' . $nm_material;
-
-              $COA_PERSEDIAAN     = '1104-01-01'; // Persediaan Barang Warehouse
-              $COA_SELISIH_STOCK  = '5101-01-03'; // Selisih Stock Opname
-
-              if ($adjustment_type == 'minus') {
-                $debet_coa  = $COA_SELISIH_STOCK;
-                $kredit_coa = $COA_PERSEDIAAN;
-              } else { // plus
-                $debet_coa  = $COA_PERSEDIAAN;
-                $kredit_coa = $COA_SELISIH_STOCK;
+            // Ambil harga beli dari warehouse_stock, fallback dari product_costing
+            $harga_beli = floatval($stok_now['harga_beli']);
+            if ($harga_beli <= 0) {
+              $pc = $this->db->select('harga_beli')->get_where('product_costing', ['code_lv4' => $id_material, 'status' => 'A'])->row();
+              if ($pc) {
+                $harga_beli = floatval($pc->harga_beli);
               }
+            }
 
-              // Insert ke gl_interface (staging jurnal)
-              $gl_header = [
-                'nomor'            => null, // akan di-generate saat posting
-                'tgl'              => $tgl_jurnal,
-                'jml'              => $nilai_adjustment,
-                'kdcab'            => '101',
-                'jenis'            => 'JV',
-                'jenis_transaksi'  => 'adjustment',
-                'keterangan'       => $keterangan_j,
-                'bulan'            => date('n'),
-                'tahun'            => date('Y'),
-                'user_id'          => $this->id_user,
-                'status'           => 'pending',
-                'memo'             => json_encode([
-                  'kode_trans'      => $kode_trans,
-                  'adjustment_type' => $adjustment_type,
-                  'id_material'     => $id_material,
-                  'nm_material'     => $nm_material,
-                  'qty'             => $qty_oke_float,
-                  'harga_beli'      => floatval($stok_now['harga_beli']),
-                ]),
-                'created_at'       => $this->datetime,
-              ];
+            $nilai_adjustment = $qty_oke_float * $harga_beli;
 
-              $this->db->insert('gl_interface', $gl_header);
-              $id_gl_interface = $this->db->insert_id();
+            $tgl_jurnal   = date('Y-m-d');
+            $keterangan_j = 'Adjustment ' . ucfirst($adjustment_type) . ' - ' . $kode_trans . ' - ' . $nm_material;
 
+            $COA_PERSEDIAAN     = '1104-01-01'; // Persediaan Barang Warehouse
+            $COA_SELISIH_STOCK  = '5101-01-03'; // Selisih Stock Opname
+
+            if ($adjustment_type == 'minus') {
+              $debet_coa  = $COA_SELISIH_STOCK;
+              $kredit_coa = $COA_PERSEDIAAN;
+            } else { // plus
+              $debet_coa  = $COA_PERSEDIAAN;
+              $kredit_coa = $COA_SELISIH_STOCK;
+            }
+
+            // Insert ke gl_interface (staging jurnal)
+            $gl_header = [
+              'nomor'            => null, // akan di-generate saat posting
+              'tgl'              => $tgl_jurnal,
+              'jml'              => $nilai_adjustment,
+              'kdcab'            => '101',
+              'jenis'            => 'JV',
+              'jenis_transaksi'  => 'adjustment',
+              'keterangan'       => $keterangan_j,
+              'bulan'            => date('n'),
+              'tahun'            => date('Y'),
+              'user_id'          => $this->id_user,
+              'status'           => 'pending',
+              'memo'             => json_encode([
+                'kode_trans'      => $kode_trans,
+                'adjustment_type' => $adjustment_type,
+                'id_material'     => $id_material,
+                'nm_material'     => $nm_material,
+                'qty'             => $qty_oke_float,
+                'harga_beli'      => $harga_beli,
+              ]),
+              'created_at'       => $this->datetime,
+            ];
+
+            $this->db->insert('gl_interface', $gl_header);
+            $id_gl_interface = $this->db->insert_id();
+
+            if ($id_gl_interface) {
               // Detail Debet
               $this->db->insert('gl_interface_detail', [
                 'id_gl_interface' => $id_gl_interface,
