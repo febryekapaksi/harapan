@@ -196,6 +196,84 @@ class Adjustment extends Admin_Controller
             'qty_free_akhir' => floatval($stok_now['qty_free']),
             'harga_stok'     => floatval($stok_now['harga_beli']),
           ]);
+
+          // ===== JURNAL ADJUSTMENT PERSEDIAAN =====
+          // SOP: 
+          //   Minus → Debit 5101-01-03 (Selisih Stock Opname), Kredit 1104-01-01 (Persediaan Barang Warehouse)
+          //   Plus  → Debit 1104-01-01 (Persediaan Barang Warehouse), Kredit 5101-01-03 (Selisih Stock Opname)
+          if ($adjustment_type == 'plus' || $adjustment_type == 'minus') {
+            $nilai_adjustment = $qty_oke_float * floatval($stok_now['harga_beli']);
+
+            if ($nilai_adjustment > 0) {
+              $tgl_jurnal   = date('Y-m-d');
+              $keterangan_j = 'Adjustment ' . ucfirst($adjustment_type) . ' - ' . $kode_trans . ' - ' . $nm_material;
+
+              $COA_PERSEDIAAN     = '1104-01-01'; // Persediaan Barang Warehouse
+              $COA_SELISIH_STOCK  = '5101-01-03'; // Selisih Stock Opname
+
+              if ($adjustment_type == 'minus') {
+                $debet_coa  = $COA_SELISIH_STOCK;
+                $kredit_coa = $COA_PERSEDIAAN;
+              } else { // plus
+                $debet_coa  = $COA_PERSEDIAAN;
+                $kredit_coa = $COA_SELISIH_STOCK;
+              }
+
+              // Insert ke gl_interface (staging jurnal)
+              $gl_header = [
+                'nomor'            => null, // akan di-generate saat posting
+                'tgl'              => $tgl_jurnal,
+                'jml'              => $nilai_adjustment,
+                'kdcab'            => '101',
+                'jenis'            => 'JV',
+                'jenis_transaksi'  => 'adjustment',
+                'keterangan'       => $keterangan_j,
+                'bulan'            => date('n'),
+                'tahun'            => date('Y'),
+                'user_id'          => $this->id_user,
+                'status'           => 'pending',
+                'memo'             => json_encode([
+                  'kode_trans'      => $kode_trans,
+                  'adjustment_type' => $adjustment_type,
+                  'id_material'     => $id_material,
+                  'nm_material'     => $nm_material,
+                  'qty'             => $qty_oke_float,
+                  'harga_beli'      => floatval($stok_now['harga_beli']),
+                ]),
+                'created_at'       => $this->datetime,
+              ];
+
+              $this->db->insert('gl_interface', $gl_header);
+              $id_gl_interface = $this->db->insert_id();
+
+              // Detail Debet
+              $this->db->insert('gl_interface_detail', [
+                'id_gl_interface' => $id_gl_interface,
+                'tipe'            => 'JV',
+                'no_batch'        => null,
+                'tanggal'         => $tgl_jurnal,
+                'no_perkiraan'    => $debet_coa,
+                'keterangan'      => $keterangan_j,
+                'no_reff'         => $kode_trans,
+                'debet'           => $nilai_adjustment,
+                'kredit'          => 0,
+              ]);
+
+              // Detail Kredit
+              $this->db->insert('gl_interface_detail', [
+                'id_gl_interface' => $id_gl_interface,
+                'tipe'            => 'JV',
+                'no_batch'        => null,
+                'tanggal'         => $tgl_jurnal,
+                'no_perkiraan'    => $kredit_coa,
+                'keterangan'      => $keterangan_j,
+                'no_reff'         => $kode_trans,
+                'debet'           => 0,
+                'kredit'          => $nilai_adjustment,
+              ]);
+            }
+          }
+          // ===== END JURNAL ADJUSTMENT PERSEDIAAN =====
         }
 
         history("Adjustment product " . $adjustment_type . " : " . $kode_trans);
