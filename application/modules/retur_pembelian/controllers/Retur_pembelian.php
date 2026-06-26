@@ -88,14 +88,31 @@ class Retur_pembelian extends Admin_Controller
     public function get_detail_invoice()
     {
         $no_invoice = $this->input->post('no_invoice');
+        $no_po      = $this->input->post('no_po');
 
         if (empty($no_invoice)) {
             echo json_encode([]);
             return;
         }
 
-        $details = $this->Retur_pembelian_model->get_detail_invoice($no_invoice);
+        $details = $this->Retur_pembelian_model->get_detail_invoice($no_invoice, $no_po);
         echo json_encode($details);
+    }
+
+    /**
+     * AJAX: Get list PO dari incoming
+     */
+    public function get_po_by_incoming()
+    {
+        $id_data = $this->input->post('id_data');
+
+        if (empty($id_data)) {
+            echo json_encode([]);
+            return;
+        }
+
+        $po_list = $this->Retur_pembelian_model->get_po_by_incoming($id_data);
+        echo json_encode($po_list);
     }
 
     /**
