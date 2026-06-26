@@ -164,6 +164,61 @@
             </div>
 
             <hr>
+            <!-- SECTION: PREVIEW JURNAL -->
+            <h4><i class="fa fa-book"></i> Detail Jurnal</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="table-jurnal">
+                    <thead class="bg-gray">
+                        <tr>
+                            <th width="30">#</th>
+                            <th width="100">COA</th>
+                            <th>Nama COA</th>
+                            <th>Keterangan</th>
+                            <th width="120">No Reff</th>
+                            <th width="100" class="text-right">Debet</th>
+                            <th width="100" class="text-right">Kredit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-jurnal">
+                        <tr>
+                            <td>1</td>
+                            <td>2101-01-01</td>
+                            <td>Hutang Dagang</td>
+                            <td class="jurnal-ket">-</td>
+                            <td class="jurnal-noreff">-</td>
+                            <td class="text-right jurnal-debet-1">0</td>
+                            <td class="text-right">0</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>1104-01-01</td>
+                            <td>Persediaan Barang Warehouse</td>
+                            <td class="jurnal-ket">-</td>
+                            <td class="jurnal-noreff">-</td>
+                            <td class="text-right">0</td>
+                            <td class="text-right jurnal-kredit-2">0</td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>1107-01-01</td>
+                            <td>PPN Masukan</td>
+                            <td class="jurnal-ket">-</td>
+                            <td class="jurnal-noreff">-</td>
+                            <td class="text-right">0</td>
+                            <td class="text-right jurnal-kredit-3">0</td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-gray">
+                            <th colspan="5" class="text-right"><strong>TOTAL</strong></th>
+                            <th class="text-right"><strong><span id="jurnal-total-debet">0</span></strong></th>
+                            <th class="text-right"><strong><span id="jurnal-total-kredit">0</span></strong></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <hr>
             <!-- BUTTONS -->
             <div class="text-center">
                 <button type="button" class="btn btn-primary" onclick="saveDraft()"><i class="fa fa-save"></i> Save Draft</button>
@@ -306,6 +361,23 @@ function calculateTotals() {
     $('#nilai_retur_display').text(formatNumber(nilai_retur));
     $('#ppn_display').text(formatNumber(ppn));
     $('#total_retur_display').text(formatNumber(total));
+
+    // Update jurnal preview
+    var debet_hutang = nilai_retur + ppn; // total retur tanpa pinalti
+    var kredit_inventori = nilai_retur;
+    var kredit_ppn = ppn;
+
+    var supplier_nama = $('#id_supplier').find(':selected').data('nama') || '';
+    var ket = 'Retur Pembelian - (Auto) - ' + supplier_nama;
+    var noreff = '(Auto)';
+
+    $('.jurnal-ket').text(ket);
+    $('.jurnal-noreff').text(noreff);
+    $('.jurnal-debet-1').text(formatNumber(debet_hutang));
+    $('.jurnal-kredit-2').text(formatNumber(kredit_inventori));
+    $('.jurnal-kredit-3').text(formatNumber(kredit_ppn));
+    $('#jurnal-total-debet').text(formatNumber(debet_hutang));
+    $('#jurnal-total-kredit').text(formatNumber(kredit_inventori + kredit_ppn));
 }
 
 function resetProduk() {
