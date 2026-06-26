@@ -53,8 +53,9 @@ class Retur_pembelian extends Admin_Controller
     {
         $this->auth->restrict($this->addPermission);
 
-        $suppliers = $this->db->order_by('nama', 'asc')
-            ->get_where('new_supplier', ['deleted_date' => NULL])
+        $suppliers = $this->db->select('id, kode_supplier, nama')
+            ->order_by('nama', 'asc')
+            ->get_where('new_supplier', ['deleted_by' => NULL])
             ->result_array();
 
         $data = [
@@ -104,14 +105,14 @@ class Retur_pembelian extends Admin_Controller
      */
     public function get_po_by_incoming()
     {
-        $id_data = $this->input->post('id_data');
+        $kode_trans = $this->input->post('id_data');
 
-        if (empty($id_data)) {
+        if (empty($kode_trans)) {
             echo json_encode([]);
             return;
         }
 
-        $po_list = $this->Retur_pembelian_model->get_po_by_incoming($id_data);
+        $po_list = $this->Retur_pembelian_model->get_po_by_incoming($kode_trans);
         echo json_encode($po_list);
     }
 
@@ -160,8 +161,9 @@ class Retur_pembelian extends Admin_Controller
             return;
         }
 
-        $suppliers = $this->db->order_by('nama', 'asc')
-            ->get_where('new_supplier', ['deleted_date' => NULL])
+        $suppliers = $this->db->select('id, kode_supplier, nama')
+            ->order_by('nama', 'asc')
+            ->get_where('new_supplier', ['deleted_by' => NULL])
             ->result_array();
 
         $data = [

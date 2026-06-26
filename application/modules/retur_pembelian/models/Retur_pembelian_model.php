@@ -37,48 +37,59 @@ class Retur_pembelian_model extends BF_Model
     // ============================
     public function get_invoice_by_supplier($id_supplier)
     {
-        // id_suplier di tr_incoming berisi kode_supplier dari new_supplier
-        $kode_supplier = $this->db->select('kode_supplier')->get_where('new_supplier', ['id' => $id_supplier])->row();
-        if (!$kode_supplier) return [];
+        // relasi: tr_incoming_check_detail.no_ipp (individual) = tr_purchase_order.no_po
+        // tr_purchase_order.id_suplier = kode_supplier (dari dropdown)
+        if (empty($id_supplier)) return [];
 
-        $sql = "SELECT ti.id_data, ti.id_incoming, ti.no_invoice, ti.tanggal as tgl_invoice, ti.hutang_idr as total
-                FROM tr_incoming ti
-                WHERE ti.id_suplier = ?
-                ORDER BY ti.tanggal DESC";
-        return $this->db->query($sql, [$kode_supplier->kode_supplier])->result_array();
+        $sql = "SELECT tic.kode_trans, tic.tanggal as tgl_invoice, tic.no_ipp,
+                       tic.total_harga_product as total
+                FROM tr_incoming_check tic
+                WHERE tic.category = 'incoming product'
+                AND EXISTS (
+                    SELECT 1 FROM tr_incoming_check_detail ticd
+                    JOIN tr_purchase_order tpo ON ticd.no_ipp = tpo.no_po
+                    WHERE ticd.kode_trans = tic.kode_trans
+                    AND tpo.id_suplier = ?
+                )
+                ORDER BY tic.tanggal DESC";
+        $result = $this->db->query($sql, [$id_supplier])->result_array();
+        
+        return $result ? $result : [];
     }
 
     // ============================
     // GET DETAIL INVOICE
     // ============================
-    public function get_detail_invoice($id_data, $no_po = null)
+    public function get_detail_invoice($kode_trans, $no_po = null)
     {
-        $sql = "SELECT di.id_material as id_product, di.kode_barang, di.nama_material as nama_barang,
-                       '' as satuan, di.qty_recive as qty_beli, di.harga_satuan_usd as harga_satuan,
-                       di.harga_total_idr as total_nilai
-                FROM dt_incoming di
-                WHERE di.id_data = ?";
-        $params = [$id_data];
+        // Detail dari tr_incoming_check_detail
+        $sql = "SELECT ticd.id_material as id_product, ticd.id_material as kode_barang, 
+                       ticd.nm_material as nama_barang,
+                       '' as satuan, ticd.qty_order as qty_beli, ticd.harga as harga_satuan,
+                       (ticd.qty_order * ticd.harga) as total_nilai
+                FROM tr_incoming_check_detail ticd
+                WHERE ticd.kode_trans = ?";
+        $params = [$kode_trans];
 
         if (!empty($no_po)) {
-            $sql .= " AND SUBSTRING(di.id_dt_po, 1, 8) = ?";
+            $sql .= " AND ticd.no_ipp = ?";
             $params[] = $no_po;
         }
 
-        $sql .= " ORDER BY di.id ASC";
+        $sql .= " ORDER BY ticd.id ASC";
         return $this->db->query($sql, $params)->result_array();
     }
 
     // ============================
     // GET PO LIST BY INCOMING
     // ============================
-    public function get_po_by_incoming($id_data)
+    public function get_po_by_incoming($kode_trans)
     {
-        $sql = "SELECT DISTINCT SUBSTRING(di.id_dt_po, 1, 8) as no_po
-                FROM dt_incoming di
-                WHERE di.id_data = ?
-                ORDER BY no_po ASC";
-        return $this->db->query($sql, [$id_data])->result_array();
+        $sql = "SELECT DISTINCT ticd.no_ipp as no_po
+                FROM tr_incoming_check_detail ticd
+                WHERE ticd.kode_trans = ?
+                ORDER BY ticd.no_ipp ASC";
+        return $this->db->query($sql, [$kode_trans])->result_array();
     }
 
     // ============================

@@ -17,7 +17,7 @@
                         <select name="id_supplier" id="id_supplier" class="form-control select2" required>
                             <option value="">-- Pilih Supplier --</option>
                             <?php foreach ($suppliers as $s): ?>
-                            <option value="<?= $s['id'] ?>" data-nama="<?= $s['nama'] ?>"><?= $s['nama'] ?></option>
+                            <option value="<?= $s['kode_supplier'] ?>" data-nama="<?= $s['nama'] ?>" data-id="<?= $s['id'] ?>"><?= $s['nama'] ?></option>
                             <?php endforeach; ?>
                         </select>
                         <input type="hidden" name="nama_supplier" id="nama_supplier">
@@ -199,7 +199,7 @@ $(document).ready(function() {
             success: function(data) {
                 var opts = '<option value="">-- Pilih Incoming --</option>';
                 $.each(data, function(i, inv) {
-                    opts += '<option value="' + inv.id_data + '" data-tgl="' + inv.tgl_invoice + '">' + inv.id_incoming + '</option>';
+                    opts += '<option value="' + inv.kode_trans + '" data-tgl="' + inv.tgl_invoice + '">' + inv.kode_trans + ' (' + inv.no_ipp + ')</option>';
                 });
                 $('#no_invoice').html(opts).trigger('change.select2');
             }
@@ -208,18 +208,18 @@ $(document).ready(function() {
 
     // Event: invoice (incoming) changed -> load PO list
     $('#no_invoice').on('change', function() {
-        var id_data = $(this).val();
+        var kode_trans = $(this).val();
         var tgl = $(this).find(':selected').data('tgl') || '';
         $('#tgl_pembelian').val(tgl);
         $('#no_po').html('<option value="">-- Pilih PO --</option>').trigger('change.select2');
         resetProduk();
 
-        if (!id_data) return;
+        if (!kode_trans) return;
 
         $.ajax({
             url: siteurl + 'retur_pembelian/get_po_by_incoming',
             type: 'POST',
-            data: { id_data: id_data },
+            data: { id_data: kode_trans },
             dataType: 'json',
             success: function(data) {
                 var opts = '<option value="">-- Semua PO --</option>';
@@ -228,17 +228,17 @@ $(document).ready(function() {
                 });
                 $('#no_po').html(opts).trigger('change.select2');
                 // Langsung load semua detail incoming ini
-                loadDetail(id_data, '');
+                loadDetail(kode_trans, '');
             }
         });
     });
 
     // Event: PO changed -> filter produk by PO
     $('#no_po').on('change', function() {
-        var id_data = $('#no_invoice').val();
+        var kode_trans = $('#no_invoice').val();
         var no_po = $(this).val();
-        if (!id_data) return;
-        loadDetail(id_data, no_po);
+        if (!kode_trans) return;
+        loadDetail(kode_trans, no_po);
     });
 });
 
