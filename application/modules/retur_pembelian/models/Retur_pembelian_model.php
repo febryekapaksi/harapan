@@ -397,8 +397,8 @@ class Retur_pembelian_model extends BF_Model
                 'tgl_transaksi'     => date('Y-m-d'),
                 'no_transaksi'      => $header['no_retur'],
                 'id_gudang'         => isset($stok_now['id_gudang']) ? $stok_now['id_gudang'] : null,
-                'harga_stok'        => floatval($stok_now['harga_beli']),
-                'status_transaksi'  => 'OUT',
+                'harga_stok'        => floatval(isset($stok_now['harga_beli']) ? $stok_now['harga_beli'] : 0),
+                'status_transaksi'  => 'out',
                 'created_by'        => $this->auth->user_id(),
                 'created_on'        => date('Y-m-d H:i:s'),
             ]);
@@ -467,8 +467,8 @@ class Retur_pembelian_model extends BF_Model
                     'tgl_transaksi'     => date('Y-m-d'),
                     'no_transaksi'      => $header['no_retur'],
                     'id_gudang'         => isset($stok_now['id_gudang']) ? $stok_now['id_gudang'] : null,
-                    'harga_stok'        => floatval($stok_now['harga_beli']),
-                    'status_transaksi'  => 'IN',
+                    'harga_stok'        => floatval(isset($stok_now['harga_beli']) ? $stok_now['harga_beli'] : 0),
+                    'status_transaksi'  => 'in',
                     'created_by'        => $this->auth->user_id(),
                     'created_on'        => date('Y-m-d H:i:s'),
                 ]);
