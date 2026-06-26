@@ -282,8 +282,7 @@ class Retur_pembelian extends Admin_Controller
             'retur' => $retur,
         ];
 
-        $this->template->set_layout('print');
-        $this->template->render('print_sj', $data);
+        $this->load->view('retur_pembelian/print_sj', $data);
     }
 
     /**
