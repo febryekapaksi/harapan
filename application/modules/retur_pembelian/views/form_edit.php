@@ -169,6 +169,65 @@
             </div>
 
             <hr>
+            <!-- SECTION: PREVIEW JURNAL -->
+            <h4><i class="fa fa-book"></i> Detail Jurnal</h4>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="table-jurnal">
+                    <thead class="bg-gray">
+                        <tr>
+                            <th width="30">#</th>
+                            <th width="100">COA</th>
+                            <th>Nama COA</th>
+                            <th>Keterangan</th>
+                            <th width="120">No Reff</th>
+                            <th width="100">No Request</th>
+                            <th width="100" class="text-right">Debet</th>
+                            <th width="100" class="text-right">Kredit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-jurnal">
+                        <tr>
+                            <td>1</td>
+                            <td>2101-01-01</td>
+                            <td>Hutang Dagang</td>
+                            <td class="jurnal-ket">Retur Pembelian - <?= $h['no_retur'] ?> - <?= $h['nama_supplier'] ?></td>
+                            <td class="jurnal-noreff"><?= $h['no_retur'] ?></td>
+                            <td>-</td>
+                            <td class="text-right jurnal-debet-1"><?= number_format($h['nilai_retur'] + $h['ppn'], 0, ',', '.') ?></td>
+                            <td class="text-right">0</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>1104-01-01</td>
+                            <td>Persediaan Barang Warehouse</td>
+                            <td class="jurnal-ket">Retur Pembelian - <?= $h['no_retur'] ?> - <?= $h['nama_supplier'] ?></td>
+                            <td class="jurnal-noreff"><?= $h['no_retur'] ?></td>
+                            <td>-</td>
+                            <td class="text-right">0</td>
+                            <td class="text-right jurnal-kredit-2"><?= number_format($h['nilai_retur'], 0, ',', '.') ?></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>1107-01-01</td>
+                            <td>PPN Masukan</td>
+                            <td class="jurnal-ket">Retur Pembelian - <?= $h['no_retur'] ?> - <?= $h['nama_supplier'] ?></td>
+                            <td class="jurnal-noreff"><?= $h['no_retur'] ?></td>
+                            <td>-</td>
+                            <td class="text-right">0</td>
+                            <td class="text-right jurnal-kredit-3"><?= number_format($h['ppn'], 0, ',', '.') ?></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-gray">
+                            <th colspan="6" class="text-right"><strong>TOTAL</strong></th>
+                            <th class="text-right"><strong><span id="jurnal-total-debet"><?= number_format($h['nilai_retur'] + $h['ppn'], 0, ',', '.') ?></span></strong></th>
+                            <th class="text-right"><strong><span id="jurnal-total-kredit"><?= number_format($h['nilai_retur'] + $h['ppn'], 0, ',', '.') ?></span></strong></th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <hr>
             <div class="text-center">
                 <button type="button" class="btn btn-primary" onclick="saveUpdate()"><i class="fa fa-save"></i> Update Draft</button>
                 <button type="button" class="btn btn-success" onclick="updateAndAjukan()"><i class="fa fa-check"></i> Update & Ajukan</button>
@@ -214,6 +273,14 @@ function calculateTotals() {
     $('#nilai_retur_display').text(formatNumber(nilai_retur));
     $('#ppn_display').text(formatNumber(ppn));
     $('#total_retur_display').text(formatNumber(total));
+
+    // Update jurnal preview
+    var debet_hutang = nilai_retur + ppn;
+    $('.jurnal-debet-1').text(formatNumber(debet_hutang));
+    $('.jurnal-kredit-2').text(formatNumber(nilai_retur));
+    $('.jurnal-kredit-3').text(formatNumber(ppn));
+    $('#jurnal-total-debet').text(formatNumber(debet_hutang));
+    $('#jurnal-total-kredit').text(formatNumber(nilai_retur + ppn));
 }
 
 function addPinalti() {
