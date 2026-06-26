@@ -362,11 +362,41 @@ class Retur_pembelian_model extends BF_Model
             $this->Jurnal_retur_model->create_jurnal_pinalti($header);
         }
 
-        // Update stok (Out)
+        // Update stok (Out) + catat ke kartu_stok
         foreach ($detail as $d) {
-            $this->db->set('qty_stock', 'qty_stock - ' . (float)$d['qty_retur'], false);
-            $this->db->where('id_material', $d['id_product']);
+            $qty_retur = (float)$d['qty_retur'];
+            $id_product = $d['id_product'];
+
+            // Ambil stok sebelum update
+            $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $id_product])->row_array();
+            if (empty($stok_now)) {
+                $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product])->row_array();
+            }
+
+            // Update warehouse_stock
+            $this->db->set('qty_stock', 'qty_stock - ' . $qty_retur, false);
+            $this->db->set('qty_free', 'qty_free - ' . $qty_retur, false);
+            $this->db->where('id_material', $id_product);
             $this->db->update('warehouse_stock');
+
+            // Insert kartu_stok
+            if ($stok_now) {
+                $this->db->insert('kartu_stok', [
+                    'no_transaksi'   => $header['no_retur'],
+                    'transaksi'      => 'Retur Pembelian',
+                    'tgl_transaksi'  => date('Y-m-d H:i:s'),
+                    'code_lv4'       => $id_product,
+                    'nm_product'     => $d['nama_barang'],
+                    'qty'            => floatval($stok_now['qty_stock']),
+                    'qty_book'       => floatval($stok_now['qty_booking']),
+                    'qty_free'       => floatval($stok_now['qty_free']),
+                    'qty_transaksi'  => $qty_retur * -1, // keluar (minus)
+                    'qty_akhir'      => floatval($stok_now['qty_stock']) - $qty_retur,
+                    'qty_book_akhir' => floatval($stok_now['qty_booking']),
+                    'qty_free_akhir' => floatval($stok_now['qty_free']) - $qty_retur,
+                    'harga_stok'     => floatval($stok_now['harga_beli']),
+                ]);
+            }
         }
 
         $this->db->trans_complete();
@@ -397,11 +427,41 @@ class Retur_pembelian_model extends BF_Model
             $this->load->model('Retur_pembelian/Jurnal_retur_model');
             $this->Jurnal_retur_model->create_jurnal_balik($header, $detail);
 
-            // Kembalikan stok (In)
+            // Kembalikan stok (In) + catat ke kartu_stok
             foreach ($detail as $d) {
-                $this->db->set('qty_stock', 'qty_stock + ' . (float)$d['qty_retur'], false);
-                $this->db->where('id_material', $d['id_product']);
+                $qty_retur = (float)$d['qty_retur'];
+                $id_product = $d['id_product'];
+
+                // Ambil stok sebelum update
+                $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $id_product])->row_array();
+                if (empty($stok_now)) {
+                    $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product])->row_array();
+                }
+
+                // Update warehouse_stock
+                $this->db->set('qty_stock', 'qty_stock + ' . $qty_retur, false);
+                $this->db->set('qty_free', 'qty_free + ' . $qty_retur, false);
+                $this->db->where('id_material', $id_product);
                 $this->db->update('warehouse_stock');
+
+                // Insert kartu_stok
+                if ($stok_now) {
+                    $this->db->insert('kartu_stok', [
+                        'no_transaksi'   => $header['no_retur'],
+                        'transaksi'      => 'Cancel Retur Pembelian',
+                        'tgl_transaksi'  => date('Y-m-d H:i:s'),
+                        'code_lv4'       => $id_product,
+                        'nm_product'     => $d['nama_barang'],
+                        'qty'            => floatval($stok_now['qty_stock']),
+                        'qty_book'       => floatval($stok_now['qty_booking']),
+                        'qty_free'       => floatval($stok_now['qty_free']),
+                        'qty_transaksi'  => $qty_retur, // masuk (plus)
+                        'qty_akhir'      => floatval($stok_now['qty_stock']) + $qty_retur,
+                        'qty_book_akhir' => floatval($stok_now['qty_booking']),
+                        'qty_free_akhir' => floatval($stok_now['qty_free']) + $qty_retur,
+                        'harga_stok'     => floatval($stok_now['harga_beli']),
+                    ]);
+                }
             }
         }
 
