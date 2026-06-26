@@ -60,11 +60,16 @@
         <!-- HEADER -->
         <div class="header">
             <div class="header-left">
-                <div class="company-name">PT Surya Bangun Fajar</div>
-                <div class="company-address">
-                    Jl. Kalijaga No.35 Kel. Pegambiran Kec. Lemahwungkuk<br>
-                    Kota Cirebon Jawa Barat 45113<br>
-                    Indonesia
+                <div style="display:inline-block; vertical-align:middle; margin-right:10px;">
+                    <img src="<?= base_url('assets/images/logo_sbf.png') ?>" alt="Logo" width="80" height="50">
+                </div>
+                <div style="display:inline-block; vertical-align:middle;">
+                    <div class="company-name">PT Surya Bangun Fajar</div>
+                    <div class="company-address">
+                        Jl. Kalijaga No.35 Kel. Pegambiran Kec. Lemahwungkuk<br>
+                        Kota Cirebon Jawa Barat 45113<br>
+                        Indonesia
+                    </div>
                 </div>
             </div>
             <div class="header-right">
