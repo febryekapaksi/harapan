@@ -191,7 +191,7 @@ $(document).ready(function() {
             success: function(data) {
                 var opts = '<option value="">-- Pilih Invoice --</option>';
                 $.each(data, function(i, inv) {
-                    opts += '<option value="' + inv.no_invoice + '" data-tgl="' + inv.tgl_invoice + '">' + inv.no_invoice + '</option>';
+                    opts += '<option value="' + inv.no_invoice + '" data-tgl="' + inv.tgl_invoice + '" data-id="' + inv.id_data + '">' + inv.no_invoice + ' (' + inv.tgl_invoice + ')</option>';
                 });
                 $('#no_invoice').html(opts).trigger('change.select2');
             }

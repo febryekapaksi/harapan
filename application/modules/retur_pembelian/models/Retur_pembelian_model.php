@@ -37,12 +37,15 @@ class Retur_pembelian_model extends BF_Model
     // ============================
     public function get_invoice_by_supplier($id_supplier)
     {
-        $sql = "SELECT ri.no_invoice, ri.tgl_invoice, ri.total
-                FROM receive_invoice ri
-                WHERE ri.id_supplier = ?
-                AND ri.status = 'received'
-                ORDER BY ri.tgl_invoice DESC";
-        return $this->db->query($sql, [$id_supplier])->result_array();
+        // id_suplier di tr_incoming berisi kode_supplier dari new_supplier
+        $kode_supplier = $this->db->select('kode_supplier')->get_where('new_supplier', ['id' => $id_supplier])->row();
+        if (!$kode_supplier) return [];
+
+        $sql = "SELECT ti.id_data, ti.no_invoice, ti.tanggal as tgl_invoice, ti.hutang_idr as total
+                FROM tr_incoming ti
+                WHERE ti.id_suplier = ?
+                ORDER BY ti.tanggal DESC";
+        return $this->db->query($sql, [$kode_supplier->kode_supplier])->result_array();
     }
 
     // ============================
@@ -50,12 +53,13 @@ class Retur_pembelian_model extends BF_Model
     // ============================
     public function get_detail_invoice($no_invoice)
     {
-        $sql = "SELECT rid.id_product, rid.kode_barang, rid.nama_barang, 
-                       rid.satuan, rid.qty as qty_beli, rid.harga_satuan,
-                       (rid.qty * rid.harga_satuan) as total_nilai
-                FROM receive_invoice_detail rid
-                WHERE rid.no_invoice = ?
-                ORDER BY rid.id ASC";
+        $sql = "SELECT di.id_material as id_product, di.kode_barang, di.nama_material as nama_barang,
+                       '' as satuan, di.qty_recive as qty_beli, di.harga_satuan_usd as harga_satuan,
+                       di.harga_total_idr as total_nilai
+                FROM dt_incoming di
+                JOIN tr_incoming ti ON di.id_data = ti.id_data
+                WHERE ti.no_invoice = ?
+                ORDER BY di.id ASC";
         return $this->db->query($sql, [$no_invoice])->result_array();
     }
 
