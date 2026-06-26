@@ -25,21 +25,29 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="form-group">
-                        <label>No. Invoice <span class="text-red">*</span></label>
+                        <label>No. Incoming <span class="text-red">*</span></label>
                         <select name="no_invoice" id="no_invoice" class="form-control select2" required>
-                            <option value="">-- Pilih Invoice --</option>
+                            <option value="">-- Pilih Incoming --</option>
                         </select>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>No. PO</label>
+                        <select name="no_po" id="no_po" class="form-control select2">
+                            <option value="">-- Pilih PO --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
                     <div class="form-group">
                         <label>Tgl Pembelian</label>
                         <input type="text" class="form-control" name="tgl_pembelian" id="tgl_pembelian" readonly>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="form-group">
                         <label>Tanggal Retur <span class="text-red">*</span></label>
                         <input type="date" class="form-control" name="tgl_retur" value="<?= date('Y-m-d') ?>" required>
@@ -189,48 +197,48 @@ $(document).ready(function() {
             data: { id_supplier: id_supplier },
             dataType: 'json',
             success: function(data) {
-                var opts = '<option value="">-- Pilih Invoice --</option>';
+                var opts = '<option value="">-- Pilih Incoming --</option>';
                 $.each(data, function(i, inv) {
-                    opts += '<option value="' + inv.no_invoice + '" data-tgl="' + inv.tgl_invoice + '" data-id="' + inv.id_data + '">' + inv.no_invoice + ' (' + inv.tgl_invoice + ')</option>';
+                    opts += '<option value="' + inv.id_data + '" data-tgl="' + inv.tgl_invoice + '">' + inv.id_incoming + '</option>';
                 });
                 $('#no_invoice').html(opts).trigger('change.select2');
             }
         });
     });
 
-    // Event: invoice changed
+    // Event: invoice (incoming) changed -> load PO list
     $('#no_invoice').on('change', function() {
-        var no_invoice = $(this).val();
+        var id_data = $(this).val();
         var tgl = $(this).find(':selected').data('tgl') || '';
         $('#tgl_pembelian').val(tgl);
+        $('#no_po').html('<option value="">-- Pilih PO --</option>').trigger('change.select2');
         resetProduk();
 
-        if (!no_invoice) return;
+        if (!id_data) return;
 
         $.ajax({
-            url: siteurl + 'retur_pembelian/get_detail_invoice',
+            url: siteurl + 'retur_pembelian/get_po_by_incoming',
             type: 'POST',
-            data: { no_invoice: no_invoice },
+            data: { id_data: id_data },
             dataType: 'json',
             success: function(data) {
-                var html = '';
-                $.each(data, function(i, d) {
-                    var no = i + 1;
-                    html += '<tr>';
-                    html += '<td class="text-center">' + no + '</td>';
-                    html += '<td>' + d.kode_barang + '<input type="hidden" name="detail['+no+'][id_product]" value="'+d.id_product+'"><input type="hidden" name="detail['+no+'][kode_barang]" value="'+d.kode_barang+'"><input type="hidden" name="detail['+no+'][nama_barang]" value="'+d.nama_barang+'"><input type="hidden" name="detail['+no+'][satuan]" value="'+(d.satuan||'')+'"><input type="hidden" name="detail['+no+'][qty_beli]" value="'+d.qty_beli+'"><input type="hidden" name="detail['+no+'][harga_satuan]" value="'+d.harga_satuan+'"></td>';
-                    html += '<td>' + d.nama_barang + '</td>';
-                    html += '<td class="text-center">' + (d.satuan||'-') + '</td>';
-                    html += '<td class="text-center">' + formatNumber(d.qty_beli) + '</td>';
-                    html += '<td><input type="number" name="detail['+no+'][qty_retur]" class="form-control input-sm text-center qty-retur" value="0" min="0" max="'+d.qty_beli+'" data-harga="'+d.harga_satuan+'"></td>';
-                    html += '<td class="text-right">' + formatNumber(d.harga_satuan) + '</td>';
-                    html += '<td class="text-right total-row">0</td>';
-                    html += '</tr>';
+                var opts = '<option value="">-- Semua PO --</option>';
+                $.each(data, function(i, po) {
+                    opts += '<option value="' + po.no_po + '">' + po.no_po + '</option>';
                 });
-                $('#tbody-produk').html(html);
-                bindQtyRetur();
+                $('#no_po').html(opts).trigger('change.select2');
+                // Langsung load semua detail incoming ini
+                loadDetail(id_data, '');
             }
         });
+    });
+
+    // Event: PO changed -> filter produk by PO
+    $('#no_po').on('change', function() {
+        var id_data = $('#no_invoice').val();
+        var no_po = $(this).val();
+        if (!id_data) return;
+        loadDetail(id_data, no_po);
     });
 });
 
@@ -243,6 +251,38 @@ function bindQtyRetur() {
         var total = qty * harga;
         $(this).closest('tr').find('.total-row').text(formatNumber(total));
         calculateTotals();
+    });
+}
+
+function loadDetail(id_data, no_po) {
+    resetProduk();
+    $.ajax({
+        url: siteurl + 'retur_pembelian/get_detail_invoice',
+        type: 'POST',
+        data: { no_invoice: id_data, no_po: no_po },
+        dataType: 'json',
+        success: function(data) {
+            if (!data || data.length == 0) {
+                resetProduk();
+                return;
+            }
+            var html = '';
+            $.each(data, function(i, d) {
+                var no = i + 1;
+                html += '<tr>';
+                html += '<td class="text-center">' + no + '</td>';
+                html += '<td>' + d.kode_barang + '<input type="hidden" name="detail['+no+'][id_product]" value="'+d.id_product+'"><input type="hidden" name="detail['+no+'][kode_barang]" value="'+d.kode_barang+'"><input type="hidden" name="detail['+no+'][nama_barang]" value="'+d.nama_barang+'"><input type="hidden" name="detail['+no+'][satuan]" value="'+(d.satuan||'')+'"><input type="hidden" name="detail['+no+'][qty_beli]" value="'+d.qty_beli+'"><input type="hidden" name="detail['+no+'][harga_satuan]" value="'+d.harga_satuan+'"></td>';
+                html += '<td>' + d.nama_barang + '</td>';
+                html += '<td class="text-center">' + (d.satuan||'-') + '</td>';
+                html += '<td class="text-center">' + formatNumber(d.qty_beli) + '</td>';
+                html += '<td><input type="number" name="detail['+no+'][qty_retur]" class="form-control input-sm text-center qty-retur" value="0" min="0" max="'+d.qty_beli+'" data-harga="'+d.harga_satuan+'"></td>';
+                html += '<td class="text-right">' + formatNumber(d.harga_satuan) + '</td>';
+                html += '<td class="text-right total-row">0</td>';
+                html += '</tr>';
+            });
+            $('#tbody-produk').html(html);
+            bindQtyRetur();
+        }
     });
 }
 

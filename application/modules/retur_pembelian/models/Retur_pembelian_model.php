@@ -41,7 +41,7 @@ class Retur_pembelian_model extends BF_Model
         $kode_supplier = $this->db->select('kode_supplier')->get_where('new_supplier', ['id' => $id_supplier])->row();
         if (!$kode_supplier) return [];
 
-        $sql = "SELECT ti.id_data, ti.no_invoice, ti.tanggal as tgl_invoice, ti.hutang_idr as total
+        $sql = "SELECT ti.id_data, ti.id_incoming, ti.no_invoice, ti.tanggal as tgl_invoice, ti.hutang_idr as total
                 FROM tr_incoming ti
                 WHERE ti.id_suplier = ?
                 ORDER BY ti.tanggal DESC";
@@ -51,16 +51,34 @@ class Retur_pembelian_model extends BF_Model
     // ============================
     // GET DETAIL INVOICE
     // ============================
-    public function get_detail_invoice($no_invoice)
+    public function get_detail_invoice($id_data, $no_po = null)
     {
         $sql = "SELECT di.id_material as id_product, di.kode_barang, di.nama_material as nama_barang,
                        '' as satuan, di.qty_recive as qty_beli, di.harga_satuan_usd as harga_satuan,
                        di.harga_total_idr as total_nilai
                 FROM dt_incoming di
-                JOIN tr_incoming ti ON di.id_data = ti.id_data
-                WHERE ti.no_invoice = ?
-                ORDER BY di.id ASC";
-        return $this->db->query($sql, [$no_invoice])->result_array();
+                WHERE di.id_data = ?";
+        $params = [$id_data];
+
+        if (!empty($no_po)) {
+            $sql .= " AND SUBSTRING(di.id_dt_po, 1, 8) = ?";
+            $params[] = $no_po;
+        }
+
+        $sql .= " ORDER BY di.id ASC";
+        return $this->db->query($sql, $params)->result_array();
+    }
+
+    // ============================
+    // GET PO LIST BY INCOMING
+    // ============================
+    public function get_po_by_incoming($id_data)
+    {
+        $sql = "SELECT DISTINCT SUBSTRING(di.id_dt_po, 1, 8) as no_po
+                FROM dt_incoming di
+                WHERE di.id_data = ?
+                ORDER BY no_po ASC";
+        return $this->db->query($sql, [$id_data])->result_array();
     }
 
     // ============================
