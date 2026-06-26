@@ -148,7 +148,7 @@ class Retur_pembelian_model extends BF_Model
         $header = [
             'no_retur'          => $no_retur,
             'no_invoice'        => $post['no_invoice'],
-            'id_supplier'       => $post['id_supplier'],
+            'id_supplier'       => $this->_get_supplier_id($post['id_supplier']),
             'nama_supplier'     => $post['nama_supplier'],
             'tgl_pembelian'     => !empty($post['tgl_pembelian']) ? date('Y-m-d', strtotime($post['tgl_pembelian'])) : null,
             'tgl_retur'         => date('Y-m-d', strtotime($post['tgl_retur'])),
@@ -255,7 +255,7 @@ class Retur_pembelian_model extends BF_Model
 
         $update = [
             'no_invoice'        => $post['no_invoice'],
-            'id_supplier'       => $post['id_supplier'],
+            'id_supplier'       => $this->_get_supplier_id($post['id_supplier']),
             'nama_supplier'     => $post['nama_supplier'],
             'tgl_pembelian'     => !empty($post['tgl_pembelian']) ? date('Y-m-d', strtotime($post['tgl_pembelian'])) : null,
             'tgl_retur'         => date('Y-m-d', strtotime($post['tgl_retur'])),
@@ -683,5 +683,19 @@ class Retur_pembelian_model extends BF_Model
             "recordsFiltered" => intval($totalFiltered),
             "data"            => $data,
         ]);
+    }
+
+    // ============================
+    // HELPER: Get supplier ID from kode_supplier
+    // ============================
+    private function _get_supplier_id($kode_supplier)
+    {
+        if (empty($kode_supplier)) return 0;
+
+        // Jika sudah integer/numeric, langsung return
+        if (is_numeric($kode_supplier)) return (int) $kode_supplier;
+
+        $row = $this->db->select('id')->get_where('new_supplier', ['kode_supplier' => $kode_supplier])->row();
+        return $row ? $row->id : 0;
     }
 }
