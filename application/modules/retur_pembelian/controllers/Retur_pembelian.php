@@ -53,8 +53,8 @@ class Retur_pembelian extends Admin_Controller
     {
         $this->auth->restrict($this->addPermission);
 
-        $suppliers = $this->db->order_by('nama_supplier', 'asc')
-            ->get('mtr_supplier')
+        $suppliers = $this->db->order_by('nama', 'asc')
+            ->get_where('new_supplier', ['deleted_date' => NULL])
             ->result_array();
 
         $data = [
@@ -143,8 +143,8 @@ class Retur_pembelian extends Admin_Controller
             return;
         }
 
-        $suppliers = $this->db->order_by('nama_supplier', 'asc')
-            ->get('mtr_supplier')
+        $suppliers = $this->db->order_by('nama', 'asc')
+            ->get_where('new_supplier', ['deleted_date' => NULL])
             ->result_array();
 
         $data = [

@@ -18,7 +18,7 @@
                         <select name="id_supplier" id="id_supplier" class="form-control select2" required>
                             <option value="">-- Pilih Supplier --</option>
                             <?php foreach ($suppliers as $s): ?>
-                            <option value="<?= $s['id'] ?>" data-nama="<?= $s['nama_supplier'] ?>" <?= ($s['id'] == $h['id_supplier']) ? 'selected' : '' ?>><?= $s['nama_supplier'] ?></option>
+                            <option value="<?= $s['id'] ?>" data-nama="<?= $s['nama'] ?>" <?= ($s['id'] == $h['id_supplier']) ? 'selected' : '' ?>><?= $s['nama'] ?></option>
                             <?php endforeach; ?>
                         </select>
                         <input type="hidden" name="nama_supplier" id="nama_supplier" value="<?= $h['nama_supplier'] ?>">
