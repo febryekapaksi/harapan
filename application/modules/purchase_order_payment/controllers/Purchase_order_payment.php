@@ -2100,18 +2100,28 @@ class Purchase_order_payment extends Admin_Controller
 
 		// 9. Ambil total sisa retur berdasarkan supplier
 		$arr_supplier = array_map('trim', explode(',', $kode_supplier));
-		$this->db->select('id, no_retur, sisa_retur');
-		$this->db->from('tr_retur_pembelian');
-		$this->db->where('sisa_retur >', 0);
-		$this->db->where('status', 2); // Hanya yang sudah diproses
-		$this->db->where_in('id_supplier', $arr_supplier);
-		$res_retur = $this->db->get()->result();
+
+		// Cari id supplier dari tabel new_supplier berdasarkan kode_supplier
+		$this->db->select('id');
+		$this->db->from('new_supplier');
+		$this->db->where_in('kode_supplier', $arr_supplier);
+		$res_id_supplier = $this->db->get()->result();
+		$arr_id_supplier = array_column($res_id_supplier, 'id');
 
 		$total_sisa_retur = 0;
 		$ids_retur = [];
-		foreach ($res_retur as $r) {
-			$total_sisa_retur += $r->sisa_retur;
-			$ids_retur[] = $r->id;
+		if (!empty($arr_id_supplier)) {
+			$this->db->select('id, no_retur, sisa_retur');
+			$this->db->from('tr_retur_pembelian');
+			$this->db->where('sisa_retur >', 0);
+			$this->db->where('status', 2);
+			$this->db->where_in('id_supplier', $arr_id_supplier);
+			$res_retur = $this->db->get()->result();
+
+			foreach ($res_retur as $r) {
+				$total_sisa_retur += $r->sisa_retur;
+				$ids_retur[] = $r->id;
+			}
 		}
 
 		// Total Tagihan = Total Invoice (nilai_req_payment) - Total Sisa Retur
