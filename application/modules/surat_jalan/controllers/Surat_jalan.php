@@ -105,7 +105,7 @@ class Surat_jalan extends Admin_Controller
                     sd.delivery_address AS alamat,
                     sdd.id_so_det,        
                     p.weight,
-                    (ldd.qty_muat * COALESCE(w.harga_beli,0)) AS costbook,
+                    (ldd.qty_muat * COALESCE(MAX(w.harga_beli),0)) AS costbook,
                 ')
             ->from('loading_delivery_detail ldd')
             ->join('spk_delivery sd', 'ldd.no_delivery = sd.no_delivery', 'left')
@@ -117,6 +117,7 @@ class Surat_jalan extends Admin_Controller
                     SELECT CONCAT(no_so, '|', no_delivery)
                     FROM surat_jalan
                     WHERE no_loading = '$no_loading')")
+            ->group_by('ldd.no_loading, ldd.no_delivery, ldd.id_product')
             ->get()
             ->result_array();
 
