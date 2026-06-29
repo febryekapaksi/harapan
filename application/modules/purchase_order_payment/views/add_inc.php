@@ -84,6 +84,25 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
+            <label for="">Nilai Retur</label>
+            <div class="input-group input-group-sm">
+                <input type="text" name="nilai_retur" id="" class="form-control form-control-sm text-right nilai_retur auto_num" value="0" placeholder="0.00">
+                <span class="input-group-btn">
+                    <button type="button" class="btn btn-info btn-sm btn_get_sisa_retur" title="Ambil Sisa Retur"><i class="fa fa-search"></i></button>
+                </span>
+            </div>
+            <small class="text-muted">Sisa Retur: <span class="lbl_sisa_retur">0</span></small>
+            <input type="hidden" name="id_retur_pembelian" class="id_retur_pembelian" value="">
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="">Total Tagihan <small class="text-muted">(Total Invoice - Retur)</small></label>
+            <input type="text" name="total_tagihan" id="" class="form-control form-control-sm text-right total_tagihan" value="<?= number_format($results['nilai_req_payment']) ?>" readonly>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
             <label for="">Request Payment PO</label>
             <input type="text" name="req_payment_po" id="" class="form-control form-control-sm text-right req_payment_po auto_num" required>
         </div>
@@ -290,5 +309,119 @@
         var value_dp = (total_pembelian * persen_dp / 100);
 
         $('.value_dp').val(value_dp.toLocaleString());
+    });
+
+    // ========== RETUR FUNCTIONALITY ==========
+
+    // Ambil sisa retur berdasarkan supplier
+    $(document).on('click', '.btn_get_sisa_retur', function() {
+        var kode_supplier = $('input[name="kode_supplier"]').val();
+        if (!kode_supplier || kode_supplier == '') {
+            swal({title: 'Warning!', text: 'Kode supplier tidak ditemukan.', type: 'error'});
+            return;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: siteurl + 'purchase_order_payment/get_sisa_retur_supplier',
+            data: { kode_supplier: kode_supplier },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status == 1 && res.data.length > 0) {
+                    // Tampilkan modal pilih retur
+                    var html = '<div class="table-responsive"><table class="table table-bordered table-sm">';
+                    html += '<thead><tr><th class="text-center">Pilih</th><th>No Retur</th><th>Tgl Retur</th><th class="text-right">Total Retur</th><th class="text-right">Settlement</th><th class="text-right">Sisa Retur</th></tr></thead><tbody>';
+                    $.each(res.data, function(i, row) {
+                        html += '<tr>';
+                        html += '<td class="text-center"><input type="radio" name="pilih_retur" class="pilih_retur" data-id="' + row.id + '" data-sisa="' + row.sisa_retur + '" data-no_retur="' + row.no_retur + '"></td>';
+                        html += '<td>' + row.no_retur + '</td>';
+                        html += '<td>' + row.tgl_retur + '</td>';
+                        html += '<td class="text-right">' + parseFloat(row.total_retur).toLocaleString('id-ID', {minimumFractionDigits:2}) + '</td>';
+                        html += '<td class="text-right">' + parseFloat(row.settlement).toLocaleString('id-ID', {minimumFractionDigits:2}) + '</td>';
+                        html += '<td class="text-right">' + parseFloat(row.sisa_retur).toLocaleString('id-ID', {minimumFractionDigits:2}) + '</td>';
+                        html += '</tr>';
+                    });
+                    html += '</tbody></table></div>';
+                    html += '<button type="button" class="btn btn-sm btn-primary btn_apply_retur">Terapkan Retur</button>';
+
+                    swal({
+                        title: 'Pilih Retur - ' + $('input[name="nama_supplier"]').val(),
+                        text: html,
+                        html: true,
+                        showConfirmButton: false,
+                        showCancelButton: true,
+                        cancelButtonText: 'Tutup'
+                    });
+                } else {
+                    swal({title: 'Info', text: 'Tidak ada sisa retur untuk supplier ini.', type: 'info'});
+                }
+            },
+            error: function() {
+                swal({title: 'Error!', text: 'Gagal mengambil data retur.', type: 'error'});
+            }
+        });
+    });
+
+    // Apply retur yang dipilih
+    $(document).on('click', '.btn_apply_retur', function() {
+        var selected = $('input[name="pilih_retur"]:checked');
+        if (selected.length == 0) {
+            alert('Pilih salah satu retur terlebih dahulu.');
+            return;
+        }
+
+        var sisa_retur = parseFloat(selected.data('sisa'));
+        var id_retur = selected.data('id');
+        var no_retur = selected.data('no_retur');
+
+        // Set nilai retur default = sisa retur (bisa diedit)
+        $('.nilai_retur').autoNumeric('set', sisa_retur.toFixed(2));
+        $('.lbl_sisa_retur').text(sisa_retur.toLocaleString('id-ID', {minimumFractionDigits:2}) + ' (' + no_retur + ')');
+        $('.id_retur_pembelian').val(id_retur);
+
+        hitungTotalTagihan();
+
+        swal.close();
+    });
+
+    // Ketika nilai retur diubah manual, hitung ulang Total Tagihan
+    $(document).on('keyup change', '.nilai_retur', function() {
+        hitungTotalTagihan();
+    });
+
+    // Hitung Total Tagihan = Total Invoice - Nilai Retur
+    function hitungTotalTagihan() {
+        var total_invoice_raw = $('.total_invoice').val();
+        if (total_invoice_raw == '' || total_invoice_raw == null) {
+            total_invoice_raw = 0;
+        } else {
+            total_invoice_raw = total_invoice_raw.split(',').join('');
+            total_invoice_raw = parseFloat(total_invoice_raw);
+        }
+
+        var nilai_retur_raw = $('.nilai_retur').val();
+        if (nilai_retur_raw == '' || nilai_retur_raw == null) {
+            nilai_retur_raw = 0;
+        } else {
+            nilai_retur_raw = nilai_retur_raw.split(',').join('');
+            nilai_retur_raw = parseFloat(nilai_retur_raw);
+        }
+
+        // Validasi: nilai retur tidak boleh melebihi total invoice
+        if (nilai_retur_raw > total_invoice_raw) {
+            swal({title: 'Warning!', text: 'Nilai retur tidak boleh melebihi Total Invoice!', type: 'warning'});
+            nilai_retur_raw = total_invoice_raw;
+            $('.nilai_retur').autoNumeric('set', nilai_retur_raw.toFixed(2));
+        }
+
+        var total_tagihan = total_invoice_raw - nilai_retur_raw;
+        if (total_tagihan < 0) total_tagihan = 0;
+
+        $('.total_tagihan').val(total_tagihan.toLocaleString('id-ID', {minimumFractionDigits:2}));
+    }
+
+    // Recalculate saat total_invoice berubah
+    $(document).on('keyup change', '.total_invoice', function() {
+        hitungTotalTagihan();
     });
 </script>
