@@ -85,7 +85,7 @@
     <div class="col-md-6">
         <div class="form-group">
             <label for="">Nilai Retur</label>
-            <input type="text" name="nilai_retur" id="" class="form-control form-control-sm text-right nilai_retur auto_num" value="<?= number_format($results['total_sisa_retur'], 2) ?>" readonly>
+            <input type="text" name="nilai_retur" id="" class="form-control form-control-sm text-right nilai_retur auto_num" value="<?= number_format($results['total_sisa_retur'], 2) ?>">
             <small class="text-muted">Total sisa retur supplier</small>
             <input type="hidden" name="id_retur_pembelian" class="id_retur_pembelian" value="<?= $results['ids_retur_pembelian'] ?>">
         </div>
@@ -334,6 +334,11 @@
 
     // Recalculate saat total_invoice berubah
     $(document).on('keyup change', '.total_invoice', function() {
+        hitungTotalTagihan();
+    });
+
+    // Recalculate saat nilai_retur diedit
+    $(document).on('keyup change', '.nilai_retur', function() {
         hitungTotalTagihan();
     });
 </script>
