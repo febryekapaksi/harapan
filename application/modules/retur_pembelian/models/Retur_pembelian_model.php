@@ -363,43 +363,55 @@ class Retur_pembelian_model extends BF_Model
         }
 
         // Update stok (Out) + catat ke kartu_stok
+        $kartu_stok_errors = [];
         foreach ($detail as $d) {
             $qty_retur = (float)$d['qty_retur'];
             $id_product = $d['id_product'];
+            $kode_barang = isset($d['kode_barang']) ? $d['kode_barang'] : $id_product;
 
-            // Ambil stok SEBELUM update
-            $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product])->row_array();
+            // Ambil stok SEBELUM update - coba berbagai cara lookup
+            $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $kode_barang])->row_array();
+            if (empty($stok_now)) {
+                $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $kode_barang])->row_array();
+            }
+            if (empty($stok_now)) {
+                $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product])->row_array();
+            }
             if (empty($stok_now)) {
                 $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $id_product])->row_array();
             }
 
-            if (!$stok_now) continue;
+            if (!$stok_now) {
+                $kartu_stok_errors[] = "Product {$kode_barang} not found in warehouse_stock";
+                continue;
+            }
+
+            $code_lv4_final = isset($stok_now['code_lv4']) ? $stok_now['code_lv4'] : $kode_barang;
 
             // Update warehouse_stock
             $this->db->set('qty_stock', 'qty_stock - ' . $qty_retur, false);
             $this->db->set('qty_free', 'qty_free - ' . $qty_retur, false);
-            $this->db->where('code_lv4', $id_product);
+            $this->db->where('id', $stok_now['id']);
             $this->db->update('warehouse_stock');
 
             // Insert kartu_stok
             $this->db->insert('kartu_stok', [
-                'code_lv4'          => $id_product,
-                'code_product'      => null,
+                'code_lv4'          => $code_lv4_final,
                 'nm_product'        => $d['nama_barang'],
                 'qty'               => floatval($stok_now['qty_stock']),
-                'qty_book'          => floatval($stok_now['qty_booking']),
-                'qty_free'          => floatval($stok_now['qty_free']),
+                'qty_book'          => floatval(isset($stok_now['qty_booking']) ? $stok_now['qty_booking'] : 0),
+                'qty_free'          => floatval(isset($stok_now['qty_free']) ? $stok_now['qty_free'] : 0),
                 'qty_transaksi'     => $qty_retur * -1,
                 'qty_akhir'         => floatval($stok_now['qty_stock']) - $qty_retur,
-                'qty_book_akhir'    => floatval($stok_now['qty_booking']),
-                'qty_free_akhir'    => floatval($stok_now['qty_free']) - $qty_retur,
+                'qty_book_akhir'    => floatval(isset($stok_now['qty_booking']) ? $stok_now['qty_booking'] : 0),
+                'qty_free_akhir'    => floatval(isset($stok_now['qty_free']) ? $stok_now['qty_free'] : 0) - $qty_retur,
                 'transaksi'         => 'Retur Pembelian',
                 'tgl_transaksi'     => date('Y-m-d'),
                 'no_transaksi'      => $header['no_retur'],
-                'id_gudang'         => isset($stok_now['id_gudang']) ? $stok_now['id_gudang'] : null,
+                'id_gudang'         => isset($stok_now['id_gudang']) ? $stok_now['id_gudang'] : '1',
                 'harga_stok'        => floatval(isset($stok_now['harga_beli']) ? $stok_now['harga_beli'] : 0),
                 'status_transaksi'  => 'out',
-                'created_by'        => $this->auth->user_id(),
+                'created_by'        => (string) $this->auth->user_id(),
                 'created_on'        => date('Y-m-d H:i:s'),
             ]);
         }
@@ -410,7 +422,12 @@ class Retur_pembelian_model extends BF_Model
             return ['status' => 0, 'pesan' => 'Gagal mengajukan retur.'];
         }
 
-        return ['status' => 1, 'pesan' => 'Retur berhasil diajukan.', 'no_retur' => $header['no_retur']];
+        $msg = 'Retur berhasil diajukan.';
+        if (!empty($kartu_stok_errors)) {
+            $msg .= ' Warning: ' . implode(', ', $kartu_stok_errors);
+        }
+
+        return ['status' => 1, 'pesan' => $msg, 'no_retur' => $header['no_retur']];
     }
 
     // ============================
@@ -454,22 +471,21 @@ class Retur_pembelian_model extends BF_Model
                 // Insert kartu_stok
                 $this->db->insert('kartu_stok', [
                     'code_lv4'          => $id_product,
-                    'code_product'      => null,
                     'nm_product'        => $d['nama_barang'],
                     'qty'               => floatval($stok_now['qty_stock']),
-                    'qty_book'          => floatval($stok_now['qty_booking']),
-                    'qty_free'          => floatval($stok_now['qty_free']),
+                    'qty_book'          => floatval(isset($stok_now['qty_booking']) ? $stok_now['qty_booking'] : 0),
+                    'qty_free'          => floatval(isset($stok_now['qty_free']) ? $stok_now['qty_free'] : 0),
                     'qty_transaksi'     => $qty_retur,
                     'qty_akhir'         => floatval($stok_now['qty_stock']) + $qty_retur,
-                    'qty_book_akhir'    => floatval($stok_now['qty_booking']),
-                    'qty_free_akhir'    => floatval($stok_now['qty_free']) + $qty_retur,
+                    'qty_book_akhir'    => floatval(isset($stok_now['qty_booking']) ? $stok_now['qty_booking'] : 0),
+                    'qty_free_akhir'    => floatval(isset($stok_now['qty_free']) ? $stok_now['qty_free'] : 0) + $qty_retur,
                     'transaksi'         => 'Cancel Retur Pembelian',
                     'tgl_transaksi'     => date('Y-m-d'),
                     'no_transaksi'      => $header['no_retur'],
-                    'id_gudang'         => isset($stok_now['id_gudang']) ? $stok_now['id_gudang'] : null,
+                    'id_gudang'         => isset($stok_now['id_gudang']) ? $stok_now['id_gudang'] : '1',
                     'harga_stok'        => floatval(isset($stok_now['harga_beli']) ? $stok_now['harga_beli'] : 0),
                     'status_transaksi'  => 'in',
-                    'created_by'        => $this->auth->user_id(),
+                    'created_by'        => (string) $this->auth->user_id(),
                     'created_on'        => date('Y-m-d H:i:s'),
                 ]);
             }
