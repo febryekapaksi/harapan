@@ -735,7 +735,7 @@ class Invoice_produk extends Admin_Controller
 	{
 		$tipe = $this->input->post('tipe');
 
-		$hasil = '';
+		$hasil = ''; 
 
 		$tipe  = $this->input->post('tipe', TRUE);
 		$start = $this->input->post('start_date', TRUE);
