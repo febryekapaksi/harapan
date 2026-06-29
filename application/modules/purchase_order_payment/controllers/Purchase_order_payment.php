@@ -452,11 +452,36 @@ class Purchase_order_payment extends Admin_Controller
 				'no_bank' => $post['no_bank'],
 				'nm_acc_bank' => $post['nm_acc_bank'],
 				'kurs' => str_replace(',', '', $post['kurs']),
+				'nilai_retur' => str_replace(',', '', isset($post['nilai_retur']) ? $post['nilai_retur'] : '0'),
+				'total_tagihan' => str_replace(',', '', isset($post['total_tagihan']) ? $post['total_tagihan'] : '0'),
+				'id_retur_pembelian' => isset($post['id_retur_pembelian']) ? $post['id_retur_pembelian'] : null,
 				'created_by' => $this->auth->user_id(),
 				'created_date' => date('Y-m-d H:i:s')
 			]);
 			if (!$insert_invoice) {
 				print_r($this->db->error($insert_invoice));
+			}
+
+			// Update settlement di tabel retur pembelian jika ada retur yang dipilih
+			$nilai_retur_settle = (float) str_replace(',', '', isset($post['nilai_retur']) ? $post['nilai_retur'] : '0');
+			$id_retur_pembelian = isset($post['id_retur_pembelian']) ? $post['id_retur_pembelian'] : '';
+			if ($nilai_retur_settle > 0 && !empty($id_retur_pembelian)) {
+				$get_retur = $this->db->get_where('tr_retur_pembelian', ['id' => $id_retur_pembelian])->row();
+				if ($get_retur) {
+					$new_settlement = $get_retur->settlement + $nilai_retur_settle;
+					$new_sisa_retur = $get_retur->total_retur - $new_settlement;
+					if ($new_sisa_retur < 0) $new_sisa_retur = 0;
+
+					$update_status = ($new_sisa_retur <= 0) ? 3 : $get_retur->status; // 3 = Selesai
+
+					$this->db->update('tr_retur_pembelian', [
+						'settlement' => $new_settlement,
+						'sisa_retur' => $new_sisa_retur,
+						'status' => $update_status,
+						'updated_by' => $this->auth->user_id(),
+						'updated_date' => date('Y-m-d H:i:s'),
+					], ['id' => $id_retur_pembelian]);
+				}
 			}
 		}
 
@@ -2085,5 +2110,33 @@ class Purchase_order_payment extends Admin_Controller
 
 		$this->template->set('results', $data);
 		$this->template->render('add_inc');
+	}
+
+	/**
+	 * AJAX: Get Sisa Retur berdasarkan kode supplier
+	 * Mengembalikan list retur yang masih punya sisa (sisa_retur > 0) dan status = 2 (Process)
+	 */
+	public function get_sisa_retur_supplier()
+	{
+		$kode_supplier = $this->input->post('kode_supplier');
+
+		if (empty($kode_supplier)) {
+			echo json_encode(['status' => 0, 'data' => [], 'pesan' => 'Kode supplier kosong.']);
+			return;
+		}
+
+		// Cari semua retur pembelian yang masih punya sisa, berdasarkan supplier
+		// Support multi supplier (comma separated)
+		$arr_supplier = array_map('trim', explode(',', $kode_supplier));
+
+		$this->db->select('id, no_retur, no_invoice, nama_supplier, tgl_retur, total_retur, settlement, sisa_retur');
+		$this->db->from('tr_retur_pembelian');
+		$this->db->where('sisa_retur >', 0);
+		$this->db->where('status', 2); // Hanya yang sudah diproses/diajukan
+		$this->db->where_in('id_supplier', $arr_supplier);
+		$this->db->order_by('tgl_retur', 'DESC');
+		$result = $this->db->get()->result_array();
+
+		echo json_encode(['status' => 1, 'data' => $result]);
 	}
 }
