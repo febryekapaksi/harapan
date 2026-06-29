@@ -464,15 +464,24 @@ class Purchase_order_payment extends Admin_Controller
 
 			// Update settlement di tabel retur pembelian jika ada retur yang dipilih
 			$nilai_retur_settle = (float) str_replace(',', '', isset($post['nilai_retur']) ? $post['nilai_retur'] : '0');
-			$id_retur_pembelian = isset($post['id_retur_pembelian']) ? $post['id_retur_pembelian'] : '';
-			if ($nilai_retur_settle > 0 && !empty($id_retur_pembelian)) {
-				$get_retur = $this->db->get_where('tr_retur_pembelian', ['id' => $id_retur_pembelian])->row();
-				if ($get_retur) {
-					$new_settlement = $get_retur->settlement + $nilai_retur_settle;
+			$ids_retur_pembelian = isset($post['id_retur_pembelian']) ? $post['id_retur_pembelian'] : '';
+			if ($nilai_retur_settle > 0 && !empty($ids_retur_pembelian)) {
+				$arr_ids = array_filter(explode(',', $ids_retur_pembelian));
+				$sisa_settle = $nilai_retur_settle;
+
+				foreach ($arr_ids as $id_retur) {
+					if ($sisa_settle <= 0) break;
+
+					$get_retur = $this->db->get_where('tr_retur_pembelian', ['id' => $id_retur])->row();
+					if (!$get_retur || $get_retur->sisa_retur <= 0) continue;
+
+					// Settle sebesar sisa_retur atau sisa yang perlu di-settle (mana yang lebih kecil)
+					$settle_amount = min($sisa_settle, $get_retur->sisa_retur);
+					$new_settlement = $get_retur->settlement + $settle_amount;
 					$new_sisa_retur = $get_retur->total_retur - $new_settlement;
 					if ($new_sisa_retur < 0) $new_sisa_retur = 0;
 
-					$update_status = ($new_sisa_retur <= 0) ? 3 : $get_retur->status; // 3 = Selesai
+					$update_status = ($new_sisa_retur <= 0) ? 3 : $get_retur->status;
 
 					$this->db->update('tr_retur_pembelian', [
 						'settlement' => $new_settlement,
@@ -480,7 +489,9 @@ class Purchase_order_payment extends Admin_Controller
 						'status' => $update_status,
 						'updated_by' => $this->auth->user_id(),
 						'updated_date' => date('Y-m-d H:i:s'),
-					], ['id' => $id_retur_pembelian]);
+					], ['id' => $id_retur]);
+
+					$sisa_settle -= $settle_amount;
 				}
 			}
 		}
@@ -2087,6 +2098,26 @@ class Purchase_order_payment extends Admin_Controller
 
 		$nilai_req_payment = (($total_invoice_final + $nilai_ppn) - $uang_muka_idr);
 
+		// 9. Ambil total sisa retur berdasarkan supplier
+		$arr_supplier = array_map('trim', explode(',', $kode_supplier));
+		$this->db->select('id, no_retur, sisa_retur');
+		$this->db->from('tr_retur_pembelian');
+		$this->db->where('sisa_retur >', 0);
+		$this->db->where('status', 2); // Hanya yang sudah diproses
+		$this->db->where_in('id_supplier', $arr_supplier);
+		$res_retur = $this->db->get()->result();
+
+		$total_sisa_retur = 0;
+		$ids_retur = [];
+		foreach ($res_retur as $r) {
+			$total_sisa_retur += $r->sisa_retur;
+			$ids_retur[] = $r->id;
+		}
+
+		// Total Tagihan = Total Invoice (nilai_req_payment) - Total Sisa Retur
+		$total_tagihan = $nilai_req_payment - $total_sisa_retur;
+		if ($total_tagihan < 0) $total_tagihan = 0;
+
 		$data = [
 			'no_incoming'       => $no_incoming,
 			'incoming_no'       => $incoming_no,
@@ -2099,6 +2130,9 @@ class Purchase_order_payment extends Admin_Controller
 			'nilai_disc'        => $nilai_disc,
 			'nilai_ppn'         => $nilai_ppn,
 			'nilai_req_payment' => $nilai_req_payment,
+			'total_sisa_retur'  => $total_sisa_retur,
+			'total_tagihan'     => $total_tagihan,
+			'ids_retur_pembelian' => implode(',', $ids_retur),
 			'no_po'             => array_unique($arr_no_po)
 		];
 
@@ -2110,33 +2144,5 @@ class Purchase_order_payment extends Admin_Controller
 
 		$this->template->set('results', $data);
 		$this->template->render('add_inc');
-	}
-
-	/**
-	 * AJAX: Get Sisa Retur berdasarkan kode supplier
-	 * Mengembalikan list retur yang masih punya sisa (sisa_retur > 0) dan status = 2 (Process)
-	 */
-	public function get_sisa_retur_supplier()
-	{
-		$kode_supplier = $this->input->post('kode_supplier');
-
-		if (empty($kode_supplier)) {
-			echo json_encode(['status' => 0, 'data' => [], 'pesan' => 'Kode supplier kosong.']);
-			return;
-		}
-
-		// Cari semua retur pembelian yang masih punya sisa, berdasarkan supplier
-		// Support multi supplier (comma separated)
-		$arr_supplier = array_map('trim', explode(',', $kode_supplier));
-
-		$this->db->select('id, no_retur, no_invoice, nama_supplier, tgl_retur, total_retur, settlement, sisa_retur');
-		$this->db->from('tr_retur_pembelian');
-		$this->db->where('sisa_retur >', 0);
-		$this->db->where('status', 2); // Hanya yang sudah diproses/diajukan
-		$this->db->where_in('id_supplier', $arr_supplier);
-		$this->db->order_by('tgl_retur', 'DESC');
-		$result = $this->db->get()->result_array();
-
-		echo json_encode(['status' => 1, 'data' => $result]);
 	}
 }
