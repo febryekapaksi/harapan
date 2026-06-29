@@ -395,7 +395,7 @@ class Retur_pembelian_model extends BF_Model
             $this->db->update('warehouse_stock');
 
             // Insert kartu_stok
-            $this->db->insert('kartu_stok', [
+            $insert_kartu = [
                 'code_lv4'          => $code_lv4_final,
                 'nm_product'        => $d['nama_barang'],
                 'qty'               => floatval($stok_now['qty_stock']),
@@ -408,12 +408,16 @@ class Retur_pembelian_model extends BF_Model
                 'transaksi'         => 'Retur Pembelian',
                 'tgl_transaksi'     => date('Y-m-d'),
                 'no_transaksi'      => $header['no_retur'],
-                'id_gudang'         => isset($stok_now['id_gudang']) ? $stok_now['id_gudang'] : '1',
+                'id_gudang'         => isset($stok_now['id_gudang']) ? (string)$stok_now['id_gudang'] : '1',
                 'harga_stok'        => floatval(isset($stok_now['harga_beli']) ? $stok_now['harga_beli'] : 0),
                 'status_transaksi'  => 'out',
                 'created_by'        => (string) $this->auth->user_id(),
                 'created_on'        => date('Y-m-d H:i:s'),
-            ]);
+            ];
+            $this->db->insert('kartu_stok', $insert_kartu);
+            if ($this->db->affected_rows() == 0) {
+                $kartu_stok_errors[] = "Insert kartu_stok failed for {$code_lv4_final}: " . json_encode($this->db->error());
+            }
         }
 
         $this->db->trans_complete();
