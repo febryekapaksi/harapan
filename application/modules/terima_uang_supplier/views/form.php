@@ -54,39 +54,6 @@
                 </div>
             </div>
 
-            <!-- INFO SISA RETUR -->
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="info-box bg-aqua">
-                        <span class="info-box-icon"><i class="fa fa-calculator"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Total Retur</span>
-                            <span class="info-box-number"><?= number_format($h['total_retur'], 0, ',', '.') ?></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="info-box bg-green">
-                        <span class="info-box-icon"><i class="fa fa-check"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Sudah Diterima</span>
-                            <span class="info-box-number"><?= number_format($h['settlement'], 0, ',', '.') ?></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="info-box bg-red">
-                        <span class="info-box-icon"><i class="fa fa-exclamation"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text">Sisa Retur</span>
-                            <span class="info-box-number"><?= number_format($h['sisa_retur'], 0, ',', '.') ?></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <hr>
-
             <!-- TANGGAL TERIMA -->
             <div class="row">
                 <div class="col-md-4">
