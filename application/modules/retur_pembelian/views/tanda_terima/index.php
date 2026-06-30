@@ -67,17 +67,7 @@
     </div>
 </div>
 
-<!-- Color Legend -->
-<div class="box box-default">
-    <div class="box-header with-border">
-        <h3 class="box-title"><i class="fa fa-paint-brush"></i> Keterangan Warna</h3>
-    </div>
-    <div class="box-body">
-        <span class="badge bg-blue">Potong Tagihan</span> - Metode retur potong tagihan ke supplier
-        &nbsp;&nbsp;
-        <span class="badge bg-green">Terima Uang</span> - Metode retur terima uang dari supplier
-    </div>
-</div>
+
 
 <script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
