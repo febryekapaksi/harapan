@@ -131,24 +131,28 @@
                         <tr>
                             <th width="120">Kode Akun</th>
                             <th>Nama Akun</th>
-                            <th width="150">Keterangan</th>
+                            <th width="150" class="text-right">Debet</th>
+                            <th width="150" class="text-right">Kredit</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td>2101-01-01</td>
                             <td>Hutang Dagang</td>
-                            <td>Nilai barang + PPn</td>
+                            <td class="text-right"><span id="jurnal_debet_hutang">0</span></td>
+                            <td class="text-right">-</td>
                         </tr>
                         <tr>
                             <td>1107-01-06</td>
                             <td>PPN Dibayar Dimuka</td>
-                            <td>PPn Retur</td>
+                            <td class="text-right">-</td>
+                            <td class="text-right"><span id="jurnal_kredit_ppn">0</span></td>
                         </tr>
                         <tr>
                             <td>1104-01-02</td>
                             <td>Persediaan Barang In Transit</td>
-                            <td>Nilai barang</td>
+                            <td class="text-right">-</td>
+                            <td class="text-right"><span id="jurnal_kredit_nilai">0</span></td>
                         </tr>
                     </tbody>
                 </table>
@@ -222,6 +226,11 @@ function calculateAll() {
     $('#nilai_display').text(formatNumber(nilai));
     $('#ppn_display').text(formatNumber(ppn));
     $('#total_display').text(formatNumber(total));
+
+    // Update jurnal
+    $('#jurnal_debet_hutang').text(formatNumber(total));
+    $('#jurnal_kredit_ppn').text(formatNumber(ppn));
+    $('#jurnal_kredit_nilai').text(formatNumber(nilai));
 }
 
 function formatInputNumber(el) {
