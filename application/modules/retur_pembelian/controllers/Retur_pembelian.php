@@ -17,6 +17,7 @@ class Retur_pembelian extends Admin_Controller
         $this->load->model(array(
             'Retur_pembelian/Retur_pembelian_model',
             'Retur_pembelian/Jurnal_retur_model',
+            'Retur_pembelian/Tanda_terima_nota_model',
         ));
 
         date_default_timezone_set('Asia/Bangkok');
@@ -286,15 +287,11 @@ class Retur_pembelian extends Admin_Controller
     }
 
     /**
-     * Index Tanda Terima Nota Retur
+     * Index Tanda Terima Nota Retur (Legacy - redirect to new page)
      */
     public function nota_retur()
     {
-        $this->auth->restrict($this->viewPermission);
-
-        $this->template->title('Tanda Terima Nota Retur');
-        $this->template->page_icon('fa fa-file-text-o');
-        $this->template->render('nota_retur');
+        redirect('retur_pembelian/tanda_terima');
     }
 
     /**
@@ -400,6 +397,263 @@ class Retur_pembelian extends Admin_Controller
         }
 
         echo json_encode($result);
+    }
+
+    // ============================================================
+    // TANDA TERIMA NOTA RETUR
+    // ============================================================
+
+    /**
+     * Index Tanda Terima Nota Retur (List)
+     */
+    public function tanda_terima()
+    {
+        $this->auth->restrict($this->viewPermission);
+
+        $this->template->title('Tanda Terima Nota Retur');
+        $this->template->page_icon('fa fa-file-text-o');
+        $this->template->render('tanda_terima/index');
+    }
+
+    /**
+     * DataTable Tanda Terima server-side
+     */
+    public function data_tanda_terima()
+    {
+        $this->auth->restrict($this->viewPermission);
+        $this->Tanda_terima_nota_model->data_tanda_terima_serverside();
+    }
+
+    /**
+     * Form Create Tanda Terima Nota Retur
+     */
+    public function create_tanda_terima($id_retur = null)
+    {
+        $this->auth->restrict($this->addPermission);
+
+        if (!$id_retur) {
+            show_404();
+        }
+
+        $retur = $this->Retur_pembelian_model->get_by_id($id_retur);
+        if (!$retur || $retur['header']['nota_retur'] != 'Ya') {
+            show_error('Data retur tidak ditemukan atau tidak memerlukan Nota Retur.', 404);
+            return;
+        }
+
+        // Cek apakah sudah ada tanda terima
+        $existing = $this->Tanda_terima_nota_model->get_by_retur_id($id_retur);
+        if ($existing) {
+            redirect('retur_pembelian/edit_tanda_terima/' . $existing['header']['id']);
+            return;
+        }
+
+        $data = [
+            'retur' => $retur,
+        ];
+
+        $this->template->title('Buat Tanda Terima Nota Retur');
+        $this->template->page_icon('fa fa-file-text-o');
+        $this->template->render('tanda_terima/form', $data);
+    }
+
+    /**
+     * Simpan Tanda Terima Nota Retur
+     */
+    public function save_tanda_terima()
+    {
+        $this->auth->restrict($this->addPermission);
+
+        $post     = $this->input->post();
+        $id_retur = $post['id_retur'];
+
+        $result = $this->Tanda_terima_nota_model->save_tanda_terima($id_retur, $post);
+
+        if ($result['status']) {
+            history("Create Tanda Terima Nota Retur - Retur ID: " . $id_retur);
+        }
+
+        echo json_encode($result);
+    }
+
+    /**
+     * Form Edit Tanda Terima Nota Retur
+     */
+    public function edit_tanda_terima($id = null)
+    {
+        $this->auth->restrict($this->managePermission);
+
+        if (!$id) {
+            show_404();
+        }
+
+        $tanda_terima = $this->Tanda_terima_nota_model->get_by_id($id);
+        if (!$tanda_terima) {
+            show_error('Data Tanda Terima tidak ditemukan.', 404);
+            return;
+        }
+
+        if ($tanda_terima['header']['status'] != 1) {
+            redirect('retur_pembelian/view_tanda_terima/' . $id);
+            return;
+        }
+
+        $retur = $this->Retur_pembelian_model->get_by_id($tanda_terima['header']['id_retur']);
+
+        $data = [
+            'tanda_terima' => $tanda_terima,
+            'retur'        => $retur,
+        ];
+
+        $this->template->title('Edit Tanda Terima Nota Retur');
+        $this->template->page_icon('fa fa-edit');
+        $this->template->render('tanda_terima/form_edit', $data);
+    }
+
+    /**
+     * Update Tanda Terima Nota Retur
+     */
+    public function update_tanda_terima($id = null)
+    {
+        $this->auth->restrict($this->managePermission);
+
+        if (!$id) {
+            echo json_encode(['status' => 0, 'pesan' => 'ID tidak valid.']);
+            return;
+        }
+
+        $post   = $this->input->post();
+        $result = $this->Tanda_terima_nota_model->update_tanda_terima($id, $post);
+
+        if ($result['status']) {
+            history("Update Tanda Terima Nota Retur ID: " . $id);
+        }
+
+        echo json_encode($result);
+    }
+
+    /**
+     * View Tanda Terima Nota Retur
+     */
+    public function view_tanda_terima($id = null)
+    {
+        $this->auth->restrict($this->viewPermission);
+
+        if (!$id) {
+            show_404();
+        }
+
+        $tanda_terima = $this->Tanda_terima_nota_model->get_by_id($id);
+        if (!$tanda_terima) {
+            show_error('Data Tanda Terima tidak ditemukan.', 404);
+            return;
+        }
+
+        $retur = $this->Retur_pembelian_model->get_by_id($tanda_terima['header']['id_retur']);
+
+        $data = [
+            'tanda_terima' => $tanda_terima,
+            'retur'        => $retur,
+        ];
+
+        $this->template->title('Detail Tanda Terima Nota Retur');
+        $this->template->page_icon('fa fa-eye');
+        $this->template->render('tanda_terima/view', $data);
+    }
+
+    /**
+     * Buat Retur - Halaman list retur yang bisa dibuat tanda terima
+     */
+    public function buat_tanda_terima()
+    {
+        $this->auth->restrict($this->addPermission);
+
+        $retur_list = $this->Tanda_terima_nota_model->get_retur_available();
+
+        $data = [
+            'retur_list' => $retur_list,
+        ];
+
+        $this->template->title('Buat Tanda Terima Nota Retur');
+        $this->template->page_icon('fa fa-plus');
+        $this->template->render('tanda_terima/pilih_retur', $data);
+    }
+
+    /**
+     * DataTable Penerimaan Uang server-side (retur dengan metode Terima Uang)
+     */
+    public function data_penerimaan_uang()
+    {
+        $this->auth->restrict($this->viewPermission);
+
+        $requestData = $_REQUEST;
+        $search = $requestData['search']['value'];
+        $start  = $requestData['start'];
+        $length = $requestData['length'];
+
+        // Filter: retur yang sudah Process/Selesai dan metode = Terima Uang
+        $this->db->from('tr_retur_pembelian rp');
+        $this->db->join('tr_tanda_terima_nota_retur tt', 'tt.id_retur = rp.id', 'inner');
+        $this->db->where('tt.metode_retur', 'Terima Uang');
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('rp.no_retur', $search);
+            $this->db->or_like('rp.nama_supplier', $search);
+            $this->db->group_end();
+        }
+        $totalFiltered = $this->db->count_all_results();
+
+        $this->db->select('rp.id, rp.no_retur, rp.nama_supplier, rp.total_retur, rp.settlement, rp.sisa_retur, rp.status');
+        $this->db->from('tr_retur_pembelian rp');
+        $this->db->join('tr_tanda_terima_nota_retur tt', 'tt.id_retur = rp.id', 'inner');
+        $this->db->where('tt.metode_retur', 'Terima Uang');
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('rp.no_retur', $search);
+            $this->db->or_like('rp.nama_supplier', $search);
+            $this->db->group_end();
+        }
+        $this->db->order_by('rp.created_date', 'desc');
+        if ($length != -1) {
+            $this->db->limit($length, $start);
+        }
+        $query = $this->db->get();
+
+        $data = [];
+        $urut = $start + 1;
+        foreach ($query->result_array() as $row) {
+            $status_badge = '';
+            switch ($row['status']) {
+                case 2: $status_badge = "<span class='badge bg-blue'>Process</span>"; break;
+                case 3: $status_badge = "<span class='badge bg-green'>Selesai</span>"; break;
+                default: $status_badge = "<span class='badge bg-yellow'>-</span>"; break;
+            }
+
+            $btn_settlement = '';
+            if ($row['sisa_retur'] > 0 && $row['status'] == 2) {
+                $btn_settlement = "<a href='" . site_url('retur_pembelian/settlement/' . $row['id']) . "' class='btn btn-xs btn-primary' title='Terima Uang'><i class='fa fa-money'></i> Terima Uang</a>";
+            }
+
+            $nestedData   = [];
+            $nestedData[] = "<div class='text-center'>{$urut}</div>";
+            $nestedData[] = $row['no_retur'];
+            $nestedData[] = $row['nama_supplier'];
+            $nestedData[] = "<div class='text-right'>" . number_format($row['total_retur'], 0, ',', '.') . "</div>";
+            $nestedData[] = "<div class='text-right'>" . number_format($row['settlement'], 0, ',', '.') . "</div>";
+            $nestedData[] = "<div class='text-right'>" . number_format($row['sisa_retur'], 0, ',', '.') . "</div>";
+            $nestedData[] = "<div class='text-center'>{$status_badge}</div>";
+            $nestedData[] = "<div class='text-center'>{$btn_settlement}</div>";
+
+            $data[] = $nestedData;
+            $urut++;
+        }
+
+        echo json_encode([
+            "draw"            => intval($requestData['draw']),
+            "recordsTotal"    => intval($totalFiltered),
+            "recordsFiltered" => intval($totalFiltered),
+            "data"            => $data,
+        ]);
     }
 
     /**
