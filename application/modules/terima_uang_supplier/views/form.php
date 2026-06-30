@@ -292,10 +292,32 @@ function reNumber() {
     });
 }
 
+function parseAngka(val) {
+    if (!val) return 0;
+    val = val.toString().trim();
+
+    // Deteksi format: jika ada koma sebagai desimal (ID format: 1.000.000,50)
+    if (val.indexOf(',') > -1 && val.indexOf('.') > -1) {
+        // Format Indonesia: titik = ribuan, koma = desimal
+        val = val.replace(/\./g, '').replace(',', '.');
+    } else if (val.indexOf(',') > -1) {
+        // Hanya koma: bisa jadi desimal (1000,50) atau ribuan salah input
+        val = val.replace(',', '.');
+    }
+    // Jika hanya titik: cek apakah pemisah ribuan atau desimal
+    // Jika ada lebih dari 1 titik, berarti pemisah ribuan (1.000.000)
+    else if ((val.match(/\./g) || []).length > 1) {
+        val = val.replace(/\./g, '');
+    }
+    // Jika 1 titik: biarkan sebagai desimal (50.00 atau 147000.5)
+
+    return parseFloat(val) || 0;
+}
+
 function hitungBaris(el) {
     var row = $(el).closest('tr');
-    var qty = parseFloat(row.find('.input-qty').val().replace(/\./g, '').replace(',', '.')) || 0;
-    var harga = parseFloat(row.find('.input-harga').val().replace(/\./g, '').replace(',', '.')) || 0;
+    var qty = parseAngka(row.find('.input-qty').val());
+    var harga = parseAngka(row.find('.input-harga').val());
     var total = qty * harga;
     row.find('.total-baris').text(formatNumber(total));
     hitungSemua();
@@ -304,8 +326,8 @@ function hitungBaris(el) {
 function hitungSemua() {
     var totalNilai = 0;
     $('#tbody-items tr').each(function() {
-        var qty = parseFloat($(this).find('.input-qty').val().replace(/\./g, '').replace(',', '.')) || 0;
-        var harga = parseFloat($(this).find('.input-harga').val().replace(/\./g, '').replace(',', '.')) || 0;
+        var qty = parseAngka($(this).find('.input-qty').val());
+        var harga = parseAngka($(this).find('.input-harga').val());
         totalNilai += (qty * harga);
     });
 
@@ -321,12 +343,12 @@ function hitungSemua() {
 function hitungTotal() {
     var totalNilai = 0;
     $('#tbody-items tr').each(function() {
-        var qty = parseFloat($(this).find('.input-qty').val().replace(/\./g, '').replace(',', '.')) || 0;
-        var harga = parseFloat($(this).find('.input-harga').val().replace(/\./g, '').replace(',', '.')) || 0;
+        var qty = parseAngka($(this).find('.input-qty').val());
+        var harga = parseAngka($(this).find('.input-harga').val());
         totalNilai += (qty * harga);
     });
 
-    var ppn = parseFloat($('#ppn').val().replace(/\./g, '').replace(',', '.')) || 0;
+    var ppn = parseAngka($('#ppn').val());
     var grandTotal = totalNilai + ppn;
 
     $('#grand_total').text(formatNumber(grandTotal));
@@ -335,7 +357,7 @@ function hitungTotal() {
 }
 
 function saveReceive() {
-    var grandTotal = parseFloat($('#grand_total').text().replace(/\./g, '').replace(',', '.')) || 0;
+    var grandTotal = parseAngka($('#grand_total').text());
     var sisaRetur = <?= $h['sisa_retur'] ?>;
 
     if (grandTotal <= 0) {

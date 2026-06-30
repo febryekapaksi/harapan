@@ -291,7 +291,17 @@ class Setor_bank extends Admin_Controller
     {
         $user_id = $this->auth->user_id();
 
-        $data = $this->db
+        // Ambil kd_pembayaran yang sudah pernah disetor (ada di tr_setor_bank_detail)
+        $sudah_setor = $this->db
+            ->select('kd_pembayaran')
+            ->from('tr_setor_bank_detail')
+            ->group_by('kd_pembayaran')
+            ->get()
+            ->result_array();
+
+        $kd_sudah_setor = array_column($sudah_setor, 'kd_pembayaran');
+
+        $this->db
             ->select('
             a.kd_pembayaran,
             a.created_on,
@@ -316,7 +326,14 @@ class Setor_bank extends Admin_Controller
             ->join('master_customers m', 'm.id_customer = a.id_customer', 'left')
             ->where('a.tipe_bayar', 'CASH')
             ->where('a.status_setor', 0)
-            ->where('a.created_by', $user_id)
+            ->where('a.created_by', $user_id);
+
+        // Exclude penerimaan yang sudah ada di detail setoran bank
+        if (!empty($kd_sudah_setor)) {
+            $this->db->where_not_in('a.kd_pembayaran', $kd_sudah_setor);
+        }
+
+        $data = $this->db
             ->order_by('a.created_on', 'DESC')
             ->get()
             ->result_array(); // 🔥 penting pakai array
