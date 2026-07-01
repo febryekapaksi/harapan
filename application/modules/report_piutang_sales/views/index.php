@@ -29,6 +29,9 @@
                     <tr class="bg-blue">
                         <th style="width:40px; ">No</th>
                         <th style="">Nama Sales</th>
+                        <th class="text-right" style="">Total Penerimaan</th>
+                        <th class="text-right" style="">Setor Kasir</th>
+                        <th class="text-right" style="">Setor Bank</th>
                         <th class="text-right" style="">Saldo Piutang</th>
                         <th class="text-center" style="width:100px; ">Action</th>
                     </tr>
@@ -40,6 +43,15 @@
                             <tr>
                                 <td class="text-center"><?= $no++ ?></td>
                                 <td><?= ucfirst(htmlspecialchars($row['nm_lengkap'])) ?></td>
+                                <td class="text-right">
+                                    <?= number_format($row['total_penerimaan'], 0, ',', '.') ?>
+                                </td>
+                                <td class="text-right">
+                                    <?= number_format($row['total_setor_kasir'], 0, ',', '.') ?>
+                                </td>
+                                <td class="text-right">
+                                    <?= number_format($row['total_setor_bank'], 0, ',', '.') ?>
+                                </td>
                                 <td class="text-right">
                                     <strong><?= number_format($row['saldo_piutang'], 0, ',', '.') ?></strong>
                                 </td>
@@ -53,7 +65,7 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="4" class="text-center text-muted">
+                            <td colspan="7" class="text-center text-muted">
                                 <i class="fa fa-info-circle"></i> Tidak ada data piutang
                             </td>
                         </tr>
@@ -62,7 +74,22 @@
                 <tfoot>
                     <tr class="bg-light-blue-active">
                         <th colspan="2" class="text-right">
-                            <strong>Total Piutang Sales</strong>
+                            <strong>Total</strong>
+                        </th>
+                        <th class="text-right">
+                            <strong style="font-size:14px;">
+                                <?= number_format($total_penerimaan ?? 0, 0, ',', '.') ?>
+                            </strong>
+                        </th>
+                        <th class="text-right">
+                            <strong style="font-size:14px;">
+                                <?= number_format($total_setor_kasir ?? 0, 0, ',', '.') ?>
+                            </strong>
+                        </th>
+                        <th class="text-right">
+                            <strong style="font-size:14px;">
+                                <?= number_format($total_setor_bank ?? 0, 0, ',', '.') ?>
+                            </strong>
                         </th>
                         <th class="text-right">
                             <strong style="font-size:14px;">
