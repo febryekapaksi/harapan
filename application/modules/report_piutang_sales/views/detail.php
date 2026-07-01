@@ -41,6 +41,7 @@
                         <th class="text-center">Tanggal<br><small>(Setor)</small></th>
                         <th class="text-center">Kode Setor</th>
                         <th class="text-right">Setor Kasir Penjualan</th>
+                        <th class="text-right">Setor Bank Penjualan</th>
                         <th class="text-right">Saldo</th>
                     </tr>
                 </thead>
@@ -81,13 +82,18 @@
                                         : '0' ?>
                                 </td>
                                 <td class="text-right">
+                                    <?= $row['setor_bank_penjualan'] > 0
+                                        ? number_format($row['setor_bank_penjualan'], 0, ',', '.')
+                                        : '0' ?>
+                                </td>
+                                <td class="text-right">
                                     <strong><?= number_format($row['saldo'], 0, ',', '.') ?></strong>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="9" class="text-center text-muted">
+                            <td colspan="10" class="text-center text-muted">
                                 <i class="fa fa-info-circle"></i> Tidak ada data piutang
                             </td>
                         </tr>
@@ -95,7 +101,7 @@
                 </tbody>
                 <tfoot>
                     <tr class="bg-light-blue-active">
-                        <td colspan="8" class="text-right">
+                        <td colspan="9" class="text-right">
                             <strong>Saldo Piutang</strong>
                         </td>
                         <td class="text-right">

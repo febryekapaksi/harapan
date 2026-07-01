@@ -32,11 +32,17 @@ class Report_piutang_sales_model extends BF_Model
         SELECT
             id_user,
             nm_lengkap,
+            SUM(penerimaan_per_row) AS total_penerimaan,
+            SUM(setor_kasir_per_row) AS total_setor_kasir,
+            SUM(setor_bank_per_row) AS total_setor_bank,
             SUM(saldo_per_row) AS saldo_piutang
         FROM (
             SELECT
                 u.id_user,
                 u.nm_lengkap,
+                p.jumlah_pembayaran_idr AS penerimaan_per_row,
+                COALESCE(s.total_setor, 0) AS setor_kasir_per_row,
+                COALESCE(sb.total_setor_bank, 0) AS setor_bank_per_row,
                 (
                     p.jumlah_pembayaran_idr
                     - COALESCE(s.total_setor, 0)
