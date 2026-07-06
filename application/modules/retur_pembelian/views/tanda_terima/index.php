@@ -1,11 +1,6 @@
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 
 <div class="box box-primary">
-    <div class="box-header with-border">
-        <a href="<?= site_url('retur_pembelian/buat_tanda_terima') ?>" class="btn btn-primary btn-sm">
-            <i class="fa fa-plus"></i> Buat Retur
-        </a>
-    </div>
     <div class="box-body">
         <!-- Tab Navigation -->
         <ul class="nav nav-tabs" role="tablist">
@@ -33,9 +28,8 @@
                                 <th>No. Invoice</th>
                                 <th>Nama Supplier</th>
                                 <th>Tgl Retur</th>
-                                <th>Metode Retur</th>
-                                <th>Total Nilai</th>
-                                <th width="120">Action</th>
+                                <th>Total Retur</th>
+                                <th width="150">Action</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -67,8 +61,6 @@
     </div>
 </div>
 
-
-
 <script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
 
@@ -88,7 +80,7 @@ function initTableTandaTerima() {
         iDisplayLength: 10,
         aLengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
         ajax: {
-            url: siteurl + 'retur_pembelian/data_tanda_terima',
+            url: siteurl + 'retur_pembelian/data_retur_nota',
             type: 'POST'
         }
     });

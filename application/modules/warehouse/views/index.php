@@ -8,6 +8,7 @@
                     <th>No</th>
                     <th>Kode Product</th>
                     <th>Nama Product</th>
+                    <th>Kode Gudang</th>
                     <th>Unit Packing</th>
                     <th>Unit Measurement</th>
                     <th>Jumlah Stok</th>

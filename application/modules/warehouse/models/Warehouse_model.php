@@ -76,6 +76,7 @@ class Warehouse_model extends BF_Model
             $nestedData[] = "<div align='center'>{$nomor}</div>";
             $nestedData[] = "<div align='left'>{$row['code_product']}</div>";
             $nestedData[] = "<div align='left'>{$row['nm_product']}</div>";
+            $nestedData[] = "<div align='center'>{$row['kd_gudang']}</div>";
             $nestedData[] = "<div align='center'>{$row['unit']}</div>";
             $nestedData[] = "<div align='center'>{$row['unit_packing']}</div>";
             $nestedData[] = "<div align='right'>" . number_format($qty_stock) . "</div>";
@@ -102,10 +103,11 @@ class Warehouse_model extends BF_Model
             0 => 'ws.id',
             1 => 'ws.code_product',
             2 => 'ws.nm_product',
-            3 => 'sp.nama',
-            4 => 'sm.nama',
-            5 => 'ws.qty_stock',
-            6 => 'ws.qty_booking'
+            3 => 'ws.kd_gudang',
+            4 => 'sp.nama',
+            5 => 'sm.nama',
+            6 => 'ws.qty_stock',
+            7 => 'ws.qty_booking'
         ];
 
         // Total Data
@@ -131,6 +133,7 @@ class Warehouse_model extends BF_Model
             $this->db->group_start();
             $this->db->like('ws.code_product', $like_value);
             $this->db->or_like('ws.nm_product', $like_value);
+            $this->db->or_like('ws.kd_gudang', $like_value);
             $this->db->or_like('sm.nama', $like_value);
             $this->db->or_like('sp.nama', $like_value);
             $this->db->group_end();
@@ -155,6 +158,7 @@ class Warehouse_model extends BF_Model
             $this->db->group_start();
             $this->db->like('ws.code_product', $like_value);
             $this->db->or_like('ws.nm_product', $like_value);
+            $this->db->or_like('ws.kd_gudang', $like_value);
             $this->db->or_like('sp.nama', $like_value);
             $this->db->or_like('sm.nama', $like_value);
             $this->db->group_end();
