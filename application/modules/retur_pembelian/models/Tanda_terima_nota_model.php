@@ -329,6 +329,102 @@ class Tanda_terima_nota_model extends BF_Model
     }
 
     // ============================
+    // DATA RETUR NOTA SERVER-SIDE (semua retur dengan nota_retur = Ya)
+    // ============================
+    public function data_retur_nota_serverside()
+    {
+        $requestData = $_REQUEST;
+        $search = $requestData['search']['value'];
+        $start  = $requestData['start'];
+        $length = $requestData['length'];
+        $col_order = $requestData['order'][0]['column'];
+        $col_dir   = $requestData['order'][0]['dir'];
+
+        $columns_order = [
+            0 => 'rp.id',
+            1 => 'rp.no_retur',
+            2 => 'rp.no_invoice',
+            3 => 'rp.nama_supplier',
+            4 => 'rp.tgl_retur',
+            5 => 'rp.total_retur',
+        ];
+
+        // Total
+        $this->db->from('tr_retur_pembelian rp');
+        $this->db->where('rp.nota_retur', 'Ya');
+        $this->db->where_in('rp.status', [2, 3]);
+        $totalData = $this->db->count_all_results();
+
+        // Filtered
+        $this->db->from('tr_retur_pembelian rp');
+        $this->db->where('rp.nota_retur', 'Ya');
+        $this->db->where_in('rp.status', [2, 3]);
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('rp.no_retur', $search);
+            $this->db->or_like('rp.no_invoice', $search);
+            $this->db->or_like('rp.nama_supplier', $search);
+            $this->db->group_end();
+        }
+        $totalFiltered = $this->db->count_all_results();
+
+        // Get data
+        $this->db->select('rp.id, rp.no_retur, rp.no_invoice, rp.nama_supplier, rp.tgl_retur, rp.total_retur');
+        $this->db->from('tr_retur_pembelian rp');
+        $this->db->where('rp.nota_retur', 'Ya');
+        $this->db->where_in('rp.status', [2, 3]);
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('rp.no_retur', $search);
+            $this->db->or_like('rp.no_invoice', $search);
+            $this->db->or_like('rp.nama_supplier', $search);
+            $this->db->group_end();
+        }
+        if (isset($columns_order[$col_order])) {
+            $this->db->order_by($columns_order[$col_order], $col_dir);
+        } else {
+            $this->db->order_by('rp.created_date', 'desc');
+        }
+        if ($length != -1) {
+            $this->db->limit($length, $start);
+        }
+        $query = $this->db->get();
+
+        $data = [];
+        $urut = $start + 1;
+        foreach ($query->result_array() as $row) {
+            // Cek apakah sudah ada tanda terima
+            $tanda_terima = $this->db->get_where('tr_tanda_terima_nota_retur', ['id_retur' => $row['id']])->row_array();
+
+            // Action buttons
+            if ($tanda_terima) {
+                $action = "<a href='" . site_url('retur_pembelian/view_tanda_terima/' . $tanda_terima['id']) . "' class='btn btn-xs btn-primary' title='View Tanda Terima'><i class='fa fa-eye'></i> View</a>";
+            } else {
+                $action = "<a href='" . site_url('retur_pembelian/create_tanda_terima/' . $row['id']) . "' class='btn btn-xs btn-success' title='Buat Tanda Terima'><i class='fa fa-plus'></i> Create</a>";
+            }
+
+            $nestedData   = [];
+            $nestedData[] = "<div class='text-center'>{$urut}</div>";
+            $nestedData[] = $row['no_retur'];
+            $nestedData[] = $row['no_invoice'];
+            $nestedData[] = $row['nama_supplier'];
+            $nestedData[] = date('d/m/Y', strtotime($row['tgl_retur']));
+            $nestedData[] = "<div class='text-right'>" . number_format($row['total_retur'], 2, ',', '.') . "</div>";
+            $nestedData[] = "<div class='text-center'>{$action}</div>";
+
+            $data[] = $nestedData;
+            $urut++;
+        }
+
+        echo json_encode([
+            "draw"            => intval($requestData['draw']),
+            "recordsTotal"    => intval($totalData),
+            "recordsFiltered" => intval($totalFiltered),
+            "data"            => $data,
+        ]);
+    }
+
+    // ============================
     // PRIVATE: Buat Jurnal Nota Retur
     // Jurnal:
     //   D: 2101-01-01 Hutang Dagang = Nilai Barang + PPn

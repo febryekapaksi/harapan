@@ -425,6 +425,15 @@ class Retur_pembelian extends Admin_Controller
     }
 
     /**
+     * DataTable Retur Nota (semua retur dengan nota_retur = Ya) server-side
+     */
+    public function data_retur_nota()
+    {
+        $this->auth->restrict($this->viewPermission);
+        $this->Tanda_terima_nota_model->data_retur_nota_serverside();
+    }
+
+    /**
      * Form Create Tanda Terima Nota Retur
      */
     public function create_tanda_terima($id_retur = null)
