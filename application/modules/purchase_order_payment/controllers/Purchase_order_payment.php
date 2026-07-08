@@ -1103,6 +1103,7 @@ class Purchase_order_payment extends Admin_Controller
                     <th class="text-center">No. Invoice</th>
                     <th class="text-center">Tanggal Invoice</th>
                     <th class="text-center">Supplier</th>
+                    <th class="text-center">Nilai Retur</th>
                     <th class="text-center">Status</th>
 					<th class="text-center">Action</th>
                 </tr>
@@ -1203,6 +1204,7 @@ class Purchase_order_payment extends Admin_Controller
 					$hasil .= '<td style="text-align: center;">' . $item['id'] . '</td>';
 					$hasil .= '<td style="text-align: center;">' . date('d F Y', strtotime($item['invoice_date'])) . '</td>';
 					$hasil .= '<td>' . $nm_supplier . '</td>';
+					$hasil .= '<td style="text-align: right;">' . number_format((isset($item['nilai_retur']) ? $item['nilai_retur'] : 0), 2) . '</td>';
 					$hasil .= '<td style="text-align: center;">' . $status . '</td>';
 					$hasil .= '<td style="text-align: center;">' . $view . '</td>';
 					$hasil .= '</tr>';
@@ -1214,6 +1216,7 @@ class Purchase_order_payment extends Admin_Controller
 				$hasil .= '<td style="text-align: center;">' . $item['id'] . '</td>';
 				$hasil .= '<td style="text-align: center;">' . date('d F Y', strtotime($item['invoice_date'])) . '</td>';
 				$hasil .= '<td>' . $nm_supplier . '</td>';
+				$hasil .= '<td style="text-align: right;">' . number_format((isset($item['nilai_retur']) ? $item['nilai_retur'] : 0), 2) . '</td>';
 				$hasil .= '<td style="text-align: center;">' . $status . '</td>';
 				$hasil .= '<td style="text-align: center;">' . $view . '</td>';
 				$hasil .= '</tr>';

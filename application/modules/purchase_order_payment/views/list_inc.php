@@ -36,6 +36,7 @@
                     <th class="text-center">Tanggal Invoice</th>
                     <th class="text-center">Supplier</th>
                     <th class="text-center">Nominal Invoice</th>
+                    <th class="text-center">Nilai Retur</th>
                     <th class="text-center">Status</th>
                     <th class="text-center">Action</th>
                 </tr>
@@ -154,6 +155,7 @@
                     echo '<td style="text-align: center;">' . date('d F Y', strtotime($item['invoice_date'])) . '</td>';
                     echo '<td>' . $nm_supplier . '</td>';
                     echo '<td style="text-align: right">' . number_format($item['total_invoice'], 2) . '</td>';
+                    echo '<td style="text-align: right">' . number_format((isset($item['nilai_retur']) ? $item['nilai_retur'] : 0), 2) . '</td>';
                     echo '<td style="text-align: center;">' . $status . '</td>';
                     echo '<td style="text-align: center;">' . $view . '</td>';
                     echo '</tr>';
