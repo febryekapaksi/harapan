@@ -81,6 +81,19 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
+            <label for="">Nilai Retur</label>
+            <input type="text" name="nilai_retur" id="" class="form-control form-control-sm text-right auto_num" value="<?= number_format((isset($data_invoice['nilai_retur']) ? $data_invoice['nilai_retur'] : 0), 2) ?>" readonly>
+            <small class="text-muted">Total sisa retur supplier</small>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="">Total Tagihan <small class="text-muted">(Total Invoice - Retur)</small></label>
+            <input type="text" name="total_tagihan" id="" class="form-control form-control-sm text-right auto_num" value="<?= number_format((isset($data_invoice['total_tagihan']) ? $data_invoice['total_tagihan'] : 0), 2) ?>" readonly>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
             <label for="">Request Payment PO</label>
             <input type="text" name="req_payment_po" id="" class="form-control form-control-sm text-right req_payment_po auto_num" value="<?= number_format($data_invoice['req_payment_po'], 2) ?>" readonly>
         </div>
