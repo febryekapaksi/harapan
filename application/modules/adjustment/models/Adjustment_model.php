@@ -72,7 +72,7 @@ class Adjustment_model extends BF_Model
       $nestedData[]  = "<div align='left'>" . $gudang_dari . "</div>";
       $nestedData[]  = "<div align='left'>" . $gudang_ke . "</div>";
       $nestedData[]  = "<div align='left'>" . strtoupper($row['nm_material']) . "</div>";
-      $nestedData[]  = "<div align='right'>" . number_format($row['jumlah_mat'], 4) . "</div>";
+      $nestedData[]  = "<div align='right'>" . number_format($row['jumlah_mat'], 2) . "</div>";
       $nestedData[]  = "<div align='left'>" . strtoupper($row['pic']) . "</div>";
       $nestedData[]  = "<div align='left'>" . strtoupper($row['no_ba']) . "</div>";
       $nestedData[]  = "<div align='left'>" . strtoupper($row['note']) . "</div>";
