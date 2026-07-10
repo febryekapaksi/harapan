@@ -275,7 +275,7 @@ class Spk_delivery extends Admin_Controller
 
     $this->db->trans_begin();
 
-    // 1. Ambil data SPK untuk mendapatkan referensi No SO
+    // 1. Ambil data SPK header
     $spk = $this->db->query(
       "SELECT no_delivery, no_so 
          FROM spk_delivery 
@@ -295,51 +295,73 @@ class Spk_delivery extends Admin_Controller
 
     $no_so = $spk['no_so'];
 
-    // --- PROSES PENGHAPUSAN BERTAHAP ---
+    // 2. Ambil detail SPK yang akan di-cancel
+    $spk_details = $this->db->get_where('spk_delivery_detail', ['no_delivery' => $no_delivery])->result_array();
 
-    // 2. Kembalikan booking warehouse_stock dari SO detail sebelum dihapus
-    $so_details = $this->db->get_where('sales_order_detail', ['no_so' => $no_so])->result_array();
-    foreach ($so_details as $det) {
-      $code_lv4         = $det['id_product'];
-      $qty_order        = floatval($det['qty_order']);
-      $use_qty_free_det = floatval($det['use_qty_free']);
-      // Kembalikan booking dan free ke kondisi sebelum SO ini dibuat
+    // 3. Untuk setiap item SPK: kembalikan qty_spk di SO detail & kembalikan booking warehouse
+    foreach ($spk_details as $det) {
+      $id_so_det  = $det['id_so_det'];
+      $id_product = $det['id_product'];
+      $qty_spk    = floatval($det['qty_spk']);
+
+      // --- Update sales_order_detail: kurangi qty_spk, tambah qty_belum_spk ---
+      $so_det = $this->db->get_where('sales_order_detail', ['id' => $id_so_det])->row_array();
+      if ($so_det) {
+        $new_qty_spk       = max(0, floatval($so_det['qty_spk']) - $qty_spk);
+        $new_qty_belum_spk = floatval($so_det['qty_order']) - $new_qty_spk;
+
+        $this->db->update('sales_order_detail', [
+          'qty_spk'         => $new_qty_spk,
+          'qty_belum_spk'   => $new_qty_belum_spk,
+          'status_planning' => ($new_qty_belum_spk > 0) ? 0 : 1,
+        ], ['id' => $id_so_det]);
+      }
+
+      // --- Kembalikan booking warehouse_stock sebesar qty SPK yang dibatalkan ---
       $this->db->query("
         UPDATE warehouse_stock
-        SET qty_booking  = GREATEST(qty_booking - ?, 0),
-            use_qty_free = GREATEST(use_qty_free - ?, 0),
-            qty_free     = qty_free + ?
+        SET qty_booking = GREATEST(qty_booking - ?, 0)
         WHERE code_lv4 = ?
-      ", [$qty_order, $use_qty_free_det, $use_qty_free_det, $code_lv4]);
+      ", [$qty_spk, $id_product]);
 
       // Catat reversal di kartu stok
-      $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+      $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product])->row_array();
       if ($stok_now) {
         $this->db->insert('kartu_stok', [
           'no_transaksi'   => $no_delivery,
           'transaksi'      => 'Cancel SPK',
           'tgl_transaksi'  => date('Y-m-d H:i:s'),
-          'code_lv4'       => $code_lv4,
-          'nm_product'     => $det['product'],
+          'code_lv4'       => $id_product,
+          'nm_product'     => isset($so_det['product']) ? $so_det['product'] : '',
           'qty'            => floatval($stok_now['qty_stock']),
-          'qty_book'       => floatval($stok_now['qty_booking']),
+          'qty_book'       => floatval($stok_now['qty_booking']) + $qty_spk, // sebelum update
           'qty_free'       => floatval($stok_now['qty_free']),
-          'qty_transaksi'  => 0,
+          'qty_transaksi'  => $qty_spk,
           'qty_akhir'      => floatval($stok_now['qty_stock']),
-          'qty_book_akhir' => max(0, floatval($stok_now['qty_booking']) - $qty_order),
-          'qty_free_akhir' => floatval($stok_now['qty_free']) + $use_qty_free_det,
-          'harga_stok'     => floatval($det['harga_beli']),
+          'qty_book_akhir' => floatval($stok_now['qty_booking']),
+          'qty_free_akhir' => floatval($stok_now['qty_free']),
+          'harga_stok'     => isset($so_det['harga_beli']) ? floatval($so_det['harga_beli']) : 0,
         ]);
       }
     }
 
-    // 3. Hapus dari level SPK dulu (Detail lalu Header)
+    // 4. Hapus SPK (Detail lalu Header) — SO TIDAK dihapus
     $this->db->delete('spk_delivery_detail', ['no_delivery' => $no_delivery]);
     $this->db->delete('spk_delivery', ['no_delivery' => $no_delivery]);
 
-    // 4. Setelah SPK bersih, baru hapus level Sales Order (Detail lalu Header)
-    $this->db->delete('sales_order_detail', ['no_so' => $no_so]);
-    $this->db->delete('sales_order', ['no_so' => $no_so]);
+    // 5. Update status_spk di header Sales Order
+    $summary = $this->db->select('SUM(qty_order) as total_order, SUM(qty_spk) as total_spk')
+      ->get_where('sales_order_detail', ['no_so' => $no_so])
+      ->row_array();
+
+    $status_spk = 'Belum SPK';
+    if ((float)$summary['total_spk'] >= (float)$summary['total_order']) {
+      $status_spk = 'SPK Lengkap';
+    } elseif ((float)$summary['total_spk'] > 0) {
+      $status_spk = 'SPK Sebagian';
+    }
+
+    $this->db->update('sales_order', ['status_spk' => $status_spk], ['no_so' => $no_so]);
 
     // --- PROSES SELESAI ---
 
@@ -347,19 +369,19 @@ class Spk_delivery extends Admin_Controller
       $this->db->trans_rollback();
       echo json_encode([
         'status' => 0,
-        'pesan'  => 'Gagal membatalkan SPK dan menghapus data terkait!'
+        'pesan'  => 'Gagal membatalkan SPK!'
       ]);
       return;
     }
 
     $this->db->trans_commit();
 
-    // Log history penghapusan
-    history("Cancel SPK & Delete SO Total: " . $no_delivery . " | No SO: " . $no_so);
+    // Log history
+    history("Cancel SPK: " . $no_delivery . " | No SO: " . $no_so . " (SO tetap aktif)");
 
     echo json_encode([
       'status' => 1,
-      'pesan'  => 'Berhasil! SPK dan Sales Order terkait telah dihapus sepenuhnya.'
+      'pesan'  => 'SPK berhasil dibatalkan. Sales Order tetap aktif dan bisa di-SPK ulang.'
     ]);
   }
 
