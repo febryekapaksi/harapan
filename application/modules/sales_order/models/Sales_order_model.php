@@ -99,8 +99,15 @@ class Sales_order_model extends BF_Model
 				} elseif ($row['status_spk'] == 'SPK Sebagian') {
 					$status_label .= " <span class='badge bg-orange'>SPK Sebagian</span>";
 					$action .= "<a href='" . base_url("spk_delivery/add/{$row['no_so']}") . "' class='btn btn-sm btn-info' title='Create SPK'><i class='fa fa-truck'></i> SPK</a> ";
+					// Tombol Cancel SO untuk sisa yang belum SPK
+					$action .= "<button class='btn btn-sm btn-danger cancel-so' data-no='{$row['no_so']}' title='Cancel Sisa SO'><i class='fa fa-times'></i></button> ";
 				} elseif ($row['status_spk'] == 'SPK Lengkap') {
 					$status_label .= " <span class='badge bg-blue'>SPK Lengkap</span>";
+				}
+
+				// Status SO closed
+				if (isset($row['status_so']) && $row['status_so'] == 'CLOSED') {
+					$status_label .= " <span class='badge bg-red'>Closed</span>";
 				}
 			} else {
 				$action = "<a href='" . base_url("sales_order/add/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success' title='Create SO'><i class='fa fa-paper-plane'></i> SO</a> ";
@@ -186,7 +193,7 @@ class Sales_order_model extends BF_Model
 		$totalFiltered = $this->db->count_all_results();
 
 		// ==== Ambil data (pakai semua filter) ====
-		$this->db->select('so.no_so, so.tgl_so, so.nilai_so, so.status, so.status_do, so.status_planning, so.revisi, so.status_spk,
+		$this->db->select('so.no_so, so.tgl_so, so.nilai_so, so.status, so.status_do, so.status_planning, so.revisi, so.status_spk, so.status_so,
                        p.id_penawaran, p.total_penawaran, p.tipe_penawaran, p.sales,
                        c.name_customer');
 		$this->db->from('penawaran p');
