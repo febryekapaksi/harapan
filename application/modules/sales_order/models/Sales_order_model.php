@@ -88,8 +88,8 @@ class Sales_order_model extends BF_Model
 			}
 
 			if ($row['status'] === 'A') {
-				$action = "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning' title='Print SO'><i class='fa fa-print'></i></a> ";
-				$action .= "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-default' title='View'><i class='fa fa-eye'></i></a> ";
+				$action = "<a href='" . base_url("sales_order/edit/{$row['no_so']}") . "' class='btn btn-sm btn-info' title='View'><i class='fa fa-eye'></i></a> ";
+				$action .= "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning' title='Print SO'><i class='fa fa-print'></i></a> ";
 				$status_label = "<span class='badge bg-green'>Deal</span>";
 
 				// Tambahkan status SPK
@@ -99,10 +99,11 @@ class Sales_order_model extends BF_Model
 				} elseif ($row['status_spk'] == 'SPK Sebagian') {
 					$status_label .= " <span class='badge bg-orange'>SPK Sebagian</span>";
 					$action .= "<a href='" . base_url("spk_delivery/add/{$row['no_so']}") . "' class='btn btn-sm btn-info' title='Create SPK'><i class='fa fa-truck'></i> SPK</a> ";
-					// Tombol Cancel SO untuk sisa yang belum SPK
-					$action .= "<button class='btn btn-sm btn-danger cancel-so' data-no='{$row['no_so']}' title='Cancel Sisa SO'><i class='fa fa-times'></i></button> ";
-				} elseif ($row['status_spk'] == 'SPK Lengkap') {
-					$status_label .= " <span class='badge bg-blue'>SPK Lengkap</span>";
+				}
+
+				// Tombol Cancel SO - muncul di semua SO yang belum CLOSED
+				if (!isset($row['status_so']) || $row['status_so'] != 'CLOSED') {
+					$action .= "<button class='btn btn-sm btn-danger cancel-so' data-no='{$row['no_so']}' title='Cancel Sisa SO'><i class='fa fa-times'></i> Cancel</button> ";
 				}
 
 				// Status SO closed
@@ -165,6 +166,11 @@ class Sales_order_model extends BF_Model
 		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 		$this->db->where('p.status', 'A');
+		// Exclude SO yang SPK Lengkap (ditampilkan di menu SO Complete)
+		$this->db->group_start();
+		$this->db->where('so.status_spk !=', 'SPK Lengkap');
+		$this->db->or_where('so.status_spk IS NULL');
+		$this->db->group_end();
 		$totalData = $this->db->count_all_results();
 
 		// ==== Total filtered (pakai search + date filter) ====
@@ -172,6 +178,11 @@ class Sales_order_model extends BF_Model
 		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 		$this->db->where('p.status', 'A');
+		// Exclude SO yang SPK Lengkap
+		$this->db->group_start();
+		$this->db->where('so.status_spk !=', 'SPK Lengkap');
+		$this->db->or_where('so.status_spk IS NULL');
+		$this->db->group_end();
 
 		// filter tanggal (DATE type)
 		if (!empty($start_date) && !empty($end_date)) {
@@ -200,6 +211,11 @@ class Sales_order_model extends BF_Model
 		$this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
 		$this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
 		$this->db->where('p.status', 'A');
+		// Exclude SO yang SPK Lengkap
+		$this->db->group_start();
+		$this->db->where('so.status_spk !=', 'SPK Lengkap');
+		$this->db->or_where('so.status_spk IS NULL');
+		$this->db->group_end();
 
 		if (!empty($start_date) && !empty($end_date)) {
 			$this->db->where('so.tgl_so >=', $start_date);

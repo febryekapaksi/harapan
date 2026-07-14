@@ -1,14 +1,7 @@
 <?php
-$ENABLE_MANAGE = has_permission('SO_Complete.Manage');
+$ENABLE_VIEW = has_permission('SO_Complete.View');
 ?>
 <style type="text/css">
-  .info-box-custom {
-    padding: 10px 15px;
-    background: #f9f9f9;
-    border-left: 4px solid #3c8dbc;
-    margin-bottom: 10px;
-  }
-
   .table-detail th {
     background: #f5f5f5;
     width: 180px;
@@ -33,11 +26,6 @@ $ENABLE_MANAGE = has_permission('SO_Complete.Manage');
           <a target="_blank" href="<?= base_url("sales_order/print_so/{$so['no_so']}") ?>" class="btn btn-sm btn-warning">
             <i class="fa fa-print"></i> Print SO
           </a>
-          <?php if ($ENABLE_MANAGE && $so['status_so'] != 'CLOSED'): ?>
-            <button class="btn btn-sm btn-danger" id="btnCancelSO" data-no="<?= $so['no_so'] ?>">
-              <i class="fa fa-times"></i> Cancel Sisa SO
-            </button>
-          <?php endif; ?>
         </div>
       </div>
       <div class="box-body">
@@ -89,7 +77,7 @@ $ENABLE_MANAGE = has_permission('SO_Complete.Manage');
               <tr>
                 <th>Status SO</th>
                 <td>
-                  <?php if ($so['status_so'] == 'CLOSED'): ?>
+                  <?php if (isset($so['status_so']) && $so['status_so'] == 'CLOSED'): ?>
                     <span class="badge bg-red badge-status">Closed</span>
                   <?php else: ?>
                     <span class="badge bg-green badge-status">Active</span>
@@ -120,10 +108,10 @@ $ENABLE_MANAGE = has_permission('SO_Complete.Manage');
               <tr>
                 <th class="text-center" width="3%">#</th>
                 <th class="text-center">Produk</th>
-                <th class="text-center">Qty Order</th>
+                <th class="text-center">Qty SO</th>
                 <th class="text-center">Qty SPK</th>
-                <th class="text-center">Sisa Belum SPK</th>
-                <th class="text-center">Qty Cancelled</th>
+                <th class="text-center">Sisa</th>
+                <th class="text-center">Qty Cancel</th>
                 <th class="text-center">Status</th>
               </tr>
             </thead>
@@ -208,9 +196,6 @@ $ENABLE_MANAGE = has_permission('SO_Complete.Manage');
                   <th class="text-center">Tanggal SPK</th>
                   <th class="text-center">Pengiriman</th>
                   <th class="text-center">Dibuat</th>
-                  <?php if ($ENABLE_MANAGE): ?>
-                    <th class="text-center">Action</th>
-                  <?php endif; ?>
                 </tr>
               </thead>
               <tbody>
@@ -222,13 +207,6 @@ $ENABLE_MANAGE = has_permission('SO_Complete.Manage');
                     <td class="text-center"><?= !empty($spk['tanggal_spk']) ? date('d/M/Y', strtotime($spk['tanggal_spk'])) : '-' ?></td>
                     <td class="text-center"><?= $spk['pengiriman'] ?></td>
                     <td class="text-center"><?= date('d/M/Y H:i', strtotime($spk['created_date'])) ?></td>
-                    <?php if ($ENABLE_MANAGE): ?>
-                      <td class="text-center">
-                        <button class="btn btn-xs btn-danger cancel-spk-btn" data-id="<?= $spk['no_delivery'] ?>" title="Cancel SPK">
-                          <i class="fa fa-times"></i> Cancel SPK
-                        </button>
-                      </td>
-                    <?php endif; ?>
                   </tr>
                 <?php endforeach; ?>
               </tbody>
@@ -241,135 +219,3 @@ $ENABLE_MANAGE = has_permission('SO_Complete.Manage');
     </div>
   </div>
 </div>
-
-<!-- Modal Cancel SO -->
-<div class="modal fade" id="modalCancelSO" tabindex="-1" role="dialog">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-red">
-        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span></button>
-        <h4 class="modal-title"><i class="fa fa-exclamation-triangle"></i> Cancel Sisa SO</h4>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="cancel_no_so">
-        <div class="alert alert-warning">
-          <i class="fa fa-warning"></i> <strong>Perhatian!</strong><br>
-          Proses ini akan membatalkan sisa qty SO yang belum di-SPK dan mengembalikan stock booking ke warehouse.
-        </div>
-        <div class="form-group">
-          <label>No. SO:</label>
-          <p class="form-control-static" id="label_cancel_no_so" style="font-weight: bold;"></p>
-        </div>
-        <div class="form-group">
-          <label for="cancel_reason">Alasan Pembatalan <span class="text-red">*</span></label>
-          <textarea id="cancel_reason" class="form-control" rows="3" placeholder="Masukkan alasan pembatalan..."></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Batal</button>
-        <button type="button" class="btn btn-danger" id="btnConfirmCancel">
-          <i class="fa fa-times"></i> Ya, Cancel SO
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script type="text/javascript">
-  $(document).ready(function() {
-    // Cancel SO dari halaman detail
-    $('#btnCancelSO').on('click', function(e) {
-      e.preventDefault();
-      var no_so = $(this).data('no');
-      $('#cancel_no_so').val(no_so);
-      $('#label_cancel_no_so').text(no_so);
-      $('#cancel_reason').val('');
-      $('#modalCancelSO').modal('show');
-    });
-
-    // Confirm Cancel SO
-    $('#btnConfirmCancel').on('click', function() {
-      var no_so = $('#cancel_no_so').val();
-      var reason = $('#cancel_reason').val();
-
-      if (!reason || reason.trim() === '') {
-        swal("Peringatan", "Alasan pembatalan harus diisi!", "warning");
-        return;
-      }
-
-      $(this).prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i> Processing...');
-
-      $.ajax({
-        url: base_url + 'so_complete/cancel_so',
-        type: 'POST',
-        dataType: 'json',
-        data: {
-          no_so: no_so,
-          reason: reason
-        },
-        success: function(data) {
-          $('#btnConfirmCancel').prop('disabled', false).html('<i class="fa fa-times"></i> Ya, Cancel SO');
-          $('#modalCancelSO').modal('hide');
-
-          if (data.status == 1) {
-            swal({
-              title: "Berhasil!",
-              text: data.pesan,
-              type: "success"
-            }, function() {
-              window.location.reload();
-            });
-          } else {
-            swal("Gagal!", data.pesan, "error");
-          }
-        },
-        error: function() {
-          $('#btnConfirmCancel').prop('disabled', false).html('<i class="fa fa-times"></i> Ya, Cancel SO');
-          swal("Error!", "Terjadi kesalahan. Silakan coba lagi.", "error");
-        }
-      });
-    });
-
-    // Cancel SPK individual
-    $(document).on('click', '.cancel-spk-btn', function(e) {
-      e.preventDefault();
-      var no_delivery = $(this).data('id');
-
-      swal({
-        title: "Cancel SPK?",
-        text: "SPK " + no_delivery + " akan dibatalkan. SO bisa di-SPK ulang setelah ini.",
-        type: "warning",
-        showCancelButton: true,
-        confirmButtonClass: "btn-danger",
-        confirmButtonText: "Ya, Cancel SPK",
-        cancelButtonText: "Batal",
-        closeOnConfirm: false
-      }, function() {
-        $.ajax({
-          url: base_url + 'so_complete/cancel_spk',
-          type: 'POST',
-          dataType: 'json',
-          data: {
-            no_delivery: no_delivery
-          },
-          success: function(data) {
-            if (data.status == 1) {
-              swal({
-                title: "Berhasil!",
-                text: data.pesan,
-                type: "success"
-              }, function() {
-                window.location.reload();
-              });
-            } else {
-              swal("Gagal!", data.pesan, "error");
-            }
-          },
-          error: function() {
-            swal("Error!", "Terjadi kesalahan. Silakan coba lagi.", "error");
-          }
-        });
-      });
-    });
-  });
-</script>

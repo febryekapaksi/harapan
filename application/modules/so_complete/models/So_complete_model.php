@@ -63,11 +63,6 @@ class So_complete_model extends BF_Model
       $action .= "<a href='" . base_url("so_complete/detail/{$row['no_so']}") . "' class='btn btn-sm btn-info' title='Detail'><i class='fa fa-eye'></i></a> ";
       $action .= "<a target='_blank' href='" . base_url("sales_order/print_so/{$row['no_so']}") . "' class='btn btn-sm btn-warning' title='Print SO'><i class='fa fa-print'></i></a> ";
 
-      // Tombol Cancel SO hanya jika belum CLOSED dan masih ada sisa
-      if ($row['status_so'] != 'CLOSED') {
-        $action .= "<button class='btn btn-sm btn-danger cancel-so' data-no='{$row['no_so']}' title='Cancel Sisa SO'><i class='fa fa-times'></i> Cancel</button> ";
-      }
-
       $tgl_so = ($row['tgl_so'] != null) ? date('d/M/Y', strtotime($row['tgl_so'])) : "";
 
       $nestedData = [];
