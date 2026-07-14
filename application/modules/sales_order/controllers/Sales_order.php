@@ -106,6 +106,112 @@ class Sales_order extends Admin_Controller
     ]);
   }
 
+  /**
+   * Cancel SO - Membatalkan sisa qty SO yang belum ter-SPK
+   * 
+   * Contoh: SO = 100, SPK = 70, Sisa 30 di-cancel.
+   * Stock booking akan dikembalikan, muncul transaksi "Batal SO" di kartu stok.
+   */
+  public function cancel_so()
+  {
+    $this->auth->restrict($this->managePermission);
+
+    $no_so  = $this->input->post('no_so');
+    $reason = $this->input->post('reason');
+
+    if (empty($no_so)) {
+      echo json_encode(['status' => 0, 'pesan' => 'No SO tidak valid.']);
+      return;
+    }
+
+    $so = $this->db->get_where('sales_order', ['no_so' => $no_so])->row_array();
+    if (!$so) {
+      echo json_encode(['status' => 0, 'pesan' => 'Data Sales Order tidak ditemukan.']);
+      return;
+    }
+
+    $so_details = $this->db->get_where('sales_order_detail', ['no_so' => $no_so])->result_array();
+
+    $this->db->trans_begin();
+    $total_cancelled = 0;
+
+    foreach ($so_details as $det) {
+      $qty_order = floatval($det['qty_order']);
+      $qty_spk   = floatval($det['qty_spk']);
+      $sisa      = $qty_order - $qty_spk;
+
+      if ($sisa <= 0) continue;
+
+      $total_cancelled += $sisa;
+      $code_lv4 = $det['id_product'];
+
+      // Update sales_order_detail
+      $this->db->update('sales_order_detail', [
+        'qty_order'       => $qty_spk,
+        'qty_belum_spk'   => 0,
+        'qty_cancelled'   => $sisa,
+        'status_planning' => 1,
+      ], ['id' => $det['id']]);
+
+      // Kembalikan booking warehouse
+      $stok_before = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+      if ($stok_before) {
+        $qty_booking_before  = floatval($stok_before['qty_booking']);
+        $qty_free_before     = floatval($stok_before['qty_free']);
+        $use_qty_free_before = floatval($stok_before['use_qty_free']);
+
+        $qty_booking_after = max(0, $qty_booking_before - $sisa);
+        $qty_free_after    = $qty_free_before + $sisa;
+
+        $this->db->where('code_lv4', $code_lv4)->update('warehouse_stock', [
+          'qty_booking'  => $qty_booking_after,
+          'qty_free'     => $qty_free_after,
+          'use_qty_free' => max(0, $use_qty_free_before - $sisa),
+        ]);
+
+        // Catat di kartu_stok
+        $this->db->insert('kartu_stok', [
+          'no_transaksi'   => $no_so,
+          'transaksi'      => 'Batal SO',
+          'tgl_transaksi'  => date('Y-m-d H:i:s'),
+          'code_lv4'       => $code_lv4,
+          'nm_product'     => $det['product'],
+          'qty'            => floatval($stok_before['qty_stock']),
+          'qty_book'       => $qty_booking_before,
+          'qty_free'       => $qty_free_before,
+          'qty_transaksi'  => $sisa,
+          'qty_akhir'      => floatval($stok_before['qty_stock']),
+          'qty_book_akhir' => $qty_booking_after,
+          'qty_free_akhir' => $qty_free_after,
+          'harga_stok'     => isset($det['harga_beli']) ? floatval($det['harga_beli']) : 0,
+        ]);
+      }
+    }
+
+    // Update header SO
+    $this->db->update('sales_order', [
+      'status_so'      => 'CLOSED',
+      'cancel_reason'  => $reason,
+      'cancel_qty'     => $total_cancelled,
+      'cancelled_by'   => $this->auth->user_id(),
+      'cancelled_at'   => date('Y-m-d H:i:s'),
+    ], ['no_so' => $no_so]);
+
+    if ($this->db->trans_status() === FALSE) {
+      $this->db->trans_rollback();
+      echo json_encode(['status' => 0, 'pesan' => 'Gagal membatalkan sisa SO!']);
+      return;
+    }
+
+    $this->db->trans_commit();
+    history("Cancel SO (sisa): {$no_so} | Qty dibatalkan: {$total_cancelled}");
+
+    echo json_encode([
+      'status' => 1,
+      'pesan'  => "Sisa SO berhasil dibatalkan. Total qty cancel: {$total_cancelled}. Stock booking dikembalikan."
+    ]);
+  }
+
   public function edit($id_so)
   {
     $so = $this->db->get_where('sales_order', ['no_so' => $id_so])->row_array();
