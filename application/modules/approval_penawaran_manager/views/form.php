@@ -335,7 +335,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                             </div>
                             <div class="col-md-8">
                                 <input type="date" class="form-control" name="due_date_credit" id="due_date_credit"
-                                    value="<?= isset($penawaran['due_date_credit']) ? date('Y-m-d', strtotime($penawaran['due_date_credit'])) : '' ?>" <?= (isset($mode) && $mode == 'approval_manager' || $mode == 'approval_direksi') ? 'readonly' : '' ?>>
+                                    value="<?= isset($penawaran['due_date_credit']) ? date('Y-m-d', strtotime($penawaran['due_date_credit'])) : '' ?>" readonly>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -344,16 +344,23 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                             </div>
                             <div class="col-md-8">
                                 <input type="text" class="form-control moneyFormat" name="credit_limit" id="credit_limit"
-                                    value="<?= isset($penawaran['credit_limit']) ? $penawaran['credit_limit'] : '' ?>" <?= (isset($mode) && $mode == 'approval_manager' || $mode == 'approval_direksi') ? 'readonly' : '' ?>>
+                                    value="<?= isset($penawaran['credit_limit']) ? $penawaran['credit_limit'] : '' ?>" readonly>
                             </div>
                         </div>
                         <div class="form-group row">
                             <div class="col-md-4">
-                                <label for="">Outstanding</label>
+                                <label for="">Outstanding Piutang</label>
                             </div>
                             <div class="col-md-8">
-                                <input type="text" class="form-control moneyFormat" name="outstanding" id="outstanding"
-                                    value="<?= isset($penawaran['outstanding']) ? $penawaran['outstanding'] : '' ?>" <?= (isset($mode) && $mode == 'approval_manager' || $mode == 'approval_direksi') ? 'readonly' : '' ?>>
+                                <input type="text" class="form-control moneyFormat" name="outstanding_piutang" id="outstanding_piutang" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
+                                <label for="">SO Baru</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control moneyFormat" name="so_baru" id="so_baru" readonly>
                             </div>
                         </div>
                     </div>
@@ -369,11 +376,20 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                         </div>
                         <div class="form-group row">
                             <div class="col-md-4">
+                                <label for="">Total Outstanding</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input type="text" class="form-control moneyFormat" name="outstanding" id="outstanding"
+                                    value="<?= isset($penawaran['outstanding']) ? $penawaran['outstanding'] : '' ?>" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <div class="col-md-4">
                                 <label for="">Over Limit</label>
                             </div>
                             <div class="col-md-8">
                                 <input type="text" class="form-control moneyFormat" name="over_limit" id="over_limit"
-                                    value="<?= isset($penawaran['over_limit']) ? $penawaran['over_limit'] : '' ?>" <?= (isset($mode) && $mode == 'approval_manager' || $mode == 'approval_direksi') ? 'readonly' : '' ?>>
+                                    value="<?= isset($penawaran['over_limit']) ? $penawaran['over_limit'] : '' ?>" readonly>
                             </div>
                         </div>
                         <div class="form-group row">
@@ -384,6 +400,46 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                 <label id="status_credit_limit" class="form-control <?= (isset($penawaran['status_credit_limit']) && $penawaran['status_credit_limit'] == 'Overlimit') ? "text-red" : "text-green" ?>" style="border: none; padding-top: 7px;"><?= isset($penawaran['status_credit_limit']) ? $penawaran['status_credit_limit'] : '' ?></label>
                                 <input type="hidden" name="status_credit_limit">
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- INFORMASI JATUH TEMPO -->
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <label>Informasi Jatuh Tempo</label>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>No Invoice</th>
+                                        <th>Total Invoice</th>
+                                        <th>Piutang</th>
+                                        <th>Jatuh Tempo</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody_jatuh_tempo">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Histori Pembayaran</label>
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>No Invoice</th>
+                                        <th>Duedate</th>
+                                        <th>Tanggal Pelunasan</th>
+                                        <th>Histori GAP (days)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody_histori">
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
@@ -594,30 +650,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
 
             // --- AMBIL CREDIT LIMIT BERDASARKAN id_customer ---
             if (idCustomer) {
-                $.ajax({
-                    url: '<?= base_url('penawaran/get_credit_limit') ?>',
-                    type: 'POST',
-                    data: {
-                        id_customer: idCustomer
-                    },
-                    dataType: 'json',
-                    success: function(res) {
-                        if (res.error) {
-                            $('#credit_limit').val('');
-                        } else {
-                            // kalau input kamu punya masker .moneyFormat yang akan mem-format sendiri,
-                            // isi nilai mentah lalu trigger event agar masker jalan:
-                            $('#credit_limit').val(res.kredit_limit).trigger('input');
-
-                            // atau kalau mau langsung string rupiah:
-                            // $('#credit_limit').val(res.kredit_limit_formatted);
-                        }
-                    },
-                    error: function() {
-                        console.warn('Gagal mengambil credit limit');
-                        $('#credit_limit').val('');
-                    }
-                });
+                loadCreditInfo(idCustomer);
             } else {
                 $('#credit_limit').val('');
             }
@@ -1116,6 +1149,95 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
     function toNumber(val) {
         return parseFloat((val || "0").replace(/[^0-9.-]+/g, '')) || 0;
     }
+
+    function loadCreditInfo(idCustomer) {
+        // Ambil info kredit limit lengkap
+        $.ajax({
+            url: '<?= base_url('penawaran/get_info_kredit_limit') ?>',
+            type: 'POST',
+            data: { id_customer: idCustomer },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status != 1) {
+                    $('#outstanding_piutang,#so_baru,#credit_limit,#outstanding').val('');
+                    return;
+                }
+                const d = res.data;
+                $('#outstanding_piutang').val((d.outstanding_piutang));
+                $('#so_baru').val((d.so_baru));
+                $('#credit_limit').val((d.kredit_limit)).trigger('input');
+                $('#outstanding').val((d.total)).trigger('input');
+            },
+            error: function() {
+                console.warn('Gagal mengambil info kredit limit');
+            }
+        });
+
+        // Ambil informasi jatuh tempo
+        $.ajax({
+            url: '<?= base_url('penawaran/get_jatuh_tempo') ?>',
+            type: 'POST',
+            data: { id_customer: idCustomer },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status != 1) {
+                    $('#tbody_jatuh_tempo').html('<tr><td colspan="4" class="text-center text-danger">' + (res.msg || 'Gagal mengambil info jatuh tempo') + '</td></tr>');
+                    return;
+                }
+                const rows = res.data || [];
+                if (!rows.length) {
+                    $('#tbody_jatuh_tempo').html('<tr><td colspan="4" class="text-center text-muted">Tidak ada data.</td></tr>');
+                    return;
+                }
+                const fmtIDR = new Intl.NumberFormat('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                let html = '';
+                rows.forEach(r => {
+                    const grandTotal = fmtIDR.format(toNumber(r.grand_total));
+                    const piutang = fmtIDR.format(toNumber(r.piutang));
+                    html += '<tr><td>' + (r.id_invoice || '') + '</td><td class="text-right">' + grandTotal + '</td><td class="text-right">' + piutang + '</td><td class="text-center">' + (r.jatuh_tempo || '') + '</td></tr>';
+                });
+                $('#tbody_jatuh_tempo').html(html);
+            },
+            error: function() {
+                console.warn('Gagal mengambil info jatuh tempo');
+            }
+        });
+
+        // Ambil histori pembayaran
+        $.ajax({
+            url: '<?= base_url('penawaran/get_histori_pembayaran') ?>',
+            type: 'POST',
+            data: { id_customer: idCustomer },
+            dataType: 'json',
+            success: function(res) {
+                if (res.status != 1) {
+                    $('#tbody_histori').html('<tr><td colspan="4" class="text-center text-danger">' + (res.msg || 'Gagal mengambil histori pembayaran') + '</td></tr>');
+                    return;
+                }
+                const rows = res.data || [];
+                if (!rows.length) {
+                    $('#tbody_histori').html('<tr><td colspan="4" class="text-center text-muted">Tidak ada histori.</td></tr>');
+                    return;
+                }
+                let html = '';
+                rows.forEach(r => {
+                    html += '<tr><td>' + (r.no_invoice || '') + '</td><td class="text-center">' + (r.due_date || '') + '</td><td class="text-center">' + (r.tanggal_pelunasan || '') + '</td><td class="text-center">' + (r.gap_days ?? '') + '</td></tr>';
+                });
+                $('#tbody_histori').html(html);
+            },
+            error: function() {
+                console.warn('Gagal mengambil histori pembayaran');
+            }
+        });
+    }
+
+    // Auto-load credit info saat halaman dibuka (customer sudah terisi)
+    $(document).ready(function() {
+        var idCustomer = $('#id_customer').val();
+        if (idCustomer) {
+            loadCreditInfo(idCustomer);
+        }
+    });
 </script>
 
 <!-- Trash  -->
