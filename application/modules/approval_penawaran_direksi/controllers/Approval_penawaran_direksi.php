@@ -28,7 +28,7 @@ class Approval_penawaran_direksi extends Admin_Controller
     public function index()
     {
         $this->template->page_icon('fa fa-check-square-o');
-        $this->template->title('Approval Penawaran Direksi'); 
+        $this->template->title('Approval Penawaran Direksi');
         $this->template->render('index');
     }
 
