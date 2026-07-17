@@ -7,6 +7,33 @@ $ENABLE_DELETE  = has_permission('Payment_Jurnal.Delete');
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 
 <div class="box box-primary">
+    <div class="box-header">
+        <form method="GET" action="<?= base_url('request_payment/payment_jurnal_list') ?>" id="filter-form">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-inline">
+                        <div class="form-group">
+                            <label>Pilih Tanggal Jurnal</label>
+                        </div>
+                        <div class="form-group" style="margin-left:10px;">
+                            <input type="date" name="tgl_from" class="form-control" value="<?= isset($tgl_from) ? $tgl_from : '' ?>" placeholder="dd/mm/yyyy">
+                        </div>
+                        <div class="form-group" style="margin-left:5px;">
+                            <span>&rarr;</span>
+                        </div>
+                        <div class="form-group" style="margin-left:5px;">
+                            <input type="date" name="tgl_to" class="form-control" value="<?= isset($tgl_to) ? $tgl_to : '' ?>" placeholder="dd/mm/yyyy">
+                        </div>
+                        <div class="form-group" style="margin-left:10px;">
+                            <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-filter"></i> Filter</button>
+                            <a href="<?= base_url('request_payment/payment_jurnal_list') ?>" class="btn btn-sm btn-default">Reset</a>
+                            <a href="<?= base_url('request_payment/excel_jurnal_list') ?>?tgl_from=<?= isset($tgl_from) ? $tgl_from : '' ?>&tgl_to=<?= isset($tgl_to) ? $tgl_to : '' ?>" class="btn btn-sm btn-success"><i class="fa fa-file-excel-o"></i> Export Excel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
     <div class="box-body">
         <div class="table-responsive">
             <table id="example1" class="table table-bordered table-striped" width='100%'>
