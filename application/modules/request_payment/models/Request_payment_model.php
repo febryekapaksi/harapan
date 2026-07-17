@@ -218,8 +218,17 @@ class Request_payment_model extends BF_Model
     //     return $data;
     // }
 
-    public function GetListDataJurnal()
+    public function GetListDataJurnal($tgl_from = '', $tgl_to = '')
     {
+        $filter_tgl = '';
+        if ($tgl_from !== '' && $tgl_to !== '') {
+            $filter_tgl = " AND ja.tgl_jurnal BETWEEN '" . $tgl_from . "' AND '" . $tgl_to . "'";
+        } elseif ($tgl_from !== '' && $tgl_to == '') {
+            $filter_tgl = " AND ja.tgl_jurnal >= '" . $tgl_from . "'";
+        } elseif ($tgl_from == '' && $tgl_to !== '') {
+            $filter_tgl = " AND ja.tgl_jurnal <= '" . $tgl_to . "'";
+        }
+
         $sql = "
     SELECT
         pp.id AS id_payment,
@@ -248,6 +257,7 @@ class Request_payment_model extends BF_Model
         WHERE jenis_transaksi = 'Payment'
         GROUP BY no_transaksi
     ) ja ON ja.no_transaksi = pp.id
+    WHERE 1=1 " . $filter_tgl . "
     ORDER BY pp.id DESC
     ";
 
