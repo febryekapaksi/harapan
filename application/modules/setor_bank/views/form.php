@@ -87,7 +87,7 @@
                                     <tr>
                                         <th colspan="5" class="text-right">Nilai Setor</th>
                                         <th>
-                                            <input type="text" name="nilai_setor" class="form-control moneyFormat text-right" id="nilaiSetor">
+                                            <input type="text" name="nilai_setor" class="form-control moneyFormat text-right" id="nilaiSetor" readonly>
                                         </th>
                                     </tr>
                                     <tr hidden>
@@ -339,16 +339,6 @@
             $('#modalPn').modal('hide');
         });
 
-        $('#nilaiSetor').on('input', function() {
-            const nilaiSetor = parseFloat($(this).val().replace(/[^0-9.-]+/g, "")) || 0;
-            const totalPiutangSales = parseFloat($('#totalPiutangSales').val().replace(/[^0-9.-]+/g, "")) || 0;
-            const sisa = totalPiutangSales - nilaiSetor;
-            const bank = $('#bank').val();
-
-            $('#sisaPiutangSesudah').val(sisa.toLocaleString());
-            generateJurnal();
-        });
-
         $(document).on('click', '.remove-pn', function() {
             const kd = $(this).data('kd');
             $(this).closest('tr').remove();
@@ -570,8 +560,13 @@
         const totalSales = total + sisaSebelumnya;
 
         $('#totalPiutangSales').val(totalSales.toLocaleString());
-        $('#nilaiSetor').val('');
-        $('#sisaPiutangSesudah').val('');
+
+        // Set nilai setor = totalSales agar otomatis terisi, user tidak bisa edit manual
+        $('#nilaiSetor').val(number_format(totalSales, 2));
+        moneyFormat('#nilaiSetor');
+
+        const sisa = totalSales - totalSales;
+        $('#sisaPiutangSesudah').val(number_format(sisa, 2));
     }
 
     function loadSisaPiutangSebelumnya() {
