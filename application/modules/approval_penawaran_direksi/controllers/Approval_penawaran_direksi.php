@@ -29,10 +29,14 @@ class Approval_penawaran_direksi extends Admin_Controller
     {
         $this->template->page_icon('fa fa-check-square-o');
 <<<<<<< HEAD
+<<<<<<< HEAD
         $this->template->title('Approval Penawaran Direksi');
 =======
         $this->template->title('Approval Penawaran Manager');
 >>>>>>> 2ed15ad (pisah controller penawaran dan approvalnya)
+=======
+        $this->template->title('Approval Penawaran Direksi'); 
+>>>>>>> 2cb00c33af9923d390778cc072ebb99d89013b65
         $this->template->render('index');
     }
 

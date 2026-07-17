@@ -637,7 +637,6 @@ class Invoice_produk extends Admin_Controller
 				'tgl'               => $tgl_inv,
 				'jml'               => $total,
 				'koreksi_no'        => '-',
-<<<<<<< HEAD
 				'kdcab'             => '101',
 				'jenis'             => 'JV',
 				'keterangan'        => $keterangan,
@@ -647,16 +646,6 @@ class Invoice_produk extends Admin_Controller
 				'memo'              => '',
 				'tgl_jvkoreksi'     => $tgl_inv,
 				'ho_valid'      	=> ''
-=======
-				'kdcab'                => '101',
-				'jenis'                => 'JV',
-				'keterangan'         => $keterangan,
-				'bulan'                => $Bln,
-				'tahun'                => $Thn,
-				'user_id'            => $this->auth->user_id(),
-				'memo'                => '',
-				'tgl_jvkoreksi'        => $tgl_inv,
-				'ho_valid'            => ''
 			);
 
 			$this->db->insert(DBACC . '.javh', $dataJVhead);
@@ -722,8 +711,7 @@ class Invoice_produk extends Admin_Controller
 				'memo'                => '',
 				'tgl_jvkoreksi'        => $tgl_inv,
 				'ho_valid'            => ''
->>>>>>> 0f22096 (edit query di Invoice Produk)
-			);
+		);
 
 			$this->db->insert(DBACC . '.javh', $dataJVhead);
 
