@@ -28,15 +28,7 @@ class Approval_penawaran_direksi extends Admin_Controller
     public function index()
     {
         $this->template->page_icon('fa fa-check-square-o');
-<<<<<<< HEAD
-<<<<<<< HEAD
-        $this->template->title('Approval Penawaran Direksi');
-=======
-        $this->template->title('Approval Penawaran Manager');
->>>>>>> 2ed15ad (pisah controller penawaran dan approvalnya)
-=======
         $this->template->title('Approval Penawaran Direksi'); 
->>>>>>> 2cb00c33af9923d390778cc072ebb99d89013b65
         $this->template->render('index');
     }
 
@@ -57,17 +49,10 @@ class Approval_penawaran_direksi extends Admin_Controller
         // Kirim data ke view
         $data['penawaran'] = $penawaran;
         $data['penawaran_detail'] = $penawaran_detail;
-<<<<<<< HEAD
         $data['mode'] = 'approval_direksi';
 
         // View form edit
         $this->template->title("Approval Penawaran Direksi");
-=======
-        $data['mode'] = 'approval_manager';
-
-        // View form edit
-        $this->template->title("Approval Penawaran Manager");
->>>>>>> 2ed15ad (pisah controller penawaran dan approvalnya)
         $this->template->page_icon("fa fa-check-square-o");
         $this->template->render('form', $data);
     }
@@ -77,14 +62,11 @@ class Approval_penawaran_direksi extends Admin_Controller
         $post = $this->input->post();
         $id_penawaran = $post['id_penawaran'];
 
-<<<<<<< HEAD
         if (empty($id_penawaran)) {
             echo json_encode(['status' => 0, 'pesan' => 'ID penawaran tidak ditemukan']);
             return;
         }
 
-=======
->>>>>>> 2ed15ad (pisah controller penawaran dan approvalnya)
         $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
 
         if (!$penawaran) {
@@ -92,7 +74,6 @@ class Approval_penawaran_direksi extends Admin_Controller
             return;
         }
 
-<<<<<<< HEAD
         $this->db->where('id_penawaran', $id_penawaran);
         $this->db->update('penawaran', [
             'status' => 'A', // FINAL Approved
@@ -103,56 +84,6 @@ class Approval_penawaran_direksi extends Admin_Controller
         echo json_encode([
             'status' => 1,
             'pesan' => 'Approval direksi berhasil diproses.'
-=======
-        // Siapkan data header update
-        $update = [
-            'approved_by_manager' => $this->auth->user_id(),
-            'approved_at_manager' => date('Y-m-d H:i:s')
-        ];
-
-
-        // Cek apakah level approval butuh direksi
-        if ($penawaran['level_approval'] == 'D') {
-            $update['status'] = 'WA'; // Tunggu approval Direksi
-        } else {
-            $update['status'] = 'A'; // Final approval dari Manager
-        }
-
-        // Simpan update ke penawaran
-        $this->db->where('id_penawaran', $id_penawaran);
-        $this->db->update('penawaran', $update);
-
-        // Proses revisi data produk (penawaran_detail)
-        if (isset($post['product']) && is_array($post['product'])) {
-            $product_data = [];
-
-            foreach ($post['product'] as $pro) {
-                $product_data[] = [
-                    'id_penawaran'      => $id_penawaran,
-                    'id_product'        => $pro['id_product'],
-                    'product_name'      => $pro['product_name'],
-                    'harga_beli'        => str_replace(',', '', $pro['harga_beli']),
-                    'qty'               => $pro['qty'],
-                    'price_list'        => str_replace(',', '', $pro['price_list']),
-                    'harga_penawaran'   => str_replace(',', '', $pro['harga_penawaran']),
-                    'diskon'            => $pro['diskon'],
-                    'diskon_nilai'      => $pro['diskon_nilai'],
-                    'total'             => str_replace(',', '', $pro['total']),
-                    'total_pl'          => str_replace(',', '', $pro['total_pl']),
-                ];
-            }
-
-            if (!empty($product_data)) {
-                $this->db->where('id_penawaran', $id_penawaran)->delete('penawaran_detail');
-
-                $this->db->insert_batch('penawaran_detail', $product_data);
-            }
-        }
-
-        echo json_encode([
-            'status' => 1,
-            'pesan' => 'Penawaran berhasil diapprove oleh Manager.'
->>>>>>> 2ed15ad (pisah controller penawaran dan approvalnya)
         ]);
     }
 
