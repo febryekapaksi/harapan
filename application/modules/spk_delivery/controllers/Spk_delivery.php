@@ -317,32 +317,8 @@ class Spk_delivery extends Admin_Controller
         ], ['id' => $id_so_det]);
       }
 
-      // --- Kembalikan booking warehouse_stock sebesar qty SPK yang dibatalkan ---
-      $this->db->query("
-        UPDATE warehouse_stock
-        SET qty_booking = GREATEST(qty_booking - ?, 0)
-        WHERE code_lv4 = ?
-      ", [$qty_spk, $id_product]);
-
-      // Catat reversal di kartu stok
-      $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product])->row_array();
-      if ($stok_now) {
-        $this->db->insert('kartu_stok', [
-          'no_transaksi'   => $no_delivery,
-          'transaksi'      => 'Cancel SPK',
-          'tgl_transaksi'  => date('Y-m-d H:i:s'),
-          'code_lv4'       => $id_product,
-          'nm_product'     => isset($so_det['product']) ? $so_det['product'] : '',
-          'qty'            => floatval($stok_now['qty_stock']),
-          'qty_book'       => floatval($stok_now['qty_booking']) + $qty_spk, // sebelum update
-          'qty_free'       => floatval($stok_now['qty_free']),
-          'qty_transaksi'  => $qty_spk,
-          'qty_akhir'      => floatval($stok_now['qty_stock']),
-          'qty_book_akhir' => floatval($stok_now['qty_booking']),
-          'qty_free_akhir' => floatval($stok_now['qty_free']),
-          'harga_stok'     => isset($so_det['harga_beli']) ? floatval($so_det['harga_beli']) : 0,
-        ]);
-      }
+      // Catatan: qty_booking warehouse TIDAK dikembalikan di sini.
+      // Pengembalian booking dilakukan saat Cancel SO.
     }
 
     // 4. Hapus SPK (Detail lalu Header) — SO TIDAK dihapus
