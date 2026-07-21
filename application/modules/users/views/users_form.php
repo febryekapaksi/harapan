@@ -89,6 +89,19 @@
 						?>
 				</div>
 		  	</div>
+			<div class="form-group">
+				<label class="col-md-2 control-label"><b>Karyawan</b></label>
+				<div class='col-sm-3'>
+					<select name="employee_id" id="employee_id" class="form-control">
+						<option value="">-- Pilih Karyawan --</option>
+						<?php if (!empty($employees)) : foreach ($employees as $emp) : ?>
+							<option value="<?= $emp->id ?>" <?= (isset($data->employee_id) && $data->employee_id == $emp->id) ? 'selected' : '' ?>>
+								<?= $emp->nm_karyawan ?> (<?= $emp->nik ?>)
+							</option>
+						<?php endforeach; endif; ?>
+					</select>
+				</div>
+		  	</div>
 			<div class="box-footer">
 		  	<div class="form-group">
 			    <div class="col-sm-offset-2 col-sm-10">
