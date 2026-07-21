@@ -577,6 +577,11 @@ class Sales_order extends Admin_Controller
     $this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
     $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
     $this->db->where('p.status', 'A');
+    // Exclude SO yang SPK Lengkap (sudah masuk SO Complete)
+    $this->db->group_start();
+    $this->db->where('so.status_spk !=', 'SPK Lengkap');
+    $this->db->or_where('so.status_spk IS NULL');
+    $this->db->group_end();
     if (!empty($start)) $this->db->where('so.tgl_so >=', $start);
     if (!empty($end))   $this->db->where('so.tgl_so <=', $end);
     $this->db->order_by('so.tgl_so', 'DESC');

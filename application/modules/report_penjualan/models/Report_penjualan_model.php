@@ -1095,7 +1095,17 @@ class Report_penjualan_model extends BF_Model
     public function get_query_report_sales_bulanan($tahun)
     {
         // =========================
-        // A) TARGET dari target_penjualan
+        // A) Ambil SEMUA sales dari tabel employee (department = 2)
+        // =========================
+        $allSales = $this->db->select("id, nm_karyawan")
+            ->from("employee")
+            ->where("department", 2)
+            ->order_by("nm_karyawan", "asc")
+            ->get()
+            ->result_array();
+
+        // =========================
+        // B) TARGET dari target_penjualan
         // =========================
         $targetRows = $this->db->select("
             tp.id_karyawan,
@@ -1114,7 +1124,7 @@ class Report_penjualan_model extends BF_Model
         }
 
         // =========================
-        // B) ACTUAL dari tr_invoice_sales (pivot per bulan)
+        // C) ACTUAL dari tr_invoice_sales (pivot per bulan)
         // =========================
         $this->db->select("
         c.id_karyawan,
@@ -1158,7 +1168,7 @@ class Report_penjualan_model extends BF_Model
         }
 
         // =========================
-        // C) MERGE + bentuk 2 baris per sales
+        // D) MERGE + bentuk 2 baris per sales (berdasarkan SEMUA sales)
         // =========================
         $months = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
 
@@ -1168,7 +1178,12 @@ class Report_penjualan_model extends BF_Model
         $totalTarget = array_fill_keys($months, 0);
         $totalActual = array_fill_keys($months, 0);
 
-        foreach ($targetMap as $id_karyawan => $t) {
+        foreach ($allSales as $sales) {
+            $id_karyawan = $sales['id'];
+            $nama_sales  = strtoupper($sales['nm_karyawan']);
+
+            // ambil target kalau ada, kalau tidak 0 semua
+            $t = $targetMap[$id_karyawan] ?? array_merge(['id_karyawan' => $id_karyawan, 'nm_karyawan' => $sales['nm_karyawan']], array_fill_keys($months, 0));
 
             // ambil actual kalau ada, kalau tidak 0 semua
             $a = $actualMap[$id_karyawan] ?? array_merge(['id_karyawan' => $id_karyawan], array_fill_keys($months, 0));
@@ -1187,7 +1202,7 @@ class Report_penjualan_model extends BF_Model
 
             // BARIS 1: TARGET
             $resultRows[] = [
-                'nama_sales' => strtoupper($t['nm_karyawan']),
+                'nama_sales' => $nama_sales,
                 'tipe' => 'Target',
                 'jan' => (float)$t['jan'],
                 'feb' => (float)$t['feb'],
@@ -1272,7 +1287,17 @@ class Report_penjualan_model extends BF_Model
     public function get_export_sales_bulanan($tahun = 2025)
     {
         // =========================
-        // A) TARGET dari target_penjualan
+        // A) Ambil SEMUA sales dari tabel employee (department = 2)
+        // =========================
+        $allSales = $this->db->select("id, nm_karyawan")
+            ->from("employee")
+            ->where("department", 2)
+            ->order_by("nm_karyawan", "asc")
+            ->get()
+            ->result_array();
+
+        // =========================
+        // B) TARGET dari target_penjualan
         // =========================
         $targetRows = $this->db->select("
         tp.id_karyawan,
@@ -1291,7 +1316,7 @@ class Report_penjualan_model extends BF_Model
         }
 
         // =========================
-        // B) ACTUAL dari tr_invoice_sales (per sales per bulan)
+        // C) ACTUAL dari tr_invoice_sales (per sales per bulan)
         // =========================
         $this->db->select("
         c.id_karyawan,
@@ -1327,7 +1352,7 @@ class Report_penjualan_model extends BF_Model
         }
 
         // =========================
-        // C) Build output 2 baris per sales + total cabang
+        // D) Build output 2 baris per sales + total cabang (berdasarkan SEMUA sales)
         // =========================
         $months = ['jan', 'feb', 'mar', 'apr', 'mei', 'jun', 'jul', 'agu', 'sep', 'okt', 'nov', 'des'];
 
@@ -1336,8 +1361,14 @@ class Report_penjualan_model extends BF_Model
         $totalTarget = array_fill_keys($months, 0);
         $totalActual = array_fill_keys($months, 0);
 
-        foreach ($targetMap as $id_karyawan => $t) {
+        foreach ($allSales as $sales) {
+            $id_karyawan = $sales['id'];
+            $nama_sales  = $sales['nm_karyawan'];
 
+            // ambil target kalau ada, kalau tidak 0 semua
+            $t = $targetMap[$id_karyawan] ?? array_merge(['id_karyawan' => $id_karyawan, 'nm_karyawan' => $nama_sales], array_fill_keys($months, 0));
+
+            // ambil actual kalau ada, kalau tidak 0 semua
             $a = $actualMap[$id_karyawan] ?? array_merge(['id_karyawan' => $id_karyawan], array_fill_keys($months, 0));
 
             $t_score_target = 0;
@@ -1353,7 +1384,7 @@ class Report_penjualan_model extends BF_Model
 
             // TARGET row
             $resultRows[] = (object)[
-                'nama_sales' => $t['nm_karyawan'],
+                'nama_sales' => $nama_sales,
                 'tipe' => 'Target',
                 'jan' => (float)$t['jan'],
                 'feb' => (float)$t['feb'],
