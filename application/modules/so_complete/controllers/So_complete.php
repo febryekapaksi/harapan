@@ -147,7 +147,12 @@ class So_complete extends Admin_Controller
       $sheet->setCellValueExplicit('B' . $r, (string)$row->no_so, PHPExcel_Cell_DataType::TYPE_STRING);
       $sheet->setCellValueExplicit('C' . $r, (string)$row->id_penawaran, PHPExcel_Cell_DataType::TYPE_STRING);
       if (!empty($row->tgl_so)) {
-        $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->tgl_so));
+        $date = new DateTime($row->tgl_so);
+        $tgl = (float)PHPExcel_Shared_Date::FormattedPHPToExcel(
+          (int)$date->format('Y'),
+          (int)$date->format('m'),
+          (int)$date->format('d')
+        );
         $sheet->setCellValueExplicit('D' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
         $sheet->getStyle('D' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
       }
