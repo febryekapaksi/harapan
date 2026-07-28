@@ -907,7 +907,12 @@ class Penawaran extends Admin_Controller
             $sheet->setCellValue('A' . $r, $no++);
             $sheet->setCellValueExplicit('B' . $r, (string)$row->id_penawaran, PHPExcel_Cell_DataType::TYPE_STRING);
             if (!empty($row->quotation_date)) {
-                $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->quotation_date));
+                $date = new DateTime($row->quotation_date);
+                $tgl = (float)PHPExcel_Shared_Date::FormattedPHPToExcel(
+                    (int)$date->format('Y'),
+                    (int)$date->format('m'),
+                    (int)$date->format('d')
+                );
                 $sheet->setCellValueExplicit('C' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
                 $sheet->getStyle('C' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
             }
