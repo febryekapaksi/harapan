@@ -23,7 +23,7 @@
                 <thead>
                     <tr class="bg-blue">
                         <th class="text-center" style="vertical-align:middle; min-width: 150px;">Nama Sales</th>
-                        <th class="text-center" style="vertical-align:middle; min-width: 150px;">Keterangan</th>
+                        <th class="text-center" style="vertical-align:middle; min-width: 180px;">Keterangan</th>
                         <?php foreach ($bulan as $b): ?>
                             <th class="text-center" style="min-width: 100px;"><?= substr($b['bulan'], 0, 3) ?></th>
                         <?php endforeach; ?>
@@ -32,55 +32,81 @@
                 </thead>
                 <tbody>
                     <?php
-                    $grand_total_tagihan = array_fill(1, 12, 0);
-                    $grand_total_penerimaan = array_fill(1, 12, 0);
+                    $grand_total_target = array_fill(1, 12, 0);
+                    $grand_total_realisasi = array_fill(1, 12, 0);
 
                     foreach ($sales as $s):
-                        $row_t_tagihan = 0;
-                        $row_t_penerimaan = 0;
+                        $row_t_target = 0;
+                        $row_t_realisasi = 0;
                     ?>
                         <tr>
                             <td rowspan="2" style="vertical-align:middle; font-weight:bold;"><?= ucwords($s['nm_karyawan']) ?></td>
-                            <td>Total Tagihan</td>
+                            <td>Rencana Penagihan</td>
                             <?php foreach ($bulan as $b):
-                                $val = $rekap[$s['id']][$b['bulan_no']]['tagihan'] ?? 0;
-                                $row_t_tagihan += $val;
-                                $grand_total_tagihan[$b['bulan_no']] += $val;
+                                $bln_no = (int)$b['bulan_no'];
+                                if ($tahun_pilih == $tahun_sekarang && $bln_no > $bulan_sekarang):
+                            ?>
+                                <td class="text-center text-muted">-</td>
+                            <?php else:
+                                $val = $rekap_target[$s['id']][$bln_no] ?? 0;
+                                $row_t_target += $val;
+                                $grand_total_target[$bln_no] += $val;
                             ?>
                                 <td class="text-right"><?= number_format($val) ?></td>
-                            <?php endforeach; ?>
-                            <td class="text-right"><b><?= number_format($row_t_tagihan) ?></b></td>
+                            <?php endif; endforeach; ?>
+                            <td class="text-right"><b><?= number_format($row_t_target) ?></b></td>
                         </tr>
                         <tr>
-                            <td>Total Penerimaan</td>
+                            <td>Realisasi Tagihan</td>
                             <?php foreach ($bulan as $b):
-                                $val = $rekap[$s['id']][$b['bulan_no']]['penerimaan'] ?? 0;
-                                $row_t_penerimaan += $val;
-                                $grand_total_penerimaan[$b['bulan_no']] += $val;
+                                $bln_no = (int)$b['bulan_no'];
+                                if ($tahun_pilih == $tahun_sekarang && $bln_no > $bulan_sekarang):
+                            ?>
+                                <td class="text-center text-muted">-</td>
+                            <?php else:
+                                $val = $rekap_realisasi[$s['id']][$bln_no] ?? 0;
+                                $row_t_realisasi += $val;
+                                $grand_total_realisasi[$bln_no] += $val;
                             ?>
                                 <td class="text-right"><?= number_format($val) ?></td>
-                            <?php endforeach; ?>
-                            <td class="text-right"><b><?= number_format($row_t_penerimaan) ?></b></td>
+                            <?php endif; endforeach; ?>
+                            <td class="text-right"><b><?= number_format($row_t_realisasi) ?></b></td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
                 <tfoot>
                     <tr class="bg-info">
                         <td rowspan="2" style="vertical-align:middle; font-weight:bold;">Target Cabang</td>
-                        <td>Total Tagihan</td>
+                        <td>Rencana Penagihan</td>
                         <?php $total_cabang_t = 0;
-                        foreach ($grand_total_tagihan as $gt): $total_cabang_t += $gt; ?>
+                        foreach ($bulan as $b):
+                            $bln_no = (int)$b['bulan_no'];
+                            if ($tahun_pilih == $tahun_sekarang && $bln_no > $bulan_sekarang):
+                        ?>
+                            <td class="text-center text-muted">-</td>
+                        <?php else:
+                            $gt = $grand_total_target[$bln_no];
+                            $total_cabang_t += $gt;
+                        ?>
                             <td class="text-right"><b><?= number_format($gt) ?></b></td>
-                        <?php endforeach; ?>
+                        <?php endif; endforeach; ?>
                         <td class="text-right"><b><?= number_format($total_cabang_t) ?></b></td>
                     </tr>
                     <tr class="bg-info">
-                        <td>Total Penerimaan</td>
-                        <?php $total_cabang_p = 0;
-                        foreach ($grand_total_penerimaan as $gp): $total_cabang_p += $gp; ?>
-                            <td class="text-right"><b><?= number_format($gp) ?></b></td>
-                        <?php endforeach; ?>
-                        <td class="text-right"><b><?= number_format($total_cabang_p) ?></b></td>
+                        <td>Realisasi Tagihan</td>
+                        <?php $total_cabang_r = 0;
+                        foreach ($bulan as $b):
+                            $bln_no = (int)$b['bulan_no'];
+                            if ($tahun_pilih == $tahun_sekarang && $bln_no > $bulan_sekarang):
+                        ?>
+                            <td class="text-center text-muted">-</td>
+                        <?php else:
+                            $gr = $grand_total_realisasi[$bln_no];
+                            $total_cabang_r += $gr;
+                        ?>
+                            <td class="text-right"><b><?= number_format($gr) ?></b></td>
+                        <?php endif; endforeach; ?>
+                        <td class="text-right"><b><?= number_format($total_cabang_r) ?></b></td>
                     </tr>
                 </tfoot>
             </table>
