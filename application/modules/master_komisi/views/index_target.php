@@ -14,6 +14,7 @@ $ENABLE_DELETE  = has_permission('Master_Komisi.Delete');
         </span>
     </div>
     <div class="box-body">
+        <div class="table-responsive">
         <table class="table table-bordered" id="table-target">
             <thead class="bg-blue">
                 <tr>
@@ -55,6 +56,7 @@ $ENABLE_DELETE  = has_permission('Master_Komisi.Delete');
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     </div>
 </div>
 

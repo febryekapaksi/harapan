@@ -80,7 +80,6 @@
 /* ==== TABEL / DATATABLES ==== */
 .table {
   border-radius: 8px;
-  overflow: hidden;
 }
 
 .table > thead > tr > th {
