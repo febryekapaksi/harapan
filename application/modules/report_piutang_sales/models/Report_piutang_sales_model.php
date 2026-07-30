@@ -43,11 +43,13 @@ class Report_piutang_sales_model extends BF_Model
                 p.jumlah_pembayaran_idr AS penerimaan_per_row,
                 COALESCE(s.total_setor, 0) AS setor_kasir_per_row,
                 COALESCE(sb.total_setor_bank, 0) AS setor_bank_per_row,
-                (
-                    p.jumlah_pembayaran_idr
-                    - COALESCE(s.total_setor, 0)
-                    - COALESCE(sb.total_setor_bank, 0)
-                ) AS saldo_per_row
+                CASE
+                    WHEN COALESCE(s.total_setor, 0) > 0
+                        THEN p.jumlah_pembayaran_idr - COALESCE(s.total_setor, 0)
+                    WHEN COALESCE(sb.total_setor_bank, 0) > 0
+                        THEN p.jumlah_pembayaran_idr - COALESCE(sb.total_setor_bank, 0)
+                    ELSE p.jumlah_pembayaran_idr
+                END AS saldo_per_row
             FROM tr_invoice_payment p
             JOIN users u
                 ON u.id_user = p.created_by
@@ -121,11 +123,13 @@ class Report_piutang_sales_model extends BF_Model
             s.kode_setor,
             COALESCE(s.total_setor, 0) AS setor_kasir_penjualan,
             COALESCE(sb.total_setor_bank, 0) AS setor_bank_penjualan,
-            (
-                p.jumlah_pembayaran_idr
-                - COALESCE(s.total_setor, 0)
-                - COALESCE(sb.total_setor_bank, 0)
-            ) AS saldo
+            CASE
+                WHEN COALESCE(s.total_setor, 0) > 0
+                    THEN p.jumlah_pembayaran_idr - COALESCE(s.total_setor, 0)
+                WHEN COALESCE(sb.total_setor_bank, 0) > 0
+                    THEN p.jumlah_pembayaran_idr - COALESCE(sb.total_setor_bank, 0)
+                ELSE p.jumlah_pembayaran_idr
+            END AS saldo
 
         FROM tr_invoice_payment p
 
