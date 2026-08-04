@@ -286,6 +286,7 @@ foreach ($results['result_payment'] as $item) {
 						echo '<td>';
 						echo '<select name="dt[' . $no . '][tipe_pph]" class="form-control form-control-sm chosen tipe_pph_' . $item->id . '">';
 						echo '<option disabled selected>Pilih PPh</option>';
+						echo '<option value="3">PPh 21</option>';
 						echo '<option value="1">PPh 23</option>';
 						echo '<option value="2">PPh 4(2)</option>';
 						echo '</select>';
