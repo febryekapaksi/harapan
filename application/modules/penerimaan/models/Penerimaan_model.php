@@ -284,6 +284,11 @@ class Penerimaan_model extends BF_Model
 
 			$action = "<a href='" . site_url('penerimaan/print/' . $row['kd_pembayaran']) . "' target='_blank' class='btn btn-sm btn-warning' title='Cetak Invoice'><i class='fa fa-print'></i></a>";
 
+			// Tombol Batalkan hanya untuk Admin (user_id = 7)
+			if ($this->auth->user_id() == 7) {
+				$action .= " <button class='btn btn-sm btn-danger btn-batalkan' title='Batalkan Penerimaan' data-kd='" . $row['kd_pembayaran'] . "'><i class='fa fa-times'></i></button>";
+			}
+
 			$nestedData = [];
 			$nestedData[] = "<div align='center'>{$nomor}</div>";
 			$nestedData[] = "<div align='left'>{$tgl_bayar_formated}</div>";
