@@ -807,61 +807,11 @@ class Penerimaan_cash extends Admin_Controller
 		}
 
 		// ============================
-		// 3. Jurnal Balik (Reversal)
+		// 3. Jurnal Balik (Reversal) - langsung insert tanpa searching jurnal lama
 		// ============================
-		$jarh = $this->db->get_where(DBACC . '.jarh', ['kd_pembayaran' => $kd_pembayaran])->row();
-		$Nomor_JV_Reversal = null;
+		$Nomor_JV_Reversal = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', date('Y-m-d'));
 
-		if ($jarh) {
-			$nomor_jurnal_lama = $jarh->nomor;
-			$jurnal_lama = $this->db->get_where(DBACC . '.jurnal', ['nomor' => $nomor_jurnal_lama])->result_array();
-
-			$Nomor_JV_Reversal = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', date('Y-m-d'));
-
-			$this->db->insert(DBACC . '.jarh', [
-				'nomor'         => $Nomor_JV_Reversal,
-				'kd_pembayaran' => $kd_pembayaran,
-				'tgl'           => date('Y-m-d'),
-				'jml'           => $jarh->jml,
-				'kdcab'         => '101',
-				'jenis_reff'    => $kd_pembayaran,
-				'no_reff'       => $kd_pembayaran,
-				'customer'      => $jarh->customer,
-				'note'          => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' - ' . $jarh->note,
-				'jenis_ar'      => 'V',
-				'terima_dari'   => '-',
-				'valid'         => $user_id,
-				'tgl_valid'     => date('Y-m-d'),
-				'user_id'       => $user_id,
-				'tgl_invoice'   => date('Y-m-d'),
-				'batal'         => 1,
-			]);
-
-			$arrJurnalReversal = [];
-			foreach ($jurnal_lama as $jl) {
-				$arrJurnalReversal[] = [
-					'nomor'         => $Nomor_JV_Reversal,
-					'tanggal'       => date('Y-m-d'),
-					'tipe'          => $jl['tipe'],
-					'no_perkiraan'  => $jl['no_perkiraan'],
-					'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' - ' . $jl['keterangan'],
-					'no_reff'       => $kd_pembayaran,
-					'debet'         => floatval($jl['kredit']),
-					'kredit'        => floatval($jl['debet']),
-					'created_by'    => $user_id,
-					'created_on'    => date('Y-m-d H:i:s'),
-				];
-			}
-			if (!empty($arrJurnalReversal)) {
-				$this->db->insert_batch(DBACC . '.jurnal', $arrJurnalReversal);
-			}
-
-			$this->db->update(DBACC . '.jarh', ['batal' => 1], ['nomor' => $nomor_jurnal_lama]);
-		}
-
-		// ============================
-		// 4. Balik Kartu Piutang
-		// ============================
+		// Ambil customer info untuk keterangan
 		$customer = $this->db
 			->select('c.name_customer, c.id_karyawan, e.nm_karyawan')
 			->from('master_customers c')
@@ -869,21 +819,86 @@ class Penerimaan_cash extends Admin_Controller
 			->where('c.id_customer', $header['id_customer'])
 			->get()
 			->row();
-
 		$nm_cust = isset($customer->name_customer) ? $customer->name_customer : $header['nm_customer'];
 
+		// Hitung total dari detail
+		$total_amount = 0;
+		foreach ($details as $det) {
+			$total_amount += floatval($det['total_bayar_idr']);
+		}
+
+		// Insert header jarh
+		$this->db->insert(DBACC . '.jarh', [
+			'nomor'         => $Nomor_JV_Reversal,
+			'kd_pembayaran' => $kd_pembayaran,
+			'tgl'           => date('Y-m-d'),
+			'jml'           => $total_amount,
+			'kdcab'         => '101',
+			'jenis_reff'    => $kd_pembayaran,
+			'no_reff'       => $kd_pembayaran,
+			'customer'      => $nm_cust,
+			'note'          => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' A/N ' . $nm_cust,
+			'jenis_ar'      => 'V',
+			'terima_dari'   => '-',
+			'valid'         => $user_id,
+			'tgl_valid'     => date('Y-m-d'),
+			'user_id'       => $user_id,
+			'tgl_invoice'   => date('Y-m-d'),
+			'batal'         => 1,
+		]);
+
+		// Insert detail jurnal — BALIK: yang tadinya debet (kas) jadi kredit, yang tadinya kredit (piutang) jadi debet
+		$arrJurnalReversal = [];
+		foreach ($details as $det) {
+			$total_bayar = floatval($det['total_bayar_idr']);
+			if ($total_bayar <= 0) continue;
+
+			// Kredit kas (balik dari debet kas)
+			$arrJurnalReversal[] = [
+				'nomor'         => $Nomor_JV_Reversal,
+				'tanggal'       => date('Y-m-d'),
+				'tipe'          => 'JV',
+				'no_perkiraan'  => '1101-01-01',
+				'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+				'no_reff'       => $kd_pembayaran,
+				'debet'         => 0,
+				'kredit'        => $total_bayar,
+				'created_by'    => $user_id,
+				'created_on'    => date('Y-m-d H:i:s'),
+			];
+
+			// Debet piutang (balik dari kredit piutang)
+			$arrJurnalReversal[] = [
+				'nomor'         => $Nomor_JV_Reversal,
+				'tanggal'       => date('Y-m-d'),
+				'tipe'          => 'JV',
+				'no_perkiraan'  => '1102-01-01',
+				'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+				'no_reff'       => $kd_pembayaran,
+				'debet'         => $total_bayar,
+				'kredit'        => 0,
+				'created_by'    => $user_id,
+				'created_on'    => date('Y-m-d H:i:s'),
+			];
+		}
+		if (!empty($arrJurnalReversal)) {
+			$this->db->insert_batch(DBACC . '.jurnal', $arrJurnalReversal);
+		}
+
+		// ============================
+		// 4. Balik Kartu Piutang
+		// ============================
 		foreach ($details as $det) {
 			$total_bayar = floatval($det['total_bayar_idr']);
 			$total_cn    = isset($det['total_cn_idr']) ? floatval($det['total_cn_idr']) : 0;
-			$nomor_ref   = $Nomor_JV_Reversal ? $Nomor_JV_Reversal : 'BATAL-' . $kd_pembayaran;
 
 			if ($total_bayar > 0) {
 				$this->db->insert('tr_kartu_piutang', [
 					'tipe'          => 'JV',
-					'nomor'         => $nomor_ref,
+					'nomor'         => $Nomor_JV_Reversal,
 					'tanggal'       => date('Y-m-d'),
 					'no_perkiraan'  => '1102-01-01',
-					'keterangan'    => 'BATAL PEMBAYARAN PIUTANG INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+					'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
 					'no_reff'       => $det['no_invoice'],
 					'debet'         => $total_bayar,
 					'kredit'        => 0,
@@ -893,10 +908,10 @@ class Penerimaan_cash extends Admin_Controller
 
 				$this->db->insert('tr_kartu_piutang_sales', [
 					'tipe'          => 'JV',
-					'nomor'         => $nomor_ref,
+					'nomor'         => $Nomor_JV_Reversal,
 					'tanggal'       => date('Y-m-d'),
 					'no_perkiraan'  => '1102-01-04',
-					'keterangan'    => 'BATAL PENERIMAAN PIUTANG INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+					'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
 					'no_reff'       => $det['no_invoice'],
 					'debet'         => 0,
 					'kredit'        => $total_bayar,
@@ -908,10 +923,10 @@ class Penerimaan_cash extends Admin_Controller
 			if ($total_cn > 0) {
 				$this->db->insert('tr_kartu_piutang', [
 					'tipe'          => 'JV',
-					'nomor'         => $nomor_ref,
+					'nomor'         => $Nomor_JV_Reversal,
 					'tanggal'       => date('Y-m-d'),
 					'no_perkiraan'  => '1102-01-01',
-					'keterangan'    => 'BATAL PENGGUNAAN CN INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+					'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' CN INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
 					'no_reff'       => $det['no_invoice'],
 					'debet'         => $total_cn,
 					'kredit'        => 0,
