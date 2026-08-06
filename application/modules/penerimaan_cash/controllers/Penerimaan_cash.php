@@ -790,7 +790,7 @@ class Penerimaan_cash extends Admin_Controller
 			if (!empty($row->tgl_pembayaran)) {
 				$tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->tgl_pembayaran));
 				$sheet->setCellValueExplicit('B' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-				$sheet->getStyle('B' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+				$sheet->getStyle('B' . $r)->getNumberFormat()->setFormatCode('dd/mmm/yyyy');
 			}
 			$sheet->setCellValueExplicit('C' . $r, (string)$row->kd_pembayaran, PHPExcel_Cell_DataType::TYPE_STRING);
 			$sheet->setCellValueExplicit('D' . $r, (string)$row->nm_customer, PHPExcel_Cell_DataType::TYPE_STRING);
