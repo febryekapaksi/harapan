@@ -776,17 +776,21 @@ class Penerimaan_cash extends Admin_Controller
 			// ============================
 			// 1. Pindahkan header ke tabel delete
 			// ============================
-			$header['deleted_by'] = $user_id;
-			$header['deleted_on'] = date('Y-m-d H:i:s');
-			$this->db->insert('tr_invoice_payment_delete', $header);
+			$header_insert = $header;
+			unset($header_insert['id']); // hapus id agar tidak konflik auto-increment
+			$header_insert['deleted_by'] = $user_id;
+			$header_insert['deleted_on'] = date('Y-m-d H:i:s');
+			$this->db->insert('tr_invoice_payment_delete', $header_insert);
 
 			// ============================
 			// 2. Pindahkan detail ke tabel delete
 			// ============================
 			foreach ($details as $det) {
-				$det['deleted_by'] = $user_id;
-				$det['deleted_on'] = date('Y-m-d H:i:s');
-				$this->db->insert('tr_invoice_payment_detail_delete', $det);
+				$det_insert = $det;
+				unset($det_insert['id']); // hapus id agar tidak konflik auto-increment
+				$det_insert['deleted_by'] = $user_id;
+				$det_insert['deleted_on'] = date('Y-m-d H:i:s');
+				$this->db->insert('tr_invoice_payment_detail_delete', $det_insert);
 			}
 
 			// ============================
@@ -952,7 +956,8 @@ class Penerimaan_cash extends Admin_Controller
 			$this->db->delete('tr_invoice_payment', ['kd_pembayaran' => $kd_pembayaran]);
 
 			if ($this->db->trans_status() === FALSE) {
-				throw new Exception("Database error saat membatalkan penerimaan.");
+				$db_error = $this->db->error();
+				throw new Exception("Database error: " . ($db_error['message'] ?? 'Unknown'));
 			}
 
 			$this->db->trans_commit();
