@@ -118,7 +118,8 @@ class Penawaran_dropship_model extends BF_Model
                     $status_label = 'Draft';
                     $warna = 'secondary';
 
-                    $action = "<a href='" . base_url("penawaran_dropship/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
+                    $action = "<a href='" . base_url("penawaran_dropship/view/{$row['id_penawaran']}") . "' class='btn btn-sm btn-default' title='View'><i class='fa fa-eye'></i></a> ";
+                    $action .= "<a href='" . base_url("penawaran_dropship/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
                     // $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-info btn-request' title='Request Approval'><i class='fa fa-check'></i></a> ";
                     $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-danger btn-loss' title='Loss Penawaran'><i class='fa fa-times'></i></a> ";
                 } else if ($row['status_draft'] == 1) {
@@ -126,13 +127,15 @@ class Penawaran_dropship_model extends BF_Model
                         $status_label = 'Waiting Approval Direksi';
                         $warna = 'secondary';
 
-                        $action = "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+                        $action = "<a href='" . base_url("penawaran_dropship/view/{$row['id_penawaran']}") . "' class='btn btn-sm btn-default' title='View'><i class='fa fa-eye'></i></a> ";
+                        $action .= "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                         $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-danger btn-loss' title='Loss Penawaran'><i class='fa fa-times'></i></a> ";
                     } else if ($row['level_approval'] == 'M') {
                         $status_label = 'Waiting Approval Manager';
                         $warna = 'secondary';
 
-                        $action = "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+                        $action = "<a href='" . base_url("penawaran_dropship/view/{$row['id_penawaran']}") . "' class='btn btn-sm btn-default' title='View'><i class='fa fa-eye'></i></a> ";
+                        $action .= "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                         $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-danger btn-loss' title='Loss Penawaran'><i class='fa fa-times'></i></a> ";
                     }
                 }
@@ -140,18 +143,21 @@ class Penawaran_dropship_model extends BF_Model
                 $status_label = 'Rejected';
                 $warna = 'red';
 
-                $action = "<a href='" . base_url("penawaran_dropship/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
+                $action = "<a href='" . base_url("penawaran_dropship/view/{$row['id_penawaran']}") . "' class='btn btn-sm btn-default' title='View'><i class='fa fa-eye'></i></a> ";
+                $action .= "<a href='" . base_url("penawaran_dropship/edit/{$row['id_penawaran']}") . "' class='btn btn-sm btn-primary' title='Edit'><i class='fa fa-edit'></i></a> ";
             } else if ($row['status'] == 'A') {
                 if ($row['no_so'] != null) {
                     $status_label = 'SO Dibuat';
                     $warna = 'blue';
 
-                    $action = "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+                    $action = "<a href='" . base_url("penawaran_dropship/view/{$row['id_penawaran']}") . "' class='btn btn-sm btn-default' title='View'><i class='fa fa-eye'></i></a> ";
+                    $action .= "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                 } else {
                     $status_label = 'Approved';
                     $warna = 'green';
 
-                    $action = "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+                    $action = "<a href='" . base_url("penawaran_dropship/view/{$row['id_penawaran']}") . "' class='btn btn-sm btn-default' title='View'><i class='fa fa-eye'></i></a> ";
+                    $action .= "<a target='_blank' href='" . base_url("penawaran_dropship/print_penawaran/{$row['id_penawaran']}") . "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                     $action .= "<a href='" . base_url("sales_order/add/{$row['id_penawaran']}") . "' class='btn btn-sm btn-success' title='Create SO'><i class='fa fa-paper-plane'></i> SO</a> ";
                     $action .= "<a href='javascript:void(0)' data-id='{$row['id_penawaran']}' class='btn btn-sm btn-danger btn-loss' title='Loss Penawaran'><i class='fa fa-times'></i></a> ";
                 }

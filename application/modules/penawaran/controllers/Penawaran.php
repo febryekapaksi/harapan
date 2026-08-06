@@ -122,6 +122,51 @@ class Penawaran extends Admin_Controller
         $this->template->render('form', $data);
     }
 
+    public function view($id_penawaran)
+    {
+        // Cek apakah data ada
+        $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
+
+        if (!$penawaran) {
+            show_404();
+        }
+
+        // Ambil data detail produk terkait
+        $penawaran_detail = $this->db->get_where('penawaran_detail', ['id_penawaran' => $id_penawaran])->result_array();
+
+        // Data customer dan produk
+        $data['customers'] = $this->db->get('master_customers')->result_array();
+        $data['products'] = $this->db
+            ->select('
+                    pc.id,
+                    pc.product_name,
+                    pc.propose_price,
+                    pc.harga_beli,
+                    pc.dropship_price,
+                    pc.dropship_tempo,
+                    ni4.code_lv4
+                    ')
+            ->from('product_costing pc')
+            ->join('new_inventory_4 ni4', 'ni4.code_lv4 = pc.code_lv4', 'left')
+            ->where('pc.status', 'A')
+            ->where('ni4.deleted_date', null)
+            ->where('ni4.deleted_by', null)
+            ->get()
+            ->result_array();
+
+        $data['payment_terms'] = $this->db->where('group_by', 'top invoice')->where('sts', 'Y')->get('list_help')->result_array();
+
+        // Kirim data ke view
+        $data['penawaran'] = $penawaran;
+        $data['penawaran_detail'] = $penawaran_detail;
+        $data['mode'] = "view";
+
+        // View form (read-only)
+        $this->template->title("Detail Penawaran");
+        $this->template->page_icon("fa fa-shopping-cart");
+        $this->template->render('form', $data);
+    }
+
     public function save()
     {
         $data = $this->input->post();
