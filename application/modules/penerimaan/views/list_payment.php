@@ -124,5 +124,36 @@
                 }
             }
         });
+
+        // Event handler untuk tombol Batalkan
+        $('#example1').on('click', '.btn-batalkan', function() {
+            var kd = $(this).data('kd');
+            if (confirm('Apakah Anda yakin ingin MEMBATALKAN penerimaan ' + kd + '?\n\nData akan dipindahkan ke tabel delete dan jurnal akan dibalik.')) {
+                $.ajax({
+                    url: base_url + 'penerimaan/batalkan_penerimaan',
+                    type: 'POST',
+                    data: {
+                        kd_pembayaran: kd
+                    },
+                    dataType: 'json',
+                    beforeSend: function() {
+                        $('.btn-batalkan[data-kd="' + kd + '"]').prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
+                    },
+                    success: function(res) {
+                        if (res.status == 1) {
+                            alert(res.message);
+                            $('#example1').DataTable().ajax.reload(null, false);
+                        } else {
+                            alert('Gagal: ' + res.message);
+                            $('.btn-batalkan[data-kd="' + kd + '"]').prop('disabled', false).html('<i class="fa fa-times"></i>');
+                        }
+                    },
+                    error: function() {
+                        alert('Terjadi kesalahan server.');
+                        $('.btn-batalkan[data-kd="' + kd + '"]').prop('disabled', false).html('<i class="fa fa-times"></i>');
+                    }
+                });
+            }
+        });
     }
 </script>
