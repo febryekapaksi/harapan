@@ -586,7 +586,7 @@ class Invoice_produk extends Admin_Controller
 
 			foreach ($get_delivery_details as $item_details) {
 				$nilai_disc = (float) $item_details->diskon_persen;
-				$subtotal = round((($item_details->price_list * $item_details->qty_delivery) * (1 + ($nilai_disc / 100))), -2);
+				$subtotal = $item_details->harga_penawaran * $item_details->qty_delivery;
 
 				$data_insert_detail[] = [
 					'id_invoice' => $id_invoice,
