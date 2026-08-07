@@ -467,6 +467,166 @@ class Setor_kasir extends Admin_Controller
                       SET nobum=nobum+1 WHERE nocab='101'");
     }
 
+    public function cancel($id)
+    {
+        try {
+            if (!has_permission('Setor_Kasir.Delete')) {
+                echo json_encode(['status' => false, 'message' => 'Anda tidak memiliki akses untuk membatalkan setoran']);
+                return;
+            }
+
+            // Ambil data header
+            $header = $this->db->get_where('tr_setor_kasir', ['id' => $id])->row();
+            if (!$header) {
+                echo json_encode(['status' => false, 'message' => 'Data setoran tidak ditemukan']);
+                return;
+            }
+
+            // Ambil data detail
+            $detail = $this->db->get_where('tr_setor_kasir_detail', ['id_setor_kasir' => $id])->result_array();
+
+            // Simpan list kd_pembayaran sebelum dihapus
+            $kd_pembayaran_list = array_unique(array_column($detail, 'kd_pembayaran'));
+
+            $this->db->trans_strict(TRUE);
+            $this->db->trans_begin();
+
+            // =========================
+            // 1. PINDAHKAN HEADER KE TABEL DELETE
+            // =========================
+            $header_arr = (array) $header;
+            $header_arr['deleted_by'] = $this->auth->user_id();
+            $header_arr['deleted_at'] = date('Y-m-d H:i:s');
+            $this->db->insert('tr_setor_kasir_delete', $header_arr);
+            $err = $this->db->error();
+            if ($err['code']) throw new Exception("Step 1: " . $err['message']);
+
+            // =========================
+            // 2. PINDAHKAN DETAIL KE TABEL DELETE
+            // =========================
+            if (!empty($detail)) {
+                foreach ($detail as &$d) {
+                    $d['deleted_by'] = $this->auth->user_id();
+                    $d['deleted_at'] = date('Y-m-d H:i:s');
+                }
+                unset($d);
+                $this->db->insert_batch('tr_setor_kasir_detail_delete', $detail);
+                $err = $this->db->error();
+                if ($err['code']) throw new Exception("Step 2: " . $err['message']);
+            }
+
+            // =========================
+            // 3. ROLLBACK STATUS SETOR DI TR_INVOICE_PAYMENT
+            // =========================
+            if (!empty($kd_pembayaran_list)) {
+                $this->db->where_in('kd_pembayaran', $kd_pembayaran_list)
+                    ->update('tr_invoice_payment', ['status_setor' => 0]);
+                $err = $this->db->error();
+                if ($err['code']) throw new Exception("Step 3: " . $err['message']);
+            }
+
+            // =========================
+            // 4. BATALKAN JURNAL + BUAT JURNAL BALIK
+            // =========================
+            $jarh = $this->db->where('kd_pembayaran', $id)
+                ->get(DBACC . '.jarh')->row();
+
+            if ($jarh) {
+                // Set batal = 1 di header jurnal asli
+                $this->db->where('kd_pembayaran', $id)
+                    ->update(DBACC . '.jarh', ['batal' => 1]);
+                $err = $this->db->error();
+                if ($err['code']) throw new Exception("Step 4a: " . $err['message']);
+
+                // Ambil detail jurnal asli
+                $jurnal_detail = $this->db->where('nomor', $jarh->nomor)
+                    ->get(DBACC . '.jurnal')->result_array();
+
+                // Buat jurnal balik
+                if (!empty($jurnal_detail)) {
+                    $session = $this->session->userdata('app_session');
+                    $Nomor_BUM_Batal = $this->Jurnal_model->get_Nomor_Jurnal_BUM('101', date('Y-m-d'));
+
+                    // Header jurnal balik
+                    $this->db->insert(DBACC . '.jarh', [
+                        'nomor'         => $Nomor_BUM_Batal,
+                        'kd_pembayaran' => $id,
+                        'tgl'           => date('Y-m-d'),
+                        'jml'           => $jarh->jml,
+                        'kdcab'         => '101',
+                        'jenis_reff'    => $id,
+                        'no_reff'       => $id,
+                        'customer'      => $session['nm_lengkap'],
+                        'note'          => 'BATAL SETOR KASIR NO. ' . $id,
+                        'jenis_ar'      => 'V',
+                        'terima_dari'   => '-',
+                        'valid'         => $session['id_user'],
+                        'tgl_valid'     => date('Y-m-d'),
+                        'user_id'       => $session['id_user'],
+                        'tgl_invoice'   => date('Y-m-d'),
+                        'batal'         => 0
+                    ]);
+                    $err = $this->db->error();
+                    if ($err['code']) throw new Exception("Step 4b: " . $err['message']);
+
+                    // Detail jurnal balik (debet <-> kredit)
+                    $arrJurnalBalik = [];
+                    foreach ($jurnal_detail as $jd) {
+                        $arrJurnalBalik[] = [
+                            'nomor'         => $Nomor_BUM_Batal,
+                            'tanggal'       => date('Y-m-d'),
+                            'tipe'          => $jd['tipe'],
+                            'no_perkiraan'  => $jd['no_perkiraan'],
+                            'keterangan'    => 'BATAL - ' . $jd['keterangan'],
+                            'no_reff'       => $id,
+                            'debet'         => floatval($jd['kredit']),
+                            'kredit'        => floatval($jd['debet']),
+                            'created_by'    => $this->auth->user_id(),
+                            'created_on'    => date('Y-m-d H:i:s'),
+                        ];
+                    }
+                    $this->db->insert_batch(DBACC . '.jurnal', $arrJurnalBalik);
+                    $err = $this->db->error();
+                    if ($err['code']) throw new Exception("Step 4c: " . $err['message']);
+
+                    // Update counter
+                    $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum = nobum + 1 WHERE nocab = '101'");
+                }
+            }
+
+            // =========================
+            // 5. HAPUS KARTU PIUTANG
+            // =========================
+            $this->db->where('no_reff', $id)
+                ->where('tipe', 'BUM')
+                ->delete('tr_kartu_piutang');
+
+            // =========================
+            // 6. HAPUS DATA ASLI
+            // =========================
+            $this->db->where('id_setor_kasir', $id)->delete('tr_setor_kasir_detail');
+            $err = $this->db->error();
+            if ($err['code']) throw new Exception("Step 6a: " . $err['message']);
+
+            $this->db->where('id', $id)->delete('tr_setor_kasir');
+            $err = $this->db->error();
+            if ($err['code']) throw new Exception("Step 6b: " . $err['message']);
+
+            $this->db->trans_commit();
+
+            echo json_encode([
+                'status' => true,
+                'message' => 'Setoran kasir berhasil dibatalkan'
+            ]);
+        } catch (\Throwable $th) {
+            $this->db->trans_rollback();
+            echo json_encode([
+                'status' => false,
+                'message' => $th->getMessage()
+            ]);
+        }
+    }
+
     // fungsi get untuk ajax
     public function get_penerimaan()
     {
