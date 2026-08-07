@@ -36,6 +36,46 @@
     $(document).ready(function() {
         DataTables();
 
+        // Cancel setoran kasir
+        $(document).on('click', '.btn-cancel-setor-kasir', function() {
+            var id = $(this).data('id');
+
+            swal({
+                title: "Konfirmasi Pembatalan",
+                text: "Apakah Anda yakin ingin membatalkan setoran " + id + "? Proses ini akan mengembalikan status penerimaan dan membatalkan jurnal.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d9534f",
+                confirmButtonText: "Ya, Batalkan!",
+                cancelButtonText: "Tidak",
+                closeOnConfirm: false
+            }, function(confirm) {
+                if (confirm) {
+                    $.ajax({
+                        type: 'POST',
+                        url: siteurl + 'setor_kasir/cancel/' + id,
+                        dataType: 'json',
+                        success: function(result) {
+                            if (result.status) {
+                                swal({
+                                    title: 'Berhasil!',
+                                    text: result.message,
+                                    type: 'success'
+                                }, function() {
+                                    $('#example1').DataTable().ajax.reload(null, false);
+                                });
+                            } else {
+                                swal('Gagal!', result.message, 'warning');
+                            }
+                        },
+                        error: function() {
+                            swal('Error!', 'Terjadi kesalahan, silakan coba lagi.', 'error');
+                        }
+                    });
+                }
+            });
+        });
+
         $(document).on('click', '#btnSetorBank', function() {
             let selectedIDs = [];
             $('.check-setor-kasir:checked').each(function() {

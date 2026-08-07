@@ -78,7 +78,16 @@ class Setor_kasir_model extends BF_Model
                 : $urut1 + $start_dari;
 
             $status_text = ($row['status'] == 0) ? '<span class="badge badge-pill bg-blue">Open</span>' : '<span class="badge badge-pill bg-green">Done</span>';
-            $aksi        = ($row['status'] == 0) ? "<input type='checkbox' class='check-setor-kasir' data-id='{$row['id']}' />" : "<a href='" . base_url('setor_kasir/view/' . $row['id']) . "' class='btn btn-sm btn-warning btn-view-setor' data-id='{$row['id']}' title='Lihat Detail'><i class='fa fa-eye'></i></a>";
+
+            $aksi = '';
+            if ($row['status'] == 0) {
+                $aksi .= "<input type='checkbox' class='check-setor-kasir' data-id='{$row['id']}' />";
+            } else {
+                $aksi .= "<a href='" . base_url('setor_kasir/view/' . $row['id']) . "' class='btn btn-sm btn-warning btn-view-setor' data-id='{$row['id']}' title='Lihat Detail'><i class='fa fa-eye'></i></a>";
+                if ($this->ENABLE_DELETE) {
+                    $aksi .= " <button class='btn btn-sm btn-danger btn-cancel-setor-kasir' data-id='{$row['id']}'><i class='fa fa-times'></i></button>";
+                }
+            }
 
             $nestedData = [];
             $nestedData[] = "<div align='center'>{$nomor}</div>";
