@@ -346,12 +346,77 @@ class Setor_bank extends Admin_Controller
             }
 
             // =========================
-            // 4. BATALKAN JURNAL (SET batal = 1)
+            // 4. BATALKAN JURNAL (SET batal = 1) + BUAT JURNAL BALIK
             // =========================
-            $this->db->where('kd_pembayaran', $id)
-                ->update(DBACC . '.jarh', ['batal' => 1]);
-            $err = $this->db->error();
-            if ($err['code']) throw new Exception("Step 4 - Update jarh: " . $err['message']);
+            // Ambil nomor jurnal asli
+            $jarh = $this->db->where('kd_pembayaran', $id)
+                ->get(DBACC . '.jarh')->row();
+
+            if ($jarh) {
+                // Set batal = 1 di header jurnal
+                $this->db->where('kd_pembayaran', $id)
+                    ->update(DBACC . '.jarh', ['batal' => 1]);
+                $err = $this->db->error();
+                if ($err['code']) throw new Exception("Step 4a - Update jarh batal: " . $err['message']);
+
+                // Ambil detail jurnal asli
+                $jurnal_detail = $this->db->where('nomor', $jarh->nomor)
+                    ->get(DBACC . '.jurnal')->result_array();
+
+                // Buat jurnal balik (debet <-> kredit)
+                if (!empty($jurnal_detail)) {
+                    $session = $this->session->userdata('app_session');
+                    $Nomor_BUM_Batal = $this->Jurnal_model->get_Nomor_Jurnal_BUM('101', date('Y-m-d'));
+
+                    // Header jurnal balik
+                    $this->db->insert(DBACC . '.jarh', [
+                        'nomor'         => $Nomor_BUM_Batal,
+                        'kd_pembayaran' => $id,
+                        'tgl'           => date('Y-m-d'),
+                        'jml'           => $jarh->jml,
+                        'kdcab'         => '101',
+                        'jenis_reff'    => $id,
+                        'no_reff'       => $id,
+                        'customer'      => $session['nm_lengkap'],
+                        'note'          => 'BATAL SETOR BANK NO. ' . $id,
+                        'jenis_ar'      => 'V',
+                        'terima_dari'   => '-',
+                        'valid'         => $session['id_user'],
+                        'tgl_valid'     => date('Y-m-d'),
+                        'user_id'       => $session['id_user'],
+                        'tgl_invoice'   => date('Y-m-d'),
+                        'batal'         => 0
+                    ]);
+                    $err = $this->db->error();
+                    if ($err['code']) throw new Exception("Step 4b - Insert jarh balik: " . $err['message']);
+
+                    // Detail jurnal balik (debet jadi kredit, kredit jadi debet)
+                    $arrJurnalBalik = [];
+                    foreach ($jurnal_detail as $jd) {
+                        $arrJurnalBalik[] = [
+                            'nomor'         => $Nomor_BUM_Batal,
+                            'tanggal'       => date('Y-m-d'),
+                            'tipe'          => $jd['tipe'],
+                            'no_perkiraan'  => $jd['no_perkiraan'],
+                            'keterangan'    => 'BATAL - ' . $jd['keterangan'],
+                            'no_reff'       => $id,
+                            'debet'         => floatval($jd['kredit']),  // balik
+                            'kredit'        => floatval($jd['debet']),   // balik
+                            'created_by'    => $this->auth->user_id(),
+                            'created_on'    => date('Y-m-d H:i:s'),
+                        ];
+                    }
+                    $this->db->insert_batch(DBACC . '.jurnal', $arrJurnalBalik);
+                    $err = $this->db->error();
+                    if ($err['code']) throw new Exception("Step 4c - Insert jurnal balik: " . $err['message']);
+
+                    // Update counter
+                    $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum = nobum + 1 WHERE nocab = '101'");
+                }
+            } else {
+                // Kalau jarh tidak ditemukan, skip saja
+            }
+            
 
             // =========================
             // 5. HAPUS KARTU PIUTANG SALES
