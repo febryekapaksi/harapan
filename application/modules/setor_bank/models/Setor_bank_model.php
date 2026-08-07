@@ -92,9 +92,13 @@ class Setor_bank_model extends BF_Model
             $nestedData[] = "<div align='left'>{$kd_pembayaran}</div>";
             $nestedData[] = "<div align='right'>" . number_format($row['total_setoran'], 0, ',', '.') . "</div>";
 
-            $nestedData[] = "<div align='center'>
-                            <a href='" . base_url('setor_bank/view/' . $row['id']) . "' class='btn btn-sm btn-warning view-setoran' data-id='{$row['id']}'><i class='fa fa-eye'></i></a>
-                            </div>";
+            $btnAction = "<a href='" . base_url('setor_bank/view/' . $row['id']) . "' class='btn btn-sm btn-warning view-setoran' data-id='{$row['id']}'><i class='fa fa-eye'></i></a>";
+
+            if ($this->ENABLE_DELETE) {
+                $btnAction .= " <button class='btn btn-sm btn-danger btn-cancel-setor' data-id='{$row['id']}'><i class='fa fa-times'></i></button>";
+            }
+
+            $nestedData[] = "<div align='center'>{$btnAction}</div>";
 
             $data[] = $nestedData;
             $urut1++;
