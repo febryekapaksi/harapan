@@ -286,6 +286,92 @@ class Setor_bank extends Admin_Controller
     ");
     }
 
+    public function cancel($id)
+    {
+        try {
+            if (!has_permission('Setor_Bank.Delete')) {
+                echo json_encode(['status' => false, 'message' => 'Anda tidak memiliki akses untuk membatalkan setoran']);
+                return;
+            }
+
+            // Ambil data header
+            $header = $this->db->get_where('tr_setor_bank', ['id' => $id])->row();
+            if (!$header) {
+                echo json_encode(['status' => false, 'message' => 'Data setoran tidak ditemukan']);
+                return;
+            }
+
+            // Ambil data detail
+            $detail = $this->db->get_where('tr_setor_bank_detail', ['id_setor_bank' => $id])->result_array();
+
+            $this->db->trans_begin();
+
+            // =========================
+            // 1. PINDAHKAN HEADER KE TABEL DELETE
+            // =========================
+            $header_arr = (array) $header;
+            $header_arr['deleted_by'] = $this->auth->user_id();
+            $header_arr['deleted_at'] = date('Y-m-d H:i:s');
+            $this->db->insert('tr_setor_bank_delete', $header_arr);
+
+            // =========================
+            // 2. PINDAHKAN DETAIL KE TABEL DELETE
+            // =========================
+            if (!empty($detail)) {
+                foreach ($detail as &$d) {
+                    $d['deleted_by'] = $this->auth->user_id();
+                    $d['deleted_at'] = date('Y-m-d H:i:s');
+                }
+                $this->db->insert_batch('tr_setor_bank_detail_delete', $detail);
+            }
+
+            // =========================
+            // 3. ROLLBACK STATUS SETOR DI TR_INVOICE_PAYMENT
+            // =========================
+            $kd_pembayaran_list = array_unique(array_column($detail, 'kd_pembayaran'));
+            if (!empty($kd_pembayaran_list)) {
+                $this->db->where_in('kd_pembayaran', $kd_pembayaran_list)
+                    ->update('tr_invoice_payment', ['status_setor' => 0]);
+            }
+
+            // =========================
+            // 4. BATALKAN JURNAL (SET batal = 1)
+            // =========================
+            $this->db->where('kd_pembayaran', $id)
+                ->update(DBACC . '.jarh', ['batal' => 1]);
+
+            // =========================
+            // 5. HAPUS KARTU PIUTANG SALES
+            // =========================
+            $this->db->where('no_reff IN (SELECT no_invoice FROM tr_setor_bank_detail WHERE id_setor_bank = ' . $this->db->escape($id) . ')', NULL, FALSE)
+                ->where('tipe', 'BUM')
+                ->delete('tr_kartu_piutang_sales');
+
+            // =========================
+            // 6. HAPUS DATA ASLI
+            // =========================
+            $this->db->where('id_setor_bank', $id)->delete('tr_setor_bank_detail');
+            $this->db->where('id', $id)->delete('tr_setor_bank');
+
+            if ($this->db->trans_status() === FALSE) {
+                throw new Exception("DB Error");
+            }
+
+            $this->db->trans_commit();
+
+            echo json_encode([
+                'status' => true,
+                'message' => 'Setoran berhasil dibatalkan'
+            ]);
+        } catch (\Throwable $th) {
+            $this->db->trans_rollback();
+            echo json_encode([
+                'status' => false,
+                'message' => $th->getMessage()
+            ]);
+        }
+    }
+
     // fungsi get untuk ajax
     public function get_penerimaan()
     {
