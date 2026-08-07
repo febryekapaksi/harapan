@@ -304,6 +304,11 @@ class Setor_bank extends Admin_Controller
             // Ambil data detail
             $detail = $this->db->get_where('tr_setor_bank_detail', ['id_setor_bank' => $id])->result_array();
 
+            // Simpan list no_invoice dan kd_pembayaran sebelum dihapus
+            $no_invoice_list = array_column($detail, 'no_invoice');
+            $kd_pembayaran_list = array_unique(array_column($detail, 'kd_pembayaran'));
+
+            $this->db->trans_strict(TRUE);
             $this->db->trans_begin();
 
             // =========================
@@ -313,6 +318,8 @@ class Setor_bank extends Admin_Controller
             $header_arr['deleted_by'] = $this->auth->user_id();
             $header_arr['deleted_at'] = date('Y-m-d H:i:s');
             $this->db->insert('tr_setor_bank_delete', $header_arr);
+            $err = $this->db->error();
+            if ($err['code']) throw new Exception("Step 1 - Insert header delete: " . $err['message']);
 
             // =========================
             // 2. PINDAHKAN DETAIL KE TABEL DELETE
@@ -322,16 +329,20 @@ class Setor_bank extends Admin_Controller
                     $d['deleted_by'] = $this->auth->user_id();
                     $d['deleted_at'] = date('Y-m-d H:i:s');
                 }
+                unset($d);
                 $this->db->insert_batch('tr_setor_bank_detail_delete', $detail);
+                $err = $this->db->error();
+                if ($err['code']) throw new Exception("Step 2 - Insert detail delete: " . $err['message']);
             }
 
             // =========================
             // 3. ROLLBACK STATUS SETOR DI TR_INVOICE_PAYMENT
             // =========================
-            $kd_pembayaran_list = array_unique(array_column($detail, 'kd_pembayaran'));
             if (!empty($kd_pembayaran_list)) {
                 $this->db->where_in('kd_pembayaran', $kd_pembayaran_list)
                     ->update('tr_invoice_payment', ['status_setor' => 0]);
+                $err = $this->db->error();
+                if ($err['code']) throw new Exception("Step 3 - Update invoice_payment: " . $err['message']);
             }
 
             // =========================
@@ -339,23 +350,30 @@ class Setor_bank extends Admin_Controller
             // =========================
             $this->db->where('kd_pembayaran', $id)
                 ->update(DBACC . '.jarh', ['batal' => 1]);
+            $err = $this->db->error();
+            if ($err['code']) throw new Exception("Step 4 - Update jarh: " . $err['message']);
 
             // =========================
             // 5. HAPUS KARTU PIUTANG SALES
             // =========================
-            $this->db->where('no_reff IN (SELECT no_invoice FROM tr_setor_bank_detail WHERE id_setor_bank = ' . $this->db->escape($id) . ')', NULL, FALSE)
-                ->where('tipe', 'BUM')
-                ->delete('tr_kartu_piutang_sales');
+            if (!empty($no_invoice_list)) {
+                $this->db->where_in('no_reff', $no_invoice_list)
+                    ->where('tipe', 'BUM')
+                    ->delete('tr_kartu_piutang_sales');
+                $err = $this->db->error();
+                if ($err['code']) throw new Exception("Step 5 - Delete kartu piutang: " . $err['message']);
+            }
 
             // =========================
             // 6. HAPUS DATA ASLI
             // =========================
             $this->db->where('id_setor_bank', $id)->delete('tr_setor_bank_detail');
-            $this->db->where('id', $id)->delete('tr_setor_bank');
+            $err = $this->db->error();
+            if ($err['code']) throw new Exception("Step 6a - Delete detail: " . $err['message']);
 
-            if ($this->db->trans_status() === FALSE) {
-                throw new Exception("DB Error");
-            }
+            $this->db->where('id', $id)->delete('tr_setor_bank');
+            $err = $this->db->error();
+            if ($err['code']) throw new Exception("Step 6b - Delete header: " . $err['message']);
 
             $this->db->trans_commit();
 
