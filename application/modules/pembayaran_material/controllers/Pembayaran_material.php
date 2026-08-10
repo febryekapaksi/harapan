@@ -205,9 +205,102 @@ class Pembayaran_material extends Admin_Controller
 			return;
 		}
 
+		// ============================================================
+		// STEP A: Reverse jurnal ke DBACC (accounting DB) - DILAKUKAN DULUAN
+		// ============================================================
+		$dbacc_reversed = false;
+
+		// Cari di DBACC.japh dulu
+		$japh_entry = $this->db->query("SELECT * FROM " . DBACC . ".japh WHERE no_reff = '" . $this->db->escape_str($id_payment) . "' LIMIT 1")->row();
+
+		if ($japh_entry) {
+			$Nomor_JV_Rev = $this->Jurnal_model->get_no_buk('101');
+			$total_rev = 0;
+
+			$jurnal_acc_entries = $this->db->query("SELECT * FROM " . DBACC . ".jurnal WHERE nomor = '" . $this->db->escape_str($japh_entry->nomor) . "'")->result();
+
+			foreach ($jurnal_acc_entries as $jacc) {
+				$this->db->insert(DBACC . '.jurnal', [
+					'tipe'              => 'BUK',
+					'nomor'             => $Nomor_JV_Rev,
+					'tanggal'           => date('Y-m-d'),
+					'no_perkiraan'      => $jacc->no_perkiraan,
+					'keterangan'        => 'BATAL - ' . $jacc->keterangan,
+					'no_reff'           => $jacc->no_reff,
+					'debet'             => $jacc->kredit,
+					'kredit'            => $jacc->debet,
+					'nilai_valas_debet' => isset($jacc->nilai_valas_kredit) ? $jacc->nilai_valas_kredit : 0,
+					'nilai_valas_kredit'=> isset($jacc->nilai_valas_debet) ? $jacc->nilai_valas_debet : 0,
+				]);
+				$total_rev += $jacc->kredit;
+			}
+
+			$this->db->insert(DBACC . '.japh', [
+				'nomor'         => $Nomor_JV_Rev,
+				'tgl'           => date('Y-m-d'),
+				'jml'           => $total_rev,
+				'jenis_ap'      => 'V',
+				'bayar_kepada'  => $japh_entry->bayar_kepada,
+				'kdcab'         => '101',
+				'jenis_reff'    => 'BUK',
+				'no_reff'       => $id_payment,
+				'note'          => 'BATAL - ' . $japh_entry->note,
+				'user_id'       => $Username,
+				'ho_valid'      => '',
+			]);
+			$this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobuk=nobuk + 1 WHERE nocab='101'");
+			$dbacc_reversed = true;
+		}
+
+		// Jika japh tidak ditemukan, cari langsung dari DBACC.jurnal berdasarkan no_reff
+		if (!$dbacc_reversed) {
+			$jurnal_acc_entries = $this->db->query("SELECT * FROM " . DBACC . ".jurnal WHERE no_reff = '" . $this->db->escape_str($id_payment) . "'")->result();
+
+			if (!empty($jurnal_acc_entries)) {
+				$Nomor_JV_Rev = $this->Jurnal_model->get_no_buk('101');
+				$total_rev = 0;
+
+				foreach ($jurnal_acc_entries as $jacc) {
+					$this->db->insert(DBACC . '.jurnal', [
+						'tipe'              => 'BUK',
+						'nomor'             => $Nomor_JV_Rev,
+						'tanggal'           => date('Y-m-d'),
+						'no_perkiraan'      => $jacc->no_perkiraan,
+						'keterangan'        => 'BATAL - ' . $jacc->keterangan,
+						'no_reff'           => $jacc->no_reff,
+						'debet'             => $jacc->kredit,
+						'kredit'            => $jacc->debet,
+						'nilai_valas_debet' => isset($jacc->nilai_valas_kredit) ? $jacc->nilai_valas_kredit : 0,
+						'nilai_valas_kredit'=> isset($jacc->nilai_valas_debet) ? $jacc->nilai_valas_debet : 0,
+					]);
+					$total_rev += $jacc->kredit;
+				}
+
+				$nm_supplier = isset($payment_header->nm_supplier) ? $payment_header->nm_supplier : '';
+				$this->db->insert(DBACC . '.japh', [
+					'nomor'         => $Nomor_JV_Rev,
+					'tgl'           => date('Y-m-d'),
+					'jml'           => $total_rev,
+					'jenis_ap'      => 'V',
+					'bayar_kepada'  => $nm_supplier,
+					'kdcab'         => '101',
+					'jenis_reff'    => 'BUK',
+					'no_reff'       => $id_payment,
+					'note'          => 'BATAL Pembayaran ' . $id_payment,
+					'user_id'       => $Username,
+					'ho_valid'      => '',
+				]);
+				$this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobuk=nobuk + 1 WHERE nocab='101'");
+				$dbacc_reversed = true;
+			}
+		}
+
+		// ============================================================
+		// STEP B: Reverse jurnal lokal dan update status (dalam transaksi)
+		// ============================================================
 		$this->db->trans_begin();
 
-		// 1) Buat jurnal balik (reverse) dari tr_jurnal - tukar debit dan kredit
+		// 1) Reverse tr_jurnal
 		$jurnal_entries = $this->db->get_where('tr_jurnal', [
 			'no_transaksi' => $id_payment,
 			'jenis_transaksi' => 'Payment'
@@ -224,8 +317,8 @@ class Pembayaran_material extends Admin_Controller
 					'tipe'            => $jrn->tipe,
 					'coa'             => $jrn->coa,
 					'nm_coa'          => $jrn->nm_coa,
-					'debit'           => $jrn->kredit,   // balik: kredit jadi debit
-					'kredit'          => $jrn->debit,    // balik: debit jadi kredit
+					'debit'           => $jrn->kredit,
+					'kredit'          => $jrn->debit,
 					'keterangan'      => 'BATAL - ' . $jrn->keterangan,
 					'no_transaksi'    => $id_payment,
 					'jenis_transaksi' => 'Payment Batal',
@@ -237,7 +330,7 @@ class Pembayaran_material extends Admin_Controller
 			$this->db->insert_batch('tr_jurnal', $arr_jurnal_balik);
 		}
 
-		// 2) Juga reverse jurnaltras jika ada (flow lama)
+		// 2) Reverse jurnaltras
 		$jurnaltras_entries = $this->db->get_where('jurnaltras', [
 			'no_reff' => $id_payment
 		])->result();
@@ -252,8 +345,8 @@ class Pembayaran_material extends Admin_Controller
 					'no_perkiraan'       => $jrn->no_perkiraan,
 					'keterangan'         => 'BATAL - ' . $jrn->keterangan,
 					'no_request'         => $jrn->no_request,
-					'kredit'             => $jrn->debet,   // balik
-					'debet'              => $jrn->kredit,  // balik
+					'kredit'             => $jrn->debet,
+					'debet'              => $jrn->kredit,
 					'nilai_valas_debet'  => $jrn->nilai_valas_kredit,
 					'nilai_valas_kredit' => $jrn->nilai_valas_debet,
 					'no_reff'            => $jrn->no_reff,
@@ -265,99 +358,7 @@ class Pembayaran_material extends Admin_Controller
 			$this->db->insert_batch('jurnaltras', $arr_jurnaltras_balik);
 		}
 
-		// 2b) Reverse ke DBACC.jurnal dan DBACC.japh (accounting database)
-		$japh_entry = $this->db->query("SELECT * FROM " . DBACC . ".japh WHERE no_reff = '" . $this->db->escape_str($id_payment) . "' LIMIT 1")->row();
-
-		if ($japh_entry) {
-			$Nomor_JV_Rev = $this->Jurnal_model->get_no_buk('101');
-			$total_rev = 0;
-
-			// Insert reverse entries ke DBACC.jurnal
-			$jurnal_acc_entries = $this->db->query("SELECT * FROM " . DBACC . ".jurnal WHERE nomor = '" . $this->db->escape_str($japh_entry->nomor) . "'")->result();
-
-			foreach ($jurnal_acc_entries as $jacc) {
-				$datadetail_rev = [
-					'tipe'              => 'BUK',
-					'nomor'             => $Nomor_JV_Rev,
-					'tanggal'           => date('Y-m-d'),
-					'no_perkiraan'      => $jacc->no_perkiraan,
-					'keterangan'        => 'BATAL - ' . $jacc->keterangan,
-					'no_reff'           => $jacc->no_reff,
-					'debet'             => $jacc->kredit,   // balik
-					'kredit'            => $jacc->debet,    // balik
-					'nilai_valas_debet' => isset($jacc->nilai_valas_kredit) ? $jacc->nilai_valas_kredit : 0,
-					'nilai_valas_kredit'=> isset($jacc->nilai_valas_debet) ? $jacc->nilai_valas_debet : 0,
-				];
-				$total_rev += $jacc->kredit;
-				$this->db->insert(DBACC . '.jurnal', $datadetail_rev);
-			}
-
-			// Insert header DBACC.japh untuk reversal
-			$dataJVhead_rev = [
-				'nomor'         => $Nomor_JV_Rev,
-				'tgl'           => date('Y-m-d'),
-				'jml'           => $total_rev,
-				'jenis_ap'      => 'V',
-				'bayar_kepada'  => $japh_entry->bayar_kepada,
-				'kdcab'         => '101',
-				'jenis_reff'    => 'BUK',
-				'no_reff'       => $id_payment,
-				'note'          => 'BATAL - ' . $japh_entry->note,
-				'user_id'       => $Username,
-				'ho_valid'      => '',
-			];
-			$this->db->insert(DBACC . '.japh', $dataJVhead_rev);
-
-			// Update counter nobuk
-			$this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobuk=nobuk + 1 WHERE nocab='101'");
-		} else {
-			// Jika japh tidak ditemukan via no_reff, cari langsung dari DBACC.jurnal via no_reff
-			$jurnal_acc_entries = $this->db->query("SELECT * FROM " . DBACC . ".jurnal WHERE no_reff = '" . $this->db->escape_str($id_payment) . "'")->result();
-
-			if (!empty($jurnal_acc_entries)) {
-				$Nomor_JV_Rev = $this->Jurnal_model->get_no_buk('101');
-				$total_rev = 0;
-
-				foreach ($jurnal_acc_entries as $jacc) {
-					$datadetail_rev = [
-						'tipe'              => 'BUK',
-						'nomor'             => $Nomor_JV_Rev,
-						'tanggal'           => date('Y-m-d'),
-						'no_perkiraan'      => $jacc->no_perkiraan,
-						'keterangan'        => 'BATAL - ' . $jacc->keterangan,
-						'no_reff'           => $jacc->no_reff,
-						'debet'             => $jacc->kredit,   // balik
-						'kredit'            => $jacc->debet,    // balik
-						'nilai_valas_debet' => isset($jacc->nilai_valas_kredit) ? $jacc->nilai_valas_kredit : 0,
-						'nilai_valas_kredit'=> isset($jacc->nilai_valas_debet) ? $jacc->nilai_valas_debet : 0,
-					];
-					$total_rev += $jacc->kredit;
-					$this->db->insert(DBACC . '.jurnal', $datadetail_rev);
-				}
-
-				// Insert header DBACC.japh untuk reversal
-				$nm_supplier = isset($payment_header->nm_supplier) ? $payment_header->nm_supplier : '';
-				$dataJVhead_rev = [
-					'nomor'         => $Nomor_JV_Rev,
-					'tgl'           => date('Y-m-d'),
-					'jml'           => $total_rev,
-					'jenis_ap'      => 'V',
-					'bayar_kepada'  => $nm_supplier,
-					'kdcab'         => '101',
-					'jenis_reff'    => 'BUK',
-					'no_reff'       => $id_payment,
-					'note'          => 'BATAL Pembayaran ' . $id_payment,
-					'user_id'       => $Username,
-					'ho_valid'      => '',
-				];
-				$this->db->insert(DBACC . '.japh', $dataJVhead_rev);
-
-				// Update counter nobuk
-				$this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobuk=nobuk + 1 WHERE nocab='101'");
-			}
-		}
-
-		// 3) Reverse kartu hutang jika ada
+		// 3) Reverse kartu hutang
 		$kartu_hutang_entries = $this->db->get_where('tr_kartu_hutang', [
 			'no_request' => $id_payment
 		])->result();
@@ -371,18 +372,18 @@ class Pembayaran_material extends Admin_Controller
 					'no_perkiraan'  => $kh->no_perkiraan,
 					'keterangan'    => 'BATAL - ' . $kh->keterangan,
 					'no_reff'       => $kh->no_reff,
-					'debet'         => $kh->kredit,   // balik
-					'kredit'        => $kh->debet,    // balik
+					'debet'         => $kh->kredit,
+					'kredit'        => $kh->debet,
 					'id_supplier'   => $kh->id_supplier,
 					'nama_supplier' => $kh->nama_supplier,
 					'no_request'    => $kh->no_request,
-					'debet_usd'     => $kh->kredit_usd,
-					'kredit_usd'    => $kh->debet_usd,
+					'debet_usd'     => isset($kh->kredit_usd) ? $kh->kredit_usd : 0,
+					'kredit_usd'    => isset($kh->debet_usd) ? $kh->debet_usd : 0,
 				]);
 			}
 		}
 
-		// 4) Update status payment_approve menjadi 1 (kembali ke approve, belum dibayar)
+		// 4) Update status payment_approve
 		$this->db->where('id_payment', $id_payment);
 		$this->db->update('payment_approve', [
 			'status'                => 1,
@@ -399,7 +400,7 @@ class Pembayaran_material extends Admin_Controller
 			'selisih'               => null
 		]);
 
-		// 5) Tandai batal di tr_payment_paid (soft delete via keterangan)
+		// 5) Tandai batal di tr_payment_paid
 		$this->db->where('id', $id_payment);
 		$this->db->update('tr_payment_paid', [
 			'keterangan_pembayaran' => 'DIBATALKAN oleh ' . $Username . ' pada ' . date('Y-m-d H:i:s')
@@ -413,7 +414,7 @@ class Pembayaran_material extends Admin_Controller
 			echo json_encode(['status' => true, 'message' => 'Payment ' . $id_payment . ' berhasil dibatalkan beserta jurnal baliknya.']);
 		} else {
 			$this->db->trans_rollback();
-			echo json_encode(['status' => false, 'message' => 'Gagal membatalkan payment, silahkan coba lagi.']);
+			echo json_encode(['status' => false, 'message' => 'Gagal membatalkan payment. Error: ' . json_encode($this->db->error())]);
 		}
 	}
 
