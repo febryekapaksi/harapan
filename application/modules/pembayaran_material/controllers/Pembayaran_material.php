@@ -265,6 +265,98 @@ class Pembayaran_material extends Admin_Controller
 			$this->db->insert_batch('jurnaltras', $arr_jurnaltras_balik);
 		}
 
+		// 2b) Reverse ke DBACC.jurnal dan DBACC.japh (accounting database)
+		$japh_entry = $this->db->query("SELECT * FROM " . DBACC . ".japh WHERE no_reff = '" . $this->db->escape_str($id_payment) . "' LIMIT 1")->row();
+
+		if ($japh_entry) {
+			$Nomor_JV_Rev = $this->Jurnal_model->get_no_buk('101');
+			$total_rev = 0;
+
+			// Insert reverse entries ke DBACC.jurnal
+			$jurnal_acc_entries = $this->db->query("SELECT * FROM " . DBACC . ".jurnal WHERE nomor = '" . $this->db->escape_str($japh_entry->nomor) . "'")->result();
+
+			foreach ($jurnal_acc_entries as $jacc) {
+				$datadetail_rev = [
+					'tipe'              => 'BUK',
+					'nomor'             => $Nomor_JV_Rev,
+					'tanggal'           => date('Y-m-d'),
+					'no_perkiraan'      => $jacc->no_perkiraan,
+					'keterangan'        => 'BATAL - ' . $jacc->keterangan,
+					'no_reff'           => $jacc->no_reff,
+					'debet'             => $jacc->kredit,   // balik
+					'kredit'            => $jacc->debet,    // balik
+					'nilai_valas_debet' => isset($jacc->nilai_valas_kredit) ? $jacc->nilai_valas_kredit : 0,
+					'nilai_valas_kredit'=> isset($jacc->nilai_valas_debet) ? $jacc->nilai_valas_debet : 0,
+				];
+				$total_rev += $jacc->kredit;
+				$this->db->insert(DBACC . '.jurnal', $datadetail_rev);
+			}
+
+			// Insert header DBACC.japh untuk reversal
+			$dataJVhead_rev = [
+				'nomor'         => $Nomor_JV_Rev,
+				'tgl'           => date('Y-m-d'),
+				'jml'           => $total_rev,
+				'jenis_ap'      => 'V',
+				'bayar_kepada'  => $japh_entry->bayar_kepada,
+				'kdcab'         => '101',
+				'jenis_reff'    => 'BUK',
+				'no_reff'       => $id_payment,
+				'note'          => 'BATAL - ' . $japh_entry->note,
+				'user_id'       => $Username,
+				'ho_valid'      => '',
+			];
+			$this->db->insert(DBACC . '.japh', $dataJVhead_rev);
+
+			// Update counter nobuk
+			$this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobuk=nobuk + 1 WHERE nocab='101'");
+		} else {
+			// Jika japh tidak ditemukan via no_reff, cari langsung dari DBACC.jurnal via no_reff
+			$jurnal_acc_entries = $this->db->query("SELECT * FROM " . DBACC . ".jurnal WHERE no_reff = '" . $this->db->escape_str($id_payment) . "'")->result();
+
+			if (!empty($jurnal_acc_entries)) {
+				$Nomor_JV_Rev = $this->Jurnal_model->get_no_buk('101');
+				$total_rev = 0;
+
+				foreach ($jurnal_acc_entries as $jacc) {
+					$datadetail_rev = [
+						'tipe'              => 'BUK',
+						'nomor'             => $Nomor_JV_Rev,
+						'tanggal'           => date('Y-m-d'),
+						'no_perkiraan'      => $jacc->no_perkiraan,
+						'keterangan'        => 'BATAL - ' . $jacc->keterangan,
+						'no_reff'           => $jacc->no_reff,
+						'debet'             => $jacc->kredit,   // balik
+						'kredit'            => $jacc->debet,    // balik
+						'nilai_valas_debet' => isset($jacc->nilai_valas_kredit) ? $jacc->nilai_valas_kredit : 0,
+						'nilai_valas_kredit'=> isset($jacc->nilai_valas_debet) ? $jacc->nilai_valas_debet : 0,
+					];
+					$total_rev += $jacc->kredit;
+					$this->db->insert(DBACC . '.jurnal', $datadetail_rev);
+				}
+
+				// Insert header DBACC.japh untuk reversal
+				$nm_supplier = isset($payment_header->nm_supplier) ? $payment_header->nm_supplier : '';
+				$dataJVhead_rev = [
+					'nomor'         => $Nomor_JV_Rev,
+					'tgl'           => date('Y-m-d'),
+					'jml'           => $total_rev,
+					'jenis_ap'      => 'V',
+					'bayar_kepada'  => $nm_supplier,
+					'kdcab'         => '101',
+					'jenis_reff'    => 'BUK',
+					'no_reff'       => $id_payment,
+					'note'          => 'BATAL Pembayaran ' . $id_payment,
+					'user_id'       => $Username,
+					'ho_valid'      => '',
+				];
+				$this->db->insert(DBACC . '.japh', $dataJVhead_rev);
+
+				// Update counter nobuk
+				$this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobuk=nobuk + 1 WHERE nocab='101'");
+			}
+		}
+
 		// 3) Reverse kartu hutang jika ada
 		$kartu_hutang_entries = $this->db->get_where('tr_kartu_hutang', [
 			'no_request' => $id_payment
