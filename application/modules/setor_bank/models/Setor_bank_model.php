@@ -130,6 +130,7 @@ class Setor_bank_model extends BF_Model
         ];
 
         // Total data
+        $this->db->select('COUNT(DISTINCT s.id) as total');
         $this->db->from('tr_setor_bank s');
         $this->db->join('tr_setor_bank_detail sd', 'sd.id_setor_bank = s.id', 'left');
         if (!empty($tgl_dari)) {
@@ -138,9 +139,10 @@ class Setor_bank_model extends BF_Model
         if (!empty($tgl_sampai)) {
             $this->db->where('s.tgl_setor <=', $tgl_sampai);
         }
-        $totalData = $this->db->count_all_results();
+        $totalData = $this->db->get()->row()->total;
 
         // Filtered data
+        $this->db->select('COUNT(DISTINCT s.id) as total');
         $this->db->from('tr_setor_bank s');
         $this->db->join('tr_setor_bank_detail sd', 'sd.id_setor_bank = s.id', 'left');
         if (!empty($tgl_dari)) {
@@ -156,7 +158,7 @@ class Setor_bank_model extends BF_Model
             $this->db->or_like('sd.kd_pembayaran', $like_value);
             $this->db->group_end();
         }
-        $totalFiltered = $this->db->count_all_results();
+        $totalFiltered = $this->db->get()->row()->total;
 
         // Main query
         $this->db->select('s.id, sd.kd_pembayaran, s.tgl_setor, s.total_setoran');
