@@ -193,7 +193,10 @@ class Pembayaran_material extends Admin_Controller
 			return;
 		}
 
-		$Username = $this->session->userdata['ORI_User']['username'];
+		$Username = $this->auth->user_name();
+		if (empty($Username)) {
+			$Username = 'admin';
+		}
 
 		// Cek apakah payment exists
 		$payment_header = $this->db->get_where('tr_payment_paid', ['id' => $id_payment])->row();
@@ -301,17 +304,13 @@ class Pembayaran_material extends Admin_Controller
 			'nm_coa_bank'           => null,
 			'mata_uang'             => null,
 			'kurs_payment'          => null,
-			'selisih'               => null,
-			'modified_on'           => date('Y-m-d H:i:s'),
-			'modified_by'           => $Username
+			'selisih'               => null
 		]);
 
-		// 5) Hapus header tr_payment_paid (atau tandai batal)
+		// 5) Tandai batal di tr_payment_paid (soft delete via keterangan)
 		$this->db->where('id', $id_payment);
 		$this->db->update('tr_payment_paid', [
-			'status'      => 'BATAL',
-			'modified_by' => $Username,
-			'modified_on' => date('Y-m-d H:i:s')
+			'keterangan_pembayaran' => 'DIBATALKAN oleh ' . $Username . ' pada ' . date('Y-m-d H:i:s')
 		]);
 
 		$this->db->trans_complete();
