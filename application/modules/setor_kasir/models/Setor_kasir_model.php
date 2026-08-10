@@ -37,12 +37,17 @@ class Setor_kasir_model extends BF_Model
     {
         $requestData = $_REQUEST;
 
+        $tgl_dari   = isset($requestData['tgl_dari']) ? $requestData['tgl_dari'] : null;
+        $tgl_sampai = isset($requestData['tgl_sampai']) ? $requestData['tgl_sampai'] : null;
+
         $fetch = $this->get_query_json_setoran_kasir(
             $requestData['search']['value'],
             $requestData['order'][0]['column'],
             $requestData['order'][0]['dir'],
             $requestData['start'],
-            $requestData['length']
+            $requestData['length'],
+            $tgl_dari,
+            $tgl_sampai
         );
 
         $totalData     = $fetch['totalData'];
@@ -122,7 +127,7 @@ class Setor_kasir_model extends BF_Model
         echo json_encode($json_data);
     }
 
-    public function get_query_json_setoran_kasir($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
+    public function get_query_json_setoran_kasir($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null, $tgl_dari = null, $tgl_sampai = null)
     {
         $columns_order_by = [
             0 => 's.id',
@@ -132,13 +137,27 @@ class Setor_kasir_model extends BF_Model
         ];
 
         // Total data
+        $this->db->select('COUNT(DISTINCT s.id) as total');
         $this->db->from('tr_setor_kasir s');
         $this->db->join('tr_setor_kasir_detail sd', 'sd.id_setor_kasir = s.id', 'left');
-        $totalData = $this->db->count_all_results();
+        if (!empty($tgl_dari)) {
+            $this->db->where('s.tgl_setor >=', $tgl_dari);
+        }
+        if (!empty($tgl_sampai)) {
+            $this->db->where('s.tgl_setor <=', $tgl_sampai);
+        }
+        $totalData = $this->db->get()->row()->total;
 
         // Filtered data
+        $this->db->select('COUNT(DISTINCT s.id) as total');
         $this->db->from('tr_setor_kasir s');
         $this->db->join('tr_setor_kasir_detail sd', 'sd.id_setor_kasir = s.id', 'left');
+        if (!empty($tgl_dari)) {
+            $this->db->where('s.tgl_setor >=', $tgl_dari);
+        }
+        if (!empty($tgl_sampai)) {
+            $this->db->where('s.tgl_setor <=', $tgl_sampai);
+        }
         if ($like_value) {
             $this->db->group_start();
             $this->db->like('s.id', $like_value);
@@ -146,17 +165,23 @@ class Setor_kasir_model extends BF_Model
             $this->db->or_like('sd.kd_pembayaran', $like_value);
             $this->db->group_end();
         }
-        $totalFiltered = $this->db->count_all_results();
+        $totalFiltered = $this->db->get()->row()->total;
 
         // Main query
         $this->db->select('s.id, s.sales, s.tgl_setor, s.total_setoran, s.status');
         $this->db->from('tr_setor_kasir s');
         $this->db->join('tr_setor_kasir_detail sd', 'sd.id_setor_kasir = s.id', 'left');
+        if (!empty($tgl_dari)) {
+            $this->db->where('s.tgl_setor >=', $tgl_dari);
+        }
+        if (!empty($tgl_sampai)) {
+            $this->db->where('s.tgl_setor <=', $tgl_sampai);
+        }
         if ($like_value) {
             $this->db->group_start();
             $this->db->like('s.id', $like_value);
             $this->db->or_like('s.tgl_setor', $like_value);
-            $this->db->or_like('sd.kd_pembayaran', $like_value); // 🔥 tambahan
+            $this->db->or_like('sd.kd_pembayaran', $like_value);
             $this->db->group_end();
         }
         $this->db->group_by('s.id');
