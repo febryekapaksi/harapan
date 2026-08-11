@@ -412,7 +412,7 @@ class Kpi extends Admin_Controller
         if (empty($item)) continue;
 
         $pic_id = $post['pic_id'][$i];
-        $pic = $this->db->select('name')->get_where('employees', ['id' => $pic_id])->row();
+        $pic = $this->db->select('name')->get_where('employees_internal', ['id' => $pic_id])->row();
         $pic_name = $pic ? $pic->name : '';
 
         $bobot_value = 0;
