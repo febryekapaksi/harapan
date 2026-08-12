@@ -67,6 +67,172 @@ class Report_debt extends Admin_Controller
         $this->template->render('index', $data);
     }
 
+    /**
+     * Export Detail Excel per Sales per Bulan
+     * Parameter GET:
+     * - tahun: tahun data
+     * - bulan: nomor bulan (1-12)
+     * - id_sales: ID karyawan/sales
+     * - tipe: 'total' | 'late' (15-30 hari) | 'bad' (>30 hari)
+     */
+    public function export_detail()
+    {
+        $tahun    = $this->input->get('tahun') ?? date('Y');
+        $bulan    = (int)($this->input->get('bulan') ?? date('n'));
+        $id_sales = $this->input->get('id_sales');
+        $tipe     = $this->input->get('tipe') ?? 'total';
+
+        // Validasi
+        if (empty($id_sales) || $bulan < 1 || $bulan > 12) {
+            show_error('Parameter tidak valid.', 400);
+            return;
+        }
+
+        // Ambil nama sales
+        $sales = $this->db->where('id', $id_sales)->get('employee')->row_array();
+        $nama_sales = $sales ? ucwords($sales['nm_karyawan']) : 'Unknown';
+
+        // Ambil nama bulan
+        $bln_row = $this->db->where('bulan_no', $bulan)->get('cr_bulan')->row_array();
+        $nama_bulan = $bln_row ? $bln_row['bulan'] : 'Bulan ' . $bulan;
+
+        // Query data detail berdasarkan tipe
+        $awal_bulan  = "$tahun-" . str_pad($bulan, 2, '0', STR_PAD_LEFT) . "-01";
+        $akhir_bulan = date('Y-m-t', strtotime($awal_bulan));
+
+        $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang, DATEDIFF(CURRENT_DATE, a.jatuh_tempo) as hari_lewat", false);
+        $this->db->from('tr_invoice_sales a');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer', 'left');
+        $this->db->where('b.id_karyawan', $id_sales);
+        $this->db->where("YEAR(a.jatuh_tempo) = " . (int)$tahun, null, false);
+        $this->db->where("MONTH(a.jatuh_tempo) = " . (int)$bulan, null, false);
+        $this->db->where('a.piutang >', 0);
+
+        if ($tipe == 'late') {
+            // Aging 15-30 hari
+            $this->db->where('DATEDIFF(CURRENT_DATE, a.jatuh_tempo) BETWEEN 15 AND 30', null, false);
+            $judul = 'Detail Piutang Late Debt (15-30 Hari)';
+            $filename = 'Detail_Late_Debt_' . str_replace(' ', '_', $nama_sales) . '_' . $nama_bulan . '_' . $tahun . '.xls';
+        } elseif ($tipe == 'bad') {
+            // Aging >30 hari
+            $this->db->where('DATEDIFF(CURRENT_DATE, a.jatuh_tempo) > 30', null, false);
+            $judul = 'Detail Piutang Bad Debt (> 30 Hari)';
+            $filename = 'Detail_Bad_Debt_' . str_replace(' ', '_', $nama_sales) . '_' . $nama_bulan . '_' . $tahun . '.xls';
+        } else {
+            // Total piutang
+            $judul = 'Detail Total Piutang';
+            $filename = 'Detail_Total_Piutang_' . str_replace(' ', '_', $nama_sales) . '_' . $nama_bulan . '_' . $tahun . '.xls';
+        }
+
+        $this->db->order_by('a.jatuh_tempo', 'ASC');
+        $query = $this->db->get();
+        $data_detail = $query ? $query->result_array() : [];
+
+        // Setup PHPExcel
+        set_time_limit(0);
+        ini_set('memory_limit', '1024M');
+        $this->load->library('PHPExcel');
+        PHPExcel_Cell::setValueBinder(new PHPExcel_Cell_AdvancedValueBinder());
+
+        $xls   = new PHPExcel();
+        $sheet = $xls->getActiveSheet();
+
+        // Judul
+        $sheet->setCellValue('A1', strtoupper($judul));
+        $sheet->mergeCells('A1:I1');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+
+        // Info
+        $sheet->setCellValue('A2', 'Sales: ' . $nama_sales);
+        $sheet->setCellValue('A3', 'Periode: ' . $nama_bulan . ' ' . $tahun);
+        $sheet->getStyle('A2:A3')->getFont()->setBold(true);
+
+        // Header tabel
+        $headers = ['A' => 'No', 'B' => 'No Invoice', 'C' => 'Customer', 'D' => 'Tgl Invoice', 'E' => 'Jatuh Tempo', 'F' => 'Hari Lewat', 'G' => 'Total Invoice', 'H' => 'Total Bayar', 'I' => 'Sisa Piutang'];
+        $rowHeader = 5;
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue($col . $rowHeader, $label);
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+            $sheet->getStyle($col . $rowHeader)->getFont()->setBold(true);
+            $sheet->getStyle($col . $rowHeader)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle($col . $rowHeader)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('4472C4');
+            $sheet->getStyle($col . $rowHeader)->getFont()->getColor()->setRGB('FFFFFF');
+        }
+
+        // Isi data
+        $r = $rowHeader + 1;
+        $no = 1;
+        $total_invoice_sum = 0;
+        $total_bayar_sum = 0;
+        $total_piutang_sum = 0;
+
+        foreach ($data_detail as $row) {
+            $sheet->setCellValue('A' . $r, $no);
+            $sheet->setCellValue('B' . $r, $row['no_invoice']);
+            $sheet->setCellValue('C' . $r, $row['nm_customer']);
+            $sheet->setCellValue('D' . $r, $row['tgl_invoice']);
+            $sheet->setCellValue('E' . $r, $row['jatuh_tempo']);
+
+            $hari_lewat = (int)$row['hari_lewat'];
+            $sheet->setCellValueExplicit('F' . $r, $hari_lewat, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+
+            $total_inv = (float)$row['total_invoice'];
+            $total_bay = (float)$row['total_bayar'];
+            $piutang   = (float)$row['piutang'];
+
+            $sheet->setCellValueExplicit('G' . $r, $total_inv, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('G' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            $sheet->setCellValueExplicit('H' . $r, $total_bay, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('H' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            $sheet->setCellValueExplicit('I' . $r, $piutang, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('I' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            // Highlight baris berdasarkan hari lewat
+            if ($hari_lewat > 30) {
+                $sheet->getStyle('A' . $r . ':I' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFCCCC');
+            } elseif ($hari_lewat >= 15) {
+                $sheet->getStyle('A' . $r . ':I' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFF2CC');
+            }
+
+            $total_invoice_sum += $total_inv;
+            $total_bayar_sum += $total_bay;
+            $total_piutang_sum += $piutang;
+
+            $no++;
+            $r++;
+        }
+
+        // Baris total
+        $sheet->setCellValue('E' . $r, 'TOTAL');
+        $sheet->getStyle('E' . $r)->getFont()->setBold(true);
+
+        $sheet->setCellValueExplicit('G' . $r, $total_invoice_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('G' . $r)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('G' . $r)->getFont()->setBold(true);
+
+        $sheet->setCellValueExplicit('H' . $r, $total_bayar_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('H' . $r)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('H' . $r)->getFont()->setBold(true);
+
+        $sheet->setCellValueExplicit('I' . $r, $total_piutang_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('I' . $r)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('I' . $r)->getFont()->setBold(true);
+
+        // Border
+        $sheet->getStyle('A' . $rowHeader . ':I' . $r)->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+
+        // Output
+        $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+        ob_end_clean();
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="' . $filename . '"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit;
+    }
+
     public function export_excel()
     {
         // 1) Ambil parameter & data
