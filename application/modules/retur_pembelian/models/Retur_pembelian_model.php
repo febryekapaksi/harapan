@@ -370,15 +370,15 @@ class Retur_pembelian_model extends BF_Model
             $kode_barang = isset($d['kode_barang']) ? $d['kode_barang'] : $id_product;
 
             // Ambil stok SEBELUM update - coba berbagai cara lookup
-            $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $kode_barang])->row_array();
+            $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $kode_barang, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
             if (empty($stok_now)) {
-                $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $kode_barang])->row_array();
+                $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $kode_barang, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
             }
             if (empty($stok_now)) {
-                $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product])->row_array();
+                $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
             }
             if (empty($stok_now)) {
-                $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $id_product])->row_array();
+                $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $id_product, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
             }
 
             if (!$stok_now) {
@@ -459,9 +459,9 @@ class Retur_pembelian_model extends BF_Model
                 $id_product = $d['id_product'];
 
                 // Ambil stok SEBELUM update
-                $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product])->row_array();
+                $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_product, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
                 if (empty($stok_now)) {
-                    $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $id_product])->row_array();
+                    $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $id_product, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
                 }
 
                 if (!$stok_now) continue;
@@ -470,6 +470,8 @@ class Retur_pembelian_model extends BF_Model
                 $this->db->set('qty_stock', 'qty_stock + ' . $qty_retur, false);
                 $this->db->set('qty_free', 'qty_free + ' . $qty_retur, false);
                 $this->db->where('code_lv4', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->update('warehouse_stock');
 
                 // Insert kartu_stok

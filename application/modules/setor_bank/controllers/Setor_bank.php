@@ -326,6 +326,7 @@ class Setor_bank extends Admin_Controller
             // =========================
             if (!empty($detail)) {
                 foreach ($detail as &$d) {
+                    unset($d['created_at']);
                     $d['deleted_by'] = $this->auth->user_id();
                     $d['deleted_at'] = date('Y-m-d H:i:s');
                 }

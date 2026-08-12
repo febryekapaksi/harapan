@@ -52,7 +52,11 @@
                                 $row_t_target += $val;
                                 $grand_total_target[$bln_no] += $val;
                             ?>
-                                <td class="text-right"><?= number_format($val) ?></td>
+                                <td class="text-right">
+                                    <a href="<?= site_url('report_penagihan/export_detail?tahun=' . $tahun_pilih . '&bulan=' . $bln_no . '&id_sales=' . $s['id'] . '&tipe=target') ?>" title="Download detail Rencana Penagihan" style="color:inherit; text-decoration:underline; cursor:pointer;">
+                                        <?= number_format($val) ?>
+                                    </a>
+                                </td>
                             <?php endif; endforeach; ?>
                             <td class="text-right"><b><?= number_format($row_t_target) ?></b></td>
                         </tr>
@@ -68,7 +72,11 @@
                                 $row_t_realisasi += $val;
                                 $grand_total_realisasi[$bln_no] += $val;
                             ?>
-                                <td class="text-right"><?= number_format($val) ?></td>
+                                <td class="text-right">
+                                    <a href="<?= site_url('report_penagihan/export_detail?tahun=' . $tahun_pilih . '&bulan=' . $bln_no . '&id_sales=' . $s['id'] . '&tipe=realisasi') ?>" title="Download detail Realisasi Tagihan" style="color:inherit; text-decoration:underline; cursor:pointer;">
+                                        <?= number_format($val) ?>
+                                    </a>
+                                </td>
                             <?php endif; endforeach; ?>
                             <td class="text-right"><b><?= number_format($row_t_realisasi) ?></b></td>
                         </tr>
