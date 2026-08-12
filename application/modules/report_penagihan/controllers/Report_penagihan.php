@@ -331,11 +331,10 @@ class Report_penagihan extends Admin_Controller
             // Rencana Penagihan: invoice yang jatuh tempo <= akhir bulan dan masih punya piutang
             $akhir_bulan = date('Y-m-t', strtotime("$tahun-$bulan-01"));
 
-            $this->db->select("a.id_invoice as no_invoice, b.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang", false);
+            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang", false);
             $this->db->from('tr_invoice_sales a');
-            $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
-            $this->db->join('employee c', 'b.id_karyawan = c.id');
-            $this->db->where('c.id', $id_sales);
+            $this->db->join('master_customers b', 'a.id_customer = b.id_customer', 'left');
+            $this->db->where('b.id_karyawan', $id_sales);
             $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
             $this->db->where('a.piutang >', 0);
             $this->db->order_by('a.jatuh_tempo', 'ASC');
@@ -350,11 +349,10 @@ class Report_penagihan extends Admin_Controller
             $awal_bulan = "$tahun-" . str_pad($bulan, 2, '0', STR_PAD_LEFT) . "-01";
             $akhir_bulan = date('Y-m-t', strtotime($awal_bulan));
 
-            $this->db->select("a.id_invoice as no_invoice, b.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang", false);
+            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang", false);
             $this->db->from('tr_invoice_sales a');
-            $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
-            $this->db->join('employee c', 'b.id_karyawan = c.id');
-            $this->db->where('c.id', $id_sales);
+            $this->db->join('master_customers b', 'a.id_customer = b.id_customer', 'left');
+            $this->db->where('b.id_karyawan', $id_sales);
             $this->db->where("YEAR(a.jatuh_tempo) = " . (int)$tahun, null, false);
             $this->db->where("MONTH(a.jatuh_tempo) = " . (int)$bulan, null, false);
             $this->db->where('a.total_bayar >', 0);
