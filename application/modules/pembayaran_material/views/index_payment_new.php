@@ -52,6 +52,9 @@
 									if (file_exists('uploads/expense/' . $item->link_doc) && $item->link_doc !== '') {
 										echo '<a href="' . base_url('uploads/expense/' . $item->link_doc) . '" class="btn btn-sm btn-primary" style="margin-left: 5px;"><i class="fa fa-download"></i></a>';
 									}
+									if ($this->auth->is_admin()) {
+										echo '<button type="button" class="btn btn-sm btn-danger btn-cancel-payment" data-id="' . $item->id_payment . '" style="margin-left: 5px;" title="Batalkan Payment"><i class="fa fa-times"></i></button>';
+									}
 									echo '</td>';
 									echo '</tr>';
 
@@ -96,6 +99,9 @@
 									echo '<a href="' . base_url('pembayaran_material/view_payment_new/' . $item->id_payment) . '" target="_blank" class="btn btn-sm btn-info view" title="View Request Payment"><i class="fa fa-eye"></i></a>';
 									if (file_exists('uploads/expense/' . $item->link_doc) && $item->link_doc !== '') {
 										echo '<a href="' . base_url('uploads/expense/' . $item->link_doc) . '" class="btn btn-sm btn-primary" style="margin-left: 5px;"><i class="fa fa-download"></i></a>';
+									}
+									if ($this->auth->is_admin()) {
+										echo '<button type="button" class="btn btn-sm btn-danger btn-cancel-payment" data-id="' . $item->id_payment . '" style="margin-left: 5px;" title="Batalkan Payment"><i class="fa fa-times"></i></button>';
 									}
 									echo '</tr>';
 
@@ -181,5 +187,52 @@
 					});
 				}
 			}
+		});
+
+		$(document).on('click', '.btn-cancel-payment', function() {
+			var id_payment = $(this).data('id');
+			swal({
+				title: 'Konfirmasi Pembatalan',
+				text: 'Apakah Anda yakin ingin membatalkan payment ' + id_payment + '?',
+				type: 'warning',
+				showCancelButton: true,
+				confirmButtonColor: '#d33',
+				confirmButtonText: 'Ya, Batalkan!',
+				cancelButtonText: 'Tidak',
+				closeOnConfirm: false
+			}, function() {
+				$.ajax({
+					url: siteurl + active_controller + 'cancel_payment',
+					type: 'POST',
+					data: {
+						id_payment: id_payment
+					},
+					dataType: 'json',
+					success: function(response) {
+						if (response.status == true) {
+							swal({
+								title: 'Berhasil!',
+								text: response.message,
+								type: 'success'
+							}, function() {
+								location.reload();
+							});
+						} else {
+							swal({
+								title: 'Gagal!',
+								text: response.message,
+								type: 'error'
+							});
+						}
+					},
+					error: function() {
+						swal({
+							title: 'Error!',
+							text: 'Terjadi kesalahan, silahkan coba lagi.',
+							type: 'error'
+						});
+					}
+				});
+			});
 		});
 	</script>
