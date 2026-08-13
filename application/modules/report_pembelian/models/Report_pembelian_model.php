@@ -170,6 +170,8 @@ class Report_pembelian_model extends BF_Model
             $nestedData[] = $row['penerimaan_barang'] ?? '-';
             $nestedData[] = $row['faktur_pembelian'] ?? '-';
             $nestedData[] = $row['pembayaran_pembelian'] ?? '-';
+            $nestedData[] = !empty($row['term']) ? $row['term'] . ' Hari' : '-';
+            $nestedData[] = !empty($row['jatuh_tempo']) ? date('d-m-Y', strtotime($row['jatuh_tempo'])) : '-';
 
             $data[] = $nestedData;
             $urut++;
@@ -192,7 +194,9 @@ class Report_pembelian_model extends BF_Model
             2 => 'po.no_po',
             3 => 'ic.kode_trans',
             4 => 'inv.id',
-            5 => 'pa.id'
+            5 => 'pa.id',
+            6 => 'po.term',
+            7 => 'jatuh_tempo'
         ];
 
         // Bangun WHERE conditions secara manual agar bisa dipakai di COUNT dan data query
@@ -259,7 +263,9 @@ class Report_pembelian_model extends BF_Model
             ic.kode_trans      AS penerimaan_barang,
             inv.id             AS faktur_pembelian,
             pa.id              AS pembayaran_pembelian,
-            po.tanggal         AS tgl_po
+            po.tanggal         AS tgl_po,
+            po.term            AS term,
+            DATE_ADD(ic.tanggal, INTERVAL po.term DAY) AS jatuh_tempo
         {$base_from}
         {$where_sql}
         {$order_sql}
@@ -292,8 +298,10 @@ class Report_pembelian_model extends BF_Model
         ic.kode_trans as penerimaan_barang,
         inv.id as faktur_pembelian,
         pa.id as pembayaran_pembelian,
-        po.tanggal as tgl_po
-    ');
+        po.tanggal as tgl_po,
+        po.term as term,
+        DATE_ADD(ic.tanggal, INTERVAL po.term DAY) as jatuh_tempo
+    ', FALSE);
 
         // KUNCI: false untuk menghindari error syntax 1064
         $this->db->from($subquery_pr, false);
