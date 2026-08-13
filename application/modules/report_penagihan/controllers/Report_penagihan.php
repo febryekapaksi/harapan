@@ -296,6 +296,275 @@ class Report_penagihan extends Admin_Controller
     }
 
     /**
+     * Export Report Late & Bad Debt Per Sales
+     * Menampilkan data piutang, target late debt (5%), target bad debt (1%)
+     * serta piutang berumur 15-30 hari dan > 30 hari per sales per bulan
+     */
+    public function export_debt()
+    {
+        $tahun = $this->input->get('tahun') ?? date('Y');
+        $bulan_sekarang = (int) date('n');
+        $tahun_sekarang = (int) date('Y');
+
+        // 1. Ambil Data Sales & Bulan
+        $sales = $this->db->where('department', '2')->get('employee')->result_array();
+        $bulan = $this->db->order_by('bulan_no', 'asc')->get('cr_bulan')->result_array();
+
+        // 2. Hitung data per sales per bulan
+        $rekap_piutang = [];        // Total piutang per akhir bulan
+        $rekap_piutang_15_30 = [];  // Piutang berumur 15-30 hari
+        $rekap_piutang_30 = [];     // Piutang berumur > 30 hari
+
+        foreach ($sales as $s) {
+            for ($m = 1; $m <= 12; $m++) {
+                if ($tahun == $tahun_sekarang && $m > $bulan_sekarang) {
+                    continue;
+                }
+                $akhir_bulan = date('Y-m-t', strtotime("$tahun-$m-01"));
+
+                // Total piutang per akhir bulan
+                $this->db->select("SUM(a.piutang) as total_piutang", false);
+                $this->db->from('tr_invoice_sales a');
+                $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+                $this->db->join('employee c', 'b.id_karyawan = c.id');
+                $this->db->where('c.id', $s['id']);
+                $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
+                $this->db->where('a.piutang >', 0);
+                $result = $this->db->get()->row_array();
+                $rekap_piutang[$s['id']][$m] = (float)($result['total_piutang'] ?? 0);
+
+                // Piutang berumur 15-30 hari (selisih akhir_bulan - jatuh_tempo antara 15 dan 30)
+                $this->db->select("SUM(a.piutang) as total_piutang", false);
+                $this->db->from('tr_invoice_sales a');
+                $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+                $this->db->join('employee c', 'b.id_karyawan = c.id');
+                $this->db->where('c.id', $s['id']);
+                $this->db->where('a.piutang >', 0);
+                $this->db->where("DATEDIFF('$akhir_bulan', a.jatuh_tempo) >= 15", null, false);
+                $this->db->where("DATEDIFF('$akhir_bulan', a.jatuh_tempo) <= 30", null, false);
+                $result = $this->db->get()->row_array();
+                $rekap_piutang_15_30[$s['id']][$m] = (float)($result['total_piutang'] ?? 0);
+
+                // Piutang berumur > 30 hari
+                $this->db->select("SUM(a.piutang) as total_piutang", false);
+                $this->db->from('tr_invoice_sales a');
+                $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+                $this->db->join('employee c', 'b.id_karyawan = c.id');
+                $this->db->where('c.id', $s['id']);
+                $this->db->where('a.piutang >', 0);
+                $this->db->where("DATEDIFF('$akhir_bulan', a.jatuh_tempo) > 30", null, false);
+                $result = $this->db->get()->row_array();
+                $rekap_piutang_30[$s['id']][$m] = (float)($result['total_piutang'] ?? 0);
+            }
+        }
+
+        // 3. Setup PHPExcel
+        set_time_limit(0);
+        ini_set('memory_limit', '1024M');
+        $this->load->library('PHPExcel');
+        PHPExcel_Cell::setValueBinder(new PHPExcel_Cell_AdvancedValueBinder());
+
+        $xls   = new PHPExcel();
+        $sheet = $xls->getActiveSheet();
+
+        $sheet->setCellValue('A1', 'REPORT LATE & BAD DEBT PER SALES - TAHUN ' . $tahun);
+        $sheet->mergeCells('A1:O2');
+        $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+        // 4. Header Tabel
+        $headers = ['A' => 'Nama Sales', 'B' => 'Keterangan'];
+        $col = 'C';
+        foreach ($bulan as $b) {
+            $headers[$col] = substr($b['bulan'], 0, 3);
+            $col++;
+        }
+        $headers['O'] = 'T Score';
+
+        $rowHeader = 4;
+        foreach ($headers as $c => $label) {
+            $sheet->setCellValue($c . $rowHeader, $label);
+            $sheet->getColumnDimension($c)->setAutoSize(true);
+            $sheet->getStyle($c . $rowHeader)->getFont()->setBold(true);
+            $sheet->getStyle($c . $rowHeader)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        }
+
+        // Target persentase
+        $pct_late = 0.05; // 5%
+        $pct_bad  = 0.01; // 1%
+
+        // 5. Isi Data Per Sales (7 baris per sales)
+        $r = $rowHeader + 1;
+
+        foreach ($sales as $s) {
+            $start_row = $r;
+
+            // Merge Nama Sales (7 baris)
+            $sheet->setCellValue('A' . $r, strtoupper($s['nm_karyawan']));
+            $sheet->mergeCells('A' . $r . ':A' . ($r + 6));
+            $sheet->getStyle('A' . $r)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
+
+            // --- Baris 1: Total piutang per akhir bulan ---
+            $sheet->setCellValue('B' . $r, 'Total piutang per akhir bulan');
+            $c = 'C';
+            $row_total = 0;
+            foreach ($bulan as $b) {
+                $bln_no = (int)$b['bulan_no'];
+                if ($tahun == $tahun_sekarang && $bln_no > $bulan_sekarang) {
+                    $sheet->setCellValue($c . $r, '-');
+                    $sheet->getStyle($c . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                } else {
+                    $val = (float)($rekap_piutang[$s['id']][$bln_no] ?? 0);
+                    $sheet->setCellValueExplicit($c . $r, $val, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                    $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('#,##0');
+                    $row_total += $val;
+                }
+                $c++;
+            }
+            $sheet->setCellValueExplicit('O' . $r, $row_total, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            // --- Baris 2: Target % late debt ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Target % late debt');
+            $c = 'C';
+            foreach ($bulan as $b) {
+                $bln_no = (int)$b['bulan_no'];
+                if ($tahun == $tahun_sekarang && $bln_no > $bulan_sekarang) {
+                    $sheet->setCellValue($c . $r, '-');
+                    $sheet->getStyle($c . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                } else {
+                    $sheet->setCellValue($c . $r, '5,00%');
+                    $sheet->getStyle($c . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                }
+                $c++;
+            }
+            $sheet->setCellValue('O' . $r, '5,00%');
+            $sheet->getStyle('O' . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+            // --- Baris 3: Target amount late debt (amount) - KUNING ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Target amount late debt (amount)');
+            $c = 'C';
+            $row_total = 0;
+            foreach ($bulan as $b) {
+                $bln_no = (int)$b['bulan_no'];
+                if ($tahun == $tahun_sekarang && $bln_no > $bulan_sekarang) {
+                    $sheet->setCellValue($c . $r, '-');
+                    $sheet->getStyle($c . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                } else {
+                    $val = (float)($rekap_piutang[$s['id']][$bln_no] ?? 0) * $pct_late;
+                    $sheet->setCellValueExplicit($c . $r, $val, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                    $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('#,##0');
+                    $row_total += $val;
+                }
+                $c++;
+            }
+            $sheet->setCellValueExplicit('O' . $r, $row_total, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
+            // Warna kuning
+            $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
+
+            // --- Baris 4: Total piutang berumur 15-30 hari ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Total piutang berumur 15-30 hari');
+            $c = 'C';
+            $row_total = 0;
+            foreach ($bulan as $b) {
+                $bln_no = (int)$b['bulan_no'];
+                if ($tahun == $tahun_sekarang && $bln_no > $bulan_sekarang) {
+                    $sheet->setCellValue($c . $r, '-');
+                    $sheet->getStyle($c . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                } else {
+                    $val = (float)($rekap_piutang_15_30[$s['id']][$bln_no] ?? 0);
+                    $sheet->setCellValueExplicit($c . $r, $val, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                    $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('#,##0');
+                    $row_total += $val;
+                }
+                $c++;
+            }
+            $sheet->setCellValueExplicit('O' . $r, $row_total, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            // --- Baris 5: Target bad debt % ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Target bad debt %');
+            $c = 'C';
+            foreach ($bulan as $b) {
+                $bln_no = (int)$b['bulan_no'];
+                if ($tahun == $tahun_sekarang && $bln_no > $bulan_sekarang) {
+                    $sheet->setCellValue($c . $r, '-');
+                    $sheet->getStyle($c . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                } else {
+                    $sheet->setCellValue($c . $r, '1,00%');
+                    $sheet->getStyle($c . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                }
+                $c++;
+            }
+            $sheet->setCellValue('O' . $r, '1,00%');
+            $sheet->getStyle('O' . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+            // --- Baris 6: Target amount bad debt (amount) - KUNING ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Target amount bad debt (amount)');
+            $c = 'C';
+            $row_total = 0;
+            foreach ($bulan as $b) {
+                $bln_no = (int)$b['bulan_no'];
+                if ($tahun == $tahun_sekarang && $bln_no > $bulan_sekarang) {
+                    $sheet->setCellValue($c . $r, '-');
+                    $sheet->getStyle($c . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                } else {
+                    $val = (float)($rekap_piutang[$s['id']][$bln_no] ?? 0) * $pct_bad;
+                    $sheet->setCellValueExplicit($c . $r, $val, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                    $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('#,##0');
+                    $row_total += $val;
+                }
+                $c++;
+            }
+            $sheet->setCellValueExplicit('O' . $r, $row_total, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
+            // Warna kuning
+            $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
+
+            // --- Baris 7: Total piutang berumur > 30 hari ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Total piutang berumur > 30 hari');
+            $c = 'C';
+            $row_total = 0;
+            foreach ($bulan as $b) {
+                $bln_no = (int)$b['bulan_no'];
+                if ($tahun == $tahun_sekarang && $bln_no > $bulan_sekarang) {
+                    $sheet->setCellValue($c . $r, '-');
+                    $sheet->getStyle($c . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+                } else {
+                    $val = (float)($rekap_piutang_30[$s['id']][$bln_no] ?? 0);
+                    $sheet->setCellValueExplicit($c . $r, $val, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                    $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('#,##0');
+                    $row_total += $val;
+                }
+                $c++;
+            }
+            $sheet->setCellValueExplicit('O' . $r, $row_total, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            $r++;
+        }
+
+        // 6. Styling Akhir
+        $sheet->getStyle('A4:O' . ($r - 1))->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+
+        // 7. Output
+        $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
+        ob_end_clean();
+        header('Content-Type: application/vnd.ms-excel');
+        header('Content-Disposition: attachment;filename="Report_Late_Bad_Debt_' . $tahun . '.xls"');
+        header('Cache-Control: max-age=0');
+        $writer->save('php://output');
+        exit;
+    }
+
+    /**
      * Export Detail Excel per Sales per Bulan
      * Untuk keperluan rekonsiliasi data Rencana Tagihan vs Realisasi Tagihan
      * 
@@ -486,9 +755,7 @@ class Report_penagihan extends Admin_Controller
         $sheet->setCellValue('E' . $r, 'TOTAL');
         $sheet->getStyle('E' . $r)->getFont()->setBold(true);
 
-        $sheet->setCellValueExplicit('F' . $r, $total_invoice_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-        $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0');
-        $sheet->getStyle('F' . $r)->getFont()->setBold(true);
+        $sheet->setCellValue('F' . $r, '');
 
         $sheet->setCellValue('G' . $r, '');
         $sheet->setCellValue('H' . $r, '');
@@ -497,9 +764,7 @@ class Report_penagihan extends Admin_Controller
         $sheet->getStyle('I' . $r)->getNumberFormat()->setFormatCode('#,##0');
         $sheet->getStyle('I' . $r)->getFont()->setBold(true);
 
-        $sheet->setCellValueExplicit('J' . $r, $total_piutang_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-        $sheet->getStyle('J' . $r)->getNumberFormat()->setFormatCode('#,##0');
-        $sheet->getStyle('J' . $r)->getFont()->setBold(true);
+        $sheet->setCellValue('J' . $r, '');
 
         $sheet->setCellValue('K' . $r, '');
         $sheet->setCellValue('L' . $r, '');
