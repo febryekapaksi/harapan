@@ -39,8 +39,13 @@
                             foreach ($bulan as $b):
                                 $val = $realisasi[$s['id']][$b['bulan_no']]['total_piutang'] ?? 0;
                                 $t_piutang += $val;
+                                $bln_no = $b['bulan_no'];
                             ?>
-                                <td class="text-right"><?= number_format($val) ?></td>
+                                <td class="text-right">
+                                    <a href="<?= site_url('report_debt/export_detail?tahun=' . $tahun_pilih . '&bulan=' . $bln_no . '&id_sales=' . $s['id'] . '&tipe=total') ?>" title="Download detail total piutang" style="color:inherit; text-decoration:underline; cursor:pointer;">
+                                        <?= number_format($val) ?>
+                                    </a>
+                                </td>
                             <?php endforeach; ?>
                             <td class="text-right"><b><?= number_format($t_piutang) ?></b></td>
                         </tr>
@@ -59,8 +64,13 @@
                             foreach ($bulan as $b):
                                 $val = $realisasi[$s['id']][$b['bulan_no']]['aging_15_30'] ?? 0;
                                 $t_1530 += $val;
+                                $bln_no = $b['bulan_no'];
                             ?>
-                                <td class="text-right"><?= number_format($val) ?></td>
+                                <td class="text-right">
+                                    <a href="<?= site_url('report_debt/export_detail?tahun=' . $tahun_pilih . '&bulan=' . $bln_no . '&id_sales=' . $s['id'] . '&tipe=late') ?>" title="Download detail late debt (15-30 hari)" style="color:inherit; text-decoration:underline; cursor:pointer;">
+                                        <?= number_format($val) ?>
+                                    </a>
+                                </td>
                             <?php endforeach; ?>
                             <td class="text-right"><?= number_format($t_1530) ?></td>
                         </tr>
@@ -79,8 +89,13 @@
                             foreach ($bulan as $b):
                                 $val = $realisasi[$s['id']][$b['bulan_no']]['aging_30_up'] ?? 0;
                                 $t_30up += $val;
+                                $bln_no = $b['bulan_no'];
                             ?>
-                                <td class="text-right"><?= number_format($val) ?></td>
+                                <td class="text-right">
+                                    <a href="<?= site_url('report_debt/export_detail?tahun=' . $tahun_pilih . '&bulan=' . $bln_no . '&id_sales=' . $s['id'] . '&tipe=bad') ?>" title="Download detail bad debt (> 30 hari)" style="color:inherit; text-decoration:underline; cursor:pointer;">
+                                        <?= number_format($val) ?>
+                                    </a>
+                                </td>
                             <?php endforeach; ?>
                             <td class="text-right"><?= number_format($t_30up) ?></td>
                         </tr>
