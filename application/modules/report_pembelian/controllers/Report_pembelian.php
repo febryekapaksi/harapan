@@ -108,8 +108,8 @@ class Report_pembelian extends Admin_Controller
         // Judul & Periode
         // =========================
         $sheet->setCellValue('A1', 'LAPORAN HISTORI PROSES PEMBELIAN');
-        $sheet->mergeCells('A1:F1');
-        $sheet->getStyle('A1:F1')->applyFromArray($styleTitle);
+        $sheet->mergeCells('A1:H1');
+        $sheet->getStyle('A1:H1')->applyFromArray($styleTitle);
 
         $periodeText = 'Periode PO: ';
         if (!empty($tgl_dari) && !empty($tgl_sampai)) {
@@ -118,7 +118,7 @@ class Report_pembelian extends Admin_Controller
             $periodeText .= 'Semua';
         }
         $sheet->setCellValue('A2', $periodeText);
-        $sheet->mergeCells('A2:F2');
+        $sheet->mergeCells('A2:H2');
 
         // =========================
         // Header Kolom (Baris 4)
@@ -129,7 +129,9 @@ class Report_pembelian extends Admin_Controller
             'C' => 'Pesanan Pembelian (PO)',
             'D' => 'Penerimaan Barang',
             'E' => 'Faktur Pembelian',
-            'F' => 'Pembayaran Pembelian'
+            'F' => 'Pembayaran Pembelian',
+            'G' => 'Term (Hari)',
+            'H' => 'Jatuh Tempo'
         ];
 
         $rowHeader = 4;
@@ -165,12 +167,14 @@ class Report_pembelian extends Admin_Controller
             $sheet->setCellValueExplicit("D{$rowNum}", (string)($row->penerimaan_barang ?? '-'), PHPExcel_Cell_DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("E{$rowNum}", (string)($row->faktur_pembelian ?? '-'), PHPExcel_Cell_DataType::TYPE_STRING);
             $sheet->setCellValueExplicit("F{$rowNum}", (string)($row->pembayaran_pembelian ?? '-'), PHPExcel_Cell_DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("G{$rowNum}", (string)(!empty($row->term) ? $row->term . ' Hari' : '-'), PHPExcel_Cell_DataType::TYPE_STRING);
+            $sheet->setCellValueExplicit("H{$rowNum}", (string)(!empty($row->jatuh_tempo) ? date('d-m-Y', strtotime($row->jatuh_tempo)) : '-'), PHPExcel_Cell_DataType::TYPE_STRING);
 
             // Apply style body
-            $sheet->getStyle("A{$rowNum}:F{$rowNum}")->applyFromArray($tableBody);
+            $sheet->getStyle("A{$rowNum}:H{$rowNum}")->applyFromArray($tableBody);
 
             // Alignment center untuk nomor dan kolom dokumen
-            $sheet->getStyle("A{$rowNum}:F{$rowNum}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("A{$rowNum}:H{$rowNum}")->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
 
             $rowNum++;
         }
