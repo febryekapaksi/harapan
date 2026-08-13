@@ -331,7 +331,7 @@ class Report_penagihan extends Admin_Controller
             // Rencana Penagihan: invoice yang jatuh tempo <= akhir bulan dan masih punya piutang
             $akhir_bulan = date('Y-m-t', strtotime("$tahun-$bulan-01"));
 
-            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang, p.tgl_pembayaran as tanggal_bayar, pd.kd_pembayaran as no_penerimaan", false);
+            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, pd.total_bayar_idr as total_bayar, a.piutang, p.tgl_pembayaran as tanggal_bayar, pd.kd_pembayaran as no_penerimaan", false);
             $this->db->from('tr_invoice_sales a');
             $this->db->join('master_customers b', 'a.id_customer = b.id_customer', 'left');
             $this->db->join('tr_invoice_payment_detail pd', 'pd.no_invoice = a.id_invoice', 'left');
@@ -351,7 +351,7 @@ class Report_penagihan extends Admin_Controller
             $awal_bulan = "$tahun-" . str_pad($bulan, 2, '0', STR_PAD_LEFT) . "-01";
             $akhir_bulan = date('Y-m-t', strtotime($awal_bulan));
 
-            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang, p.tgl_pembayaran as tanggal_bayar, pd.kd_pembayaran as no_penerimaan", false);
+            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, pd.total_bayar_idr as total_bayar, a.piutang, p.tgl_pembayaran as tanggal_bayar, pd.kd_pembayaran as no_penerimaan", false);
             $this->db->from('tr_invoice_sales a');
             $this->db->join('master_customers b', 'a.id_customer = b.id_customer', 'left');
             $this->db->join('tr_invoice_payment_detail pd', 'pd.no_invoice = a.id_invoice', 'left');
