@@ -15,11 +15,6 @@
                         <i class="fa fa-file-excel-o"></i> Export Excel
                     </a>
                 </div>
-                <div class="col-md-3" style="margin-top: 25px;">
-                    <a target="_blank" href="<?= base_url($this->uri->segment(1) . '/export_debt?tahun=' . $tahun_pilih) ?>" class="btn btn-warning btn-sm">
-                        <i class="fa fa-file-excel-o"></i> Report Late & Bad Debt
-                    </a>
-                </div>
             </form>
         </div>
 

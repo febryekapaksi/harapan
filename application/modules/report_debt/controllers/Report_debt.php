@@ -310,7 +310,7 @@ class Report_debt extends Admin_Controller
         foreach ($sales as $s) {
             // Styling Nama Sales
             $sheet->setCellValue('A' . $r, strtoupper($s['nm_karyawan']));
-            $sheet->mergeCells('A' . $r . ':A' . ($r + 4));
+            $sheet->mergeCells('A' . $r . ':A' . ($r + 6));
             $sheet->getStyle('A' . $r)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
             // --- BARIS 1: TOTAL PIUTANG ---
@@ -320,7 +320,7 @@ class Report_debt extends Admin_Controller
             foreach ($bulan as $b) {
                 $val = (float)($rekap_realisasi[$s['id']][$b['bulan_no']]['total_piutang'] ?? 0);
                 $sheet->setCellValueExplicit($c . $r, $val, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-                $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('#,##0'); // Format Ribuan
+                $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('#,##0');
                 $t_piutang += $val;
                 $c++;
             }
@@ -330,17 +330,35 @@ class Report_debt extends Admin_Controller
             // --- BARIS 2: TARGET % LATE (WARNA BIRU MUDA) ---
             $r++;
             $sheet->setCellValue('B' . $r, 'Target % late debt');
-            // Set Background Warna Biru Muda
             $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('D9EAF7');
             $c = 'C';
             foreach ($bulan as $b) {
                 $p_late = (float)($rekap_target[$s['id']][$b['bulan_no']]['late_p'] ?? 0);
                 $sheet->setCellValueExplicit($c . $r, $p_late / 100, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-                $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('0.00%'); // Format Persen
+                $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('0.00%');
                 $c++;
             }
 
-            // --- BARIS 3: AGING 15-30 ---
+            // --- BARIS 3: TARGET AMOUNT LATE DEBT (KUNING) ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Target amount late debt (amount)');
+            $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
+            $sheet->getStyle('B' . $r . ':O' . $r)->getFont()->setBold(true);
+            $t_late_amount = 0;
+            $c = 'C';
+            foreach ($bulan as $b) {
+                $piutang_bln = (float)($rekap_realisasi[$s['id']][$b['bulan_no']]['total_piutang'] ?? 0);
+                $p_late = (float)($rekap_target[$s['id']][$b['bulan_no']]['late_p'] ?? 0);
+                $val = $piutang_bln * ($p_late / 100);
+                $sheet->setCellValueExplicit($c . $r, $val, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('#,##0');
+                $t_late_amount += $val;
+                $c++;
+            }
+            $sheet->setCellValueExplicit('O' . $r, (float)$t_late_amount, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            // --- BARIS 4: AGING 15-30 ---
             $r++;
             $sheet->setCellValue('B' . $r, 'Total piutang berumur 15-30 hari');
             $t_1530 = 0;
@@ -355,10 +373,9 @@ class Report_debt extends Admin_Controller
             $sheet->setCellValueExplicit('O' . $r, (float)$t_1530, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
 
-            // --- BARIS 4: TARGET % BAD (WARNA BIRU MUDA) ---
+            // --- BARIS 5: TARGET % BAD (WARNA BIRU MUDA) ---
             $r++;
             $sheet->setCellValue('B' . $r, 'Target bad debt %');
-            // Set Background Warna Biru Muda
             $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('D9EAF7');
             $c = 'C';
             foreach ($bulan as $b) {
@@ -368,7 +385,26 @@ class Report_debt extends Admin_Controller
                 $c++;
             }
 
-            // --- BARIS 5: AGING >30 ---
+            // --- BARIS 6: TARGET AMOUNT BAD DEBT (KUNING) ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Target amount bad debt (amount)');
+            $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
+            $sheet->getStyle('B' . $r . ':O' . $r)->getFont()->setBold(true);
+            $t_bad_amount = 0;
+            $c = 'C';
+            foreach ($bulan as $b) {
+                $piutang_bln = (float)($rekap_realisasi[$s['id']][$b['bulan_no']]['total_piutang'] ?? 0);
+                $p_bad = (float)($rekap_target[$s['id']][$b['bulan_no']]['bad_p'] ?? 0);
+                $val = $piutang_bln * ($p_bad / 100);
+                $sheet->setCellValueExplicit($c . $r, $val, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('#,##0');
+                $t_bad_amount += $val;
+                $c++;
+            }
+            $sheet->setCellValueExplicit('O' . $r, (float)$t_bad_amount, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            // --- BARIS 7: AGING >30 ---
             $r++;
             $sheet->setCellValue('B' . $r, 'Total piutang berumur > 30 hari');
             $t_30up = 0;
@@ -383,7 +419,7 @@ class Report_debt extends Admin_Controller
             $sheet->setCellValueExplicit('O' . $r, (float)$t_30up, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
 
-            $r++; // Spasi untuk sales berikutnya
+            $r++;
         }
 
         // Tambahkan Border untuk semua data yang terisi
