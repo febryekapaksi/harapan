@@ -318,41 +318,74 @@ class Report_penagihan extends Admin_Controller
             'tahun'       => $tahun
         ])->row();
 
-        // Hitung target dari data report
+        // Hitung target & pencapaian dari data report
         $akhir_bulan = date('Y-m-t', strtotime("$tahun-$bulan-01"));
+        $awal_bulan = "$tahun-" . str_pad($bulan, 2, '0', STR_PAD_LEFT) . "-01";
 
-        // Target Tagihan On Time = Rencana Penagihan (piutang jatuh tempo <= akhir bulan)
-        $this->db->select("SUM(a.piutang) as target_tagihan", false);
+        // 1. Target Tagihan Ontime = total piutang yang jatuh tempo di bulan berjalan s/d 15 hari lewat dari jatuh tempo
+        // (DATEDIFF(akhir_bulan, jatuh_tempo) <= 15 DAN jatuh_tempo <= akhir_bulan)
+        $this->db->select("SUM(a.piutang) as total", false);
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
         $this->db->join('employee c', 'b.id_karyawan = c.id');
         $this->db->where('c.id', $id_sales);
-        $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
         $this->db->where('a.piutang >', 0);
+        $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
+        $this->db->where("DATEDIFF('$akhir_bulan', a.jatuh_tempo) <= 15", null, false);
         $result = $this->db->get()->row_array();
-        $target_ontime = (float)($result['target_tagihan'] ?? 0);
+        $target_ontime = (float)($result['total'] ?? 0);
 
-        // Realisasi Tagihan
-        $this->db->select("SUM(a.total_bayar) as total_realisasi", false);
+        // 2. Target Tagihan Tunggakan = total piutang sudah lewat 16 hari dari jatuh tempo (bad debt)
+        $this->db->select("SUM(a.piutang) as total", false);
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
         $this->db->join('employee c', 'b.id_karyawan = c.id');
         $this->db->where('c.id', $id_sales);
-        $this->db->where('YEAR(a.jatuh_tempo)', $tahun);
-        $this->db->where('MONTH(a.jatuh_tempo)', $bulan);
+        $this->db->where('a.piutang >', 0);
+        $this->db->where("DATEDIFF('$akhir_bulan', a.jatuh_tempo) > 15", null, false);
         $result = $this->db->get()->row_array();
-        $realisasi_ontime = (float)($result['total_realisasi'] ?? 0);
+        $target_tunggakan = (float)($result['total'] ?? 0);
+
+        // 3. Pencapaian Tagihan Ontime = uang masuk di bulan berjalan, umur invoice <= 15 hari lewat jatuh tempo
+        $this->db->select("SUM(pd.total_bayar_idr) as total", false);
+        $this->db->from('tr_invoice_payment_detail pd');
+        $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = pd.kd_pembayaran');
+        $this->db->join('tr_invoice_sales a', 'a.id_invoice = pd.no_invoice');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('p.tgl_pembayaran >=', $awal_bulan);
+        $this->db->where('p.tgl_pembayaran <=', $akhir_bulan);
+        $this->db->where("DATEDIFF(p.tgl_pembayaran, a.jatuh_tempo) <= 15", null, false);
+        $result = $this->db->get()->row_array();
+        $realisasi_ontime = (float)($result['total'] ?? 0);
+
+        // 4. Pencapaian Tagihan Tunggakan = uang masuk, umur invoice > 15 hari lewat jatuh tempo
+        $this->db->select("SUM(pd.total_bayar_idr) as total", false);
+        $this->db->from('tr_invoice_payment_detail pd');
+        $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = pd.kd_pembayaran');
+        $this->db->join('tr_invoice_sales a', 'a.id_invoice = pd.no_invoice');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('p.tgl_pembayaran >=', $awal_bulan);
+        $this->db->where('p.tgl_pembayaran <=', $akhir_bulan);
+        $this->db->where("DATEDIFF(p.tgl_pembayaran, a.jatuh_tempo) > 15", null, false);
+        $result = $this->db->get()->row_array();
+        $realisasi_tunggakan = (float)($result['total'] ?? 0);
 
         $data = [
-            'id_sales'         => $id_sales,
-            'nama_sales'       => $nama_sales,
-            'bulan'            => $bulan,
-            'bulan_id'         => $bulan_id,
-            'nama_bulan'       => $nama_bulan,
-            'tahun'            => $tahun,
-            'komisi'           => $komisi,
-            'target_ontime'    => $target_ontime,
-            'realisasi_ontime' => $realisasi_ontime,
+            'id_sales'             => $id_sales,
+            'nama_sales'           => $nama_sales,
+            'bulan'                => $bulan,
+            'bulan_id'             => $bulan_id,
+            'nama_bulan'           => $nama_bulan,
+            'tahun'                => $tahun,
+            'komisi'               => $komisi,
+            'target_ontime'        => $target_ontime,
+            'realisasi_ontime'     => $realisasi_ontime,
+            'target_tunggakan'     => $target_tunggakan,
+            'realisasi_tunggakan'  => $realisasi_tunggakan,
         ];
 
         $this->load->view('form_komisi', $data);
