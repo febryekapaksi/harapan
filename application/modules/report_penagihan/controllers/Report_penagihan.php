@@ -447,6 +447,7 @@ class Report_penagihan extends Admin_Controller
             if ($row['no_invoice'] !== $prev_invoice) {
                 $sheet->setCellValueExplicit('J' . $r, $piutang, PHPExcel_Cell_DataType::TYPE_NUMERIC);
                 $sheet->getStyle('J' . $r)->getNumberFormat()->setFormatCode('#,##0');
+                $total_piutang_sum += $piutang;
             } else {
                 $sheet->setCellValue('J' . $r, '');
             }
@@ -504,7 +505,9 @@ class Report_penagihan extends Admin_Controller
         $sheet->getStyle('I' . $r)->getNumberFormat()->setFormatCode('#,##0');
         $sheet->getStyle('I' . $r)->getFont()->setBold(true);
 
-        $sheet->setCellValue('J' . $r, '');
+        $sheet->setCellValueExplicit('J' . $r, $total_piutang_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('J' . $r)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('J' . $r)->getFont()->setBold(true);
 
         $sheet->setCellValue('K' . $r, '');
         $sheet->setCellValue('L' . $r, '');
