@@ -557,20 +557,49 @@ class Report_penagihan extends Admin_Controller
             }
             $prev_invoice = $row['no_invoice'];
 
-            // Selisih tanggal jatuh tempo dengan tanggal bayar
+            // Selisih & status On Time / Nunggakan
             $selisih_hari = '';
             $status_ontime = '';
-            if (!empty($tanggal_bayar) && !empty($row['jatuh_tempo'])) {
-                $date_jatuh_tempo = new DateTime($row['jatuh_tempo']);
-                $date_bayar = new DateTime($tanggal_bayar);
-                $diff = $date_jatuh_tempo->diff($date_bayar);
-                // Positif = bayar setelah jatuh tempo (terlambat), Negatif = bayar sebelum jatuh tempo
-                $selisih_hari = ($date_bayar > $date_jatuh_tempo) ? $diff->days : -$diff->days;
-                
-                if ($date_bayar <= $date_jatuh_tempo) {
-                    $status_ontime = 'On Time';
-                } else {
-                    $status_ontime = 'Nunggakan';
+
+            if ($tipe == 'target') {
+                // Untuk Rencana Penagihan: bandingkan jatuh tempo vs hari ini
+                if (!empty($row['jatuh_tempo'])) {
+                    $date_jatuh_tempo = new DateTime($row['jatuh_tempo']);
+                    $date_today = new DateTime(date('Y-m-d'));
+
+                    // Jika jatuh tempo masih di bulan & tahun ini → On Time
+                    if ($date_jatuh_tempo->format('Y') == $date_today->format('Y') && $date_jatuh_tempo->format('m') == $date_today->format('m')) {
+                        $selisih_hari = 0;
+                        $status_ontime = 'On Time';
+                    } elseif ($date_jatuh_tempo < $date_today) {
+                        // Jatuh tempo sudah lewat dari hari ini
+                        $diff = $date_today->diff($date_jatuh_tempo);
+                        $selisih_hari = $diff->days;
+
+                        if ($selisih_hari <= 15) {
+                            $status_ontime = 'On Time';
+                        } else {
+                            $status_ontime = 'Nunggakan';
+                        }
+                    } else {
+                        // Jatuh tempo belum lewat
+                        $selisih_hari = 0;
+                        $status_ontime = 'On Time';
+                    }
+                }
+            } else {
+                // Untuk Realisasi Tagihan: bandingkan tanggal bayar vs jatuh tempo
+                if (!empty($tanggal_bayar) && !empty($row['jatuh_tempo'])) {
+                    $date_jatuh_tempo = new DateTime($row['jatuh_tempo']);
+                    $date_bayar = new DateTime($tanggal_bayar);
+                    $diff = $date_jatuh_tempo->diff($date_bayar);
+                    $selisih_hari = ($date_bayar > $date_jatuh_tempo) ? $diff->days : -$diff->days;
+
+                    if ($date_bayar <= $date_jatuh_tempo) {
+                        $status_ontime = 'On Time';
+                    } else {
+                        $status_ontime = 'Nunggakan';
+                    }
                 }
             }
             $sheet->setCellValue('K' . $r, $selisih_hari);
