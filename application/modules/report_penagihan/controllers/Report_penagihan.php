@@ -321,9 +321,10 @@ class Report_penagihan extends Admin_Controller
         // Hitung target & pencapaian dari data report
         $akhir_bulan = date('Y-m-t', strtotime("$tahun-$bulan-01"));
         $awal_bulan = "$tahun-" . str_pad($bulan, 2, '0', STR_PAD_LEFT) . "-01";
+        $today = date('Y-m-d');
 
-        // 1. Target Tagihan Ontime = total piutang yang jatuh tempo di bulan berjalan s/d 15 hari lewat dari jatuh tempo
-        // (DATEDIFF(akhir_bulan, jatuh_tempo) <= 15 DAN jatuh_tempo <= akhir_bulan)
+        // 1. Target Tagihan Ontime = piutang yang jatuh tempo masih di bulan ini ATAU sudah lewat <= 15 hari dari hari ini
+        // Sama dengan logika ringkasan: invoice yang statusnya "On Time"
         $this->db->select("SUM(a.piutang) as total", false);
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
@@ -331,18 +332,24 @@ class Report_penagihan extends Admin_Controller
         $this->db->where('c.id', $id_sales);
         $this->db->where('a.piutang >', 0);
         $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
-        $this->db->where("DATEDIFF('$akhir_bulan', a.jatuh_tempo) <= 15", null, false);
+        $this->db->where("(
+            (YEAR(a.jatuh_tempo) = YEAR('$today') AND MONTH(a.jatuh_tempo) = MONTH('$today'))
+            OR (a.jatuh_tempo >= '$today')
+            OR (DATEDIFF('$today', a.jatuh_tempo) <= 15)
+        )", null, false);
         $result = $this->db->get()->row_array();
         $target_ontime = (float)($result['total'] ?? 0);
 
-        // 2. Target Tagihan Tunggakan = total piutang sudah lewat 16 hari dari jatuh tempo (bad debt)
+        // 2. Target Tagihan Tunggakan = piutang yang sudah lewat > 15 hari dari hari ini
         $this->db->select("SUM(a.piutang) as total", false);
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
         $this->db->join('employee c', 'b.id_karyawan = c.id');
         $this->db->where('c.id', $id_sales);
         $this->db->where('a.piutang >', 0);
-        $this->db->where("DATEDIFF('$akhir_bulan', a.jatuh_tempo) > 15", null, false);
+        $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
+        $this->db->where("a.jatuh_tempo < '$today'", null, false);
+        $this->db->where("DATEDIFF('$today', a.jatuh_tempo) > 15", null, false);
         $result = $this->db->get()->row_array();
         $target_tunggakan = (float)($result['total'] ?? 0);
 
