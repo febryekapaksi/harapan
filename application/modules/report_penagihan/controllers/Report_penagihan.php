@@ -353,7 +353,7 @@ class Report_penagihan extends Admin_Controller
         $result = $this->db->get()->row_array();
         $target_tunggakan = (float)($result['total'] ?? 0);
 
-        // 3. Pencapaian Tagihan Ontime = uang masuk di bulan berjalan, tanggal bayar <= jatuh tempo (on time)
+        // 3. Pencapaian Tagihan Ontime = total bayar untuk invoice yang jatuh tempo bulan ini, tanggal bayar <= jatuh tempo
         $this->db->select("SUM(pd.total_bayar_idr) as total", false);
         $this->db->from('tr_invoice_payment_detail pd');
         $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = pd.kd_pembayaran');
@@ -361,13 +361,14 @@ class Report_penagihan extends Admin_Controller
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
         $this->db->join('employee c', 'b.id_karyawan = c.id');
         $this->db->where('c.id', $id_sales);
-        $this->db->where('p.tgl_pembayaran >=', $awal_bulan);
-        $this->db->where('p.tgl_pembayaran <=', $akhir_bulan);
+        $this->db->where("YEAR(a.jatuh_tempo) = " . (int)$tahun, null, false);
+        $this->db->where("MONTH(a.jatuh_tempo) = " . (int)$bulan, null, false);
+        $this->db->where('a.total_bayar >', 0);
         $this->db->where("p.tgl_pembayaran <= a.jatuh_tempo", null, false);
         $result = $this->db->get()->row_array();
         $realisasi_ontime = (float)($result['total'] ?? 0);
 
-        // 4. Pencapaian Tagihan Tunggakan = uang masuk di bulan berjalan, tanggal bayar > jatuh tempo (nunggakan)
+        // 4. Pencapaian Tagihan Tunggakan = total bayar untuk invoice yang jatuh tempo bulan ini, tanggal bayar > jatuh tempo
         $this->db->select("SUM(pd.total_bayar_idr) as total", false);
         $this->db->from('tr_invoice_payment_detail pd');
         $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = pd.kd_pembayaran');
@@ -375,8 +376,9 @@ class Report_penagihan extends Admin_Controller
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
         $this->db->join('employee c', 'b.id_karyawan = c.id');
         $this->db->where('c.id', $id_sales);
-        $this->db->where('p.tgl_pembayaran >=', $awal_bulan);
-        $this->db->where('p.tgl_pembayaran <=', $akhir_bulan);
+        $this->db->where("YEAR(a.jatuh_tempo) = " . (int)$tahun, null, false);
+        $this->db->where("MONTH(a.jatuh_tempo) = " . (int)$bulan, null, false);
+        $this->db->where('a.total_bayar >', 0);
         $this->db->where("p.tgl_pembayaran > a.jatuh_tempo", null, false);
         $result = $this->db->get()->row_array();
         $realisasi_tunggakan = (float)($result['total'] ?? 0);
@@ -711,8 +713,8 @@ class Report_penagihan extends Admin_Controller
             $sheet->setCellValue('F' . $r, number_format($pct_ontime, 2) . '%');
             $sheet->getStyle('F' . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
         } else {
-            $sheet->setCellValue('E' . $r, 'Sisa Piutang (Rp)');
-            $sheet->setCellValueExplicit('F' . $r, $total_piutang_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->setCellValue('E' . $r, 'Total Bayar (Rp)');
+            $sheet->setCellValueExplicit('F' . $r, $total_bayar_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0');
 
             $r++;
@@ -727,7 +729,7 @@ class Report_penagihan extends Admin_Controller
 
             $r++;
             $sheet->setCellValue('E' . $r, '% On Time (Rp)');
-            $pct_ontime = ($total_piutang_sum > 0) ? ($total_bayar_ontime / $total_piutang_sum) * 100 : 0;
+            $pct_ontime = ($total_bayar_sum > 0) ? ($total_bayar_ontime / $total_bayar_sum) * 100 : 0;
             $sheet->setCellValue('F' . $r, number_format($pct_ontime, 2) . '%');
             $sheet->getStyle('F' . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
         }
