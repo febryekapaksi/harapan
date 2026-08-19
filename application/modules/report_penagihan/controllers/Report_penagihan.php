@@ -296,6 +296,110 @@ class Report_penagihan extends Admin_Controller
     }
 
     /**
+     * Form Perhitungan Komisi (AJAX - load di modal)
+     * Parameter POST: id_sales, nama_sales, bulan, tahun
+     */
+    public function form_komisi()
+    {
+        $id_sales   = $this->input->post('id_sales');
+        $nama_sales = $this->input->post('nama_sales');
+        $bulan      = (int)$this->input->post('bulan');
+        $tahun      = $this->input->post('tahun') ?? date('Y');
+
+        // Ambil nama bulan
+        $bln_row = $this->db->where('bulan_no', $bulan)->get('cr_bulan')->row_array();
+        $nama_bulan = $bln_row ? $bln_row['bulan'] : 'Bulan ' . $bulan;
+        $bulan_id = $bln_row ? $bln_row['bulan_id'] : '';
+
+        // Cek apakah sudah ada data komisi tersimpan
+        $komisi = $this->db->get_where('komisi_realisasi', [
+            'id_karyawan' => $id_sales,
+            'bulan_id'    => $bulan_id,
+            'tahun'       => $tahun
+        ])->row();
+
+        // Hitung target & pencapaian dari data report
+        $akhir_bulan = date('Y-m-t', strtotime("$tahun-$bulan-01"));
+        $awal_bulan = "$tahun-" . str_pad($bulan, 2, '0', STR_PAD_LEFT) . "-01";
+
+        // 1. Target Tagihan Ontime = total piutang yang jatuh tempo di bulan berjalan s/d 15 hari lewat dari jatuh tempo
+        // (DATEDIFF(akhir_bulan, jatuh_tempo) <= 15 DAN jatuh_tempo <= akhir_bulan)
+        $this->db->select("SUM(a.piutang) as total", false);
+        $this->db->from('tr_invoice_sales a');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('a.piutang >', 0);
+        $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
+        $this->db->where("DATEDIFF('$akhir_bulan', a.jatuh_tempo) <= 15", null, false);
+        $result = $this->db->get()->row_array();
+        $target_ontime = (float)($result['total'] ?? 0);
+
+        // 2. Target Tagihan Tunggakan = total piutang sudah lewat 16 hari dari jatuh tempo (bad debt)
+        $this->db->select("SUM(a.piutang) as total", false);
+        $this->db->from('tr_invoice_sales a');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('a.piutang >', 0);
+        $this->db->where("DATEDIFF('$akhir_bulan', a.jatuh_tempo) > 15", null, false);
+        $result = $this->db->get()->row_array();
+        $target_tunggakan = (float)($result['total'] ?? 0);
+
+        // 3. Pencapaian Tagihan Ontime = uang masuk di bulan berjalan, umur invoice <= 15 hari lewat jatuh tempo
+        $this->db->select("SUM(pd.total_bayar_idr) as total", false);
+        $this->db->from('tr_invoice_payment_detail pd');
+        $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = pd.kd_pembayaran');
+        $this->db->join('tr_invoice_sales a', 'a.id_invoice = pd.no_invoice');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('p.tgl_pembayaran >=', $awal_bulan);
+        $this->db->where('p.tgl_pembayaran <=', $akhir_bulan);
+        $this->db->where("DATEDIFF(p.tgl_pembayaran, a.jatuh_tempo) <= 15", null, false);
+        $result = $this->db->get()->row_array();
+        $realisasi_ontime = (float)($result['total'] ?? 0);
+
+        // 4. Pencapaian Tagihan Tunggakan = uang masuk, umur invoice > 15 hari lewat jatuh tempo
+        $this->db->select("SUM(pd.total_bayar_idr) as total", false);
+        $this->db->from('tr_invoice_payment_detail pd');
+        $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = pd.kd_pembayaran');
+        $this->db->join('tr_invoice_sales a', 'a.id_invoice = pd.no_invoice');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('p.tgl_pembayaran >=', $awal_bulan);
+        $this->db->where('p.tgl_pembayaran <=', $akhir_bulan);
+        $this->db->where("DATEDIFF(p.tgl_pembayaran, a.jatuh_tempo) > 15", null, false);
+        $result = $this->db->get()->row_array();
+        $realisasi_tunggakan = (float)($result['total'] ?? 0);
+
+        // 5. Target Penjualan dari tabel target_penjualan berdasarkan id_karyawan dan bulan
+        $target_penjualan_val = 0;
+        $target_row = $this->db->get_where('target_penjualan', ['id_karyawan' => $id_sales])->row();
+        if ($target_row && !empty($bulan_id) && isset($target_row->{$bulan_id})) {
+            $target_penjualan_val = (float)$target_row->{$bulan_id};
+        }
+
+        $data = [
+            'id_sales'             => $id_sales,
+            'nama_sales'           => $nama_sales,
+            'bulan'                => $bulan,
+            'bulan_id'             => $bulan_id,
+            'nama_bulan'           => $nama_bulan,
+            'tahun'                => $tahun,
+            'komisi'               => $komisi,
+            'target_ontime'        => $target_ontime,
+            'realisasi_ontime'     => $realisasi_ontime,
+            'target_tunggakan'     => $target_tunggakan,
+            'realisasi_tunggakan'  => $realisasi_tunggakan,
+            'target_penjualan_val' => $target_penjualan_val,
+        ];
+
+        $this->load->view('form_komisi', $data);
+    }
+
+    /**
      * Export Detail Excel per Sales per Bulan
      * Untuk keperluan rekonsiliasi data Rencana Tagihan vs Realisasi Tagihan
      * 
@@ -453,20 +557,49 @@ class Report_penagihan extends Admin_Controller
             }
             $prev_invoice = $row['no_invoice'];
 
-            // Selisih tanggal jatuh tempo dengan tanggal bayar
+            // Selisih & status On Time / Nunggakan
             $selisih_hari = '';
             $status_ontime = '';
-            if (!empty($tanggal_bayar) && !empty($row['jatuh_tempo'])) {
-                $date_jatuh_tempo = new DateTime($row['jatuh_tempo']);
-                $date_bayar = new DateTime($tanggal_bayar);
-                $diff = $date_jatuh_tempo->diff($date_bayar);
-                // Positif = bayar setelah jatuh tempo (terlambat), Negatif = bayar sebelum jatuh tempo
-                $selisih_hari = ($date_bayar > $date_jatuh_tempo) ? $diff->days : -$diff->days;
-                
-                if ($date_bayar <= $date_jatuh_tempo) {
-                    $status_ontime = 'On Time';
-                } else {
-                    $status_ontime = 'Nunggakan';
+
+            if ($tipe == 'target') {
+                // Untuk Rencana Penagihan: bandingkan jatuh tempo vs hari ini
+                if (!empty($row['jatuh_tempo'])) {
+                    $date_jatuh_tempo = new DateTime($row['jatuh_tempo']);
+                    $date_today = new DateTime(date('Y-m-d'));
+
+                    // Jika jatuh tempo masih di bulan & tahun ini → On Time
+                    if ($date_jatuh_tempo->format('Y') == $date_today->format('Y') && $date_jatuh_tempo->format('m') == $date_today->format('m')) {
+                        $selisih_hari = 0;
+                        $status_ontime = 'On Time';
+                    } elseif ($date_jatuh_tempo < $date_today) {
+                        // Jatuh tempo sudah lewat dari hari ini
+                        $diff = $date_today->diff($date_jatuh_tempo);
+                        $selisih_hari = $diff->days;
+
+                        if ($selisih_hari <= 15) {
+                            $status_ontime = 'On Time';
+                        } else {
+                            $status_ontime = 'Nunggakan';
+                        }
+                    } else {
+                        // Jatuh tempo belum lewat
+                        $selisih_hari = 0;
+                        $status_ontime = 'On Time';
+                    }
+                }
+            } else {
+                // Untuk Realisasi Tagihan: bandingkan tanggal bayar vs jatuh tempo
+                if (!empty($tanggal_bayar) && !empty($row['jatuh_tempo'])) {
+                    $date_jatuh_tempo = new DateTime($row['jatuh_tempo']);
+                    $date_bayar = new DateTime($tanggal_bayar);
+                    $diff = $date_jatuh_tempo->diff($date_bayar);
+                    $selisih_hari = ($date_bayar > $date_jatuh_tempo) ? $diff->days : -$diff->days;
+
+                    if ($date_bayar <= $date_jatuh_tempo) {
+                        $status_ontime = 'On Time';
+                    } else {
+                        $status_ontime = 'Nunggakan';
+                    }
                 }
             }
             $sheet->setCellValue('K' . $r, $selisih_hari);
