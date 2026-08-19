@@ -516,6 +516,8 @@ class Report_penagihan extends Admin_Controller
         $total_invoice_sum = 0;
         $total_bayar_sum = 0;
         $total_piutang_sum = 0;
+        $total_ontime_sum = 0;
+        $total_nunggakan_sum = 0;
         $prev_invoice = ''; // Track invoice sebelumnya untuk sisa piutang
 
         foreach ($data_detail as $row) {
@@ -548,10 +550,12 @@ class Report_penagihan extends Admin_Controller
             $sheet->getStyle('I' . $r)->getNumberFormat()->setFormatCode('#,##0');
 
             // Sisa Piutang - hanya tampilkan di baris pertama per invoice
+            $piutang_tracked = false;
             if ($row['no_invoice'] !== $prev_invoice) {
                 $sheet->setCellValueExplicit('J' . $r, $piutang, PHPExcel_Cell_DataType::TYPE_NUMERIC);
                 $sheet->getStyle('J' . $r)->getNumberFormat()->setFormatCode('#,##0');
                 $total_piutang_sum += $piutang;
+                $piutang_tracked = true;
             } else {
                 $sheet->setCellValue('J' . $r, '');
             }
@@ -615,6 +619,15 @@ class Report_penagihan extends Admin_Controller
                 $sheet->getStyle('L' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
             }
 
+            // Track on time / nunggakan berdasarkan piutang (hanya baris pertama per invoice)
+            if ($piutang_tracked) {
+                if ($status_ontime == 'On Time') {
+                    $total_ontime_sum += $piutang;
+                } elseif ($status_ontime == 'Nunggakan') {
+                    $total_nunggakan_sum += $piutang;
+                }
+            }
+
             $total_bayar_sum += $total_bay;
 
             $no++;
@@ -647,6 +660,42 @@ class Report_penagihan extends Admin_Controller
 
         // Border
         $sheet->getStyle('A' . $rowHeader . ':L' . $r)->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+
+        // Ringkasan On Time / Tagihan
+        $r += 2;
+        $sheet->setCellValue('E' . $r, 'Target Tagihan');
+        $sheet->getStyle('E' . $r . ':F' . $r)->getFont()->setBold(true);
+        $sheet->getStyle('E' . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+        $sheet->mergeCells('E' . $r . ':F' . $r);
+
+        $r++;
+        $sheet->setCellValue('E' . $r, 'RINGKASAN ON TIME / TAGIHAN');
+        $sheet->getStyle('E' . $r)->getFont()->setBold(true);
+
+        $r++;
+        $sheet->setCellValue('E' . $r, 'Sisa Piutang (Rp)');
+        $sheet->setCellValueExplicit('F' . $r, $total_piutang_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+        $r++;
+        $sheet->setCellValue('E' . $r, 'Total Target On Time (Rp)');
+        $sheet->setCellValueExplicit('F' . $r, $total_ontime_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+        $r++;
+        $sheet->setCellValue('E' . $r, 'Total Target Nunggak (Rp)');
+        $sheet->setCellValueExplicit('F' . $r, $total_nunggakan_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+        $r++;
+        $sheet->setCellValue('E' . $r, '% On Time (Rp)');
+        $pct_ontime = ($total_piutang_sum > 0) ? ($total_ontime_sum / $total_piutang_sum) * 100 : 0;
+        $sheet->setCellValue('F' . $r, number_format($pct_ontime, 1) . '%');
+        $sheet->getStyle('F' . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_RIGHT);
+
+        // Border ringkasan
+        $ringkasan_start = $r - 5;
+        $sheet->getStyle('E' . $ringkasan_start . ':F' . $r)->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
 
         // Output
         $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
