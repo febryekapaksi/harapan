@@ -296,6 +296,69 @@ class Report_penagihan extends Admin_Controller
     }
 
     /**
+     * Form Perhitungan Komisi (AJAX - load di modal)
+     * Parameter POST: id_sales, nama_sales, bulan, tahun
+     */
+    public function form_komisi()
+    {
+        $id_sales   = $this->input->post('id_sales');
+        $nama_sales = $this->input->post('nama_sales');
+        $bulan      = (int)$this->input->post('bulan');
+        $tahun      = $this->input->post('tahun') ?? date('Y');
+
+        // Ambil nama bulan
+        $bln_row = $this->db->where('bulan_no', $bulan)->get('cr_bulan')->row_array();
+        $nama_bulan = $bln_row ? $bln_row['bulan'] : 'Bulan ' . $bulan;
+        $bulan_id = $bln_row ? $bln_row['bulan_id'] : '';
+
+        // Cek apakah sudah ada data komisi tersimpan
+        $komisi = $this->db->get_where('komisi_realisasi', [
+            'id_karyawan' => $id_sales,
+            'bulan_id'    => $bulan_id,
+            'tahun'       => $tahun
+        ])->row();
+
+        // Hitung target dari data report
+        $akhir_bulan = date('Y-m-t', strtotime("$tahun-$bulan-01"));
+
+        // Target Tagihan On Time = Rencana Penagihan (piutang jatuh tempo <= akhir bulan)
+        $this->db->select("SUM(a.piutang) as target_tagihan", false);
+        $this->db->from('tr_invoice_sales a');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
+        $this->db->where('a.piutang >', 0);
+        $result = $this->db->get()->row_array();
+        $target_ontime = (float)($result['target_tagihan'] ?? 0);
+
+        // Realisasi Tagihan
+        $this->db->select("SUM(a.total_bayar) as total_realisasi", false);
+        $this->db->from('tr_invoice_sales a');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('YEAR(a.jatuh_tempo)', $tahun);
+        $this->db->where('MONTH(a.jatuh_tempo)', $bulan);
+        $result = $this->db->get()->row_array();
+        $realisasi_ontime = (float)($result['total_realisasi'] ?? 0);
+
+        $data = [
+            'id_sales'         => $id_sales,
+            'nama_sales'       => $nama_sales,
+            'bulan'            => $bulan,
+            'bulan_id'         => $bulan_id,
+            'nama_bulan'       => $nama_bulan,
+            'tahun'            => $tahun,
+            'komisi'           => $komisi,
+            'target_ontime'    => $target_ontime,
+            'realisasi_ontime' => $realisasi_ontime,
+        ];
+
+        $this->load->view('form_komisi', $data);
+    }
+
+    /**
      * Export Detail Excel per Sales per Bulan
      * Untuk keperluan rekonsiliasi data Rencana Tagihan vs Realisasi Tagihan
      * 
