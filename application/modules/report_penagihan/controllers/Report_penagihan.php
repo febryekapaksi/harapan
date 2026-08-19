@@ -296,6 +296,69 @@ class Report_penagihan extends Admin_Controller
     }
 
     /**
+     * Form Perhitungan Komisi (AJAX - load di modal)
+     * Parameter POST: id_sales, nama_sales, bulan, tahun
+     */
+    public function form_komisi()
+    {
+        $id_sales   = $this->input->post('id_sales');
+        $nama_sales = $this->input->post('nama_sales');
+        $bulan      = (int)$this->input->post('bulan');
+        $tahun      = $this->input->post('tahun') ?? date('Y');
+
+        // Ambil nama bulan
+        $bln_row = $this->db->where('bulan_no', $bulan)->get('cr_bulan')->row_array();
+        $nama_bulan = $bln_row ? $bln_row['bulan'] : 'Bulan ' . $bulan;
+        $bulan_id = $bln_row ? $bln_row['bulan_id'] : '';
+
+        // Cek apakah sudah ada data komisi tersimpan
+        $komisi = $this->db->get_where('komisi_realisasi', [
+            'id_karyawan' => $id_sales,
+            'bulan_id'    => $bulan_id,
+            'tahun'       => $tahun
+        ])->row();
+
+        // Hitung target dari data report
+        $akhir_bulan = date('Y-m-t', strtotime("$tahun-$bulan-01"));
+
+        // Target Tagihan On Time = Rencana Penagihan (piutang jatuh tempo <= akhir bulan)
+        $this->db->select("SUM(a.piutang) as target_tagihan", false);
+        $this->db->from('tr_invoice_sales a');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
+        $this->db->where('a.piutang >', 0);
+        $result = $this->db->get()->row_array();
+        $target_ontime = (float)($result['target_tagihan'] ?? 0);
+
+        // Realisasi Tagihan
+        $this->db->select("SUM(a.total_bayar) as total_realisasi", false);
+        $this->db->from('tr_invoice_sales a');
+        $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
+        $this->db->join('employee c', 'b.id_karyawan = c.id');
+        $this->db->where('c.id', $id_sales);
+        $this->db->where('YEAR(a.jatuh_tempo)', $tahun);
+        $this->db->where('MONTH(a.jatuh_tempo)', $bulan);
+        $result = $this->db->get()->row_array();
+        $realisasi_ontime = (float)($result['total_realisasi'] ?? 0);
+
+        $data = [
+            'id_sales'         => $id_sales,
+            'nama_sales'       => $nama_sales,
+            'bulan'            => $bulan,
+            'bulan_id'         => $bulan_id,
+            'nama_bulan'       => $nama_bulan,
+            'tahun'            => $tahun,
+            'komisi'           => $komisi,
+            'target_ontime'    => $target_ontime,
+            'realisasi_ontime' => $realisasi_ontime,
+        ];
+
+        $this->load->view('form_komisi', $data);
+    }
+
+    /**
      * Export Detail Excel per Sales per Bulan
      * Untuk keperluan rekonsiliasi data Rencana Tagihan vs Realisasi Tagihan
      * 
@@ -331,13 +394,16 @@ class Report_penagihan extends Admin_Controller
             // Rencana Penagihan: invoice yang jatuh tempo <= akhir bulan dan masih punya piutang
             $akhir_bulan = date('Y-m-t', strtotime("$tahun-$bulan-01"));
 
-            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang", false);
+            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, pd.total_bayar_idr as total_bayar, a.piutang, p.tgl_pembayaran as tanggal_bayar, pd.kd_pembayaran as no_penerimaan", false);
             $this->db->from('tr_invoice_sales a');
             $this->db->join('master_customers b', 'a.id_customer = b.id_customer', 'left');
+            $this->db->join('tr_invoice_payment_detail pd', 'pd.no_invoice = a.id_invoice', 'left');
+            $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = pd.kd_pembayaran', 'left');
             $this->db->where('b.id_karyawan', $id_sales);
             $this->db->where('a.jatuh_tempo <=', $akhir_bulan);
             $this->db->where('a.piutang >', 0);
-            $this->db->order_by('a.jatuh_tempo', 'ASC');
+            $this->db->order_by('a.id_invoice', 'ASC');
+            $this->db->order_by('p.tgl_pembayaran', 'ASC');
             $query = $this->db->get();
             $data_detail = $query ? $query->result_array() : [];
 
@@ -349,14 +415,17 @@ class Report_penagihan extends Admin_Controller
             $awal_bulan = "$tahun-" . str_pad($bulan, 2, '0', STR_PAD_LEFT) . "-01";
             $akhir_bulan = date('Y-m-t', strtotime($awal_bulan));
 
-            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang", false);
+            $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, pd.total_bayar_idr as total_bayar, a.piutang, p.tgl_pembayaran as tanggal_bayar, pd.kd_pembayaran as no_penerimaan", false);
             $this->db->from('tr_invoice_sales a');
             $this->db->join('master_customers b', 'a.id_customer = b.id_customer', 'left');
+            $this->db->join('tr_invoice_payment_detail pd', 'pd.no_invoice = a.id_invoice', 'left');
+            $this->db->join('tr_invoice_payment p', 'p.kd_pembayaran = pd.kd_pembayaran', 'left');
             $this->db->where('b.id_karyawan', $id_sales);
             $this->db->where("YEAR(a.jatuh_tempo) = " . (int)$tahun, null, false);
             $this->db->where("MONTH(a.jatuh_tempo) = " . (int)$bulan, null, false);
             $this->db->where('a.total_bayar >', 0);
-            $this->db->order_by('a.jatuh_tempo', 'ASC');
+            $this->db->order_by('a.id_invoice', 'ASC');
+            $this->db->order_by('p.tgl_pembayaran', 'ASC');
             $query = $this->db->get();
             $data_detail = $query ? $query->result_array() : [];
 
@@ -375,7 +444,7 @@ class Report_penagihan extends Admin_Controller
 
         // Judul
         $sheet->setCellValue('A1', strtoupper($judul));
-        $sheet->mergeCells('A1:H1');
+        $sheet->mergeCells('A1:L1');
         $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
 
         // Info
@@ -383,14 +452,19 @@ class Report_penagihan extends Admin_Controller
         $sheet->setCellValue('A3', 'Periode: ' . $nama_bulan . ' ' . $tahun);
         $sheet->getStyle('A2:A3')->getFont()->setBold(true);
 
+        // Keterangan tambahan
+        $sheet->setCellValue('J2', 'tgl bayar ambil dari tanggal terima uang');
+        $sheet->getStyle('J2')->getFont()->setItalic(true)->setSize(9);
+
         // Header tabel
-        $headers = ['A' => 'No', 'B' => 'No Invoice', 'C' => 'Customer', 'D' => 'Tgl Invoice', 'E' => 'Jatuh Tempo', 'F' => 'Total Invoice', 'G' => 'Total Bayar', 'H' => 'Sisa Piutang'];
+        $headers = ['A' => 'No', 'B' => 'No Invoice', 'C' => 'Customer', 'D' => 'Tgl Invoice', 'E' => 'Jatuh Tempo', 'F' => 'Total Invoice', 'G' => 'Tanggal Bayar', 'H' => 'No Penerimaan', 'I' => 'Total Bayar', 'J' => 'Sisa Piutang', 'K' => 'Selisih tanggal jatuh tempo dengan tanggal bayar', 'L' => 'On time / Tunggakan'];
         $rowHeader = 5;
         foreach ($headers as $col => $label) {
             $sheet->setCellValue($col . $rowHeader, $label);
             $sheet->getColumnDimension($col)->setAutoSize(true);
             $sheet->getStyle($col . $rowHeader)->getFont()->setBold(true);
             $sheet->getStyle($col . $rowHeader)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle($col . $rowHeader)->getAlignment()->setWrapText(true);
             $sheet->getStyle($col . $rowHeader)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('4472C4');
             $sheet->getStyle($col . $rowHeader)->getFont()->getColor()->setRGB('FFFFFF');
         }
@@ -401,6 +475,7 @@ class Report_penagihan extends Admin_Controller
         $total_invoice_sum = 0;
         $total_bayar_sum = 0;
         $total_piutang_sum = 0;
+        $prev_invoice = ''; // Track invoice sebelumnya untuk sisa piutang
 
         foreach ($data_detail as $row) {
             $sheet->setCellValue('A' . $r, $no);
@@ -416,15 +491,61 @@ class Report_penagihan extends Admin_Controller
             $sheet->setCellValueExplicit('F' . $r, $total_inv, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0');
 
-            $sheet->setCellValueExplicit('G' . $r, $total_bay, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-            $sheet->getStyle('G' . $r)->getNumberFormat()->setFormatCode('#,##0');
+            // Tanggal Bayar - format hanya tanggal (tanpa waktu)
+            $tanggal_bayar = '';
+            if (!empty($row['tanggal_bayar'])) {
+                $tanggal_bayar = date('Y-m-d', strtotime($row['tanggal_bayar']));
+            }
+            $sheet->setCellValue('G' . $r, $tanggal_bayar);
 
-            $sheet->setCellValueExplicit('H' . $r, $piutang, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-            $sheet->getStyle('H' . $r)->getNumberFormat()->setFormatCode('#,##0');
+            // No Penerimaan
+            $no_penerimaan = !empty($row['no_penerimaan']) ? $row['no_penerimaan'] : '';
+            $sheet->setCellValue('H' . $r, $no_penerimaan);
 
-            $total_invoice_sum += $total_inv;
+            // Total Bayar
+            $sheet->setCellValueExplicit('I' . $r, $total_bay, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('I' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            // Sisa Piutang - hanya tampilkan di baris pertama per invoice
+            if ($row['no_invoice'] !== $prev_invoice) {
+                $sheet->setCellValueExplicit('J' . $r, $piutang, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->getStyle('J' . $r)->getNumberFormat()->setFormatCode('#,##0');
+                $total_piutang_sum += $piutang;
+            } else {
+                $sheet->setCellValue('J' . $r, '');
+            }
+            $prev_invoice = $row['no_invoice'];
+
+            // Selisih tanggal jatuh tempo dengan tanggal bayar
+            $selisih_hari = '';
+            $status_ontime = '';
+            if (!empty($tanggal_bayar) && !empty($row['jatuh_tempo'])) {
+                $date_jatuh_tempo = new DateTime($row['jatuh_tempo']);
+                $date_bayar = new DateTime($tanggal_bayar);
+                $diff = $date_jatuh_tempo->diff($date_bayar);
+                // Positif = bayar setelah jatuh tempo (terlambat), Negatif = bayar sebelum jatuh tempo
+                $selisih_hari = ($date_bayar > $date_jatuh_tempo) ? $diff->days : -$diff->days;
+                
+                if ($date_bayar <= $date_jatuh_tempo) {
+                    $status_ontime = 'On Time';
+                } else {
+                    $status_ontime = 'Nunggakan';
+                }
+            }
+            $sheet->setCellValue('K' . $r, $selisih_hari);
+            $sheet->getStyle('K' . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+            // On time / Tunggakan
+            $sheet->setCellValue('L' . $r, $status_ontime);
+            $sheet->getStyle('L' . $r)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
+
+            // Highlight kuning untuk row yang nunggakan
+            if ($status_ontime == 'Nunggakan') {
+                $sheet->getStyle('G' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
+                $sheet->getStyle('L' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
+            }
+
             $total_bayar_sum += $total_bay;
-            $total_piutang_sum += $piutang;
 
             $no++;
             $r++;
@@ -438,20 +559,24 @@ class Report_penagihan extends Admin_Controller
         $sheet->setCellValue('E' . $r, 'TOTAL');
         $sheet->getStyle('E' . $r)->getFont()->setBold(true);
 
-        $sheet->setCellValueExplicit('F' . $r, $total_invoice_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-        $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0');
-        $sheet->getStyle('F' . $r)->getFont()->setBold(true);
+        $sheet->setCellValue('F' . $r, '');
 
-        $sheet->setCellValueExplicit('G' . $r, $total_bayar_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-        $sheet->getStyle('G' . $r)->getNumberFormat()->setFormatCode('#,##0');
-        $sheet->getStyle('G' . $r)->getFont()->setBold(true);
+        $sheet->setCellValue('G' . $r, '');
+        $sheet->setCellValue('H' . $r, '');
 
-        $sheet->setCellValueExplicit('H' . $r, $total_piutang_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-        $sheet->getStyle('H' . $r)->getNumberFormat()->setFormatCode('#,##0');
-        $sheet->getStyle('H' . $r)->getFont()->setBold(true);
+        $sheet->setCellValueExplicit('I' . $r, $total_bayar_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('I' . $r)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('I' . $r)->getFont()->setBold(true);
+
+        $sheet->setCellValueExplicit('J' . $r, $total_piutang_sum, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+        $sheet->getStyle('J' . $r)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('J' . $r)->getFont()->setBold(true);
+
+        $sheet->setCellValue('K' . $r, '');
+        $sheet->setCellValue('L' . $r, '');
 
         // Border
-        $sheet->getStyle('A' . $rowHeader . ':H' . $r)->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
+        $sheet->getStyle('A' . $rowHeader . ':L' . $r)->getBorders()->getAllBorders()->setBorderStyle(PHPExcel_Style_Border::BORDER_THIN);
 
         // Output
         $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
