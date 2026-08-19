@@ -53,8 +53,8 @@
             <!-- Pencapaian Pembayaran Tunggakan -->
             <tr>
                 <td>Pencapaian Pembayaran Tunggakan</td>
-                <td><input type="text" name="target_tunggakan" id="k_target_tunggakan" class="form-control input-sm komisiMoney" value="<?= isset($komisi->target_tunggakan) ? number_format($komisi->target_tunggakan, 0) : '' ?>"></td>
-                <td><input type="text" name="realisasi_tunggakan" id="k_realisasi_tunggakan" class="form-control input-sm komisiMoney" value="<?= isset($komisi->realisasi_tunggakan) ? number_format($komisi->realisasi_tunggakan, 0) : '' ?>"></td>
+                <td><input type="text" name="target_tunggakan" id="k_target_tunggakan" class="form-control input-sm komisiMoney" value="<?= isset($komisi->target_tunggakan) ? number_format($komisi->target_tunggakan, 0) : number_format($target_tunggakan, 0) ?>"></td>
+                <td><input type="text" name="realisasi_tunggakan" id="k_realisasi_tunggakan" class="form-control input-sm komisiMoney" value="<?= isset($komisi->realisasi_tunggakan) ? number_format($komisi->realisasi_tunggakan, 0) : number_format($realisasi_tunggakan, 0) ?>"></td>
                 <td>
                     <div class="input-group input-group-sm">
                         <input type="text" name="persentase_tunggakan" id="k_persentase_tunggakan" class="form-control" readonly value="<?= isset($komisi->persentase_tunggakan) ? number_format($komisi->persentase_tunggakan, 2) : '' ?>">
