@@ -374,6 +374,13 @@ class Report_penagihan extends Admin_Controller
         $result = $this->db->get()->row_array();
         $realisasi_tunggakan = (float)($result['total'] ?? 0);
 
+        // 5. Target Penjualan dari tabel target_penjualan berdasarkan id_karyawan dan bulan
+        $target_penjualan_val = 0;
+        $target_row = $this->db->get_where('target_penjualan', ['id_karyawan' => $id_sales])->row();
+        if ($target_row && !empty($bulan_id) && isset($target_row->{$bulan_id})) {
+            $target_penjualan_val = (float)$target_row->{$bulan_id};
+        }
+
         $data = [
             'id_sales'             => $id_sales,
             'nama_sales'           => $nama_sales,
@@ -386,6 +393,7 @@ class Report_penagihan extends Admin_Controller
             'realisasi_ontime'     => $realisasi_ontime,
             'target_tunggakan'     => $target_tunggakan,
             'realisasi_tunggakan'  => $realisasi_tunggakan,
+            'target_penjualan_val' => $target_penjualan_val,
         ];
 
         $this->load->view('form_komisi', $data);
