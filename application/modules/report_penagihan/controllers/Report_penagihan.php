@@ -427,19 +427,31 @@ class Report_penagihan extends Admin_Controller
             $target_penjualan_val = (float)$target_row->{$bulan_id};
         }
 
+        // 6. Realisasi Penjualan = actual penjualan berdasarkan invoice (delivery_date), sama seperti Report Penjualan per Sales
+        $this->db->select("SUM(i.grand_total) as total", false);
+        $this->db->from('tr_invoice_sales i');
+        $this->db->join('master_customers c', 'c.id_customer = i.id_customer', 'left');
+        $this->db->where('c.id_karyawan', $id_sales);
+        $this->db->where("YEAR(i.delivery_date) = " . (int)$tahun, null, false);
+        $this->db->where("MONTH(i.delivery_date) = " . (int)$bulan, null, false);
+        $this->db->where('IFNULL(i.is_cancel,0)', 0);
+        $result = $this->db->get()->row_array();
+        $realisasi_penjualan_val = (float)($result['total'] ?? 0);
+
         $data = [
-            'id_sales'             => $id_sales,
-            'nama_sales'           => $nama_sales,
-            'bulan'                => $bulan,
-            'bulan_id'             => $bulan_id,
-            'nama_bulan'           => $nama_bulan,
-            'tahun'                => $tahun,
-            'komisi'               => $komisi,
-            'target_ontime'        => $target_ontime,
-            'realisasi_ontime'     => $realisasi_ontime,
-            'target_tunggakan'     => $target_tunggakan,
-            'realisasi_tunggakan'  => $realisasi_tunggakan,
-            'target_penjualan_val' => $target_penjualan_val,
+            'id_sales'                => $id_sales,
+            'nama_sales'              => $nama_sales,
+            'bulan'                   => $bulan,
+            'bulan_id'                => $bulan_id,
+            'nama_bulan'              => $nama_bulan,
+            'tahun'                   => $tahun,
+            'komisi'                  => $komisi,
+            'target_ontime'           => $target_ontime,
+            'realisasi_ontime'        => $realisasi_ontime,
+            'target_tunggakan'        => $target_tunggakan,
+            'realisasi_tunggakan'     => $realisasi_tunggakan,
+            'target_penjualan_val'    => $target_penjualan_val,
+            'realisasi_penjualan_val' => $realisasi_penjualan_val,
         ];
 
         $this->load->view('form_komisi', $data);
