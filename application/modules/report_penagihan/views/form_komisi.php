@@ -80,7 +80,7 @@
             <tr>
                 <td>Pencapaian Penjualan</td>
                 <td><input type="text" name="target_penjualan" id="k_target_penjualan" class="form-control input-sm komisiMoney" value="<?= isset($komisi->target_penjualan) ? number_format($komisi->target_penjualan, 0) : number_format($target_penjualan_val, 0) ?>"></td>
-                <td><input type="text" name="realisasi_penjualan" id="k_realisasi_penjualan" class="form-control input-sm komisiMoney" value="<?= isset($komisi->realisasi_penjualan) ? number_format($komisi->realisasi_penjualan, 0) : '' ?>"></td>
+                <td><input type="text" name="realisasi_penjualan" id="k_realisasi_penjualan" class="form-control input-sm komisiMoney" readonly value="<?= isset($komisi->realisasi_penjualan) ? number_format($komisi->realisasi_penjualan, 0) : number_format($realisasi_penjualan_val, 0) ?>"></td>
                 <td>
                     <div class="input-group input-group-sm">
                         <input type="text" name="persentase_penjualan" id="k_persentase_penjualan" class="form-control" readonly value="<?= isset($komisi->persentase_penjualan) ? number_format($komisi->persentase_penjualan, 2) : '' ?>">
