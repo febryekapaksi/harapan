@@ -226,6 +226,11 @@ $isApproval = (isset($mode) && $mode == 'approval');
         flex: 1 1 auto;
         overflow-y: auto;
     }
+
+    .detail-error {
+        border: 2px solid #dd4b39 !important;
+        background-color: #fff5f5;
+    }
 </style>
 <!-- Modal -->
 <div class="modal fade" id="modalSpk" tabindex="-1" role="dialog" aria-labelledby="modalDetailLabel" aria-hidden="true">
@@ -299,6 +304,30 @@ $isApproval = (isset($mode) && $mode == 'approval');
 <script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
 
 <script>
+    function getEmptyDetailInputs(selector) {
+        var $empty = [];
+        $(selector).each(function() {
+            var val = $(this).val();
+            if (val === '' || val === null || typeof val === 'undefined') {
+                $empty.push($(this));
+            }
+        });
+        return $empty;
+    }
+
+    function markAndDescribeEmptyRows($emptyInputs, errorClass) {
+        var rowLabels = [];
+        $emptyInputs.forEach(function($input) {
+            $input.addClass(errorClass);
+            var $row = $input.closest('tr');
+            var noDelivery = $row.find('input[name*="[no_delivery]"]').val() || '-';
+            var noSo = $row.find('input[name*="[no_so]"]').val() || '-';
+            var product = $row.find('input[name*="[product]"]').val() || '-';
+            rowLabels.push('SPK ' + noDelivery + ' / ' + noSo + ' - ' + product);
+        });
+        return rowLabels;
+    }
+
     $(document).ready(function() {
         let selectedIds = [];
         hitungTotalBerat();
@@ -649,18 +678,26 @@ $isApproval = (isset($mode) && $mode == 'approval');
                 });
         });
 
-        //button confirm 
+        //button confirm
         $('#confirm').on('click', function(e) {
             e.preventDefault();
 
-            var qty_aktual = $('.qty-aktual').val()
+            $('.qty-aktual').removeClass('detail-error');
+            var $emptyInputs = getEmptyDetailInputs('.qty-aktual');
 
-            if (qty_aktual == '') {
+            if ($emptyInputs.length > 0) {
+                var rowLabels = markAndDescribeEmptyRows($emptyInputs, 'detail-error');
                 swal({
                     title: "Error Message!",
-                    text: 'Qty Aktual kosong, isi terlebih dulu ...',
+                    text: 'Qty Aktual kosong pada ' + $emptyInputs.length + ' baris berikut, isi terlebih dulu:\n' + rowLabels.join('\n'),
                     type: "warning"
                 });
+
+                var $target = $emptyInputs[0];
+                $('html, body').animate({
+                    scrollTop: $target.offset().top - 200
+                }, 400);
+                $target.focus();
 
                 $('#confirm').prop('disabled', false);
                 return false;
@@ -727,14 +764,22 @@ $isApproval = (isset($mode) && $mode == 'approval');
         $('#confirm_berat').on('click', function(e) {
             e.preventDefault();
 
-            var berat_aktual = $('.berat-aktual').val()
+            $('.berat-aktual').removeClass('detail-error');
+            var $emptyInputs = getEmptyDetailInputs('.berat-aktual');
 
-            if (berat_aktual == '') {
+            if ($emptyInputs.length > 0) {
+                var rowLabels = markAndDescribeEmptyRows($emptyInputs, 'detail-error');
                 swal({
                     title: "Error Message!",
-                    text: 'Berat Aktual kosong, isi terlebih dulu ...',
+                    text: 'Berat Aktual kosong pada ' + $emptyInputs.length + ' baris berikut, isi terlebih dulu:\n' + rowLabels.join('\n'),
                     type: "warning"
                 });
+
+                var $target = $emptyInputs[0];
+                $('html, body').animate({
+                    scrollTop: $target.offset().top - 200
+                }, 400);
+                $target.focus();
 
                 $('#confirm_berat').prop('disabled', false);
                 return false;
@@ -958,6 +1003,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
         });
 
         $(document).on('input', '.qty-aktual', function(e) {
+            $(this).removeClass('detail-error');
             const row = $(this).closest('tr');
 
             const qtyAktual = parseFloat($(this).val()) || 0;
@@ -1020,6 +1066,7 @@ $isApproval = (isset($mode) && $mode == 'approval');
         })
 
         $(document).on('input', '.berat-aktual', function(e) {
+            $(this).removeClass('detail-error');
             const row = $(this).closest('tr');
 
             const beratAktual = parseFloat($(this).val()) || 0;
