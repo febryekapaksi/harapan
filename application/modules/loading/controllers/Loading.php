@@ -505,11 +505,41 @@ class Loading extends Admin_Controller
         echo json_encode($Arr_Data);
     }
 
+    /**
+     * Validasi tiap baris detail punya value numerik untuk $field.
+     * Kosong/tidak ada ditolak; "0" tetap dianggap valid.
+     * Return array label baris yang gagal (kosong berarti semua valid).
+     */
+    private function get_invalid_detail_rows($detail, $field)
+    {
+        $invalid = [];
+        foreach ($detail as $value) {
+            $val = isset($value[$field]) ? trim((string)$value[$field]) : '';
+            if ($val === '' || !is_numeric($val)) {
+                $invalid[] = trim(
+                    (isset($value['no_delivery']) ? $value['no_delivery'] : '-') . ' / ' .
+                    (isset($value['no_so']) ? $value['no_so'] : '-') . ' - ' .
+                    (isset($value['product']) ? $value['product'] : '-')
+                );
+            }
+        }
+        return $invalid;
+    }
+
     public function save_confirm_qty()
     {
         $post      = $this->input->post();
         $detail    = $post['detail'];
         $no_loading = $post['id_loading'];
+
+        $invalid_rows = $this->get_invalid_detail_rows($detail, 'qty_aktual');
+        if (!empty($invalid_rows)) {
+            echo json_encode([
+                'pesan'  => 'Qty Aktual kosong / tidak valid pada baris: ' . implode('; ', $invalid_rows) . '. Isi terlebih dulu sebelum konfirmasi.',
+                'status' => 0
+            ]);
+            return;
+        }
 
         $ArrHeader = [
             'no_loading'    => $no_loading,
@@ -627,6 +657,17 @@ class Loading extends Admin_Controller
         $post = $this->input->post();
         $detail = $post['detail'];
         $no_loading =  $post['id_loading'];
+
+        // Catatan: yang benar-benar disimpan ke DB adalah jumlah_berat (di-sync
+        // otomatis oleh input .berat-aktual di JS), bukan berat_aktual itu sendiri.
+        $invalid_rows = $this->get_invalid_detail_rows($detail, 'jumlah_berat');
+        if (!empty($invalid_rows)) {
+            echo json_encode([
+                'pesan'  => 'Berat Aktual kosong / tidak valid pada baris: ' . implode('; ', $invalid_rows) . '. Isi terlebih dulu sebelum konfirmasi.',
+                'status' => 0
+            ]);
+            return;
+        }
 
         $ArrHeader = [
             'no_loading'    => $no_loading,
