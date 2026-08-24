@@ -4,6 +4,8 @@ $ENABLE_MANAGE  = has_permission('Purchase_Order.Manage');
 $ENABLE_VIEW    = has_permission('Purchase_Order.View');
 $ENABLE_DELETE  = has_permission('Purchase_Order.Delete');
 
+$start_date = isset($start_date) ? $start_date : '';
+$end_date   = isset($end_date) ? $end_date : '';
 ?>
 <style type="text/css">
 	thead input {
@@ -16,11 +18,36 @@ $ENABLE_DELETE  = has_permission('Purchase_Order.Delete');
 
 <div class="box">
 	<div class="box-header">
-		<span class="pull-left">
-			<?php if ($ENABLE_ADD) : ?>
-				<a class="btn btn-success btn-sm" href="<?= base_url('/purchase_order/addPurchaseorder/') ?>" title="Add"><i class="fa fa-plus"></i>&nbsp;Create PO</a>
-			<?php endif; ?>
-		</span>
+		<div class="row">
+			<div class="col-sm-12">
+				<?php if ($ENABLE_ADD) : ?>
+					<a class="btn btn-success btn-sm" href="<?= base_url('/purchase_order/addPurchaseorder/') ?>" title="Add"><i class="fa fa-plus"></i>&nbsp;Create PO</a>
+				<?php endif; ?>
+			</div>
+		</div>
+		<hr>
+		<div class="row" style="align-items:center;">
+			<div class="col-sm-2" style="display:flex;align-items:center;">
+				<label class="form-label" style="margin:0;">Pilih Tanggal PO</label>
+			</div>
+			<div class="col-sm-2">
+				<input type="date" id="start_date" class="form-control input-sm" value="<?= html_escape($start_date) ?>">
+			</div>
+			<div class="col-sm-1 text-center" style="display:flex;align-items:center;justify-content:center;">
+				<i class="fa fa-arrow-right"></i>
+			</div>
+			<div class="col-sm-2">
+				<input type="date" id="end_date" class="form-control input-sm" value="<?= html_escape($end_date) ?>">
+			</div>
+			<div class="col-sm-3">
+				<button id="btnFilter" class="btn bg-purple btn-sm">
+					<i class="fa fa-filter"></i> Filter
+				</button>
+				<button id="btnReset" class="btn btn-default btn-sm">
+					Reset
+				</button>
+			</div>
+		</div>
 	</div>
 	<!-- /.box-header -->
 	<div class="box-body">
@@ -254,6 +281,31 @@ $ENABLE_DELETE  = has_permission('Purchase_Order.Delete');
 <script type="text/javascript">
 	$(document).ready(function() {
 		$('#example1').dataTable();
+
+		// tombol filter
+		$('#btnFilter').on('click', function(e) {
+			e.preventDefault();
+			var start = $('#start_date').val();
+			var end = $('#end_date').val();
+
+			if (start && end && start > end) {
+				swal({
+					title: 'Peringatan !',
+					text: 'Tanggal awal tidak boleh lebih besar dari tanggal akhir !',
+					type: 'warning'
+				});
+				return;
+			}
+
+			window.location.href = base_url + 'purchase_order?start_date=' + encodeURIComponent(start) + '&end_date=' + encodeURIComponent(end);
+		});
+
+		// tombol reset
+		$('#btnReset').on('click', function(e) {
+			e.preventDefault();
+			$('#start_date, #end_date').val('');
+			window.location.href = base_url + 'purchase_order';
+		});
 	});
 
 	$(document).on('click', '.close_po_modal', function() {
