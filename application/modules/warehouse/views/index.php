@@ -1,6 +1,12 @@
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
 
 <div class="box box-primary">
+    <div class="box-header">
+        <a id="btnExport" href="javascript:void(0)" class="btn btn-success btn-sm">
+            <i class="fa fa-file-excel-o"></i> Export Excel
+        </a>
+    </div>
+    <!-- /.box-header -->
     <div class="box-body">
         <div class="table-responsive">
             <table id="table-stock" class="table table-bordered table-striped">
@@ -28,6 +34,11 @@
 <script>
     $(document).ready(function() {
         DataTables();
+
+        $('#btnExport').on('click', function(e) {
+            e.preventDefault();
+            window.location.href = base_url + active_controller + 'export_excel';
+        });
     });
 
     function DataTables(status = null) {

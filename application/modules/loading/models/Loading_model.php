@@ -60,6 +60,10 @@ class Loading_model extends BF_Model
                 $status = "<span class='badge bg-yellow'>Draft</span>";
                 $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
                 $action .= "<a href='"  . base_url("loading/confirm_qty/{$row['id']}") .  "' class='btn btn-sm btn-info' title='Confirm Qty'><i class='fa fa-cubes'></i></a> ";
+                // Tambah tombol Cancel untuk status Draft - CEK PERMISSION DELETE
+                if ($this->ENABLE_DELETE) {
+                    $action .= "<button type='button' class='btn btn-sm btn-danger cancel-loading-btn' data-id='" . $row['id'] . "' data-no-loading='" . $row['no_loading'] . "' title='Cancel Loading'><i class='fa fa-ban'></i></button> ";
+                }
             } else if ($row['status'] == 1) {
                 $status = "<span class='badge bg-aqua'>Confirm QTY</span>";
                 $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
@@ -67,6 +71,9 @@ class Loading_model extends BF_Model
             } else if ($row['status'] == 2) {
                 $status = "<span class='badge bg-blue'>Confirm Berat</span>";
                 $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
+            } else if ($row['status'] == -1) {
+                $status = "<span class='badge bg-red'>Cancelled</span>";
+                $action = "<span class='text-muted'><i class='fa fa-ban'></i> Cancelled</span>";
             } else {
                 $status = "<span class='badge bg-green'>Approved</span>";
                 $action = "<a target='_blank' href='"  . base_url("loading/print/{$row['id']}") .  "' class='btn btn-sm btn-warning' title='Print'><i class='fa fa-print'></i></a> ";
@@ -76,7 +83,12 @@ class Loading_model extends BF_Model
             $nestedData[] = "<div>" . strtoupper($row['no_loading']) . "</div>";
 
             // Tambahkan list no_delivery sebagai <ul>
-            if (!empty($mapDelivery[$row['no_loading']])) {
+            if ($row['status'] == -1 && !empty($row['cancelled_spk_list'])) {
+                // Untuk cancelled loading, tampilkan dari kolom cancelled_spk_list dengan strikethrough
+                $nestedData[] = "<span class='text-muted'><del>" .
+                    htmlspecialchars($row['cancelled_spk_list']) .
+                    "</del> <small class='text-danger'>(Cancelled)</small></span>";
+            } else if (!empty($mapDelivery[$row['no_loading']])) {
                 $ul = "<ul style='padding-left:16px;margin:0'>";
                 foreach ($mapDelivery[$row['no_loading']] as $spk) {
                     $ul .= "<li>" . htmlspecialchars($spk) . "</li>";
@@ -205,6 +217,7 @@ class Loading_model extends BF_Model
             l.total_berat,
             l.tanggal_muat,
             l.status,
+            l.cancelled_spk_list,
             COALESCE(s.list_spk, '') AS list_spk
         FROM loading_delivery l
         LEFT JOIN ( $sub_list_spk ) s ON s.no_loading = l.no_loading

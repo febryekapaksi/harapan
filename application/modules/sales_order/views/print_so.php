@@ -159,8 +159,8 @@ $ENABLE_DELETE  = has_permission('Sales_Order.Delete');
                     <td>: <?= $p->no_so ?></td>
                 </tr>
                 <tr>
-                    <td>Termin </td>
-                    <td>: </td>
+                    <td>TOP </td>
+                    <td>: <?= $p->payment_term_name ?? $p->payment_term ?></td>
                     <td>Salesman </td>
                     <td>: <?= $p->nama_sales ?></td>
                 </tr>

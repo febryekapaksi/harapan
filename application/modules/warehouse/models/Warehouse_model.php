@@ -192,7 +192,9 @@ class Warehouse_model extends BF_Model
             $requestData['order'][0]['column'],
             $requestData['order'][0]['dir'],
             $requestData['start'],
-            $requestData['length']
+            $requestData['length'],
+            isset($requestData['start_date']) ? $requestData['start_date'] : null,
+            isset($requestData['end_date']) ? $requestData['end_date'] : null
         );
 
         $totalData = $fetch['totalData'];
@@ -236,7 +238,7 @@ class Warehouse_model extends BF_Model
     }
 
 
-    public function get_query_json_kartu_stok($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null)
+    public function get_query_json_kartu_stok($like_value = null, $column_order = null, $column_dir = null, $limit_start = null, $limit_length = null, $start_date = null, $end_date = null)
     {
         $columns_order_by = [
             0 => 'ks.id',
@@ -258,12 +260,16 @@ class Warehouse_model extends BF_Model
         $this->db->select('ks.id');
         $this->db->from('kartu_stok ks');
         $this->db->where('ks.deleted', null);
+        if (!empty($start_date)) $this->db->where('DATE(ks.tgl_transaksi) >=', $start_date);
+        if (!empty($end_date))   $this->db->where('DATE(ks.tgl_transaksi) <=', $end_date);
         $this->db->order_by('ks.id', 'desc');
         $totalData = $this->db->count_all_results();
 
         $this->db->select('ks.id');
         $this->db->from('kartu_stok ks');
         $this->db->where('ks.deleted', null);
+        if (!empty($start_date)) $this->db->where('DATE(ks.tgl_transaksi) >=', $start_date);
+        if (!empty($end_date))   $this->db->where('DATE(ks.tgl_transaksi) <=', $end_date);
         $this->db->order_by('ks.id', 'desc');
 
         if (!empty($like_value)) {
@@ -282,6 +288,8 @@ class Warehouse_model extends BF_Model
     ');
         $this->db->from('kartu_stok ks');
         $this->db->where('ks.deleted', null);
+        if (!empty($start_date)) $this->db->where('DATE(ks.tgl_transaksi) >=', $start_date);
+        if (!empty($end_date))   $this->db->where('DATE(ks.tgl_transaksi) <=', $end_date);
         $this->db->order_by('ks.id', 'desc');
 
         if (!empty($like_value)) {

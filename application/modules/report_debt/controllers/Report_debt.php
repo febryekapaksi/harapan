@@ -41,8 +41,8 @@ class Report_debt extends Admin_Controller
         c.id as id_sales,
         MONTH(a.jatuh_tempo) as bulan,
         SUM(a.piutang) as total_piutang,
-        SUM(CASE WHEN DATEDIFF(CURRENT_DATE, a.jatuh_tempo) BETWEEN 15 AND 30 THEN a.piutang ELSE 0 END) as aging_15_30,
-        SUM(CASE WHEN DATEDIFF(CURRENT_DATE, a.jatuh_tempo) > 30 THEN a.piutang ELSE 0 END) as aging_30_up
+        SUM(CASE WHEN DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) BETWEEN 15 AND 30 THEN a.piutang ELSE 0 END) as aging_15_30,
+        SUM(CASE WHEN DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) > 30 THEN a.piutang ELSE 0 END) as aging_30_up
         ");
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
@@ -100,7 +100,7 @@ class Report_debt extends Admin_Controller
         $awal_bulan  = "$tahun-" . str_pad($bulan, 2, '0', STR_PAD_LEFT) . "-01";
         $akhir_bulan = date('Y-m-t', strtotime($awal_bulan));
 
-        $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang, DATEDIFF(CURRENT_DATE, a.jatuh_tempo) as hari_lewat", false);
+        $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang, DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) as hari_lewat", false);
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer', 'left');
         $this->db->where('b.id_karyawan', $id_sales);
@@ -110,12 +110,12 @@ class Report_debt extends Admin_Controller
 
         if ($tipe == 'late') {
             // Aging 15-30 hari
-            $this->db->where('DATEDIFF(CURRENT_DATE, a.jatuh_tempo) BETWEEN 15 AND 30', null, false);
+            $this->db->where('DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) BETWEEN 15 AND 30', null, false);
             $judul = 'Detail Piutang Late Debt (15-30 Hari)';
             $filename = 'Detail_Late_Debt_' . str_replace(' ', '_', $nama_sales) . '_' . $nama_bulan . '_' . $tahun . '.xls';
         } elseif ($tipe == 'bad') {
             // Aging >30 hari
-            $this->db->where('DATEDIFF(CURRENT_DATE, a.jatuh_tempo) > 30', null, false);
+            $this->db->where('DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) > 30', null, false);
             $judul = 'Detail Piutang Bad Debt (> 30 Hari)';
             $filename = 'Detail_Bad_Debt_' . str_replace(' ', '_', $nama_sales) . '_' . $nama_bulan . '_' . $tahun . '.xls';
         } else {
@@ -256,8 +256,8 @@ class Report_debt extends Admin_Controller
             c.id as id_sales, 
             MONTH(a.jatuh_tempo) as bulan,
             SUM(a.piutang) as total_piutang,
-            SUM(CASE WHEN DATEDIFF(CURRENT_DATE, a.jatuh_tempo) BETWEEN 15 AND 30 THEN a.piutang ELSE 0 END) as aging_15_30,
-            SUM(CASE WHEN DATEDIFF(CURRENT_DATE, a.jatuh_tempo) > 30 THEN a.piutang ELSE 0 END) as aging_30_up
+            SUM(CASE WHEN DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) BETWEEN 15 AND 30 THEN a.piutang ELSE 0 END) as aging_15_30,
+            SUM(CASE WHEN DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) > 30 THEN a.piutang ELSE 0 END) as aging_30_up
         ");
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
@@ -310,7 +310,7 @@ class Report_debt extends Admin_Controller
         foreach ($sales as $s) {
             // Styling Nama Sales
             $sheet->setCellValue('A' . $r, strtoupper($s['nm_karyawan']));
-            $sheet->mergeCells('A' . $r . ':A' . ($r + 6));
+            $sheet->mergeCells('A' . $r . ':A' . ($r + 8));
             $sheet->getStyle('A' . $r)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 
             // --- BARIS 1: TOTAL PIUTANG ---
@@ -358,9 +358,10 @@ class Report_debt extends Admin_Controller
             $sheet->setCellValueExplicit('O' . $r, (float)$t_late_amount, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
 
-            // --- BARIS 4: AGING 15-30 ---
+            // --- BARIS 4: ACTUAL AMOUNT LATE DEBT (AGING 15-30, KUNING) ---
             $r++;
-            $sheet->setCellValue('B' . $r, 'Total piutang berumur 15-30 hari');
+            $sheet->setCellValue('B' . $r, 'Actual amount late debt');
+            $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
             $t_1530 = 0;
             $c = 'C';
             foreach ($bulan as $b) {
@@ -373,7 +374,25 @@ class Report_debt extends Admin_Controller
             $sheet->setCellValueExplicit('O' . $r, (float)$t_1530, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
 
-            // --- BARIS 5: TARGET % BAD (WARNA BIRU MUDA) ---
+            // --- BARIS 5: PERSENTASE ACTUAL AMOUNT (MERAH) ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Persentase actual amount');
+            $c = 'C';
+            foreach ($bulan as $b) {
+                $piutang_bln = (float)($rekap_realisasi[$s['id']][$b['bulan_no']]['total_piutang'] ?? 0);
+                $aging_late  = (float)($rekap_realisasi[$s['id']][$b['bulan_no']]['aging_15_30'] ?? 0);
+                $pct = $piutang_bln > 0 ? ($aging_late / $piutang_bln) : 0;
+                $sheet->setCellValueExplicit($c . $r, $pct, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('0.00%');
+                $sheet->getStyle($c . $r)->getFont()->getColor()->setRGB('FF0000');
+                $c++;
+            }
+            $pct_total_late = $t_piutang > 0 ? ($t_1530 / $t_piutang) : 0;
+            $sheet->setCellValueExplicit('O' . $r, $pct_total_late, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('0.00%');
+            $sheet->getStyle('O' . $r)->getFont()->getColor()->setRGB('FF0000');
+
+            // --- BARIS 6: TARGET % BAD (WARNA BIRU MUDA) ---
             $r++;
             $sheet->setCellValue('B' . $r, 'Target bad debt %');
             $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('D9EAF7');
@@ -385,7 +404,7 @@ class Report_debt extends Admin_Controller
                 $c++;
             }
 
-            // --- BARIS 6: TARGET AMOUNT BAD DEBT (KUNING) ---
+            // --- BARIS 7: TARGET AMOUNT BAD DEBT (KUNING) ---
             $r++;
             $sheet->setCellValue('B' . $r, 'Target amount bad debt (amount)');
             $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
@@ -404,9 +423,10 @@ class Report_debt extends Admin_Controller
             $sheet->setCellValueExplicit('O' . $r, (float)$t_bad_amount, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
 
-            // --- BARIS 7: AGING >30 ---
+            // --- BARIS 8: ACTUAL AMOUNT BAD DEBT (AGING >30, KUNING) ---
             $r++;
-            $sheet->setCellValue('B' . $r, 'Total piutang berumur > 30 hari');
+            $sheet->setCellValue('B' . $r, 'Actual amount bad debt');
+            $sheet->getStyle('B' . $r . ':O' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFFF00');
             $t_30up = 0;
             $c = 'C';
             foreach ($bulan as $b) {
@@ -418,6 +438,24 @@ class Report_debt extends Admin_Controller
             }
             $sheet->setCellValueExplicit('O' . $r, (float)$t_30up, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('#,##0');
+
+            // --- BARIS 9: PERSENTASE ACTUAL AMOUNT BAD DEBT (MERAH) ---
+            $r++;
+            $sheet->setCellValue('B' . $r, 'Persentase actual amount bad debt');
+            $c = 'C';
+            foreach ($bulan as $b) {
+                $piutang_bln = (float)($rekap_realisasi[$s['id']][$b['bulan_no']]['total_piutang'] ?? 0);
+                $aging_bad   = (float)($rekap_realisasi[$s['id']][$b['bulan_no']]['aging_30_up'] ?? 0);
+                $pct = $piutang_bln > 0 ? ($aging_bad / $piutang_bln) : 0;
+                $sheet->setCellValueExplicit($c . $r, $pct, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+                $sheet->getStyle($c . $r)->getNumberFormat()->setFormatCode('0.00%');
+                $sheet->getStyle($c . $r)->getFont()->getColor()->setRGB('FF0000');
+                $c++;
+            }
+            $pct_total_bad = $t_piutang > 0 ? ($t_30up / $t_piutang) : 0;
+            $sheet->setCellValueExplicit('O' . $r, $pct_total_bad, PHPExcel_Cell_DataType::TYPE_NUMERIC);
+            $sheet->getStyle('O' . $r)->getNumberFormat()->setFormatCode('0.00%');
+            $sheet->getStyle('O' . $r)->getFont()->getColor()->setRGB('FF0000');
 
             $r++;
         }
@@ -438,7 +476,9 @@ class Report_debt extends Admin_Controller
 
         // 6) Output sebagai Excel5 (.xls)
         $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
-        ob_end_clean();
+        if (ob_get_length()) {
+            ob_end_clean();
+        }
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="Report_Debt_' . $tahun . '.xls"');
         header('Cache-Control: max-age=0');

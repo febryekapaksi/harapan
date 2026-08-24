@@ -591,13 +591,9 @@ class Loading extends Admin_Controller
                 ['id' => $id_spk_detail]
             );
 
-            // Catat status per no_delivery: PARTIAL jika ada yang belum penuh
+            // Catat status per no_delivery: tetap LOADING
             if (!isset($headerStatus[$no_delivery])) {
-                $headerStatus[$no_delivery] = ($sisa_baru > 0) ? 'PARTIAL LOADING' : 'LOADING';
-            } else {
-                if ($sisa_baru > 0) {
-                    $headerStatus[$no_delivery] = 'PARTIAL LOADING';
-                }
+                $headerStatus[$no_delivery] = 'LOADING';
             }
         }
 
@@ -806,6 +802,137 @@ class Loading extends Admin_Controller
         $status_spk = ($summary['total_belum_spk'] > 0) ? 'SPK Sebagian' : 'SPK Lengkap';
 
         $this->db->update('sales_order', ['status_spk' => $status_spk], ['no_so' => $no_so]);
+    }
+
+    public function cancel_loading()
+    {
+        $this->auth->restrict($this->deletePermission);
+
+        $id = $this->input->post('id');
+
+        if (!$id) {
+            echo json_encode(['status' => 0, 'pesan' => 'ID tidak ditemukan']);
+            return;
+        }
+
+        // Ambil data loading
+        $loading = $this->db->get_where('loading_delivery', ['id' => $id])->row_array();
+
+        if (!$loading) {
+            echo json_encode(['status' => 0, 'pesan' => 'Data loading tidak ditemukan']);
+            return;
+        }
+
+        // Validasi: Hanya bisa cancel jika status = Draft (0)
+        if ($loading['status'] != 0) {
+            echo json_encode(['status' => 0, 'pesan' => 'Loading tidak bisa di-cancel. Status bukan Draft.']);
+            return;
+        }
+
+        $no_loading = $loading['no_loading'];
+
+        // Validasi: Cek apakah sudah ada surat jalan
+        $cek_sj = $this->db->get_where('surat_jalan', ['no_loading' => $no_loading])->num_rows();
+        if ($cek_sj > 0) {
+            echo json_encode(['status' => 0, 'pesan' => 'Loading tidak bisa di-cancel. Sudah ada Surat Jalan terkait.']);
+            return;
+        }
+
+        // Ambil semua detail loading
+        $details = $this->db->get_where('loading_delivery_detail', ['no_loading' => $no_loading])->result_array();
+
+        if (empty($details)) {
+            echo json_encode(['status' => 0, 'pesan' => 'Detail loading kosong']);
+            return;
+        }
+
+        // Simpan list no_delivery untuk audit trail
+        $no_deliveries = array_unique(array_column($details, 'no_delivery'));
+        $cancelled_spk_list = implode(', ', $no_deliveries);
+
+        $this->db->trans_begin();
+
+        // Restore qty_belum_muat dan qty_muat untuk setiap item
+        foreach ($details as $detail) {
+            $id_spk_detail = $detail['id_spk_detail'];
+            $qty_muat      = (int)$detail['qty_muat'];
+
+            // Ambil data SPK detail
+            $spk_detail = $this->db->get_where('spk_delivery_detail', ['id' => $id_spk_detail])->row_array();
+
+            if ($spk_detail) {
+                // Restore qty
+                $qty_belum_muat_baru = (int)$spk_detail['qty_belum_muat'] + $qty_muat;
+                $qty_muat_baru       = max(0, (int)$spk_detail['qty_muat'] - $qty_muat);
+
+                // Pastikan tidak melebihi qty_spk
+                $qty_belum_muat_baru = min($qty_belum_muat_baru, (int)$spk_detail['qty_spk']);
+
+                $this->db->update(
+                    'spk_delivery_detail',
+                    [
+                        'qty_belum_muat' => $qty_belum_muat_baru,
+                        'qty_muat'       => $qty_muat_baru
+                    ],
+                    ['id' => $id_spk_detail]
+                );
+            }
+        }
+
+        // Update status SPK header untuk setiap no_delivery yang terkait
+        $no_deliveries = array_unique(array_column($details, 'no_delivery'));
+
+        foreach ($no_deliveries as $no_delivery) {
+            // Cek apakah ada loading lain yang masih menggunakan no_delivery ini
+            $cek_loading_lain = $this->db
+                ->where('no_delivery', $no_delivery)
+                ->where('no_loading !=', $no_loading)
+                ->get('loading_delivery_detail')
+                ->num_rows();
+
+            if ($cek_loading_lain == 0) {
+                // Tidak ada loading lain, kembalikan status ke NOT YET DELIVER
+                $this->db->update(
+                    'spk_delivery',
+                    ['status' => 'NOT YET DELIVER'],
+                    ['no_delivery' => $no_delivery]
+                );
+            } else {
+                // Masih ada loading lain, tetap gunakan status LOADING
+                // (tidak ada status PARTIAL LOADING di SPK Delivery)
+                $this->db->update(
+                    'spk_delivery',
+                    ['status' => 'LOADING'],
+                    ['no_delivery' => $no_delivery]
+                );
+            }
+        }
+
+        // Hapus detail loading
+        $this->db->delete('loading_delivery_detail', ['no_loading' => $no_loading]);
+
+        // Update loading header - set status cancelled dengan audit trail
+        $this->db->update(
+            'loading_delivery',
+            [
+                'status'              => -1,
+                'cancelled_spk_list'  => $cancelled_spk_list,
+                'cancelled_by'        => $this->auth->user_id(),
+                'cancelled_at'        => date('Y-m-d H:i:s'),
+                'updated_by'          => $this->auth->user_id(),
+                'updated_at'          => date('Y-m-d H:i:s')
+            ],
+            ['no_loading' => $no_loading]
+        );
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            echo json_encode(['status' => 0, 'pesan' => 'Gagal cancel loading']);
+        } else {
+            $this->db->trans_commit();
+            history("Cancel Loading: " . $no_loading);
+            echo json_encode(['status' => 1, 'pesan' => 'Loading berhasil di-cancel. SPK dikembalikan ke status Waiting Loading.']);
+        }
     }
 
     private function send_wa($number, $message)

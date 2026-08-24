@@ -33,7 +33,7 @@
                 <tbody>
                     <?php foreach ($sales as $s): ?>
                         <tr>
-                            <td rowspan="7" style="vertical-align:middle; font-weight:bold;"><?= ucwords($s['nm_karyawan']) ?></td>
+                            <td rowspan="9" style="vertical-align:middle; font-weight:bold;"><?= ucwords($s['nm_karyawan']) ?></td>
                             <td>Total piutang per akhir bulan</td>
                             <?php $t_piutang = 0;
                             foreach ($bulan as $b):
@@ -71,21 +71,33 @@
                             <?php endforeach; ?>
                             <td class="text-right" style="background-color: #FFFF99;"><b><?= number_format($t_late_amount) ?></b></td>
                         </tr>
-                        <tr>
-                            <td>Total piutang berumur 15-30 hari</td>
+                        <tr style="background-color: #FFFF99;">
+                            <td>Actual amount late debt</td>
                             <?php $t_1530 = 0;
                             foreach ($bulan as $b):
                                 $val = $realisasi[$s['id']][$b['bulan_no']]['aging_15_30'] ?? 0;
                                 $t_1530 += $val;
                                 $bln_no = $b['bulan_no'];
                             ?>
-                                <td class="text-right">
+                                <td class="text-right" style="background-color: #FFFF99;">
                                     <a href="<?= site_url('report_debt/export_detail?tahun=' . $tahun_pilih . '&bulan=' . $bln_no . '&id_sales=' . $s['id'] . '&tipe=late') ?>" title="Download detail late debt (15-30 hari)" style="color:inherit; text-decoration:underline; cursor:pointer;">
                                         <?= number_format($val) ?>
                                     </a>
                                 </td>
                             <?php endforeach; ?>
-                            <td class="text-right"><?= number_format($t_1530) ?></td>
+                            <td class="text-right" style="background-color: #FFFF99;"><?= number_format($t_1530) ?></td>
+                        </tr>
+                        <tr>
+                            <td>Persentase actual amount</td>
+                            <?php foreach ($bulan as $b):
+                                $piutang_bln = (float)($realisasi[$s['id']][$b['bulan_no']]['total_piutang'] ?? 0);
+                                $aging_late = (float)($realisasi[$s['id']][$b['bulan_no']]['aging_15_30'] ?? 0);
+                                $pct = $piutang_bln > 0 ? ($aging_late / $piutang_bln) * 100 : 0;
+                            ?>
+                                <td class="text-center" style="color:#FF0000;"><?= number_format($pct, 2) ?>%</td>
+                            <?php endforeach; ?>
+                            <?php $pct_total_late = $t_piutang > 0 ? ($t_1530 / $t_piutang) * 100 : 0; ?>
+                            <td class="text-center" style="color:#FF0000;"><?= number_format($pct_total_late, 2) ?>%</td>
                         </tr>
                         <tr>
                             <td class="bg-info">Target bad debt %</td>
@@ -109,21 +121,33 @@
                             <?php endforeach; ?>
                             <td class="text-right" style="background-color: #FFFF99;"><b><?= number_format($t_bad_amount) ?></b></td>
                         </tr>
-                        <tr>
-                            <td>Total piutang berumur > 30 hari</td>
+                        <tr style="background-color: #FFFF99;">
+                            <td>Actual amount bad debt</td>
                             <?php $t_30up = 0;
                             foreach ($bulan as $b):
                                 $val = $realisasi[$s['id']][$b['bulan_no']]['aging_30_up'] ?? 0;
                                 $t_30up += $val;
                                 $bln_no = $b['bulan_no'];
                             ?>
-                                <td class="text-right">
+                                <td class="text-right" style="background-color: #FFFF99;">
                                     <a href="<?= site_url('report_debt/export_detail?tahun=' . $tahun_pilih . '&bulan=' . $bln_no . '&id_sales=' . $s['id'] . '&tipe=bad') ?>" title="Download detail bad debt (> 30 hari)" style="color:inherit; text-decoration:underline; cursor:pointer;">
                                         <?= number_format($val) ?>
                                     </a>
                                 </td>
                             <?php endforeach; ?>
-                            <td class="text-right"><?= number_format($t_30up) ?></td>
+                            <td class="text-right" style="background-color: #FFFF99;"><?= number_format($t_30up) ?></td>
+                        </tr>
+                        <tr>
+                            <td>Persentase actual amount bad debt</td>
+                            <?php foreach ($bulan as $b):
+                                $piutang_bln = (float)($realisasi[$s['id']][$b['bulan_no']]['total_piutang'] ?? 0);
+                                $aging_bad = (float)($realisasi[$s['id']][$b['bulan_no']]['aging_30_up'] ?? 0);
+                                $pct = $piutang_bln > 0 ? ($aging_bad / $piutang_bln) * 100 : 0;
+                            ?>
+                                <td class="text-center" style="color:#FF0000;"><?= number_format($pct, 2) ?>%</td>
+                            <?php endforeach; ?>
+                            <?php $pct_total_bad = $t_piutang > 0 ? ($t_30up / $t_piutang) * 100 : 0; ?>
+                            <td class="text-center" style="color:#FF0000;"><?= number_format($pct_total_bad, 2) ?>%</td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>
