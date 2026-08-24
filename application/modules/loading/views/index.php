@@ -205,6 +205,52 @@
             document.body.innerHTML = originalContents;
             location.reload(); // agar modal tertutup kembali
         });
+
+        // Handle Cancel Loading
+        $(document).on('click', '.cancel-loading-btn', function() {
+            const id = $(this).data('id');
+            const no_loading = $(this).data('no-loading');
+
+            swal({
+                title: "Yakin Cancel Loading?",
+                text: "No Loading: " + no_loading + "\n\nSemua item akan dihapus dan SPK dikembalikan ke status Waiting Loading.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Ya, Cancel Loading!",
+                cancelButtonText: "Batal",
+                closeOnConfirm: false,
+                closeOnCancel: true
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        url: siteurl + 'loading/cancel_loading',
+                        type: 'POST',
+                        data: {
+                            id: id
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.status == 1) {
+                                swal({
+                                    title: "Berhasil!",
+                                    text: response.pesan,
+                                    type: "success"
+                                }, function() {
+                                    // Reload DataTable
+                                    $('#tableLoading').DataTable().ajax.reload(null, false);
+                                });
+                            } else {
+                                swal("Gagal!", response.pesan, "error");
+                            }
+                        },
+                        error: function(xhr) {
+                            swal("Error!", "Terjadi kesalahan sistem: " + xhr.responseText, "error");
+                        }
+                    });
+                }
+            });
+        });
     });
 
     function DataTables() {
