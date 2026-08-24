@@ -430,15 +430,17 @@ class Penawaran extends Admin_Controller
 
         // Ambil data penawaran utama dari tabel 'penawaran' + join 'master_customers'
         $get_penawaran = $this->db
-            ->select('p.*, c.*, 
+            ->select('p.*, c.*,
                     e1.nm_karyawan AS created_by,
                     e2.nm_karyawan AS approved_by_manager,
-                    e3.nm_karyawan AS approved_by_direksi')
+                    e3.nm_karyawan AS approved_by_direksi,
+                    lh.name AS payment_term_name')
             ->from('penawaran p')
             ->join('master_customers c', 'p.id_customer = c.id_customer', 'left')
             ->join('employee e1', 'e1.id = p.created_by', 'left')
             ->join('employee e2', 'e2.id = p.approved_by_manager', 'left')
             ->join('employee e3', 'e3.id = p.approved_by_direksi', 'left')
+            ->join('list_help lh', "lh.id = p.payment_term AND lh.group_by = 'top invoice'", 'left')
             ->where('p.id_penawaran', $id_penawaran)
             ->get()
             ->row();

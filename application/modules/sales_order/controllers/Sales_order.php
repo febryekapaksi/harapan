@@ -512,12 +512,14 @@ class Sales_order extends Admin_Controller
     $get_so = $this->db
       ->select('so.*, c.*, p.quotation_date, p.total_penawaran, p.tipe_bayar,
                   e1.nm_karyawan AS created_by,
-                  e2.nm_karyawan AS approved_by')
+                  e2.nm_karyawan AS approved_by,
+                  lh.name AS payment_term_name')
       ->from('sales_order so')
       ->join('penawaran p', 'p.id_penawaran = so.id_penawaran', 'left')
       ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
       ->join('employee e1', 'e1.id = so.created_by', 'left')
       ->join('employee e2', 'e2.id = so.approved_by', 'left')
+      ->join('list_help lh', "lh.id = so.payment_term AND lh.group_by = 'top invoice'", 'left')
       ->where('so.no_so', $no_so)
       ->get()
       ->row();
