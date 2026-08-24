@@ -27,19 +27,29 @@ class Report_piutang_sales_model extends BF_Model
     {
         // Wrap per-row saldo dulu, lalu SUM hanya yang saldo > 0
         // agar konsisten dengan get_detail_piutang yang pakai HAVING saldo > 0
+        // Gabungkan setor kasir + setor bank agar piutang yang sudah disetor bank juga terhitung
         $sql = "
         SELECT
             id_user,
             nm_lengkap,
+            SUM(penerimaan_per_row) AS total_penerimaan,
+            SUM(setor_kasir_per_row) AS total_setor_kasir,
+            SUM(setor_bank_per_row) AS total_setor_bank,
             SUM(saldo_per_row) AS saldo_piutang
         FROM (
             SELECT
                 u.id_user,
                 u.nm_lengkap,
-                (
-                    p.jumlah_pembayaran_idr
-                    - COALESCE(s.total_setor, 0)
-                ) AS saldo_per_row
+                p.jumlah_pembayaran_idr AS penerimaan_per_row,
+                COALESCE(s.total_setor, 0) AS setor_kasir_per_row,
+                COALESCE(sb.total_setor_bank, 0) AS setor_bank_per_row,
+                CASE
+                    WHEN COALESCE(s.total_setor, 0) > 0
+                        THEN p.jumlah_pembayaran_idr - COALESCE(s.total_setor, 0)
+                    WHEN COALESCE(sb.total_setor_bank, 0) > 0
+                        THEN p.jumlah_pembayaran_idr - COALESCE(sb.total_setor_bank, 0)
+                    ELSE p.jumlah_pembayaran_idr
+                END AS saldo_per_row
             FROM tr_invoice_payment p
             JOIN users u
                 ON u.id_user = p.created_by
@@ -52,6 +62,15 @@ class Report_piutang_sales_model extends BF_Model
                 GROUP BY kd_pembayaran
             ) s
                 ON s.kd_pembayaran = p.kd_pembayaran
+
+            LEFT JOIN (
+                SELECT
+                    kd_pembayaran,
+                    SUM(total_penerimaan) AS total_setor_bank
+                FROM tr_setor_bank_detail
+                GROUP BY kd_pembayaran
+            ) sb
+                ON sb.kd_pembayaran = p.kd_pembayaran
 
             WHERE u.department_id = 2
               AND (p.is_cancel IS NULL OR p.is_cancel != 'YES')
@@ -103,10 +122,14 @@ class Report_piutang_sales_model extends BF_Model
             s.tgl_setor,
             s.kode_setor,
             COALESCE(s.total_setor, 0) AS setor_kasir_penjualan,
-            (
-                p.jumlah_pembayaran_idr
-                - COALESCE(s.total_setor, 0)
-            ) AS saldo
+            COALESCE(sb.total_setor_bank, 0) AS setor_bank_penjualan,
+            CASE
+                WHEN COALESCE(s.total_setor, 0) > 0
+                    THEN p.jumlah_pembayaran_idr - COALESCE(s.total_setor, 0)
+                WHEN COALESCE(sb.total_setor_bank, 0) > 0
+                    THEN p.jumlah_pembayaran_idr - COALESCE(sb.total_setor_bank, 0)
+                ELSE p.jumlah_pembayaran_idr
+            END AS saldo
 
         FROM tr_invoice_payment p
 
@@ -122,6 +145,15 @@ class Report_piutang_sales_model extends BF_Model
             GROUP BY skd.kd_pembayaran
         ) s
             ON s.kd_pembayaran = p.kd_pembayaran
+
+        LEFT JOIN (
+            SELECT
+                sbd.kd_pembayaran,
+                SUM(sbd.total_penerimaan) AS total_setor_bank
+            FROM tr_setor_bank_detail sbd
+            GROUP BY sbd.kd_pembayaran
+        ) sb
+            ON sb.kd_pembayaran = p.kd_pembayaran
 
         WHERE p.created_by = ?
           AND (p.is_cancel IS NULL OR p.is_cancel != 'YES')

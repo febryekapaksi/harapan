@@ -668,13 +668,14 @@ class Incoming_check_model extends BF_Model
                     continue;
                 }
 
-                // stok awal gudang PUS
-                $stockRow = $this->db->select('qty_stock, qty_booking, qty_free, harga_beli')
-                    ->get_where('warehouse_stock', [
-                        'id_material' => $id_material,
-                        'id_gudang'   => '1',
-                        'kd_gudang'   => 'PUS'
-                    ])->row();
+                // stok awal gudang PUS — FOR UPDATE agar tidak race condition
+                $stockRow = $this->db->query(
+                    "SELECT qty_stock, qty_booking, qty_free, harga_beli
+                     FROM warehouse_stock
+                     WHERE id_material = ? AND id_gudang = '1' AND kd_gudang = 'PUS'
+                     FOR UPDATE",
+                    [$id_material]
+                )->row();
 
                 $qty_stock_awal = !empty($stockRow) ? (float)$stockRow->qty_stock : 0.0;
                 $qty_booking    = !empty($stockRow) ? (float)$stockRow->qty_booking : 0.0;

@@ -1,8 +1,14 @@
 <?php
-$readonly = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'readonly' : '');
-$disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'disabled' : '');
+$readonly = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi' || $mode == 'view') ? 'readonly' : '');
+$disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi' || $mode == 'view') ? 'disabled' : '');
 
 ?>
+
+<?php if (isset($mode) && $mode == 'view'): ?>
+<style>
+    .btn-danger[onclick^="DelProduct"], #add-product { display: none !important; }
+</style>
+<?php endif; ?>
 
 <div class="box box-primary">
     <div class="box-body">
@@ -163,9 +169,9 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                     <th class="text-center" style="min-width: 100px;" class="text-nowrap">% Discount</th>
                                     <th class="text-center" style="min-width: 160px;">Total Harga Penawaran</th>
                                     <th class="text-center" style="width: 50px;">
-                                        <?php
+                                        <?php if (!isset($mode) || $mode != 'view') :
                                         echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-product'));
-                                        ?>
+                                        endif; ?>
                                     </th>
                                 </tr>
                             </thead>
@@ -507,7 +513,7 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
 
             let options = '<option value="">-- Pilih Produk --</option>';
             products.forEach(item => {
-                options += `<option value="${item.code_lv4}" data-harga-beli="${item.harga_beli}" data-price="${item.propose_price}" data-product="${item.product_name}" data-dropship-price="${item.dropship_price}" data-code="${item.code_lv4}">${item.product_name}</option>`;
+                options += `<option value="${item.code_lv4}" data-harga-beli="${item.harga_beli}" data-price="${item.propose_price}" data-product="${item.product_name}" data-dropship-price="${item.dropship_price}" data-dropship-tempo="${item.dropship_tempo}" data-code="${item.code_lv4}">${item.product_name}</option>`;
             });
 
             let row = `
@@ -547,7 +553,25 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
             const code = selected.data('code');
             const harga_beli = selected.data('harga-beli');
 
-            $(`#price_${loop}`).val(price);
+            // Set harga berdasarkan tipe: dropship atau toko
+            const kategoriToko = $('#id_customer').find(':selected').data('toko');
+            if (kategoriToko && kategoriToko.toLowerCase().includes('dropship')) {
+                // Untuk dropship, ambil dari data-dropship-price / data-dropship-tempo
+                const tipeBayar = $('#tipe_bayar').val();
+                const dropshipPrice = parseFloat(selected.data('dropship-price')) || 0;
+                const dropshipTempo = parseFloat(selected.data('dropship-tempo')) || 0;
+                if (tipeBayar === 'cash') {
+                    $(`#price_${loop}`).val(dropshipPrice);
+                } else if (tipeBayar === 'tempo') {
+                    $(`#price_${loop}`).val(dropshipTempo);
+                } else {
+                    $(`#price_${loop}`).val(0);
+                }
+            } else {
+                // Untuk toko biasa, set propose_price dulu (akan dikoreksi oleh hitungHarga via AJAX)
+                $(`#price_${loop}`).val(price);
+            }
+
             $(`#stok_${loop}`).val(stock);
             $(`#product_name_${loop}`).val(product);
             $(`#harga_beli_${loop}`).val(harga_beli);

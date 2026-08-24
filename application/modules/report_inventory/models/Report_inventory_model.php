@@ -52,7 +52,7 @@ class Report_inventory_model extends BF_Model
             $nestedData[] = "<div align='right'>" . number_format($row['qty_booking'], 0, ',', '.') . "</div>";
             $nestedData[] = "<div align='right'>" . number_format($row['qty_free'], 0, ',', '.') . "</div>";
             $nestedData[] = "<div align='center'>{$row['nm_gudang']}</div>";
-            $nestedData[] = "<div align='center'>" . date('d/m/Y', strtotime($row['tanggal_backup'])) . "</div>";
+            $nestedData[] = "<div align='center'>" . date('d/m/Y', strtotime($row['tgl_backup'])) . "</div>";
             $nestedData[] = "<div align='right'>" . number_format($row['harga_beli'], 0, ',', '.') . "</div>";
             $nestedData[] = "<div align='right'>" . number_format($row['total_nilai'], 0, ',', '.') . "</div>";
 
@@ -87,26 +87,26 @@ class Report_inventory_model extends BF_Model
             4 => 's.qty_booking',
             5 => 's.qty_free',
             6 => 'w.nm_gudang',
-            7 => 's.tanggal_backup',
+            7 => 's.tgl_backup',
             8 => 's.harga_beli',
             9 => 's.total_nilai',
         ];
 
         // ---- total data
-        $this->db->from('warehouse_stock_backup s');
+        $this->db->from('warehouse_stock_per_days s');
         $this->db->join('warehouse w', 's.id_gudang = w.id', 'left');
         if ($tanggal !== null && $tanggal !== '') {
-            $this->db->where('DATE(s.tanggal_backup)', $tanggal);
+            $this->db->like('s.tgl_backup', $tanggal);
         } else {
             $this->db->where('0=1', null, false); // <<— paksa kosong ketika tanggal kosong
         }
         $totalData = $this->db->count_all_results();
 
         // ---- total filtered
-        $this->db->from('warehouse_stock_backup s');
+        $this->db->from('warehouse_stock_per_days s');
         $this->db->join('warehouse w', 's.id_gudang = w.id', 'left');
         if ($tanggal !== null && $tanggal !== '') {
-            $this->db->where('DATE(s.tanggal_backup)', $tanggal);
+            $this->db->like('s.tgl_backup', $tanggal);
         } else {
             $this->db->where('0=1', null, false);
         }
@@ -121,11 +121,11 @@ class Report_inventory_model extends BF_Model
 
         // ---- main query
         $this->db->select('s.id, s.id_material, s.code_product, s.nm_product, s.qty_stock, s.qty_booking,
-                       s.qty_free, w.nm_gudang, s.tanggal_backup, s.harga_beli, s.total_nilai');
-        $this->db->from('warehouse_stock_backup s');
+                       s.qty_free, w.nm_gudang, s.tgl_backup, s.harga_beli, s.total_nilai');
+        $this->db->from('warehouse_stock_per_days s');
         $this->db->join('warehouse w', 's.id_gudang = w.id', 'left');
         if ($tanggal !== null && $tanggal !== '') {
-            $this->db->where('DATE(s.tanggal_backup)', $tanggal);
+            $this->db->like('s.tgl_backup', $tanggal);
         } else {
             $this->db->where('0=1', null, false);
         }
@@ -139,7 +139,7 @@ class Report_inventory_model extends BF_Model
         if ($column_order !== null && isset($columns_order_by[$column_order])) {
             $this->db->order_by($columns_order_by[$column_order], $column_dir);
         } else {
-            $this->db->order_by('s.tanggal_backup', 'desc');
+            $this->db->order_by('s.tgl_backup', 'desc');
         }
         if ($limit_length != -1) {
             $this->db->limit($limit_length, $limit_start);
@@ -165,14 +165,14 @@ class Report_inventory_model extends BF_Model
             s.qty_booking,
             s.qty_free,
             w.nm_gudang,
-            s.tanggal_backup,
+            s.tgl_backup,
             s.harga_beli,
             s.total_nilai
         ');
-        $this->db->from('warehouse_stock_backup s');
+        $this->db->from('warehouse_stock_per_days s');
         $this->db->join('warehouse w', 's.id_gudang = w.id', 'left');
-        $this->db->where('DATE(s.tanggal_backup)', $tanggal);
-        $this->db->order_by('s.tanggal_backup', 'desc');
+        $this->db->like('s.tgl_backup', $tanggal);
+        $this->db->order_by('s.tgl_backup', 'desc');
         return $this->db->get()->result_array();
     }
 }

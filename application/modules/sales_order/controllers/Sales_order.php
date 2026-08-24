@@ -106,6 +106,112 @@ class Sales_order extends Admin_Controller
     ]);
   }
 
+  /**
+   * Cancel SO - Membatalkan sisa qty SO yang belum ter-SPK
+   * 
+   * Contoh: SO = 100, SPK = 70, Sisa 30 di-cancel.
+   * Stock booking akan dikembalikan, muncul transaksi "Batal SO" di kartu stok.
+   */
+  public function cancel_so()
+  {
+    $this->auth->restrict($this->managePermission);
+
+    $no_so  = $this->input->post('no_so');
+    $reason = $this->input->post('reason');
+
+    if (empty($no_so)) {
+      echo json_encode(['status' => 0, 'pesan' => 'No SO tidak valid.']);
+      return;
+    }
+
+    $so = $this->db->get_where('sales_order', ['no_so' => $no_so])->row_array();
+    if (!$so) {
+      echo json_encode(['status' => 0, 'pesan' => 'Data Sales Order tidak ditemukan.']);
+      return;
+    }
+
+    $so_details = $this->db->get_where('sales_order_detail', ['no_so' => $no_so])->result_array();
+
+    $this->db->trans_begin();
+    $total_cancelled = 0;
+
+    foreach ($so_details as $det) {
+      $qty_order = floatval($det['qty_order']);
+      $qty_spk   = floatval($det['qty_spk']);
+      $sisa      = $qty_order - $qty_spk;
+
+      if ($sisa <= 0) continue;
+
+      $total_cancelled += $sisa;
+      $code_lv4 = $det['id_product'];
+
+      // Update sales_order_detail
+      $this->db->update('sales_order_detail', [
+        'qty_order'       => $qty_spk,
+        'qty_belum_spk'   => 0,
+        'qty_cancelled'   => $sisa,
+        'status_planning' => 1,
+      ], ['id' => $det['id']]);
+
+      // Kembalikan booking warehouse
+      $stok_before = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
+      if ($stok_before) {
+        $qty_booking_before  = floatval($stok_before['qty_booking']);
+        $qty_free_before     = floatval($stok_before['qty_free']);
+        $use_qty_free_before = floatval($stok_before['use_qty_free']);
+
+        $qty_booking_after = max(0, $qty_booking_before - $sisa);
+        $qty_free_after    = $qty_free_before + $sisa;
+
+        $this->db->where(['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->update('warehouse_stock', [
+          'qty_booking'  => $qty_booking_after,
+          'qty_free'     => $qty_free_after,
+          'use_qty_free' => max(0, $use_qty_free_before - $sisa),
+        ]);
+
+        // Catat di kartu_stok
+        $this->db->insert('kartu_stok', [
+          'no_transaksi'   => $no_so,
+          'transaksi'      => 'Batal SO',
+          'tgl_transaksi'  => date('Y-m-d H:i:s'),
+          'code_lv4'       => $code_lv4,
+          'nm_product'     => $det['product'],
+          'qty'            => floatval($stok_before['qty_stock']),
+          'qty_book'       => $qty_booking_before,
+          'qty_free'       => $qty_free_before,
+          'qty_transaksi'  => $sisa,
+          'qty_akhir'      => floatval($stok_before['qty_stock']),
+          'qty_book_akhir' => $qty_booking_after,
+          'qty_free_akhir' => $qty_free_after,
+          'harga_stok'     => isset($det['harga_beli']) ? floatval($det['harga_beli']) : 0,
+        ]);
+      }
+    }
+
+    // Update header SO
+    $this->db->update('sales_order', [
+      'status_so'      => 'CLOSED',
+      'cancel_reason'  => $reason,
+      'cancel_qty'     => $total_cancelled,
+      'cancelled_by'   => $this->auth->user_id(),
+      'cancelled_at'   => date('Y-m-d H:i:s'),
+    ], ['no_so' => $no_so]);
+
+    if ($this->db->trans_status() === FALSE) {
+      $this->db->trans_rollback();
+      echo json_encode(['status' => 0, 'pesan' => 'Gagal membatalkan sisa SO!']);
+      return;
+    }
+
+    $this->db->trans_commit();
+    history("Cancel SO (sisa): {$no_so} | Qty dibatalkan: {$total_cancelled}");
+
+    echo json_encode([
+      'status' => 1,
+      'pesan'  => "Sisa SO berhasil dibatalkan. Total qty cancel: {$total_cancelled}. Stock booking dikembalikan."
+    ]);
+  }
+
   public function edit($id_so)
   {
     $so = $this->db->get_where('sales_order', ['no_so' => $id_so])->row_array();
@@ -234,7 +340,7 @@ class Sales_order extends Admin_Controller
           SET qty_booking  = GREATEST(qty_booking - ?, 0),
               use_qty_free = GREATEST(use_qty_free - ?, 0),
               qty_free     = qty_free + ?
-          WHERE code_lv4 = ?
+          WHERE code_lv4 = ? AND id_gudang = 1 AND kd_gudang = 'PUS'
         ", [$old_qty_order, $old_use_qty_free, $old_use_qty_free, $old_code]);
       }
       $this->db->delete('sales_order_detail', ['no_so' => $no_so]);
@@ -247,7 +353,7 @@ class Sales_order extends Admin_Controller
       foreach ($_POST['product'] as $pro) {
         $code_lv4 = $pro['code_lv4'];
         // Baca stok SETELAH rollback (untuk update) atau stok saat ini (untuk insert)
-        $stok = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+        $stok = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
 
         if ($stok) {
           $qty_booking_lama  = floatval($stok['qty_booking']);
@@ -262,7 +368,7 @@ class Sales_order extends Admin_Controller
           $qty_free_baru    = $qty_free_lama - $use_qty_free_baru;
 
           // update warehouse
-          $this->db->where('code_lv4', $code_lv4)->update('warehouse_stock', [
+          $this->db->where(['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->update('warehouse_stock', [
             'qty_booking'  => $qty_booking_baru,
             'use_qty_free' => $use_qty_free_lama + $use_qty_free_baru,
             'qty_free'     => $qty_free_baru
@@ -406,12 +512,14 @@ class Sales_order extends Admin_Controller
     $get_so = $this->db
       ->select('so.*, c.*, p.quotation_date, p.total_penawaran, p.tipe_bayar,
                   e1.nm_karyawan AS created_by,
-                  e2.nm_karyawan AS approved_by')
+                  e2.nm_karyawan AS approved_by,
+                  lh.name AS payment_term_name')
       ->from('sales_order so')
       ->join('penawaran p', 'p.id_penawaran = so.id_penawaran', 'left')
       ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
       ->join('employee e1', 'e1.id = so.created_by', 'left')
       ->join('employee e2', 'e2.id = so.approved_by', 'left')
+      ->join('list_help lh', "lh.id = so.payment_term AND lh.group_by = 'top invoice'", 'left')
       ->where('so.no_so', $no_so)
       ->get()
       ->row();
@@ -446,7 +554,7 @@ class Sales_order extends Admin_Controller
   {
     $code_lv4 = $this->input->post('code_lv4');
 
-    $stock = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+    $stock = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
 
     if ($stock) {
       echo json_encode([
@@ -471,6 +579,11 @@ class Sales_order extends Admin_Controller
     $this->db->join('sales_order so', 'so.id_penawaran = p.id_penawaran', 'left');
     $this->db->join('master_customers c', 'p.id_customer = c.id_customer', 'left');
     $this->db->where('p.status', 'A');
+    // Exclude SO yang SPK Lengkap (sudah masuk SO Complete)
+    $this->db->group_start();
+    $this->db->where('so.status_spk !=', 'SPK Lengkap');
+    $this->db->or_where('so.status_spk IS NULL');
+    $this->db->group_end();
     if (!empty($start)) $this->db->where('so.tgl_so >=', $start);
     if (!empty($end))   $this->db->where('so.tgl_so <=', $end);
     $this->db->order_by('so.tgl_so', 'DESC');
@@ -507,7 +620,12 @@ class Sales_order extends Admin_Controller
       $sheet->setCellValueExplicit('B' . $r, (string)$row->no_so, PHPExcel_Cell_DataType::TYPE_STRING);
       $sheet->setCellValueExplicit('C' . $r, (string)$row->id_penawaran, PHPExcel_Cell_DataType::TYPE_STRING);
       if (!empty($row->tgl_so)) {
-        $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->tgl_so));
+        $date = new DateTime($row->tgl_so);
+        $tgl = (float)PHPExcel_Shared_Date::FormattedPHPToExcel(
+          (int)$date->format('Y'),
+          (int)$date->format('m'),
+          (int)$date->format('d')
+        );
         $sheet->setCellValueExplicit('D' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
         $sheet->getStyle('D' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
       }

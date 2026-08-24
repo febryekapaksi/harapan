@@ -122,6 +122,51 @@ class Penawaran extends Admin_Controller
         $this->template->render('form', $data);
     }
 
+    public function view($id_penawaran)
+    {
+        // Cek apakah data ada
+        $penawaran = $this->db->get_where('penawaran', ['id_penawaran' => $id_penawaran])->row_array();
+
+        if (!$penawaran) {
+            show_404();
+        }
+
+        // Ambil data detail produk terkait
+        $penawaran_detail = $this->db->get_where('penawaran_detail', ['id_penawaran' => $id_penawaran])->result_array();
+
+        // Data customer dan produk
+        $data['customers'] = $this->db->get('master_customers')->result_array();
+        $data['products'] = $this->db
+            ->select('
+                    pc.id,
+                    pc.product_name,
+                    pc.propose_price,
+                    pc.harga_beli,
+                    pc.dropship_price,
+                    pc.dropship_tempo,
+                    ni4.code_lv4
+                    ')
+            ->from('product_costing pc')
+            ->join('new_inventory_4 ni4', 'ni4.code_lv4 = pc.code_lv4', 'left')
+            ->where('pc.status', 'A')
+            ->where('ni4.deleted_date', null)
+            ->where('ni4.deleted_by', null)
+            ->get()
+            ->result_array();
+
+        $data['payment_terms'] = $this->db->where('group_by', 'top invoice')->where('sts', 'Y')->get('list_help')->result_array();
+
+        // Kirim data ke view
+        $data['penawaran'] = $penawaran;
+        $data['penawaran_detail'] = $penawaran_detail;
+        $data['mode'] = "view";
+
+        // View form (read-only)
+        $this->template->title("Detail Penawaran");
+        $this->template->page_icon("fa fa-shopping-cart");
+        $this->template->render('form', $data);
+    }
+
     public function save()
     {
         $data = $this->input->post();
@@ -385,15 +430,17 @@ class Penawaran extends Admin_Controller
 
         // Ambil data penawaran utama dari tabel 'penawaran' + join 'master_customers'
         $get_penawaran = $this->db
-            ->select('p.*, c.*, 
+            ->select('p.*, c.*,
                     e1.nm_karyawan AS created_by,
                     e2.nm_karyawan AS approved_by_manager,
-                    e3.nm_karyawan AS approved_by_direksi')
+                    e3.nm_karyawan AS approved_by_direksi,
+                    lh.name AS payment_term_name')
             ->from('penawaran p')
             ->join('master_customers c', 'p.id_customer = c.id_customer', 'left')
             ->join('employee e1', 'e1.id = p.created_by', 'left')
             ->join('employee e2', 'e2.id = p.approved_by_manager', 'left')
             ->join('employee e3', 'e3.id = p.approved_by_direksi', 'left')
+            ->join('list_help lh', "lh.id = p.payment_term AND lh.group_by = 'top invoice'", 'left')
             ->where('p.id_penawaran', $id_penawaran)
             ->get()
             ->row();
@@ -582,12 +629,22 @@ class Penawaran extends Admin_Controller
         $outstanding = (!empty($row_piutang['outstanding_piutang'])) ? (float)$row_piutang['outstanding_piutang'] : 0;
 
         // B) SO Baru (status A)
-        $row_so = $this->db
+       /* $row_so = $this->db
             ->select('SUM(s.grand_total) AS so_baru', false)
             ->from('sales_order s')
             ->where('s.id_customer', $id_customer)
             ->where('s.status', 'A')
             ->where("(s.status_spk IS NULL OR s.status_spk != 'Belum SPK')", null, false)
+            ->get()
+            ->row_array();*/
+
+        $row_so = $this->db
+            ->select('SUM(s.grand_total) AS so_baru', false)
+            ->from('sales_order s')
+            ->where('s.id_customer', $id_customer)
+            ->where('s.status', 'A')
+            ->where_in('s.status_spk', ['SPK Sebagian', 'SPK Lengkap'])
+            ->where("s.no_so NOT IN (SELECT sj.no_so FROM surat_jalan sj WHERE sj.no_so IS NOT NULL)", null, false)
             ->get()
             ->row_array();
 
@@ -897,7 +954,12 @@ class Penawaran extends Admin_Controller
             $sheet->setCellValue('A' . $r, $no++);
             $sheet->setCellValueExplicit('B' . $r, (string)$row->id_penawaran, PHPExcel_Cell_DataType::TYPE_STRING);
             if (!empty($row->quotation_date)) {
-                $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->quotation_date));
+                $date = new DateTime($row->quotation_date);
+                $tgl = (float)PHPExcel_Shared_Date::FormattedPHPToExcel(
+                    (int)$date->format('Y'),
+                    (int)$date->format('m'),
+                    (int)$date->format('d')
+                );
                 $sheet->setCellValueExplicit('C' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
                 $sheet->getStyle('C' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
             }

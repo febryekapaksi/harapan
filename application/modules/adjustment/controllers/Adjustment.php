@@ -80,7 +80,23 @@ class Adjustment extends Admin_Controller
       $urut2        = sprintf('%04s', $urutan2);
       $kode_trans    = "ADJ" . $Ym . $urut2;
 
-      $nm_material  = get_name('new_inventory_4', 'nama', 'code_lv4', $id_material);
+      $nm_material  = '';
+      // Coba ambil dari new_inventory_4
+      $row_inv4 = $this->db->select('nama')->get_where('new_inventory_4', ['code_lv4' => $id_material])->row();
+      if ($row_inv4) {
+        $nm_material = $row_inv4->nama;
+      }
+      // Fallback: ambil dari warehouse_stock
+      if (empty($nm_material)) {
+        $row_ws = $this->db->select('nm_product')->get_where('warehouse_stock', ['id_material' => $id_material])->row();
+        if ($row_ws) {
+          $nm_material = $row_ws->nm_product;
+        }
+      }
+      // Fallback terakhir
+      if (empty($nm_material)) {
+        $nm_material = $id_material;
+      }
 
       $ArrHeader = array(
         'kode_trans'         => $kode_trans,
@@ -147,13 +163,11 @@ class Adjustment extends Admin_Controller
       $this->db->trans_complete();
 
       if ($this->db->trans_status() === FALSE) {
-        $this->db->trans_rollback();
         $Arr_Data  = array(
           'pesan'    => 'Save process failed. Please try again later ...',
           'status'  => 0
         );
       } else {
-        $this->db->trans_commit();
         $Arr_Data  = array(
           'pesan'    => 'Save process success. Thanks ...',
           'status'  => 1
@@ -162,6 +176,10 @@ class Adjustment extends Admin_Controller
 
         // Catat ke kartu stok setelah warehouse_stock sudah diupdate oleh move_warehouse_adjustment
         $stok_now = $this->db->get_where('warehouse_stock', ['code_lv4' => $id_material])->row_array();
+        // Fallback: cari pakai id_material kalau code_lv4 tidak ketemu
+        if (empty($stok_now)) {
+          $stok_now = $this->db->get_where('warehouse_stock', ['id_material' => $id_material])->row_array();
+        }
         if ($stok_now) {
           $qty_oke_float = floatval($qty_oke);
 
@@ -196,6 +214,80 @@ class Adjustment extends Admin_Controller
             'qty_free_akhir' => floatval($stok_now['qty_free']),
             'harga_stok'     => floatval($stok_now['harga_beli']),
           ]);
+
+          // ===== JURNAL ADJUSTMENT PERSEDIAAN =====
+          // SOP: 
+          //   Minus → Debit 5101-01-03 (Selisih Stock Opname), Kredit 1104-01-01 (Persediaan Barang Warehouse)
+          //   Plus  → Debit 1104-01-01 (Persediaan Barang Warehouse), Kredit 5101-01-03 (Selisih Stock Opname)
+          if ($adjustment_type == 'plus' || $adjustment_type == 'minus') {
+            $harga_beli = floatval(@$stok_now['harga_beli']);
+            $nilai_adjustment = $qty_oke_float * $harga_beli;
+
+            $tgl_jurnal   = date('Y-m-d');
+            $keterangan_j = 'Adjustment ' . ucfirst($adjustment_type) . ' - ' . $kode_trans . ' - ' . $nm_material;
+
+            $COA_PERSEDIAAN     = '1104-01-01'; // Persediaan Barang Warehouse
+            $COA_SELISIH_STOCK  = '5101-01-03'; // Selisih Stock Opname
+
+            if ($adjustment_type == 'minus') {
+              $debet_coa  = $COA_SELISIH_STOCK;
+              $kredit_coa = $COA_PERSEDIAAN;
+            } else {
+              $debet_coa  = $COA_PERSEDIAAN;
+              $kredit_coa = $COA_SELISIH_STOCK;
+            }
+
+            // Insert ke gl_interface (staging jurnal)
+            $this->db->insert('gl_interface', [
+              'tgl'              => $tgl_jurnal,
+              'jml'              => $nilai_adjustment,
+              'kdcab'            => '101',
+              'jenis'            => 'JV',
+              'jenis_transaksi'  => 'adjustment',
+              'keterangan'       => $keterangan_j,
+              'bulan'            => date('n'),
+              'tahun'            => date('Y'),
+              'user_id'          => $this->id_user,
+              'status'           => 'pending',
+              'memo'             => json_encode([
+                'kode_trans'      => $kode_trans,
+                'adjustment_type' => $adjustment_type,
+                'id_material'     => $id_material,
+                'nm_material'     => $nm_material,
+                'qty'             => $qty_oke_float,
+                'harga_beli'      => $harga_beli,
+              ]),
+              'created_at'       => $this->datetime,
+            ]);
+            $id_gl_interface = $this->db->insert_id();
+
+            if ($id_gl_interface) {
+              // Detail Debet
+              $this->db->insert('gl_interface_detail', [
+                'id_gl_interface' => $id_gl_interface,
+                'tipe'            => 'JV',
+                'tanggal'         => $tgl_jurnal,
+                'no_perkiraan'    => $debet_coa,
+                'keterangan'      => $keterangan_j,
+                'no_reff'         => $kode_trans,
+                'debet'           => $nilai_adjustment,
+                'kredit'          => 0,
+              ]);
+
+              // Detail Kredit
+              $this->db->insert('gl_interface_detail', [
+                'id_gl_interface' => $id_gl_interface,
+                'tipe'            => 'JV',
+                'tanggal'         => $tgl_jurnal,
+                'no_perkiraan'    => $kredit_coa,
+                'keterangan'      => $keterangan_j,
+                'no_reff'         => $kode_trans,
+                'debet'           => 0,
+                'kredit'          => $nilai_adjustment,
+              ]);
+            }
+          }
+          // ===== END JURNAL ADJUSTMENT PERSEDIAAN =====
         }
 
         history("Adjustment product " . $adjustment_type . " : " . $kode_trans);

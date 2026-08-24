@@ -72,13 +72,15 @@ class Surat_jalan_pabrik extends Admin_Controller
             c.address_office AS alamat,
             p.nama AS product,
             p.weight,
-            (sdd.qty_spk * p.weight) AS total_berat
+            (sdd.qty_spk * p.weight) AS total_berat,
+            COALESCE(w.harga_beli, 0) AS costbook
         ')
             ->from('spk_delivery_detail sdd')
             ->join('sales_order so', 'sdd.no_so = so.no_so', 'left')
             ->join('sales_order_detail sod', 'sod.no_so = sdd.no_so AND sod.id_product = sdd.id_product', 'left')
             ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
             ->join('new_inventory_4 p', 'sdd.id_product = p.code_lv4', 'left')
+            ->join('warehouse_stock w', 'w.id_material = sdd.id_product', 'left')
             ->where('sdd.no_delivery', $no_delivery)
             ->where("CONCAT(sdd.no_so, '|', sdd.no_delivery) NOT IN (
                     SELECT CONCAT(no_so, '|', no_delivery)
@@ -168,20 +170,30 @@ class Surat_jalan_pabrik extends Admin_Controller
                 'total_berat'     => $value['weight'],
                 'id_so_det'       => $id_so_det,
             ];
-
-            // Update ke SPK dan SO Detail
-            $this->db->update('spk_delivery', ['status' => 'ON DELIVER'], ['no_delivery' => $post['no_delivery']]);
-            $this->db->update('sales_order_detail', [
-                'qty_delivery' => $qty,
-                'status_kirim' => '1',
-                'tgl_delivery' => date('Y-m-d H:i:s', strtotime($post['delivery_date']))
-            ], ['id' => $id_so_det]);
         }
 
-        // Simpan ke DB
+        // Simpan ke DB — semua operasi di dalam satu transaksi
         $this->db->trans_start();
 
         if ($is_update) {
+            // Saat UPDATE: kembalikan dulu qty_delivery dari detail SJ lama sebelum diganti
+            $old_sj_detail = $this->db->get_where('surat_jalan_detail', ['id_sj' => $id_sj])->result_array();
+            foreach ($old_sj_detail as $old) {
+                $this->db->set('qty_delivery', 'qty_delivery - ' . (int)$old['qty'], FALSE);
+                $this->db->set('status_kirim', '0');
+                $this->db->where('id', $old['id_so_det']);
+                $this->db->update('sales_order_detail');
+
+                // Kembalikan stok yang sudah diturunkan saat SJ lama dibuat
+                $this->db->set('qty_stock',   'qty_stock + '   . (int)$old['qty'], FALSE);
+                $this->db->set('qty_booking', 'qty_booking + ' . (int)$old['qty'], FALSE);
+                $this->db->set('qty_free',    'qty_stock - qty_booking', FALSE);
+                $this->db->where('id_material', $old['id_product']);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
+                $this->db->update('warehouse_stock');
+            }
+
             $this->db->update('surat_jalan', $ArrHeader, ['id' => $id_sj]);
             $this->db->delete('surat_jalan_detail', ['id_sj' => $id_sj]);
 
@@ -189,6 +201,31 @@ class Surat_jalan_pabrik extends Admin_Controller
                 $row['id_sj'] = $id_sj;
             }
             $this->db->insert_batch('surat_jalan_detail', $ArrDetail);
+
+            // Update SPK, SO detail, dan warehouse_stock dengan nilai baru
+            foreach ($detail as $value) {
+                $qty        = (int)$value['qty'];
+                $id_product = $value['id_product'];
+                $id_so_det  = $value['id_so_det'];
+
+                $this->db->update('spk_delivery', ['status' => 'ON DELIVER'], ['no_delivery' => $post['no_delivery']]);
+
+                $this->db->set('qty_delivery', 'qty_delivery + ' . $qty, FALSE);
+                $this->db->set('status_kirim', '1');
+                $this->db->set('tgl_delivery', date('Y-m-d H:i:s', strtotime($post['delivery_date'])));
+                $this->db->where('id', $id_so_det);
+                $this->db->update('sales_order_detail');
+
+                // Turunkan stok saat SJ dibuat — barang sudah keluar gudang fisik
+                $this->db->set('qty_stock',   'qty_stock - '   . $qty, FALSE);
+                $this->db->set('qty_booking', 'GREATEST(qty_booking - ' . $qty . ', 0)', FALSE);
+                $this->db->set('qty_free',    '(qty_stock - ' . $qty . ') - GREATEST(qty_booking - ' . $qty . ', 0)', FALSE);
+                $this->db->where('id_material', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
+                $this->db->where('qty_stock >=', $qty);
+                $this->db->update('warehouse_stock');
+            }
         } else {
             $this->db->insert('surat_jalan', $ArrHeader);
             $id_sj = $this->db->insert_id();
@@ -198,7 +235,134 @@ class Surat_jalan_pabrik extends Admin_Controller
                 $row['id_sj']  = $id_sj;
             }
             $this->db->insert_batch('surat_jalan_detail', $ArrDetail);
+
+            // Preload stok untuk kartu stok — baca dengan FOR UPDATE agar tidak race condition
+            $productIds = array_unique(array_column($detail, 'id_product'));
+            $ids_escaped = array_map(function($id) {
+                return $this->db->escape($id);
+            }, $productIds);
+            $ids_str = implode(',', $ids_escaped);
+            $stockRows = $this->db->query(
+                "SELECT * FROM warehouse_stock WHERE id_material IN ({$ids_str}) AND id_gudang = 1 AND kd_gudang = 'PUS' FOR UPDATE"
+            )->result_array();
+            $stockMap   = [];
+            foreach ($stockRows as $s) {
+                $stockMap[$s['id_material']] = $s;
+            }
+
+            $arr_kartu_stok_sj = [];
+
+            // Update SPK, SO detail, warehouse_stock, dan kartu stok
+            foreach ($detail as $value) {
+                $qty        = (int)$value['qty'];
+                $id_product = $value['id_product'];
+                $id_so_det  = $value['id_so_det'];
+
+                $this->db->update('spk_delivery', ['status' => 'ON DELIVER'], ['no_delivery' => $post['no_delivery']]);
+
+                $this->db->set('qty_delivery', 'qty_delivery + ' . $qty, FALSE);
+                $this->db->set('status_kirim', '1');
+                $this->db->set('tgl_delivery', date('Y-m-d H:i:s', strtotime($post['delivery_date'])));
+                $this->db->where('id', $id_so_det);
+                $this->db->update('sales_order_detail');
+
+                // Turunkan stok saat SJ dibuat — barang sudah keluar gudang fisik
+                $stok        = $stockMap[$id_product] ?? null;
+                $old_stock   = $stok ? (float)$stok['qty_stock']   : 0;
+                $old_booking = $stok ? (float)$stok['qty_booking'] : 0;
+                $old_free    = $stok ? (float)$stok['qty_free']    : 0;
+
+                $new_stock   = $old_stock - $qty;
+                $new_booking = max($old_booking - $qty, 0);
+                $new_free    = $new_stock - $new_booking;
+
+                $this->db->set('qty_stock',   $new_stock,   FALSE);
+                $this->db->set('qty_booking', $new_booking, FALSE);
+                $this->db->set('qty_free',    $new_free,    FALSE);
+                $this->db->where('id_material', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
+                $this->db->where('qty_stock >=', $qty); // guard anti-minus
+                $this->db->update('warehouse_stock');
+
+                // Update map lokal agar kartu stok berikutnya akurat
+                if (isset($stockMap[$id_product])) {
+                    $stockMap[$id_product]['qty_stock']   = $new_stock;
+                    $stockMap[$id_product]['qty_booking'] = $new_booking;
+                    $stockMap[$id_product]['qty_free']    = $new_free;
+                }
+
+                // Kartu stok: barang keluar gudang saat SJ dibuat
+                $arr_kartu_stok_sj[] = [
+                    'no_transaksi'   => $no_surat_jalan,
+                    'transaksi'      => 'Surat Jalan Pabrik',
+                    'tgl_transaksi'  => $post['delivery_date'],
+                    'code_lv4'       => $id_product,
+                    'nm_product'     => $value['product'],
+                    'qty'            => $old_stock,
+                    'qty_book'       => $old_booking,
+                    'qty_free'       => $old_free,
+                    'qty_transaksi'  => $qty * -1,
+                    'qty_akhir'      => $new_stock,
+                    'qty_book_akhir' => $new_booking,
+                    'qty_free_akhir' => $new_free,
+                    'harga_stok'     => $stok ? (float)$stok['harga_beli'] : 0,
+                ];
+            }
+
+            if (!empty($arr_kartu_stok_sj)) {
+                $this->db->insert_batch('kartu_stok', $arr_kartu_stok_sj);
+            }
         }
+
+        // ===== JURNAL =====
+        $tgl_inv     = date('Y-m-d');
+        $keterangan  = 'Surat Jalan Pabrik ' . $no_surat_jalan;
+        $no_po       = $no_surat_jalan;
+        $total       = str_replace(',', '', $this->input->post('debet')[0]);
+
+        $Nomor_JV = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', $tgl_inv);
+        $Bln      = substr($tgl_inv, 5, 2);
+        $Thn      = substr($tgl_inv, 0, 4);
+
+        $dataJVhead = [
+            'nomor'         => $Nomor_JV,
+            'tgl'           => $tgl_inv,
+            'jml'           => $total,
+            'koreksi_no'    => '-',
+            'kdcab'         => '101',
+            'jenis'         => 'JV',
+            'keterangan'    => $keterangan,
+            'bulan'         => $Bln,
+            'tahun'         => $Thn,
+            'user_id'       => $this->auth->user_id(),
+            'memo'          => '',
+            'tgl_jvkoreksi' => $tgl_inv,
+            'ho_valid'      => '',
+        ];
+
+        $this->db->insert(DBACC . '.javh', $dataJVhead);
+
+        $types = $this->input->post('type');
+        if (is_array($types)) {
+            for ($i = 0; $i < count($types); $i++) {
+                $datadetail = [
+                    'tipe'         => $this->input->post('type')[$i],
+                    'nomor'        => $Nomor_JV,
+                    'tanggal'      => $this->input->post('tgl_jurnal')[$i],
+                    'no_perkiraan' => $this->input->post('no_coa')[$i],
+                    'keterangan'   => $keterangan,
+                    'no_reff'      => $no_po,
+                    'debet'        => str_replace(',', '', $this->input->post('debet')[$i]),
+                    'kredit'       => str_replace(',', '', $this->input->post('kredit')[$i]),
+                    'created_by'   => $this->auth->user_id(),
+                    'created_on'   => date('Y-m-d H:i:s'),
+                ];
+                $this->db->insert(DBACC . '.jurnal', $datadetail);
+            }
+        }
+
+        $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nomorJC=nomorJC + 1 WHERE nocab='101'");
 
         $this->db->trans_complete();
 
@@ -480,10 +644,11 @@ class Surat_jalan_pabrik extends Admin_Controller
             // qty_retur dari pabrik juga masuk ke gudang (barang fisik kembali ke gudang kita).
             $balik_ke_gudang = $qty_retur + $qty_lebih;
 
-            // Ambil stok saat ini untuk keperluan log kartu stok
-            $stok = $this->db
-                ->get_where('warehouse_stock', ['id_material' => $id_product])
-                ->row_array();
+            // Ambil stok saat ini untuk keperluan log kartu stok — FOR UPDATE agar tidak race condition
+            $stok = $this->db->query(
+                "SELECT * FROM warehouse_stock WHERE id_material = ? FOR UPDATE",
+                [$id_product]
+            )->row_array();
 
             if ($balik_ke_gudang > 0) {
                 if (empty($stok)) {
@@ -502,6 +667,8 @@ class Surat_jalan_pabrik extends Admin_Controller
                 $this->db->set('qty_stock', "qty_stock + {$balik_ke_gudang}", FALSE);
                 $this->db->set('qty_free',  "qty_free  + {$balik_ke_gudang}", FALSE);
                 $this->db->where('id_material', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->update('warehouse_stock');
 
                 $arr_kartu_stok[] = [

@@ -23,12 +23,18 @@ class Report_piutang_sales extends Admin_Controller
         $tanggal = $this->input->get('tanggal', true); // opsional cut-off
 
         $piutang_sales = $this->Report_piutang_sales_model->get_piutang_per_sales($tanggal);
-        $total_piutang = array_sum(array_column($piutang_sales, 'saldo_piutang'));
+        $total_penerimaan  = array_sum(array_column($piutang_sales, 'total_penerimaan'));
+        $total_setor_kasir = array_sum(array_column($piutang_sales, 'total_setor_kasir'));
+        $total_setor_bank  = array_sum(array_column($piutang_sales, 'total_setor_bank'));
+        $total_piutang     = array_sum(array_column($piutang_sales, 'saldo_piutang'));
 
         $data = [
-            'tanggal'       => $tanggal,
-            'piutang_sales' => $piutang_sales,
-            'total_piutang' => $total_piutang,
+            'tanggal'           => $tanggal,
+            'piutang_sales'     => $piutang_sales,
+            'total_penerimaan'  => $total_penerimaan,
+            'total_setor_kasir' => $total_setor_kasir,
+            'total_setor_bank'  => $total_setor_bank,
+            'total_piutang'     => $total_piutang,
         ];
 
         $this->template->page_icon('fa fa-money');

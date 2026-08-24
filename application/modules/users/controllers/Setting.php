@@ -146,8 +146,10 @@ class Setting extends Admin_Controller
 
         $cabang = $this->Cabang_model->find_all();
         $department = $this->db->get_where('ms_department', array('deleted_date' => NULL))->result_array();
+        $employees = $this->db->order_by('nm_karyawan', 'ASC')->get_where('employee', array('deleted_by' => NULL))->result();
         $this->template->set('cabang', $cabang);
         $this->template->set('department', $department);
+        $this->template->set('employees', $employees);
         $this->template->title(lang('users_new_title'));
         $this->template->page_icon('fa fa-user');
         $this->template->render('users_form');
@@ -181,7 +183,9 @@ class Setting extends Admin_Controller
         //$cabang = $this->Cabang_model->find_all();
         //$this->template->set('cabang', $cabang);
         $department = $this->db->get_where('ms_department', array('deleted_date' => NULL))->result_array();
+        $employees = $this->db->order_by('nm_karyawan', 'ASC')->get_where('employee', array('deleted_by' => NULL))->result();
         $this->template->set('department', $department);
+        $this->template->set('employees', $employees);
         $this->template->set('data', $data);
         $this->template->title(lang('users_edit_title'));
         $this->template->page_icon('fa fa-user');
@@ -366,6 +370,7 @@ class Setting extends Admin_Controller
         $st_aktif   = $this->input->post('st_aktif');
         $kdcab      = $this->input->post('kdcab');
         $department_id    = $this->input->post('department_id');
+        $employee_id      = $this->input->post('employee_id');
 
         /**
          * This code will benchmark your server to determine how high of a cost you can
@@ -404,7 +409,8 @@ class Setting extends Admin_Controller
                 'ip'        => $this->input->ip_address(),
                 'st_aktif' => $st_aktif,
                 'kdcab'     => $kdcab,
-                'department_id'    => $department_id
+                'department_id'    => $department_id,
+                'employee_id'      => $employee_id ? $employee_id : NULL
             );
 
             $result = $this->users_model->insert($data_insert);
@@ -439,7 +445,8 @@ class Setting extends Admin_Controller
                 'ip'        => $this->input->ip_address(),
                 'st_aktif' => $st_aktif,
                 'kdcab'     => $kdcab,
-                'department_id'    => $department_id
+                'department_id'    => $department_id,
+                'employee_id'      => $employee_id ? $employee_id : NULL
             );
             if (isset($_POST['password'])) {
                 $data_insert['password'] = $password;

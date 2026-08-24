@@ -157,6 +157,10 @@ $ENABLE_DELETE  = has_permission('Penawaran.Delete');
                     <td>Quote Number</td>
                     <td>: <?= $p->id_penawaran ?></td>
                 </tr>
+                <tr>
+                    <td>TOP</td>
+                    <td>: <?= $p->payment_term_name ?? $p->payment_term ?></td>
+                </tr>
             </table>
         </div>
     </div>

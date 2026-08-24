@@ -307,71 +307,47 @@ class Purchase_order_payment extends Admin_Controller
 		$get_invoice = $this->db->get_where('tr_invoice_po', ['id' => $id])->row_array();
 		$kode_trans = str_replace(', ', ',', $get_invoice['no_incoming']);
 		$no_incoming = explode(',', $kode_trans);
-		// echo '<pre>';
-		// print_r($no_incoming);
-		// echo '</pre>';
-		// die();
 
-		// print_r("SELECT
-		// 		a.nm_material as nm_material,
-		// 		b.hargasatuan as hargasatuan,
-		// 		b.qty as qty_po,
-		// 		c.no_surat as no_surat,
-		// 		(d.qty_ng + d.qty_oke) as qty_incoming
-		// 	FROM
-		// 		tr_incoming_check_detail a
-		// 		LEFT JOIN dt_trans_po b ON b.id = a.id_po_detail
-		// 		LEFT JOIN tr_purchase_order c ON c.no_po = b.no_po
-		// 		LEFT JOIN tr_checked_incoming_detail d ON d.id_detail = a.id
-		// 	WHERE
-		// 		a.kode_trans IN ('" . str_replace(",", "','", $id_po) . "')
+		// Hitung ulang Total Incoming dari data detail (sama seperti rec_invoice_btn)
+		$in_clause = "'" . implode("','", $no_incoming) . "'";
 
-		// 	UNION ALL
+		$total_invoice = 0;
+		$query_ttl = "
+			SELECT SUM(b.qty_oke * c.hargasatuan) as subtotal
+			FROM tr_incoming_check_detail a
+			JOIN tr_checked_incoming_detail b ON b.id_detail = a.id
+			JOIN dt_trans_po c ON c.id = a.id_po_detail
+			WHERE a.kode_trans IN ($in_clause)
+			UNION ALL
 
-		// 	SELECT
-		// 		a.nm_material as nm_material,
-		// 		b.hargasatuan as hargasatuan,
-		// 		b.qty as qty_po,
-		// 		c.no_surat as no_surat,
-		// 		(a.qty_oke + a.qty_rusak) as qty_incoming
-		// 	FROM
-		// 		warehouse_adjustment_detail a
-		// 		LEFT JOIN dt_trans_po b ON b.id = a.no_ipp
-		// 		LEFT JOIN tr_purchase_order c ON c.no_po = b.no_po
-		// 	WHERE
-		// 		a.kode_trans IN ('" . str_replace(",", "','", $id_po) . "')");
-		// 		exit;
+			SELECT (a.qty_oke * b.hargasatuan) FROM warehouse_adjustment_detail a 
+			JOIN dt_trans_po b ON b.id = a.no_ipp 
+			LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
+			WHERE a.kode_trans IN ($in_clause) AND c.category = 'incoming stok'
+			UNION ALL
 
-		// $get_detail_incoming = $this->db->query("
-		// 	SELECT
-		// 		a.nm_material as nm_material,
-		// 		b.hargasatuan as hargasatuan,
-		// 		b.qty as qty_po,
-		// 		c.no_surat as no_surat,
-		// 		(d.qty_ng + d.qty_oke) as qty_incoming
-		// 	FROM
-		// 		tr_incoming_check_detail a
-		// 		LEFT JOIN dt_trans_po b ON b.id = a.id_po_detail
-		// 		LEFT JOIN tr_purchase_order c ON c.no_po = b.no_po
-		// 		LEFT JOIN tr_checked_incoming_detail d ON d.id_detail = a.id
-		// 	WHERE
-		// 		a.kode_trans IN ('" . str_replace(",", "','", $id_po) . "')
+			SELECT (a.qty_oke * b.harga) FROM warehouse_adjustment_detail a 
+			JOIN tr_pr_detail_kasbon b ON b.id_detail = a.id_po_detail AND b.id_kasbon = a.no_ipp 
+			LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
+			WHERE a.kode_trans IN ($in_clause) AND c.category = 'incoming non rutin'
+			UNION ALL
 
-		// 	UNION ALL
+			SELECT (a.qty_oke * d.hargasatuan) FROM warehouse_adjustment_detail a 
+			JOIN tr_purchase_order b ON b.no_surat = a.no_ipp 
+			JOIN dt_trans_po d ON d.no_po = b.no_po AND a.nm_material = d.namamaterial 
+			LEFT JOIN warehouse_adjustment c ON c.kode_trans = a.kode_trans
+			WHERE a.kode_trans IN ($in_clause) AND c.category = 'incoming asset'
+		";
+		$res_ttl = $this->db->query($query_ttl)->result();
+		foreach ($res_ttl as $row) $total_invoice += $row->subtotal;
 
-		// 	SELECT
-		// 		a.nm_material as nm_material,
-		// 		b.hargasatuan as hargasatuan,
-		// 		b.qty as qty_po,
-		// 		c.no_surat as no_surat,
-		// 		(a.qty_oke + a.qty_rusak) as qty_incoming
-		// 	FROM
-		// 		warehouse_adjustment_detail a
-		// 		LEFT JOIN dt_trans_po b ON b.id = a.no_ipp
-		// 		LEFT JOIN tr_purchase_order c ON c.no_po = b.no_po
-		// 	WHERE
-		// 		a.kode_trans IN ('" . str_replace(",", "','", $id_po) . "')
-		// ")->result_array();
+		// Override total_pembelian dan nilai_ppn dengan perhitungan ulang
+		$kurs = (!empty($get_invoice['kurs']) && $get_invoice['kurs'] > 0) ? $get_invoice['kurs'] : 1;
+		$total_invoice_final = $total_invoice * $kurs;
+		$nilai_ppn = $total_invoice_final * 11 / 100;
+
+		$get_invoice['total_pembelian'] = $total_invoice;
+		$get_invoice['nilai_ppn'] = $nilai_ppn;
 
 		$this->template->set('data_invoice', $get_invoice);
 		$this->template->set('no_incoming', $no_incoming);
@@ -476,11 +452,47 @@ class Purchase_order_payment extends Admin_Controller
 				'no_bank' => $post['no_bank'],
 				'nm_acc_bank' => $post['nm_acc_bank'],
 				'kurs' => str_replace(',', '', $post['kurs']),
+				'nilai_retur' => str_replace(',', '', isset($post['nilai_retur']) ? $post['nilai_retur'] : '0'),
+				'total_tagihan' => str_replace(',', '', isset($post['total_tagihan']) ? $post['total_tagihan'] : '0'),
+				'id_retur_pembelian' => isset($post['id_retur_pembelian']) ? $post['id_retur_pembelian'] : null,
 				'created_by' => $this->auth->user_id(),
 				'created_date' => date('Y-m-d H:i:s')
 			]);
 			if (!$insert_invoice) {
 				print_r($this->db->error($insert_invoice));
+			}
+
+			// Update settlement di tabel retur pembelian jika ada retur yang dipilih
+			$nilai_retur_settle = (float) str_replace(',', '', isset($post['nilai_retur']) ? $post['nilai_retur'] : '0');
+			$ids_retur_pembelian = isset($post['id_retur_pembelian']) ? $post['id_retur_pembelian'] : '';
+			if ($nilai_retur_settle > 0 && !empty($ids_retur_pembelian)) {
+				$arr_ids = array_filter(explode(',', $ids_retur_pembelian));
+				$sisa_settle = $nilai_retur_settle;
+
+				foreach ($arr_ids as $id_retur) {
+					if ($sisa_settle <= 0) break;
+
+					$get_retur = $this->db->get_where('tr_retur_pembelian', ['id' => $id_retur])->row();
+					if (!$get_retur || $get_retur->sisa_retur <= 0) continue;
+
+					// Settle sebesar sisa_retur atau sisa yang perlu di-settle (mana yang lebih kecil)
+					$settle_amount = min($sisa_settle, $get_retur->sisa_retur);
+					$new_settlement = $get_retur->settlement + $settle_amount;
+					$new_sisa_retur = $get_retur->total_retur - $new_settlement;
+					if ($new_sisa_retur < 0) $new_sisa_retur = 0;
+
+					$update_status = ($new_sisa_retur <= 0) ? 3 : $get_retur->status;
+
+					$this->db->update('tr_retur_pembelian', [
+						'settlement' => $new_settlement,
+						'sisa_retur' => $new_sisa_retur,
+						'status' => $update_status,
+						'updated_by' => $this->auth->user_id(),
+						'updated_date' => date('Y-m-d H:i:s'),
+					], ['id' => $id_retur]);
+
+					$sisa_settle -= $settle_amount;
+				}
 			}
 		}
 
@@ -1091,6 +1103,7 @@ class Purchase_order_payment extends Admin_Controller
                     <th class="text-center">No. Invoice</th>
                     <th class="text-center">Tanggal Invoice</th>
                     <th class="text-center">Supplier</th>
+                    <th class="text-center">Nilai Retur</th>
                     <th class="text-center">Status</th>
 					<th class="text-center">Action</th>
                 </tr>
@@ -1191,6 +1204,7 @@ class Purchase_order_payment extends Admin_Controller
 					$hasil .= '<td style="text-align: center;">' . $item['id'] . '</td>';
 					$hasil .= '<td style="text-align: center;">' . date('d F Y', strtotime($item['invoice_date'])) . '</td>';
 					$hasil .= '<td>' . $nm_supplier . '</td>';
+					$hasil .= '<td style="text-align: right;">' . number_format((isset($item['nilai_retur']) ? $item['nilai_retur'] : 0), 2) . '</td>';
 					$hasil .= '<td style="text-align: center;">' . $status . '</td>';
 					$hasil .= '<td style="text-align: center;">' . $view . '</td>';
 					$hasil .= '</tr>';
@@ -1202,6 +1216,7 @@ class Purchase_order_payment extends Admin_Controller
 				$hasil .= '<td style="text-align: center;">' . $item['id'] . '</td>';
 				$hasil .= '<td style="text-align: center;">' . date('d F Y', strtotime($item['invoice_date'])) . '</td>';
 				$hasil .= '<td>' . $nm_supplier . '</td>';
+				$hasil .= '<td style="text-align: right;">' . number_format((isset($item['nilai_retur']) ? $item['nilai_retur'] : 0), 2) . '</td>';
 				$hasil .= '<td style="text-align: center;">' . $status . '</td>';
 				$hasil .= '<td style="text-align: center;">' . $view . '</td>';
 				$hasil .= '</tr>';
@@ -2008,13 +2023,13 @@ class Purchase_order_payment extends Admin_Controller
 		}
 
 		// 6. Hitung Total Invoice
-		// Gunakan SUM(total_harga) dari tr_checked_incoming_detail agar konsisten
-		// dengan data_incoming di save_invoice (yang dipakai sebagai dasar jurnal debet Unbill)
+		// Dihitung dari qty_oke * hargasatuan agar konsisten dengan Grand Total di detail view
 		$total_invoice = 0;
 		$query_ttl = "
-        SELECT SUM(b.total_harga) as subtotal
+        SELECT SUM(b.qty_oke * c.hargasatuan) as subtotal
         FROM tr_incoming_check_detail a
         JOIN tr_checked_incoming_detail b ON b.id_detail = a.id
+        JOIN dt_trans_po c ON c.id = a.id_po_detail
         WHERE a.kode_trans IN ($in_clause)
         UNION ALL
 
@@ -2081,11 +2096,40 @@ class Purchase_order_payment extends Admin_Controller
 
 		// 8. Final Calculation
 		$total_invoice_final = $total_invoice * $kurs_terima_barang;
-		// Nilai PPN diambil dari total_ppn PO (sudah diakumulasi di step 2), dikali kurs
-		// agar konsisten dengan nilai_ppn yang dipakai di jurnal save_invoice
-		$nilai_ppn = $ppn_asli * $kurs_terima_barang;
+		// PPN dihitung 11% dari total invoice final
+		$nilai_ppn = $total_invoice_final * 11 / 100;
 
 		$nilai_req_payment = (($total_invoice_final + $nilai_ppn) - $uang_muka_idr);
+
+		// 9. Ambil total sisa retur berdasarkan supplier
+		$arr_supplier = array_map('trim', explode(',', $kode_supplier));
+
+		// Cari id supplier dari tabel new_supplier berdasarkan kode_supplier
+		$this->db->select('id');
+		$this->db->from('new_supplier');
+		$this->db->where_in('kode_supplier', $arr_supplier);
+		$res_id_supplier = $this->db->get()->result();
+		$arr_id_supplier = array_column($res_id_supplier, 'id');
+
+		$total_sisa_retur = 0;
+		$ids_retur = [];
+		if (!empty($arr_id_supplier)) {
+			$this->db->select('id, no_retur, sisa_retur');
+			$this->db->from('tr_retur_pembelian');
+			$this->db->where('sisa_retur >', 0);
+			$this->db->where('status', 2);
+			$this->db->where_in('id_supplier', $arr_id_supplier);
+			$res_retur = $this->db->get()->result();
+
+			foreach ($res_retur as $r) {
+				$total_sisa_retur += $r->sisa_retur;
+				$ids_retur[] = $r->id;
+			}
+		}
+
+		// Total Tagihan = Total Invoice (nilai_req_payment) - Total Sisa Retur
+		$total_tagihan = $nilai_req_payment - $total_sisa_retur;
+		if ($total_tagihan < 0) $total_tagihan = 0;
 
 		$data = [
 			'no_incoming'       => $no_incoming,
@@ -2099,6 +2143,9 @@ class Purchase_order_payment extends Admin_Controller
 			'nilai_disc'        => $nilai_disc,
 			'nilai_ppn'         => $nilai_ppn,
 			'nilai_req_payment' => $nilai_req_payment,
+			'total_sisa_retur'  => $total_sisa_retur,
+			'total_tagihan'     => $total_tagihan,
+			'ids_retur_pembelian' => implode(',', $ids_retur),
 			'no_po'             => array_unique($arr_no_po)
 		];
 

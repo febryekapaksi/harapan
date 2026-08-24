@@ -92,6 +92,61 @@
                 </div>
             </div>
 
+            <!-- Tabel Jurnal -->
+            <div class="form-group row">
+                <div class="col-md-12">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover">
+                            <thead>
+                                <tr bgcolor='#9acfea'>
+                                    <th><center>Tanggal</center></th>
+                                    <th><center>Tipe</center></th>
+                                    <th><center>No. COA</center></th>
+                                    <th><center>Nama. COA</center></th>
+                                    <th><center>Debit</center></th>
+                                    <th><center>Kredit</center></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr bgcolor='#DCDCDC'>
+                                    <td><input type="date" id="tgl_jurnal1" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                    <td><input type="text" id="type1" name="type[]" value="JV" class="form-control" readonly /></td>
+                                    <td><input type="text" id="no_coa1" name="no_coa[]" value="1104-01-02" class="form-control" readonly /></td>
+                                    <td><input type="text" id="nama_coa1" name="nama_coa[]" value="Persediaan Barang In Transit" class="form-control" readonly /></td>
+                                    <td><input type="hidden" id="debet1" name="debet[]" value="" class="form-control text-right" readonly />
+                                        <input type="text" id="debet21" name="debet2[]" value="" class="form-control text-right" readonly />
+                                    </td>
+                                    <td><input type="hidden" id="kredit1" name="kredit[]" value="0" class="form-control text-right" readonly />
+                                        <input type="text" id="kredit21" name="kredit2[]" value="0" class="form-control text-right" readonly />
+                                    </td>
+                                </tr>
+                                <tr bgcolor='#DCDCDC'>
+                                    <td><input type="date" id="tgl_jurnal2" name="tgl_jurnal[]" value="<?= date('Y-m-d') ?>" class="form-control" readonly /></td>
+                                    <td><input type="text" id="type2" name="type[]" value="JV" class="form-control" readonly /></td>
+                                    <td><input type="text" id="no_coa2" name="no_coa[]" value="1104-01-01" class="form-control" readonly /></td>
+                                    <td><input type="text" id="nama_coa2" name="nama_coa[]" value="Persediaan Barang Warehouse" class="form-control" readonly /></td>
+                                    <td><input type="hidden" id="debet2" name="debet[]" value="0" class="form-control text-right" readonly />
+                                        <input type="text" id="debet22" name="debet2[]" value="0" class="form-control text-right" readonly />
+                                    </td>
+                                    <td><input type="hidden" id="kredit2" name="kredit[]" value="0" class="form-control text-right" readonly />
+                                        <input type="text" id="kredit22" name="kredit2[]" value="0" class="form-control text-right" readonly />
+                                    </td>
+                                </tr>
+                                <tr bgcolor='#DCDCDC'>
+                                    <td colspan="4" align="right"><b>TOTAL</b></td>
+                                    <td align="right"><input type="hidden" id="total" name="total" value="" class="form-control text-right" readonly />
+                                        <input type="text" id="total31" name="total3" value="" class="form-control text-right" readonly />
+                                    </td>
+                                    <td align="right"><input type="hidden" id="total2" name="total2" value="" class="form-control text-right" readonly />
+                                        <input type="text" id="total41" name="total4" value="" class="form-control text-right" readonly />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tombol Simpan -->
             <div class="form-group row">
                 <div class="col-md-12 text-center">
@@ -111,6 +166,9 @@
             width: '100%'
         });
 
+        // Disable save button by default
+        $('#save').prop('disabled', true);
+
         $('#spk_delivery').on('change', function() {
             const no_delivery = $(this).val();
 
@@ -119,9 +177,38 @@
                 $('#delivery_address').val('');
                 $('#no_so').val('');
                 $('#no_delivery').val('');
+                $('#save').prop('disabled', true);
                 return;
             }
 
+            // SweetAlert konfirmasi PO sudah incoming
+            swal({
+                title: "Konfirmasi",
+                text: "Apakah PO untuk SPK ini sudah di-incoming?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-success",
+                confirmButtonText: "Ya, sudah incoming",
+                cancelButtonText: "Belum",
+                closeOnConfirm: true,
+                closeOnCancel: true
+            }, function(isConfirm) {
+                if (isConfirm) {
+                    // PO sudah incoming — load data dan aktifkan save
+                    loadSpkDetail(no_delivery);
+                } else {
+                    // PO belum incoming — kosongkan tabel dan disable save
+                    $('#tableSpk tbody').empty();
+                    $('#delivery_address').val('');
+                    $('#no_so').val('');
+                    $('#no_delivery').val('');
+                    $('#save').prop('disabled', true);
+                    swal("Info", "Silakan incoming PO terlebih dahulu sebelum membuat Surat Jalan.", "info");
+                }
+            });
+        });
+
+        function loadSpkDetail(no_delivery) {
             $.ajax({
                 url: siteurl + 'surat_jalan_pabrik/get_spk_detail',
                 type: 'GET',
@@ -133,19 +220,24 @@
 
                     if (!data.header || data.detail.length === 0) {
                         swal("Peringatan", "SPK tidak memiliki detail atau sudah digunakan.", "warning");
+                        $('#save').prop('disabled', true);
                         return;
                     }
 
-                    // ✅ Set data ke form
+                    // Set data ke form
                     $('#delivery_address').val(data.header.delivery_address || '');
                     $('#pengiriman').val(data.header.pengiriman || '');
                     $('#no_delivery').val(data.header.no_delivery || '');
                     $('#no_so').val(data.header.no_so || '');
 
                     let html = '';
-
+                    let totalCostbook = 0;
 
                     data.detail.forEach((item, index) => {
+                        let costbook = parseFloat(item.costbook) || 0;
+                        let qty = parseFloat(item.qty_spk) || 0;
+                        totalCostbook += (qty * costbook);
+
                         html += `
                     <tr>
                         <td>${index + 1}</td>
@@ -153,6 +245,7 @@
                             <input type="hidden" name="detail[${index}][id]" value="${item.id}">
                             <input type="hidden" name="detail[${index}][id_product]" value="${item.id_product}">
                             <input type="hidden" name="detail[${index}][id_so_det]" value="${item.id_so_det}">
+                            <input type="hidden" name="detail[${index}][costbook]" value="${costbook}">
                             <input type="text" class="form-control" name="detail[${index}][no_delivery]" value="${item.no_delivery}" readonly>
                         </td>
                         <td><input type="text" class="form-control" name="detail[${index}][no_so]" value="${item.no_so}" readonly></td>
@@ -168,12 +261,24 @@
                     });
 
                     $('#tableSpk tbody').html(html);
+
+                    // Set jurnal values
+                    $('#debet1').val(number_format(totalCostbook));
+                    $('#debet21').val(number_format(totalCostbook));
+                    $('#kredit2').val(number_format(totalCostbook));
+                    $('#kredit22').val(number_format(totalCostbook));
+                    $('#total31').val(number_format(totalCostbook));
+                    $('#total41').val(number_format(totalCostbook));
+
+                    // Aktifkan tombol save
+                    $('#save').prop('disabled', false);
                 },
                 error: function() {
                     swal("Error", "Gagal mengambil data SPK!", "error");
+                    $('#save').prop('disabled', true);
                 }
             });
-        });
+        }
 
         //SAVE SURAT JALAN
         $('#data-form').submit(function(e) {
@@ -236,4 +341,26 @@
                 });
         })
     });
+
+    function number_format(number, decimals, dec_point, thousands_sep) {
+        number = (number + '').replace(/[^0-9+\-Ee.]/g, '');
+        var n = !isFinite(+number) ? 0 : +number,
+            prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+            sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+            dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+            s = '',
+            toFixedFix = function(n, prec) {
+                var k = Math.pow(10, prec);
+                return '' + Math.round(n * k) / k;
+            };
+        s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+        if (s[0].length > 3) {
+            s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+        }
+        if ((s[1] || '').length < prec) {
+            s[1] = s[1] || '';
+            s[1] += new Array(prec - s[1].length + 1).join('0');
+        }
+        return s.join(dec);
+    }
 </script>

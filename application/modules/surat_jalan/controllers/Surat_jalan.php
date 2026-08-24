@@ -105,7 +105,7 @@ class Surat_jalan extends Admin_Controller
                     sd.delivery_address AS alamat,
                     sdd.id_so_det,        
                     p.weight,
-                    (ldd.qty_muat * COALESCE(w.harga_beli,0)) AS costbook,
+                    (ldd.qty_muat * COALESCE(MAX(w.harga_beli),0)) AS costbook,
                 ')
             ->from('loading_delivery_detail ldd')
             ->join('spk_delivery sd', 'ldd.no_delivery = sd.no_delivery', 'left')
@@ -117,6 +117,7 @@ class Surat_jalan extends Admin_Controller
                     SELECT CONCAT(no_so, '|', no_delivery)
                     FROM surat_jalan
                     WHERE no_loading = '$no_loading')")
+            ->group_by('ldd.no_loading, ldd.no_delivery, ldd.id_product')
             ->get()
             ->result_array();
 
@@ -220,6 +221,8 @@ class Surat_jalan extends Admin_Controller
                 $this->db->set('qty_booking', 'qty_booking + ' . (int)$old['qty'], FALSE);
                 $this->db->set('qty_free',    'qty_stock - qty_booking', FALSE);
                 $this->db->where('id_material', $old['id_product']);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->update('warehouse_stock');
             }
 
@@ -250,6 +253,8 @@ class Surat_jalan extends Admin_Controller
                 $this->db->set('qty_booking', 'GREATEST(qty_booking - ' . $qty . ', 0)', FALSE);
                 $this->db->set('qty_free',    '(qty_stock - ' . $qty . ') - GREATEST(qty_booking - ' . $qty . ', 0)', FALSE);
                 $this->db->where('id_material', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->where('qty_stock >=', $qty);
                 $this->db->update('warehouse_stock');
             }
@@ -263,9 +268,15 @@ class Surat_jalan extends Admin_Controller
             }
             $this->db->insert_batch('surat_jalan_detail', $ArrDetail);
 
-            // Preload stok untuk kartu stok — baca sebelum diubah
+            // Preload stok untuk kartu stok — baca dengan FOR UPDATE agar tidak race condition
             $productIds = array_unique(array_column($detail, 'id_product'));
-            $stockRows  = $this->db->where_in('id_material', $productIds)->get('warehouse_stock')->result_array();
+            $ids_escaped = array_map(function($id) {
+                return $this->db->escape($id);
+            }, $productIds);
+            $ids_str = implode(',', $ids_escaped);
+            $stockRows = $this->db->query(
+                "SELECT * FROM warehouse_stock WHERE id_material IN ({$ids_str}) AND id_gudang = 1 AND kd_gudang = 'PUS' FOR UPDATE"
+            )->result_array();
             $stockMap   = [];
             foreach ($stockRows as $s) {
                 $stockMap[$s['id_material']] = $s;
@@ -301,6 +312,8 @@ class Surat_jalan extends Admin_Controller
                 $this->db->set('qty_booking', $new_booking, FALSE);
                 $this->db->set('qty_free',    $new_free,    FALSE);
                 $this->db->where('id_material', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->where('qty_stock >=', $qty); // guard anti-minus
                 $this->db->update('warehouse_stock');
 
@@ -572,13 +585,7 @@ class Surat_jalan extends Admin_Controller
         $productIds = array_values(array_unique($productIds));
 
         $stockMap = [];
-        if (!empty($productIds)) {
-            // Gunakan id_material sebagai key karena kolom WHERE dan key map harus sama
-            $stocks = $this->db->where_in('id_material', $productIds)->get('warehouse_stock')->result_array();
-            foreach ($stocks as $s) {
-                $stockMap[$s['id_material']] = $s;
-            }
-        }
+        // Stok akan dibaca di dalam transaksi dengan FOR UPDATE (lihat di bawah)
 
         // ====== Siapkan batch update surat_jalan_detail & kartu_stok ======
         $ArrDetailBatch = [];
@@ -592,6 +599,20 @@ class Surat_jalan extends Admin_Controller
 
         // ====== MULAI TRANSAKSI (semua update DB di dalam ini) ======
         $this->db->trans_begin();
+
+        // Baca stok dengan FOR UPDATE di dalam transaksi agar tidak race condition
+        if (!empty($productIds)) {
+            $ids_escaped = array_map(function($id) {
+                return $this->db->escape($id);
+            }, $productIds);
+            $ids_str = implode(',', $ids_escaped);
+            $stocks = $this->db->query(
+                "SELECT * FROM warehouse_stock WHERE id_material IN ({$ids_str}) FOR UPDATE"
+            )->result_array();
+            foreach ($stocks as $s) {
+                $stockMap[$s['id_material']] = $s;
+            }
+        }
 
         // update surat_jalan header
         // status diset setelah loop (berdasarkan flag)
@@ -728,6 +749,8 @@ class Surat_jalan extends Admin_Controller
                 $this->db->set('qty_stock', 'qty_stock + ' . $balik, FALSE);
                 $this->db->set('qty_free',  'qty_free + '  . $balik, FALSE);
                 $this->db->where('id_material', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->update('warehouse_stock');
 
                 // Update map lokal

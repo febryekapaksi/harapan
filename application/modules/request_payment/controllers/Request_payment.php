@@ -1392,11 +1392,31 @@ class Request_payment extends Admin_Controller
 
 	public function payment_jurnal_list()
 	{
-		$results = $this->Request_payment_model->GetListDataJurnal();
+		$tgl_from = $this->input->get('tgl_from') ? $this->input->get('tgl_from') : '';
+		$tgl_to = $this->input->get('tgl_to') ? $this->input->get('tgl_to') : '';
+
+		$results = $this->Request_payment_model->GetListDataJurnal($tgl_from, $tgl_to);
 
 		$this->template->set('results', $results);
+		$this->template->set('tgl_from', $tgl_from);
+		$this->template->set('tgl_to', $tgl_to);
 		$this->template->title('Payment Jurnal');
 		$this->template->render('list_jurnal');
+	}
+
+	public function excel_jurnal_list()
+	{
+		$tgl_from = $this->input->get('tgl_from') ? $this->input->get('tgl_from') : '';
+		$tgl_to = $this->input->get('tgl_to') ? $this->input->get('tgl_to') : '';
+
+		$results = $this->Request_payment_model->GetListDataJurnal($tgl_from, $tgl_to);
+
+		$data = array(
+			'results' => $results,
+			'tgl_from' => $tgl_from,
+			'tgl_to' => $tgl_to
+		);
+		$this->load->view('excel_jurnal_list', $data);
 	}
 	public function view_jurnal($id)
 	{

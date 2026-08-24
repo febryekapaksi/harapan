@@ -9,6 +9,20 @@
         </span>
     </div>
     <div class="box-body">
+        <div class="row" style="margin-bottom:15px;">
+            <div class="col-md-3">
+                <label>Tanggal Dari</label>
+                <input type="date" class="form-control" id="filter_tgl_dari">
+            </div>
+            <div class="col-md-3">
+                <label>Tanggal Sampai</label>
+                <input type="date" class="form-control" id="filter_tgl_sampai">
+            </div>
+            <div class="col-md-3" style="padding-top:25px;">
+                <button type="button" class="btn btn-primary" id="btnFilter"><i class="fa fa-search"></i>&emsp;Filter</button>
+                <button type="button" class="btn btn-default" id="btnReset"><i class="fa fa-refresh"></i>&emsp;Reset</button>
+            </div>
+        </div>
         <div class="table-responsive">
             <table class="table table-bordered" id="example1">
                 <thead>
@@ -35,6 +49,46 @@
 <script>
     $(document).ready(function() {
         DataTables();
+
+        // Cancel setoran kasir
+        $(document).on('click', '.btn-cancel-setor-kasir', function() {
+            var id = $(this).data('id');
+
+            swal({
+                title: "Konfirmasi Pembatalan",
+                text: "Apakah Anda yakin ingin membatalkan setoran " + id + "? Proses ini akan mengembalikan status penerimaan dan membatalkan jurnal.",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#d9534f",
+                confirmButtonText: "Ya, Batalkan!",
+                cancelButtonText: "Tidak",
+                closeOnConfirm: false
+            }, function(confirm) {
+                if (confirm) {
+                    $.ajax({
+                        type: 'POST',
+                        url: siteurl + 'setor_kasir/cancel/' + id,
+                        dataType: 'json',
+                        success: function(result) {
+                            if (result.status) {
+                                swal({
+                                    title: 'Berhasil!',
+                                    text: result.message,
+                                    type: 'success'
+                                }, function() {
+                                    $('#example1').DataTable().ajax.reload(null, false);
+                                });
+                            } else {
+                                swal('Gagal!', result.message, 'warning');
+                            }
+                        },
+                        error: function() {
+                            swal('Error!', 'Terjadi kesalahan, silakan coba lagi.', 'error');
+                        }
+                    });
+                }
+            });
+        });
 
         $(document).on('click', '#btnSetorBank', function() {
             let selectedIDs = [];
@@ -65,6 +119,16 @@
             });
         });
 
+        $('#btnFilter').click(function() {
+            $('#example1').DataTable().ajax.reload(null, false);
+        });
+
+        $('#btnReset').click(function() {
+            $('#filter_tgl_dari').val('');
+            $('#filter_tgl_sampai').val('');
+            $('#example1').DataTable().ajax.reload(null, false);
+        });
+
     });
 
     function DataTables() {
@@ -92,9 +156,10 @@
             "ajax": {
                 url: siteurl + active_controller + 'data_side_setoran_kasir',
                 type: "post",
-                // data: function(d) {
-                //     d.sales_order = sales_order
-                // },
+                data: function(d) {
+                    d.tgl_dari = $('#filter_tgl_dari').val();
+                    d.tgl_sampai = $('#filter_tgl_sampai').val();
+                },
                 cache: false,
                 error: function() {
                     $(".my-grid-error").html("");

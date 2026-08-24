@@ -184,11 +184,19 @@ class Penerimaan extends Admin_Controller
             // =========================
             // DETAIL + UPDATE INVOICE
             // =========================
-            foreach ($detail as $row) {
+            foreach ($detail as $idx => $row) {
+
+                if (empty($row['id_invoice'])) {
+                    continue; // skip baris yang tidak punya invoice
+                }
 
                 $invoice = $this->db
                     ->get_where('tr_invoice_sales', ['id_invoice' => $row['id_invoice']])
                     ->row();
+
+                if (!$invoice) {
+                    throw new Exception("Invoice {$row['id_invoice']} tidak ditemukan");
+                }
 
                 $total_bayar  = str_replace(',', '', ($row['total_bayar']));
                 $tagihan      = str_replace(',', '', ($row['tagihan']));
@@ -214,6 +222,10 @@ class Penerimaan extends Admin_Controller
                 ];
 
                 $this->db->insert('tr_invoice_payment_detail', $data_detail);
+
+                if ($this->db->affected_rows() == 0) {
+                    throw new Exception("Gagal insert detail untuk invoice {$row['id_invoice']}");
+                }
 
                 // Tandai CN yang digunakan pada penerimaan ini
                 if (!empty($row['cn']) && is_array($row['cn'])) {
@@ -406,6 +418,14 @@ class Penerimaan extends Admin_Controller
         $this->db->query("UPDATE " . DBACC . ".pastibisa_tb_cabang SET nobum=nobum+1 WHERE nocab='101'");
     }
 
+    public function print($kd_bayar)
+    {
+        $data = array(
+            'kodebayar' => $kd_bayar,
+        );
+        $this->load->view('print_penerimaan', $data);
+    }
+
     public function export_excel()
     {
         $start = $this->input->get('start_date', true);
@@ -453,7 +473,7 @@ class Penerimaan extends Admin_Controller
             if (!empty($row->tgl_pembayaran)) {
                 $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->tgl_pembayaran));
                 $sheet->setCellValueExplicit('B' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
-                $sheet->getStyle('B' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+                $sheet->getStyle('B' . $r)->getNumberFormat()->setFormatCode('dd/mmm/yyyy');
             }
             $sheet->setCellValueExplicit('C' . $r, (string)$row->kd_pembayaran, PHPExcel_Cell_DataType::TYPE_STRING);
             $sheet->setCellValueExplicit('D' . $r, (string)$row->nm_customer, PHPExcel_Cell_DataType::TYPE_STRING);
@@ -476,5 +496,406 @@ class Penerimaan extends Admin_Controller
         header('Cache-Control: max-age=0');
         $writer->save('php://output');
         exit;
+    }
+
+    /**
+     * Batalkan Penerimaan (ADMIN ONLY)
+     * - Pindahkan header dari tr_invoice_payment → tr_invoice_payment_delete
+     * - Pindahkan detail dari tr_invoice_payment_detail → tr_invoice_payment_detail_delete
+     * - Jurnal dibalik (debet jadi kredit, kredit jadi debet)
+     * - Batalkan juga setor kasir & setor bank jika ada
+     */
+    public function batalkan_penerimaan()
+    {
+        $user_id = $this->auth->user_id();
+        if ($user_id != 7) {
+            echo json_encode(['status' => 0, 'message' => 'Anda tidak memiliki akses untuk membatalkan penerimaan.']);
+            return;
+        }
+
+        $kd_pembayaran = $this->input->post('kd_pembayaran');
+        if (empty($kd_pembayaran)) {
+            echo json_encode(['status' => 0, 'message' => 'Kode pembayaran tidak ditemukan.']);
+            return;
+        }
+
+        $header = $this->db->get_where('tr_invoice_payment', ['kd_pembayaran' => $kd_pembayaran])->row_array();
+        if (!$header) {
+            echo json_encode(['status' => 0, 'message' => 'Data penerimaan tidak ditemukan.']);
+            return;
+        }
+
+        $details = $this->db->get_where('tr_invoice_payment_detail', ['kd_pembayaran' => $kd_pembayaran])->result_array();
+
+        // Helper: filter kolom sesuai tabel target
+        $filter_columns = function($data, $table) {
+            $fields = $this->db->list_fields($table);
+            $filtered = [];
+            foreach ($data as $key => $val) {
+                if (in_array($key, $fields)) {
+                    $filtered[$key] = $val;
+                }
+            }
+            return $filtered;
+        };
+
+        $this->db->trans_start();
+
+        // 1. Pindahkan header ke tabel delete
+        $header_insert = $header;
+        unset($header_insert['id']);
+        $header_insert['deleted_by'] = $user_id;
+        $header_insert['deleted_on'] = date('Y-m-d H:i:s');
+        $header_insert = $filter_columns($header_insert, 'tr_invoice_payment_delete');
+        $this->db->insert('tr_invoice_payment_delete', $header_insert);
+
+        // 2. Pindahkan detail ke tabel delete
+        foreach ($details as $det) {
+            $det_insert = $det;
+            unset($det_insert['id']);
+            $det_insert['deleted_by'] = $user_id;
+            $det_insert['deleted_on'] = date('Y-m-d H:i:s');
+            $det_insert = $filter_columns($det_insert, 'tr_invoice_payment_detail_delete');
+            $this->db->insert('tr_invoice_payment_detail_delete', $det_insert);
+        }
+
+        // 3. Jurnal Balik - langsung insert
+        $Nomor_JV_Reversal = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', date('Y-m-d'));
+
+        $customer = $this->db
+            ->select('c.name_customer, c.id_karyawan, e.nm_karyawan')
+            ->from('master_customers c')
+            ->join('employee e', 'e.id = c.id_karyawan', 'left')
+            ->where('c.id_customer', $header['id_customer'])
+            ->get()
+            ->row();
+        $nm_cust = isset($customer->name_customer) ? $customer->name_customer : $header['nm_customer'];
+
+        $total_amount = 0;
+        foreach ($details as $det) {
+            $total_amount += floatval($det['total_bayar_idr']);
+        }
+
+        // Insert header jarh
+        $this->db->insert(DBACC . '.jarh', [
+            'nomor'         => $Nomor_JV_Reversal,
+            'kd_pembayaran' => $kd_pembayaran,
+            'tgl'           => date('Y-m-d'),
+            'jml'           => $total_amount,
+            'kdcab'         => '101',
+            'jenis_reff'    => $kd_pembayaran,
+            'no_reff'       => $kd_pembayaran,
+            'customer'      => $nm_cust,
+            'note'          => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' A/N ' . $nm_cust,
+            'jenis_ar'      => 'V',
+            'terima_dari'   => '-',
+            'valid'         => $user_id,
+            'tgl_valid'     => date('Y-m-d'),
+            'user_id'       => $user_id,
+            'tgl_invoice'   => date('Y-m-d'),
+            'batal'         => 1,
+        ]);
+
+        // Insert detail jurnal — debet kredit dibalik
+        $arrJurnalReversal = [];
+        foreach ($details as $det) {
+            $total_bayar = floatval($det['total_bayar_idr']);
+            if ($total_bayar <= 0) continue;
+
+            // Kredit bank (balik dari debet bank)
+            $arrJurnalReversal[] = [
+                'nomor'         => $Nomor_JV_Reversal,
+                'tanggal'       => date('Y-m-d'),
+                'tipe'          => 'JV',
+                'no_perkiraan'  => '1101-02-01',
+                'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+                'no_reff'       => $kd_pembayaran,
+                'debet'         => 0,
+                'kredit'        => $total_bayar,
+                'created_by'    => $user_id,
+                'created_on'    => date('Y-m-d H:i:s'),
+            ];
+
+            // Debet piutang (balik dari kredit piutang)
+            $arrJurnalReversal[] = [
+                'nomor'         => $Nomor_JV_Reversal,
+                'tanggal'       => date('Y-m-d'),
+                'tipe'          => 'JV',
+                'no_perkiraan'  => '1102-01-01',
+                'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+                'no_reff'       => $kd_pembayaran,
+                'debet'         => $total_bayar,
+                'kredit'        => 0,
+                'created_by'    => $user_id,
+                'created_on'    => date('Y-m-d H:i:s'),
+            ];
+        }
+        if (!empty($arrJurnalReversal)) {
+            $this->db->insert_batch(DBACC . '.jurnal', $arrJurnalReversal);
+        }
+
+        // 4. Balik Kartu Piutang
+        foreach ($details as $det) {
+            $total_bayar = floatval($det['total_bayar_idr']);
+            $total_cn    = isset($det['total_cn_idr']) ? floatval($det['total_cn_idr']) : 0;
+
+            if ($total_bayar > 0) {
+                $this->db->insert('tr_kartu_piutang', [
+                    'tipe'          => 'JV',
+                    'nomor'         => $Nomor_JV_Reversal,
+                    'tanggal'       => date('Y-m-d'),
+                    'no_perkiraan'  => '1102-01-01',
+                    'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+                    'no_reff'       => $det['no_invoice'],
+                    'debet'         => $total_bayar,
+                    'kredit'        => 0,
+                    'id_supplier'   => $header['id_customer'],
+                    'nama_supplier' => $nm_cust,
+                ]);
+
+                $this->db->insert('tr_kartu_piutang_sales', [
+                    'tipe'          => 'JV',
+                    'nomor'         => $Nomor_JV_Reversal,
+                    'tanggal'       => date('Y-m-d'),
+                    'no_perkiraan'  => '1102-01-04',
+                    'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+                    'no_reff'       => $det['no_invoice'],
+                    'debet'         => 0,
+                    'kredit'        => $total_bayar,
+                    'id_sales'      => isset($customer->id_karyawan) ? $customer->id_karyawan : null,
+                    'nama_sales'    => isset($customer->nm_karyawan) ? $customer->nm_karyawan : null,
+                ]);
+            }
+
+            if ($total_cn > 0) {
+                $this->db->insert('tr_kartu_piutang', [
+                    'tipe'          => 'JV',
+                    'nomor'         => $Nomor_JV_Reversal,
+                    'tanggal'       => date('Y-m-d'),
+                    'no_perkiraan'  => '1102-01-01',
+                    'keterangan'    => 'BATAL PENERIMAAN ' . $kd_pembayaran . ' CN INV ' . $det['no_invoice'] . ' A/n ' . $nm_cust,
+                    'no_reff'       => $det['no_invoice'],
+                    'debet'         => $total_cn,
+                    'kredit'        => 0,
+                    'id_supplier'   => $header['id_customer'],
+                    'nama_supplier' => $nm_cust,
+                ]);
+            }
+
+            // 5. Update saldo invoice
+            $inv = $this->db->get_where('tr_invoice_sales', ['id_invoice' => $det['no_invoice']])->row();
+            if ($inv) {
+                $sum_bayar = $this->db->select('COALESCE(SUM(total_bayar_idr),0) AS total', false)
+                    ->from('tr_invoice_payment_detail')
+                    ->where('no_invoice', $det['no_invoice'])
+                    ->where('kd_pembayaran !=', $kd_pembayaran)
+                    ->get()->row()->total;
+
+                $sum_cn = $this->db->select('COALESCE(SUM(total_cn_idr),0) AS total', false)
+                    ->from('tr_invoice_payment_detail')
+                    ->where('no_invoice', $det['no_invoice'])
+                    ->where('kd_pembayaran !=', $kd_pembayaran)
+                    ->get()->row()->total;
+
+                $sisa_piutang = (float)$inv->grand_total - (float)$sum_bayar - (float)$sum_cn;
+                if ($sisa_piutang < 0) $sisa_piutang = 0;
+
+                $this->db->set('total_bayar', $sum_bayar, false);
+                $this->db->set('piutang', $sisa_piutang, false);
+                $this->db->set('sts', "CASE WHEN {$sisa_piutang} <= 0 THEN 0 ELSE 1 END", false);
+                $this->db->where('id_invoice', $det['no_invoice']);
+                $this->db->update('tr_invoice_sales');
+            }
+        }
+
+        // 6. Reset CN
+        $this->db->update('tr_retur', [
+            'used_in_invoice' => null,
+            'used_date'       => null,
+        ], ['used_in_invoice' => $kd_pembayaran]);
+
+        // 7. Batalkan Setor Kasir (jika ada)
+        $setor_kasir_details = $this->db->get_where('tr_setor_kasir_detail', ['kd_pembayaran' => $kd_pembayaran])->result_array();
+        if (!empty($setor_kasir_details)) {
+            foreach ($setor_kasir_details as $skd) {
+                $id_setor_kasir = $skd['id_setor_kasir'];
+
+                $skd_insert = $skd;
+                unset($skd_insert['id']);
+                $skd_insert['deleted_by'] = $user_id;
+                $skd_insert['deleted_on'] = date('Y-m-d H:i:s');
+                $skd_insert = $filter_columns($skd_insert, 'tr_setor_kasir_detail_delete');
+                $this->db->insert('tr_setor_kasir_detail_delete', $skd_insert);
+                $this->db->delete('tr_setor_kasir_detail', ['id' => $skd['id']]);
+
+                $sisa_detail_kasir = $this->db->where('id_setor_kasir', $id_setor_kasir)
+                    ->count_all_results('tr_setor_kasir_detail');
+
+                if ($sisa_detail_kasir == 0) {
+                    $sk_header = $this->db->get_where('tr_setor_kasir', ['id' => $id_setor_kasir])->row_array();
+                    if ($sk_header) {
+                        $sk_header_insert = $sk_header;
+                        unset($sk_header_insert['id']);
+                        $sk_header_insert['deleted_by'] = $user_id;
+                        $sk_header_insert['deleted_on'] = date('Y-m-d H:i:s');
+                        $sk_header_insert = $filter_columns($sk_header_insert, 'tr_setor_kasir_delete');
+                        $this->db->insert('tr_setor_kasir_delete', $sk_header_insert);
+                        $this->db->delete('tr_setor_kasir', ['id' => $id_setor_kasir]);
+                    }
+
+                    $Nomor_JV_Kasir = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', date('Y-m-d'));
+                    $total_setor_kasir = isset($sk_header['total_setoran']) ? floatval($sk_header['total_setoran']) : 0;
+
+                    if ($total_setor_kasir > 0) {
+                        $this->db->insert(DBACC . '.jarh', [
+                            'nomor'         => $Nomor_JV_Kasir,
+                            'kd_pembayaran' => $id_setor_kasir,
+                            'tgl'           => date('Y-m-d'),
+                            'jml'           => $total_setor_kasir,
+                            'kdcab'         => '101',
+                            'jenis_reff'    => $id_setor_kasir,
+                            'no_reff'       => $id_setor_kasir,
+                            'customer'      => $nm_cust,
+                            'note'          => 'BATAL SETOR KASIR ' . $id_setor_kasir . ' KARENA BATAL PENERIMAAN ' . $kd_pembayaran,
+                            'jenis_ar'      => 'V',
+                            'terima_dari'   => '-',
+                            'valid'         => $user_id,
+                            'tgl_valid'     => date('Y-m-d'),
+                            'user_id'       => $user_id,
+                            'tgl_invoice'   => date('Y-m-d'),
+                            'batal'         => 1,
+                        ]);
+
+                        $this->db->insert_batch(DBACC . '.jurnal', [
+                            [
+                                'nomor'         => $Nomor_JV_Kasir,
+                                'tanggal'       => date('Y-m-d'),
+                                'tipe'          => 'BUM',
+                                'no_perkiraan'  => '1101-01-02',
+                                'keterangan'    => 'BATAL SETOR KASIR ' . $id_setor_kasir . ' - ' . $kd_pembayaran,
+                                'no_reff'       => $id_setor_kasir,
+                                'debet'         => $total_setor_kasir,
+                                'kredit'        => 0,
+                                'created_by'    => $user_id,
+                                'created_on'    => date('Y-m-d H:i:s'),
+                            ],
+                            [
+                                'nomor'         => $Nomor_JV_Kasir,
+                                'tanggal'       => date('Y-m-d'),
+                                'tipe'          => 'BUM',
+                                'no_perkiraan'  => '1101-01-01',
+                                'keterangan'    => 'BATAL SETOR KASIR ' . $id_setor_kasir . ' - ' . $kd_pembayaran,
+                                'no_reff'       => $id_setor_kasir,
+                                'debet'         => 0,
+                                'kredit'        => $total_setor_kasir,
+                                'created_by'    => $user_id,
+                                'created_on'    => date('Y-m-d H:i:s'),
+                            ],
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // 8. Batalkan Setor Bank (jika ada)
+        $setor_bank_details = $this->db->get_where('tr_setor_bank_detail', ['kd_pembayaran' => $kd_pembayaran])->result_array();
+        if (!empty($setor_bank_details)) {
+            foreach ($setor_bank_details as $sbd) {
+                $id_setor_bank = $sbd['id_setor_bank'];
+
+                $sbd_insert = $sbd;
+                unset($sbd_insert['id']);
+                $sbd_insert['deleted_by'] = $user_id;
+                $sbd_insert['deleted_on'] = date('Y-m-d H:i:s');
+                $sbd_insert = $filter_columns($sbd_insert, 'tr_setor_bank_detail_delete');
+                $this->db->insert('tr_setor_bank_detail_delete', $sbd_insert);
+                $this->db->delete('tr_setor_bank_detail', ['id' => $sbd['id']]);
+
+                $sisa_detail_bank = $this->db->where('id_setor_bank', $id_setor_bank)
+                    ->count_all_results('tr_setor_bank_detail');
+
+                if ($sisa_detail_bank == 0) {
+                    $sb_header = $this->db->get_where('tr_setor_bank', ['id' => $id_setor_bank])->row_array();
+                    if ($sb_header) {
+                        $sb_header_insert = $sb_header;
+                        unset($sb_header_insert['id']);
+                        $sb_header_insert['deleted_by'] = $user_id;
+                        $sb_header_insert['deleted_on'] = date('Y-m-d H:i:s');
+                        $sb_header_insert = $filter_columns($sb_header_insert, 'tr_setor_bank_delete');
+                        $this->db->insert('tr_setor_bank_delete', $sb_header_insert);
+                        $this->db->delete('tr_setor_bank', ['id' => $id_setor_bank]);
+                    }
+
+                    $Nomor_JV_Bank = $this->Jurnal_model->get_Nomor_Jurnal_Sales('101', date('Y-m-d'));
+                    $total_setor_bank = isset($sb_header['total_setoran']) ? floatval($sb_header['total_setoran']) : 0;
+
+                    if ($total_setor_bank > 0) {
+                        $this->db->insert(DBACC . '.jarh', [
+                            'nomor'         => $Nomor_JV_Bank,
+                            'kd_pembayaran' => $id_setor_bank,
+                            'tgl'           => date('Y-m-d'),
+                            'jml'           => $total_setor_bank,
+                            'kdcab'         => '101',
+                            'jenis_reff'    => $id_setor_bank,
+                            'no_reff'       => $id_setor_bank,
+                            'customer'      => $nm_cust,
+                            'note'          => 'BATAL SETOR BANK ' . $id_setor_bank . ' KARENA BATAL PENERIMAAN ' . $kd_pembayaran,
+                            'jenis_ar'      => 'V',
+                            'terima_dari'   => '-',
+                            'valid'         => $user_id,
+                            'tgl_valid'     => date('Y-m-d'),
+                            'user_id'       => $user_id,
+                            'tgl_invoice'   => date('Y-m-d'),
+                            'batal'         => 1,
+                        ]);
+
+                        $this->db->insert_batch(DBACC . '.jurnal', [
+                            [
+                                'nomor'         => $Nomor_JV_Bank,
+                                'tanggal'       => date('Y-m-d'),
+                                'tipe'          => 'BUM',
+                                'no_perkiraan'  => '1101-01-01',
+                                'keterangan'    => 'BATAL SETOR BANK ' . $id_setor_bank . ' - ' . $kd_pembayaran,
+                                'no_reff'       => $id_setor_bank,
+                                'debet'         => $total_setor_bank,
+                                'kredit'        => 0,
+                                'created_by'    => $user_id,
+                                'created_on'    => date('Y-m-d H:i:s'),
+                            ],
+                            [
+                                'nomor'         => $Nomor_JV_Bank,
+                                'tanggal'       => date('Y-m-d'),
+                                'tipe'          => 'BUM',
+                                'no_perkiraan'  => '1101-02-01',
+                                'keterangan'    => 'BATAL SETOR BANK ' . $id_setor_bank . ' - ' . $kd_pembayaran,
+                                'no_reff'       => $id_setor_bank,
+                                'debet'         => 0,
+                                'kredit'        => $total_setor_bank,
+                                'created_by'    => $user_id,
+                                'created_on'    => date('Y-m-d H:i:s'),
+                            ],
+                        ]);
+                    }
+                }
+            }
+        }
+
+        // 9. Hapus dari tabel utama
+        $this->db->delete('tr_invoice_payment_detail', ['kd_pembayaran' => $kd_pembayaran]);
+        $this->db->delete('tr_invoice_payment', ['kd_pembayaran' => $kd_pembayaran]);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            echo json_encode([
+                'status'  => 0,
+                'message' => 'Gagal membatalkan penerimaan. Silahkan cek log database.'
+            ]);
+        } else {
+            echo json_encode([
+                'status'  => 1,
+                'message' => 'Penerimaan ' . $kd_pembayaran . ' berhasil dibatalkan.'
+            ]);
+        }
     }
 }

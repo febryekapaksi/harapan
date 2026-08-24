@@ -554,11 +554,11 @@
                         </td>
                         <td class="text-center">
                             <button class="btn btn-danger btn-sm btn-remove"><i class="fa fa-trash"></i></button>
+                            <input type="hidden" name="detail[${rowIndex}][id_invoice]" value="${inv.id_invoice}">
+                            <input type="hidden" name="detail[${rowIndex}][id_so]" value="${inv.id_so}">
+                            <input type="hidden" name="detail[${rowIndex}][total_cn]" value="${totalCn}">
+                            ${cnHiddenInputs}
                         </td>
-                        <input type="hidden" name="detail[${rowIndex}][id_invoice]" value="${inv.id_invoice}">
-                        <input type="hidden" name="detail[${rowIndex}][id_so]" value="${inv.id_so}">
-                        <input type="hidden" name="detail[${rowIndex}][total_cn]" value="${totalCn}">
-                        ${cnHiddenInputs}
                     </tr>
                 `);
             });
@@ -573,8 +573,14 @@
         $(document).on('submit', '#data-form', function(e) {
             e.preventDefault();
 
+            // Hapus inputmask sebelum serialize agar value bersih
+            $('#data-form .moneyFormat').inputmask('remove');
+
             const form = document.getElementById('data-form');
             const formData = new FormData(form);
+
+            // Re-apply inputmask setelah serialize (untuk display)
+            moneyFormat('.moneyFormat');
 
             swal({
                 title: "Warning!",

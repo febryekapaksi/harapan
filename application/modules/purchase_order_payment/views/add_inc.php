@@ -84,6 +84,20 @@
     </div>
     <div class="col-md-6">
         <div class="form-group">
+            <label for="">Nilai Retur</label>
+            <input type="text" name="nilai_retur" id="" class="form-control form-control-sm text-right nilai_retur auto_num" value="<?= number_format($results['total_sisa_retur'], 2) ?>">
+            <small class="text-muted">Total sisa retur supplier</small>
+            <input type="hidden" name="id_retur_pembelian" class="id_retur_pembelian" value="<?= $results['ids_retur_pembelian'] ?>">
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="">Total Tagihan <small class="text-muted">(Total Invoice - Retur)</small></label>
+            <input type="text" name="total_tagihan" id="" class="form-control form-control-sm text-right total_tagihan" value="<?= number_format($results['total_tagihan'], 2) ?>" readonly>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
             <label for="">Request Payment PO</label>
             <input type="text" name="req_payment_po" id="" class="form-control form-control-sm text-right req_payment_po auto_num" required>
         </div>
@@ -290,5 +304,41 @@
         var value_dp = (total_pembelian * persen_dp / 100);
 
         $('.value_dp').val(value_dp.toLocaleString());
+    });
+
+    // ========== RETUR FUNCTIONALITY ==========
+
+    // Hitung Total Tagihan = Total Invoice - Nilai Retur
+    function hitungTotalTagihan() {
+        var total_invoice_raw = $('.total_invoice').val();
+        if (total_invoice_raw == '' || total_invoice_raw == null) {
+            total_invoice_raw = 0;
+        } else {
+            total_invoice_raw = total_invoice_raw.split(',').join('');
+            total_invoice_raw = parseFloat(total_invoice_raw);
+        }
+
+        var nilai_retur_raw = $('.nilai_retur').val();
+        if (nilai_retur_raw == '' || nilai_retur_raw == null) {
+            nilai_retur_raw = 0;
+        } else {
+            nilai_retur_raw = nilai_retur_raw.split(',').join('');
+            nilai_retur_raw = parseFloat(nilai_retur_raw);
+        }
+
+        var total_tagihan = total_invoice_raw - nilai_retur_raw;
+        if (total_tagihan < 0) total_tagihan = 0;
+
+        $('.total_tagihan').val(total_tagihan.toLocaleString('id-ID', {minimumFractionDigits:2}));
+    }
+
+    // Recalculate saat total_invoice berubah
+    $(document).on('keyup change', '.total_invoice', function() {
+        hitungTotalTagihan();
+    });
+
+    // Recalculate saat nilai_retur diedit
+    $(document).on('keyup change', '.nilai_retur', function() {
+        hitungTotalTagihan();
     });
 </script>

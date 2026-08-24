@@ -4,6 +4,9 @@ $ENABLE_SAVE = has_permission('KPI.Manage');
 
 <link rel="stylesheet" href="<?= base_url('assets/plugins/sweetalert2/sweetalert2.min.css') ?>">
 <script src="<?= base_url('assets/plugins/sweetalert2/sweetalert2.all.min.js') ?>"></script>
+<!-- SweetAlert2 CDN -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
     .table-responsive {
@@ -70,25 +73,25 @@ $ENABLE_SAVE = has_permission('KPI.Manage');
     }
 
     .indicator-tooltip {
-        position: absolute;
-        bottom: 100%;
-        left: 50%;
-        transform: translateX(-50%) translateY(-8px);
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 12px 16px;
-        border-radius: 8px;
-        font-size: 12px;
-        line-height: 1.6;
-        white-space: nowrap;
-        z-index: 10000 !important;
-        opacity: 0;
-        pointer-events: none;
-        transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-        min-width: 280px;
-        text-align: left;
-    }
+    position: fixed; /* was: absolute */
+    left: 0;
+    top: 0;
+    transform: translateY(-8px);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: nowrap;
+    z-index: 99999 !important;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    min-width: 280px;
+    text-align: left;
+}
 
     .indicator-tooltip::before {
         content: '';
@@ -102,7 +105,6 @@ $ENABLE_SAVE = has_permission('KPI.Manage');
 
     .indicator-tooltip.show {
         opacity: 1;
-        transform: translateX(-50%) translateY(-12px);
     }
 
     .indicator-tooltip.tooltip-bottom {
@@ -333,36 +335,60 @@ $ENABLE_SAVE = has_permission('KPI.Manage');
         }
 
         $('.realisasi-input').on('mouseenter focus', function() {
-            var $input = $(this);
-            var $cell = $input.closest('td');
-            var $row = $input.closest('tr');
+    var $input = $(this);
 
-            $('.indicator-tooltip').remove();
+    $('.indicator-tooltip').remove();
 
-            var rowIndex = $row.index();
-            var isTopRow = rowIndex < 3; 
+    var $tooltip = $(createModernTooltip($input));
+    $('body').append($tooltip);
 
-            var $tooltip = $(createModernTooltip($input));
+    var rect = $input[0].getBoundingClientRect();
+    var tooltipHeight = $tooltip.outerHeight();
+    var tooltipWidth = $tooltip.outerWidth();
 
-            if (isTopRow) {
-                $tooltip.addClass('tooltip-bottom');
-            }
+    // default: tampil di atas input
+    var top = rect.top - tooltipHeight - 8;
+    var isBelow = false;
 
-            $cell.css('position', 'relative').append($tooltip);
+    // kalau ga cukup ruang di atas (misal input paling atas tabel), taruh di bawah
+    if (top < 8) {
+        top = rect.bottom + 8;
+        isBelow = true;
+        $tooltip.addClass('tooltip-bottom');
+    } else {
+        $tooltip.removeClass('tooltip-bottom');
+    }
 
-            setTimeout(function() {
-                $tooltip.addClass('show');
-            }, 10);
-        });
+    var left = rect.left + (rect.width / 2) - (tooltipWidth / 2);
 
-        $('.realisasi-input').on('mouseleave blur', function() {
-            var $tooltip = $(this).closest('td').find('.indicator-tooltip');
-            $tooltip.removeClass('show');
+    // clamp biar ga kepotong kiri/kanan viewport
+    var minLeft = 8;
+    var maxLeft = window.innerWidth - tooltipWidth - 8;
+    left = Math.max(minLeft, Math.min(left, maxLeft));
 
-            setTimeout(function() {
-                $tooltip.remove();
-            }, 300);
-        });
+    $tooltip.css({
+        top: top + 'px',
+        left: left + 'px'
+    });
+
+    requestAnimationFrame(function() {
+        $tooltip.addClass('show');
+    });
+});
+
+$('.realisasi-input').on('mouseleave blur', function() {
+    var $tooltip = $('.indicator-tooltip');
+    $tooltip.removeClass('show');
+
+    setTimeout(function() {
+        $tooltip.remove();
+    }, 300);
+});
+
+// tooltip harus ikut hilang kalau tabel di-scroll horizontal, biar ga "nempel" salah posisi
+$('.table-responsive').on('scroll', function() {
+    $('.indicator-tooltip').remove();
+});
 
         function formatValue(val, satuan) {
             if (!val || isNaN(val)) return '-';

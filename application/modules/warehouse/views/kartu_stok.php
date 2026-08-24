@@ -7,6 +7,32 @@
 </style>
 
 <div class="box box-primary">
+    <div class="box-header">
+        <div class="row">
+            <div class="col-md-10">
+                <table>
+                    <tr>
+                        <td><label class="form-label">Pilih Tanggal Transaksi</label></td>
+                        <td><input type="date" id="start_date" class="form-control input-sm"></td>
+                        <td style="padding: 0 8px;"><i class="fa fa-arrow-right"></i></td>
+                        <td><input type="date" id="end_date" class="form-control input-sm"></td>
+                        <td style="padding-left: 8px;">
+                            <button id="btnFilter" class="btn bg-purple btn-sm">
+                                <i class="fa fa-filter"></i> Filter
+                            </button>
+                            <button id="btnReset" class="btn btn-default btn-sm">
+                                Reset
+                            </button>
+                            <a id="btnExport" href="javascript:void(0)" class="btn btn-success btn-sm">
+                                <i class="fa fa-file-excel-o"></i> Export Excel
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- /.box-header -->
     <div class="box-body">
         <div class="table-responsive">
             <table id="table-kartu-stok" class="table table-bordered table-striped">
@@ -47,6 +73,28 @@
 <script>
     $(document).ready(function() {
         DataTables();
+
+        $('#btnFilter').on('click', function(e) {
+            e.preventDefault();
+            if ($.fn.dataTable.isDataTable('#table-kartu-stok')) {
+                $('#table-kartu-stok').DataTable().ajax.reload(null, true);
+            }
+        });
+
+        $('#btnReset').on('click', function(e) {
+            e.preventDefault();
+            $('#start_date, #end_date').val('');
+            if ($.fn.dataTable.isDataTable('#table-kartu-stok')) {
+                $('#table-kartu-stok').DataTable().ajax.reload(null, true);
+            }
+        });
+
+        $('#btnExport').on('click', function(e) {
+            e.preventDefault();
+            var start = $('#start_date').val();
+            var end = $('#end_date').val();
+            window.location.href = base_url + active_controller + 'export_excel_kartu_stok?start_date=' + start + '&end_date=' + end;
+        });
     });
 
     function DataTables(status = null) {
@@ -74,7 +122,9 @@
                 url: base_url + active_controller + 'data_side_kartu_stok',
                 type: "post",
                 data: function(d) {
-                    d.status = status
+                    d.status = status;
+                    d.start_date = $('#start_date').val();
+                    d.end_date = $('#end_date').val();
                 },
                 cache: false,
                 error: function() {
