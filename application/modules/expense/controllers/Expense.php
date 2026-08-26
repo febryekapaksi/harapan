@@ -35,23 +35,33 @@ class Expense extends Admin_Controller
 	// list kasbon
 	public function kasbon()
 	{
-		// $where = array('a.nama' => $this->auth->user_name());
-		$data = $this->Expense_model->GetListDataKasbon();
-		$this->template->set('results', $data);
 		$this->template->set('status', $this->status);
 		$this->template->page_icon('fa fa-list');
 		$this->template->title('Kasbon');
 		$this->template->render('kasbon_list');
 	}
+
+	public function get_data_kasbon()
+	{
+		$this->Expense_model->get_data_kasbon();
+	}
+
+	public function data_side_kasbon()
+	{
+		$this->Expense_model->get_data_kasbon();
+	}
 	// list kasbon all
 	public function kasbon_list_all()
 	{
-		$data = $this->Expense_model->GetListDataKasbon();
-		$this->template->set('results', $data);
 		$this->template->set('status', $this->status);
 		$this->template->page_icon('fa fa-list');
 		$this->template->title('Kasbon List');
 		$this->template->render('kasbon_list_all');
+	}
+
+	public function get_data_kasbon_all()
+	{
+		$this->Expense_model->get_data_kasbon_all();
 	}
 
 	// kasbon create
