@@ -1,8 +1,14 @@
 <?php
-$readonly = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'readonly' : '');
-$disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi') ? 'disabled' : '');
+$readonly = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi' || $mode == 'view') ? 'readonly' : '');
+$disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_direksi' || $mode == 'view') ? 'disabled' : '');
 
 ?>
+
+<?php if (isset($mode) && $mode == 'view'): ?>
+<style>
+    .btn-danger[onclick^="DelProduct"], #add-product { display: none !important; }
+</style>
+<?php endif; ?>
 
 <div class="box box-primary">
     <div class="box-body">
@@ -163,9 +169,9 @@ $disabled = (isset($mode) && ($mode == 'approval_manager' || $mode == 'approval_
                                     <th class="text-center" style="min-width: 100px;" class="text-nowrap">% Discount</th>
                                     <th class="text-center" style="min-width: 160px;">Total Harga Penawaran</th>
                                     <th class="text-center" style="width: 50px;">
-                                        <?php
+                                        <?php if (!isset($mode) || $mode != 'view') :
                                         echo form_button(array('type' => 'button', 'class' => 'btn btn-sm btn-success', 'value' => 'back', 'content' => 'Add', 'id' => 'add-product'));
-                                        ?>
+                                        endif; ?>
                                     </th>
                                 </tr>
                             </thead>

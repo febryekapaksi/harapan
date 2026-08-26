@@ -189,6 +189,8 @@ class Surat_jalan_pabrik extends Admin_Controller
                 $this->db->set('qty_booking', 'qty_booking + ' . (int)$old['qty'], FALSE);
                 $this->db->set('qty_free',    'qty_stock - qty_booking', FALSE);
                 $this->db->where('id_material', $old['id_product']);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->update('warehouse_stock');
             }
 
@@ -219,6 +221,8 @@ class Surat_jalan_pabrik extends Admin_Controller
                 $this->db->set('qty_booking', 'GREATEST(qty_booking - ' . $qty . ', 0)', FALSE);
                 $this->db->set('qty_free',    '(qty_stock - ' . $qty . ') - GREATEST(qty_booking - ' . $qty . ', 0)', FALSE);
                 $this->db->where('id_material', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->where('qty_stock >=', $qty);
                 $this->db->update('warehouse_stock');
             }
@@ -239,7 +243,7 @@ class Surat_jalan_pabrik extends Admin_Controller
             }, $productIds);
             $ids_str = implode(',', $ids_escaped);
             $stockRows = $this->db->query(
-                "SELECT * FROM warehouse_stock WHERE id_material IN ({$ids_str}) FOR UPDATE"
+                "SELECT * FROM warehouse_stock WHERE id_material IN ({$ids_str}) AND id_gudang = 1 AND kd_gudang = 'PUS' FOR UPDATE"
             )->result_array();
             $stockMap   = [];
             foreach ($stockRows as $s) {
@@ -276,6 +280,8 @@ class Surat_jalan_pabrik extends Admin_Controller
                 $this->db->set('qty_booking', $new_booking, FALSE);
                 $this->db->set('qty_free',    $new_free,    FALSE);
                 $this->db->where('id_material', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->where('qty_stock >=', $qty); // guard anti-minus
                 $this->db->update('warehouse_stock');
 
@@ -661,6 +667,8 @@ class Surat_jalan_pabrik extends Admin_Controller
                 $this->db->set('qty_stock', "qty_stock + {$balik_ke_gudang}", FALSE);
                 $this->db->set('qty_free',  "qty_free  + {$balik_ke_gudang}", FALSE);
                 $this->db->where('id_material', $id_product);
+                $this->db->where('id_gudang', 1);
+                $this->db->where('kd_gudang', 'PUS');
                 $this->db->update('warehouse_stock');
 
                 $arr_kartu_stok[] = [

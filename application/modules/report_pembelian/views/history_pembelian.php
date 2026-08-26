@@ -29,6 +29,8 @@
                         <th class="text-center">Penerimaan Barang</th>
                         <th class="text-center">Faktur Pembelian</th>
                         <th class="text-center">Pembayaran Pembelian</th>
+                        <th class="text-center">Term (Hari)</th>
+                        <th class="text-center">Jatuh Tempo</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -87,7 +89,7 @@
                     "className": "text-center"
                 },
                 {
-                    "targets": [1, 2, 3, 4, 5],
+                    "targets": [1, 2, 3, 4, 5, 6, 7],
                     "className": "text-left"
                 }
             ],
@@ -107,7 +109,7 @@
                 cache: false,
                 error: function() {
                     $(".my-grid-error").html("");
-                    $("#example1").append('<tbody class="my-grid-error"><tr><th colspan="6">No data found in the server</th></tr></tbody>');
+                    $("#example1").append('<tbody class="my-grid-error"><tr><th colspan="8">No data found in the server</th></tr></tbody>');
                     $("#example1_processing").css("display", "none");
                 }
             }

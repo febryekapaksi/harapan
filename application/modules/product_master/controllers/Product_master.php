@@ -295,6 +295,8 @@ class Product_master extends Admin_Controller
         'code_lv4'       => $code_lv4,
         'code_product'   => $code,
         'nm_product'     => $nama,
+        'id_gudang'      => 1,
+        'kd_gudang'      => 'PUS',
         'id_unit'        => $id_unit,
         'id_unit_packing' => $id_unit_packing,
         'update_by'      => $this->id_user,

@@ -154,7 +154,7 @@ class Sales_order extends Admin_Controller
       ], ['id' => $det['id']]);
 
       // Kembalikan booking warehouse
-      $stok_before = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+      $stok_before = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
       if ($stok_before) {
         $qty_booking_before  = floatval($stok_before['qty_booking']);
         $qty_free_before     = floatval($stok_before['qty_free']);
@@ -163,7 +163,7 @@ class Sales_order extends Admin_Controller
         $qty_booking_after = max(0, $qty_booking_before - $sisa);
         $qty_free_after    = $qty_free_before + $sisa;
 
-        $this->db->where('code_lv4', $code_lv4)->update('warehouse_stock', [
+        $this->db->where(['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->update('warehouse_stock', [
           'qty_booking'  => $qty_booking_after,
           'qty_free'     => $qty_free_after,
           'use_qty_free' => max(0, $use_qty_free_before - $sisa),
@@ -340,7 +340,7 @@ class Sales_order extends Admin_Controller
           SET qty_booking  = GREATEST(qty_booking - ?, 0),
               use_qty_free = GREATEST(use_qty_free - ?, 0),
               qty_free     = qty_free + ?
-          WHERE code_lv4 = ?
+          WHERE code_lv4 = ? AND id_gudang = 1 AND kd_gudang = 'PUS'
         ", [$old_qty_order, $old_use_qty_free, $old_use_qty_free, $old_code]);
       }
       $this->db->delete('sales_order_detail', ['no_so' => $no_so]);
@@ -353,7 +353,7 @@ class Sales_order extends Admin_Controller
       foreach ($_POST['product'] as $pro) {
         $code_lv4 = $pro['code_lv4'];
         // Baca stok SETELAH rollback (untuk update) atau stok saat ini (untuk insert)
-        $stok = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+        $stok = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
 
         if ($stok) {
           $qty_booking_lama  = floatval($stok['qty_booking']);
@@ -368,7 +368,7 @@ class Sales_order extends Admin_Controller
           $qty_free_baru    = $qty_free_lama - $use_qty_free_baru;
 
           // update warehouse
-          $this->db->where('code_lv4', $code_lv4)->update('warehouse_stock', [
+          $this->db->where(['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->update('warehouse_stock', [
             'qty_booking'  => $qty_booking_baru,
             'use_qty_free' => $use_qty_free_lama + $use_qty_free_baru,
             'qty_free'     => $qty_free_baru
@@ -512,12 +512,14 @@ class Sales_order extends Admin_Controller
     $get_so = $this->db
       ->select('so.*, c.*, p.quotation_date, p.total_penawaran, p.tipe_bayar,
                   e1.nm_karyawan AS created_by,
-                  e2.nm_karyawan AS approved_by')
+                  e2.nm_karyawan AS approved_by,
+                  lh.name AS payment_term_name')
       ->from('sales_order so')
       ->join('penawaran p', 'p.id_penawaran = so.id_penawaran', 'left')
       ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
       ->join('employee e1', 'e1.id = so.created_by', 'left')
       ->join('employee e2', 'e2.id = so.approved_by', 'left')
+      ->join('list_help lh', "lh.id = so.payment_term AND lh.group_by = 'top invoice'", 'left')
       ->where('so.no_so', $no_so)
       ->get()
       ->row();
@@ -552,7 +554,7 @@ class Sales_order extends Admin_Controller
   {
     $code_lv4 = $this->input->post('code_lv4');
 
-    $stock = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4])->row_array();
+    $stock = $this->db->get_where('warehouse_stock', ['code_lv4' => $code_lv4, 'id_gudang' => 1, 'kd_gudang' => 'PUS'])->row_array();
 
     if ($stock) {
       echo json_encode([

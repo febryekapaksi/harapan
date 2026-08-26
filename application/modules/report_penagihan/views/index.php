@@ -52,7 +52,11 @@
                                 $row_t_target += $val;
                                 $grand_total_target[$bln_no] += $val;
                             ?>
-                                <td class="text-right"><?= number_format($val) ?></td>
+                                <td class="text-right">
+                                    <a href="<?= site_url('report_penagihan/export_detail?tahun=' . $tahun_pilih . '&bulan=' . $bln_no . '&id_sales=' . $s['id'] . '&tipe=target') ?>" title="Download detail Rencana Penagihan" style="color:inherit; text-decoration:underline; cursor:pointer;">
+                                        <?= number_format($val) ?>
+                                    </a>
+                                </td>
                             <?php endif; endforeach; ?>
                             <td class="text-right"><b><?= number_format($row_t_target) ?></b></td>
                         </tr>
@@ -68,7 +72,15 @@
                                 $row_t_realisasi += $val;
                                 $grand_total_realisasi[$bln_no] += $val;
                             ?>
-                                <td class="text-right"><?= number_format($val) ?></td>
+                                <td class="text-right">
+                                    <a href="<?= site_url('report_penagihan/export_detail?tahun=' . $tahun_pilih . '&bulan=' . $bln_no . '&id_sales=' . $s['id'] . '&tipe=realisasi') ?>" title="Download detail Realisasi Tagihan" style="color:inherit; text-decoration:underline; cursor:pointer;">
+                                        <?= number_format($val) ?>
+                                    </a>
+                                    <br>
+                                    <button type="button" class="btn btn-xs btn-info btn-komisi" data-id-sales="<?= $s['id'] ?>" data-nama-sales="<?= $s['nm_karyawan'] ?>" data-bulan="<?= $bln_no ?>" data-tahun="<?= $tahun_pilih ?>" title="Hitung Komisi">
+                                        <i class="fa fa-calculator"></i> Komisi
+                                    </button>
+                                </td>
                             <?php endif; endforeach; ?>
                             <td class="text-right"><b><?= number_format($row_t_realisasi) ?></b></td>
                         </tr>
@@ -113,3 +125,78 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Komisi -->
+<div class="modal fade" id="modal-komisi" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Form Perhitungan Komisi</h4>
+            </div>
+            <div class="modal-body" id="modal-komisi-body">
+                <p class="text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    $(document).on('click', '.btn-komisi', function() {
+        var idSales = $(this).data('id-sales');
+        var namaSales = $(this).data('nama-sales');
+        var bulan = $(this).data('bulan');
+        var tahun = $(this).data('tahun');
+
+        $('#modal-komisi-body').html('<p class="text-center"><i class="fa fa-spinner fa-spin"></i> Loading...</p>');
+        $('#modal-komisi').modal('show');
+
+        $.ajax({
+            type: 'POST',
+            url: siteurl + 'report_penagihan/form_komisi',
+            data: {
+                id_sales: idSales,
+                nama_sales: namaSales,
+                bulan: bulan,
+                tahun: tahun
+            },
+            success: function(data) {
+                $('#modal-komisi-body').html(data);
+            },
+            error: function() {
+                $('#modal-komisi-body').html('<p class="text-center text-danger">Gagal memuat form.</p>');
+            }
+        });
+    });
+
+    // Save komisi via AJAX
+    $(document).on('submit', '#form-komisi-penagihan', function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+
+        $.ajax({
+            type: 'POST',
+            url: siteurl + 'master_komisi/save_komisi',
+            data: formData,
+            dataType: 'json',
+            success: function(res) {
+                if (res.status == 1) {
+                    swal({
+                        title: "Berhasil!",
+                        text: res.pesan,
+                        type: "success"
+                    }, function() {
+                        $('#modal-komisi').modal('hide');
+                    });
+                } else {
+                    swal("Gagal!", res.pesan, "error");
+                }
+            },
+            error: function() {
+                swal("Error!", "Terjadi kesalahan.", "error");
+            }
+        });
+    });
+});
+</script>

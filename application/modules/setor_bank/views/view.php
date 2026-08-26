@@ -94,6 +94,11 @@
 
             <div class="form-group row">
                 <div class="col-md-12 text-center">
+                    <?php if (has_permission('Setor_Bank.Delete')): ?>
+                        <button type="button" class="btn btn-danger" id="btnCancel" data-id="<?= $header->id ?>">
+                            <i class="fa fa-times"></i> Cancel Setoran
+                        </button>
+                    <?php endif; ?>
                     <a class="btn btn-primary" href="<?= base_url('setor_bank') ?>">
                         <i class="fa fa-reply"></i> Kembali
                     </a>
@@ -102,3 +107,47 @@
         </div>
     </div>
 </div>
+
+
+<script>
+$(document).ready(function() {
+    $('#btnCancel').on('click', function() {
+        var id = $(this).data('id');
+
+        swal({
+            title: "Konfirmasi Pembatalan",
+            text: "Apakah Anda yakin ingin membatalkan setoran " + id + "? Proses ini akan mengembalikan status penerimaan dan membatalkan jurnal.",
+            type: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d9534f",
+            confirmButtonText: "Ya, Batalkan!",
+            cancelButtonText: "Tidak",
+            closeOnConfirm: false
+        }, function(confirm) {
+            if (confirm) {
+                $.ajax({
+                    type: 'POST',
+                    url: siteurl + 'setor_bank/cancel/' + id,
+                    dataType: 'json',
+                    success: function(result) {
+                        if (result.status) {
+                            swal({
+                                title: 'Berhasil!',
+                                text: result.message,
+                                type: 'success'
+                            }, function() {
+                                window.location.href = siteurl + 'setor_bank';
+                            });
+                        } else {
+                            swal('Gagal!', result.message, 'warning');
+                        }
+                    },
+                    error: function() {
+                        swal('Error!', 'Terjadi kesalahan, silakan coba lagi.', 'error');
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
