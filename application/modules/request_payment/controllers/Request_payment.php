@@ -1524,35 +1524,27 @@ class Request_payment extends Admin_Controller
 
 	public function list_return()
 	{
-		// $controller			= 'request_payment/index';
-		// $Arr_Akses			= getAcccesmenu($controller);
-		// if ($Arr_Akses['read'] != '1') {
-		// 	$this->session->set_flashdata("alert_data", "<div class=\"alert alert-warning\" id=\"flash-message\">You Don't Have Right To Access This Page, Please Contact Your Administrator....</div>");
-		// 	redirect(site_url('dashboard'));
-		// }
-		$get_Data			= $this->db->query("SELECT a.id as ids,a.no_doc,a.created_by,c.nm_lengkap as nama,a.tgl_doc,a.informasi as keperluan, 'expense' as tipe,a.jumlah,null as tanggal,a.no_doc as id, bank_id, accnumber, accname FROM tr_expense a left join " . DBACC . ".coa_master as b on a.coa=b.no_perkiraan
-		left join users c on a.nama=c.nm_lengkap WHERE a.status=1 and a.jumlah <> 0 AND a.exp_pib IS NULL AND a.exp_inv_po IS NULL AND (a.tipe_penggantian = '2' OR a.tipe_penggantian IS NULL) AND (a.tipe_pengembalian = '2' OR a.tipe_pengembalian IS NULL)")->result();
-		// $menu_akses			= $this->master_model->getMenu();
-		$data = array(
-			'title'			=> 'Pengembalian Expense',
-			// 'action'		=> 'index',
-			'row'			=> $get_Data
-			// 'data_menu'		=> $menu_akses
-			// 'akses_menu'	=> $Arr_Akses
-		);
-		// history('View Pengembalian Expense');
-		// $this->load->view('Request_payment/list_return', $data);
-
-		$this->template->set($data);
+		$this->template->page_icon('fa fa-reply');
 		$this->template->title('Pengembalian Expense');
 		$this->template->render('list_return');
 	}
 
+	public function get_data_list_return()
+	{
+		$this->Request_payment_model->get_data_list_return();
+	}
+
 	public function list_return_approval()
 	{
-		$data_pengembalian_expense = $this->db->query('SELECT * FROM tr_pengembalian_expense WHERE status IS null OR status = 2')->result();
+		$this->db->select('a.*, b.nama as nama_bank');
+		$this->db->from('tr_pengembalian_expense a');
+		$this->db->join(DBACC . '.coa_master b', 'b.no_perkiraan = a.transfer_coa_bank', 'left');
+		$this->db->where('(a.status IS NULL OR a.status = 0 OR a.status = 2)');
+		$this->db->order_by('a.id', 'desc');
+		$data_pengembalian_expense = $this->db->get()->result();
 
 		$this->template->set('data_pengembalian', $data_pengembalian_expense);
+		$this->template->page_icon('fa fa-check-square-o');
 		$this->template->title('Approval Pengembalian Expense');
 		$this->template->render('list_return_approval');
 	}
