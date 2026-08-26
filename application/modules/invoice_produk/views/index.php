@@ -191,10 +191,52 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 			$('#tblInvoice').DataTable().destroy();
 		}
 
-		// Kolom index 2 = Tgl. Kirim pada tab delivery, tidak ada default sort untuk tab lain
-		var defaultOrder = (activeTab === 'delivery') ? [
-			[2, 'desc']
-		] : [];
+		// Tab "Invoice Delivery" pakai server-side processing: paging, sorting dan
+		// search dieksekusi di SQL (lihat Invoice_produk_model::data_side_delivery()),
+		// bukan render semua baris di PHP lalu paging di browser.
+		if (activeTab === 'delivery') {
+			$('#tblInvoice').DataTable({
+				"processing": true,
+				"serverSide": true,
+				"ordering": true,
+				"paging": true,
+				"searching": true,
+				"info": true,
+				"destroy": true,
+				"responsive": true,
+				"bAutoWidth": true,
+				"sPaginationType": "simple_numbers",
+				"iDisplayLength": 10,
+				"aLengthMenu": [
+					[10, 20, 50, 100, 150],
+					[10, 20, 50, 100, 150]
+				],
+				"order": [
+					[2, 'desc']
+				],
+				"columnDefs": [{
+					"targets": [6, 7], // Nominal Invoice & Action tidak bisa di-sort
+					"orderable": false,
+				}],
+				"ajax": {
+					url: siteurl + active_controller + 'data_side_delivery',
+					type: 'post',
+					data: function(d) {
+						d.start_date = $('#start_date_delivery').val();
+						d.end_date = $('#end_date_delivery').val();
+					},
+					cache: false,
+					error: function() {
+						swal({
+							title: 'Warning !',
+							text: 'Please try again later !',
+							type: 'error'
+						});
+					}
+				}
+			});
+			return;
+		}
 
 		$('#tblInvoice').DataTable({
 			"ordering": true,
@@ -210,7 +252,7 @@ $ENABLE_DELETE  = has_permission('Invoice_Produk.Delete');
 				[10, 20, 50, 100, 150],
 				[10, 20, 50, 100, 150]
 			],
-			"order": defaultOrder,
+			"order": [],
 			"columnDefs": [{
 				"targets": -1, // kolom Action (terakhir) tidak bisa di-sort
 				"orderable": false,
