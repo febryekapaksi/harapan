@@ -6,112 +6,59 @@ $ENABLE_DELETE  = has_permission('Kasbon_List.Delete');
 ?>
 <div id="alert_edit" class="alert alert-success alert-dismissable" style="padding: 15px; display: none;"></div>
 <link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
-<div class="box">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css" integrity="sha512-yVvxUQV0QESBt1SyZbNJMAwyKvFTLMyXSyBHDO4BG5t7k/Lw34tyqlSDlKIrIENIzCl+RVUNjmCPG+V/GMesRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+<style>
+	#mytabledata_kasbon_all thead th {
+		background-color: #3c8dbc;
+		color: #ffffff;
+		text-align: center;
+		vertical-align: middle;
+		border: 1px solid #367fa9;
+	}
+	#mytabledata_kasbon_all tbody td {
+		vertical-align: middle;
+	}
+	.badge {
+		font-size: 11px;
+		padding: 4px 8px;
+		font-weight: 600;
+	}
+	.box-header-flex {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+</style>
+
+<div class="box box-primary">
+	<div class="box-header with-border box-header-flex">
+		<h3 class="box-title"><i class="fa fa-list-alt"></i> Kasbon List (Semua Data)</h3>
+		<div>
+			<button class="btn btn-default btn-sm" type="button" onclick="reload_table_all()" title="Reload Data">
+				<i class="fa fa-refresh"></i> Refresh
+			</button>
+		</div>
+	</div>
 	<!-- /.box-header -->
 	<div class="box-body">
 		<div class="table-responsive">
-			<table id="mytabledata2" class="table table-bordered table-striped">
+			<table id="mytabledata_kasbon_all" class="table table-bordered table-striped table-hover" width="100%">
 				<thead>
 					<tr>
-						<th width="5">#</th>
-						<th>No Kasbon</th>
-						<th>Tanggal</th>
-						<th>Nama</th>
-						<th>Approval Date</th>
-						<th>Status</th>
-						<th width="120">Action</th>
+						<th width="4%">#</th>
+						<th width="14%">No Kasbon</th>
+						<th width="9%">Tanggal</th>
+						<th width="13%">Nama</th>
+						<th width="11%">Nominal Kasbon</th>
+						<th width="12%">Created By</th>
+						<th width="11%">Created Date</th>
+						<th width="11%">Approval Date</th>
+						<th width="7%">Status</th>
+						<th width="8%">Action</th>
 					</tr>
 				</thead>
 				<tbody>
-					<?php
-					if (!empty($results)) {
-						$numb = 0;
-						foreach ($results as $record) {
-
-							$nmuser = $record->nmuser;
-
-							$check_detail = $this->db->get_where('tr_pr_detail_kasbon', ['id_kasbon' => $record->no_doc])->result();
-							if (count($check_detail)) {
-								if ($record->tipe_pr == 'pr departemen') {
-									$this->db->select('b.nm_lengkap');
-									$this->db->from('rutin_non_planning_header a');
-									$this->db->join('users b', 'b.id_user = a.created_by');
-									$this->db->where('a.no_pr', $record->id_pr);
-									$get_single_detail = $this->db->get()->row();
-
-									$nmuser = $get_single_detail->nm_lengkap;
-								}
-
-								if ($record->tipe_pr == 'pr stok') {
-									$this->db->select('b.nm_lengkap');
-									$this->db->from('material_planning_base_on_produksi a');
-									$this->db->join('users b', 'b.id_user = a.created_by');
-									$this->db->where('a.no_pr', $record->id_pr);
-									$get_single_detail = $this->db->get()->row();
-
-									$nmuser = $get_single_detail->nm_lengkap;
-								}
-
-								if ($record->tipe_pr == 'pr asset') {
-									$this->db->select('b.nm_lengkap');
-									$this->db->from('tran_pr_header a');
-									$this->db->join('users b', 'b.id_user = a.created_by');
-									$this->db->where('a.no_pr', $record->id_pr);
-									$get_single_detail = $this->db->get()->row();
-
-									$nmuser = $get_single_detail->nm_lengkap;
-								}
-							}
-
-							$numb++; ?>
-							<tr>
-								<td><?= $numb; ?></td>
-								<td><?= $record->no_doc ?></td>
-								<td><?= $record->tgl_doc ?></td>
-								<td><?= $nmuser ?></td>
-								<td><?= $record->approved_on ?></td>
-								<td>
-									<?php
-									if ($record->status == '0') {
-										echo '<div class="badge bg-yellow text-light">New</div>';
-									}
-									if ($record->status == '1' || $record->status == '2') {
-										echo '<div class="badge bg-dark-blue text-light">Approved</div>';
-									}
-									if ($record->status == '3') {
-										$check_expense_report = $this->db->get_where('tr_expense_detail', ['id_kasbon' => $record->no_doc, 'status' => 2])->row();
-										if (!empty($check_expense_report)) {
-											echo '<div class="badge text-light" style="backgound-color: #990000;">Close</div>';
-										} else {
-											echo '<div class="badge bg-green text-light">Paid</div>';
-										}
-									}
-									if ($record->status == '9') {
-										echo '<div class="badge bg-red text-light">Reject</div>';
-									}
-									if ($record->status == '4') {
-										echo '<div class="badge bg-blue text-dark">Kurang</div>';
-									}
-									?>
-								</td>
-								<td>
-									<?php if ($ENABLE_VIEW) : ?>
-										<?php
-										if ($record->approved_by !== null) {
-										?>
-
-											<a class="btn btn-default btn-sm print" href="<?= base_url('expense/kasbon_print/' . $record->id) ?>" target="_blank" title="Print"><i class="fa fa-print"></i></a>
-
-										<?php
-										}
-										?>
-										<a class="btn btn-warning btn-sm view" href="javascript:void(0)" title="View" onclick="data_view('<?= $record->id ?>')"><i class="fa fa-eye"></i></a>
-									<?php endif; ?>
-								</td>
-							</tr>
-					<?php
-						}
-					}  ?>
 				</tbody>
 			</table>
 		</div>
@@ -119,24 +66,67 @@ $ENABLE_DELETE  = has_permission('Kasbon_List.Delete');
 	<!-- /.box-body -->
 </div>
 <div id="form-data"></div>
-<!-- DataTables -->
+
+<!-- DataTables & Select -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js" integrity="sha512-rMGGF4wg1R73ehtnxXBt5mbUfN9JUJwbk21KMlnLZDJh7BkPmeovBuddZCENJddHYYMkCh9hPFnPmS9sspki8g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
 <script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/pdfmake.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
-<script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+
 <!-- page script -->
 <script type="text/javascript">
 	var url_view = siteurl + 'expense/kasbon_view/';
-	$("#mytabledata2").DataTable({
-		dom: "<'row'<'col-sm-2'B><'col-sm-4'l><'col-sm-6'f>>rtip",
-		buttons: [
-			'excel'
-		]
+	var table_kasbon_all;
+
+	$(document).ready(function() {
+		load_data_kasbon_all();
 	});
+
+	function load_data_kasbon_all() {
+		table_kasbon_all = $('#mytabledata_kasbon_all').DataTable({
+			"processing": true,
+			"serverSide": true,
+			"destroy": true,
+			"responsive": true,
+			"order": [[1, "desc"]],
+			"columnDefs": [
+				{
+					"targets": [0, 9],
+					"orderable": false,
+					"searchable": false
+				}
+			],
+			"iDisplayLength": 10,
+			"aLengthMenu": [
+				[10, 25, 50, 100],
+				[10, 25, 50, 100]
+			],
+			"ajax": {
+				url: siteurl + 'expense/get_data_kasbon_all',
+				type: "POST",
+				dataType: "json",
+				error: function(xhr, error, thrown) {
+					console.log("Error loading kasbon all datatable: ", thrown);
+				}
+			},
+			"columns": [
+				{ "data": "no" },
+				{ "data": "no_doc" },
+				{ "data": "tgl_doc" },
+				{ "data": "nama" },
+				{ "data": "nominal_kasbon" },
+				{ "data": "created_by" },
+				{ "data": "created_date" },
+				{ "data": "approval_date" },
+				{ "data": "status" },
+				{ "data": "action" }
+			]
+		});
+	}
+
+	function reload_table_all() {
+		if (table_kasbon_all) {
+			table_kasbon_all.ajax.reload(null, false);
+		}
+	}
 </script>
 <script src="<?= base_url('assets/js/basic.js') ?>"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>

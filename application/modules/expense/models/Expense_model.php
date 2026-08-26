@@ -707,4 +707,357 @@ class Expense_model extends BF_Model
 
 		echo json_encode($response);
 	}
+
+	public function get_data_kasbon()
+	{
+		$post = $this->input->post();
+
+		$viewPermission   = 'Kasbon.View';
+		$managePermission = 'Kasbon.Manage';
+		$deletePermission = 'Kasbon.Delete';
+
+		$draw   = isset($post['draw']) ? intval($post['draw']) : 1;
+		$length = isset($post['length']) ? intval($post['length']) : 10;
+		$start  = isset($post['start']) ? intval($post['start']) : 0;
+		$search = isset($post['search']['value']) ? trim($post['search']['value']) : '';
+
+		// 1. Total Data Count
+		$this->db->from('tr_kasbon a');
+		$count_all = $this->db->count_all_results();
+
+		// 2. Filtered Count & Query
+		$this->db->from('tr_kasbon a');
+		$this->db->join('users b', 'a.nama = b.username', 'left');
+		$this->db->join('users c', 'c.username = a.created_by OR c.id_user = a.created_by', 'left');
+
+		if (!empty($search)) {
+			$this->db->group_start();
+			$this->db->like('a.no_doc', $search, 'both');
+			$this->db->or_like('a.tgl_doc', $search, 'both');
+			$this->db->or_like('a.nama', $search, 'both');
+			$this->db->or_like('b.nm_lengkap', $search, 'both');
+			$this->db->or_like('a.created_by', $search, 'both');
+			$this->db->or_like('c.nm_lengkap', $search, 'both');
+			$this->db->or_like('a.keperluan', $search, 'both');
+			$this->db->group_end();
+		}
+
+		$db_filtered = clone $this->db;
+		$count_filtered = $db_filtered->count_all_results();
+
+		// 3. Fetch Paginated Records
+		$this->db->select('a.*, b.nm_lengkap as nmuser, COALESCE(c.nm_lengkap, c.username, a.created_by) as creator_name');
+		
+		$columns_order = [
+			0 => 'a.id',
+			1 => 'a.no_doc',
+			2 => 'a.tgl_doc',
+			3 => 'b.nm_lengkap',
+			4 => 'a.jumlah_kasbon',
+			5 => 'creator_name',
+			6 => 'a.created_on',
+			7 => 'a.status'
+		];
+
+		$order_col = isset($post['order'][0]['column']) ? intval($post['order'][0]['column']) : 0;
+		$order_dir = isset($post['order'][0]['dir']) ? $post['order'][0]['dir'] : 'desc';
+
+		if (isset($columns_order[$order_col])) {
+			$this->db->order_by($columns_order[$order_col], $order_dir);
+		} else {
+			$this->db->order_by('a.id', 'desc');
+		}
+
+		if ($length != -1) {
+			$this->db->limit($length, $start);
+		}
+
+		$get_data = $this->db->get()->result();
+
+		$hasil = [];
+		$no = $start;
+
+		foreach ($get_data as $item) {
+			$no++;
+
+			// Determine requester name
+			$nmuser = !empty($item->nmuser) ? $item->nmuser : $item->nama;
+			$check_detail = $this->db->get_where('tr_pr_detail_kasbon', ['id_kasbon' => $item->no_doc])->result();
+			if (!empty($check_detail)) {
+				if ($item->tipe_pr == 'pr departemen') {
+					$this->db->select('b.nm_lengkap');
+					$this->db->from('rutin_non_planning_header a');
+					$this->db->join('users b', 'b.id_user = a.created_by');
+					$this->db->where('a.no_pr', $item->id_pr);
+					$get_single_detail = $this->db->get()->row();
+					if (!empty($get_single_detail)) {
+						$nmuser = $get_single_detail->nm_lengkap;
+					}
+				}
+
+				if ($item->tipe_pr == 'pr stok') {
+					$this->db->select('b.nm_lengkap');
+					$this->db->from('material_planning_base_on_produksi a');
+					$this->db->join('users b', 'b.id_user = a.created_by');
+					$this->db->where('a.no_pr', $item->id_pr);
+					$get_single_detail = $this->db->get()->row();
+					if (!empty($get_single_detail)) {
+						$nmuser = $get_single_detail->nm_lengkap;
+					}
+				}
+
+				if ($item->tipe_pr == 'pr asset') {
+					$this->db->select('b.nm_lengkap');
+					$this->db->from('tran_pr_header a');
+					$this->db->join('users b', 'b.id_user = a.created_by');
+					$this->db->where('a.no_pr', $item->id_pr);
+					$get_single_detail = $this->db->get()->row();
+					if (!empty($get_single_detail)) {
+						$nmuser = $get_single_detail->nm_lengkap;
+					}
+				}
+			}
+
+			// Created By & Created Date
+			$created_by = !empty($item->creator_name) ? $item->creator_name : (!empty($item->created_by) ? $item->created_by : '-');
+			$created_date = '-';
+			if (!empty($item->created_on) && $item->created_on != '0000-00-00 00:00:00') {
+				$created_date = date('d M Y H:i', strtotime($item->created_on));
+			} elseif (!empty($item->tgl_doc) && $item->tgl_doc != '0000-00-00') {
+				$created_date = date('d M Y', strtotime($item->tgl_doc));
+			}
+
+			$tgl_doc = (!empty($item->tgl_doc) && $item->tgl_doc != '0000-00-00') ? date('d M Y', strtotime($item->tgl_doc)) : '-';
+			$nominal_kasbon = number_format($item->jumlah_kasbon, 0, ',', '.');
+
+			// Status badge
+			$status = '<span class="badge bg-yellow text-light">New</span>';
+			if ($item->status == '1' || $item->status == '2') {
+				$status = '<span class="badge bg-blue text-light">Approved</span>';
+			} elseif ($item->status == '3') {
+				$check_expense_report = $this->db->get_where('tr_expense_detail', ['id_kasbon' => $item->no_doc, 'status' => 2])->row();
+				if (!empty($check_expense_report)) {
+					$status = '<span class="badge bg-navy text-light">Close</span>';
+				} else {
+					$status = '<span class="badge bg-green text-light">Paid</span>';
+				}
+			} elseif ($item->status == '4') {
+				$status = '<span class="badge bg-purple text-light">Kurang</span>';
+			} elseif ($item->status == '9') {
+				$status = '<span class="badge bg-red text-light">Reject</span>';
+			}
+
+			// Actions
+			$action = '';
+			if (has_permission($viewPermission) && $item->approved_by !== null) {
+				$action .= '<a class="btn btn-default btn-sm print" href="' . base_url('expense/kasbon_print/' . $item->id) . '" target="_blank" title="Print" style="margin-right: 3px;"><i class="fa fa-print"></i></a>';
+				$action .= '<a class="btn btn-warning btn-sm view" href="javascript:void(0)" title="View" onclick="data_view(\'' . $item->id . '\')" style="margin-right: 3px;"><i class="fa fa-eye"></i></a>';
+			}
+			if (has_permission($managePermission)) {
+				if ($item->status == 0 || $item->status == 9) {
+					$action .= '<a class="btn btn-success btn-sm edit" href="javascript:void(0)" title="Edit" onclick="data_edit(\'' . $item->id . '\')" style="margin-right: 3px;"><i class="fa fa-edit"></i></a>';
+				}
+			}
+			if (has_permission($deletePermission)) {
+				if ($item->status == 0 || $item->status == 9) {
+					$action .= '<a class="btn btn-danger btn-sm delete" href="javascript:void(0)" title="Hapus" onclick="data_delete(\'' . $item->id . '\')"><i class="fa fa-trash"></i></a>';
+				}
+			}
+
+			$hasil[] = [
+				'no'             => '<div class="text-center">' . $no . '</div>',
+				'no_doc'         => '<div class="text-center"><b>' . $item->no_doc . '</b></div>',
+				'tgl_doc'        => '<div class="text-center">' . $tgl_doc . '</div>',
+				'nama'           => '<div>' . $nmuser . '</div>',
+				'nominal_kasbon' => '<div class="text-right" style="font-weight: 600;">' . $nominal_kasbon . '</div>',
+				'created_by'     => '<div>' . $created_by . '</div>',
+				'created_date'   => '<div class="text-center">' . $created_date . '</div>',
+				'status'         => '<div class="text-center">' . $status . '</div>',
+				'action'         => '<div class="text-center" style="white-space: nowrap;">' . $action . '</div>'
+			];
+		}
+
+		$response = [
+			'draw'            => intval($draw),
+			'recordsTotal'    => intval($count_all),
+			'recordsFiltered' => intval($count_filtered),
+			'data'            => $hasil
+		];
+
+		echo json_encode($response);
+	}
+
+	public function get_data_kasbon_all()
+	{
+		$post = $this->input->post();
+
+		$viewPermission   = 'Kasbon_List.View';
+		$managePermission = 'Kasbon_List.Manage';
+		$deletePermission = 'Kasbon_List.Delete';
+
+		$draw   = isset($post['draw']) ? intval($post['draw']) : 1;
+		$length = isset($post['length']) ? intval($post['length']) : 10;
+		$start  = isset($post['start']) ? intval($post['start']) : 0;
+		$search = isset($post['search']['value']) ? trim($post['search']['value']) : '';
+
+		// 1. Total Data Count
+		$this->db->from('tr_kasbon a');
+		$count_all = $this->db->count_all_results();
+
+		// 2. Filtered Count & Query
+		$this->db->from('tr_kasbon a');
+		$this->db->join('users b', 'a.nama = b.username', 'left');
+		$this->db->join('users c', 'c.username = a.created_by OR c.id_user = a.created_by', 'left');
+
+		if (!empty($search)) {
+			$this->db->group_start();
+			$this->db->like('a.no_doc', $search, 'both');
+			$this->db->or_like('a.tgl_doc', $search, 'both');
+			$this->db->or_like('a.nama', $search, 'both');
+			$this->db->or_like('b.nm_lengkap', $search, 'both');
+			$this->db->or_like('a.created_by', $search, 'both');
+			$this->db->or_like('c.nm_lengkap', $search, 'both');
+			$this->db->or_like('a.keperluan', $search, 'both');
+			$this->db->group_end();
+		}
+
+		$db_filtered = clone $this->db;
+		$count_filtered = $db_filtered->count_all_results();
+
+		// 3. Fetch Paginated Records
+		$this->db->select('a.*, b.nm_lengkap as nmuser, COALESCE(c.nm_lengkap, c.username, a.created_by) as creator_name');
+		
+		$columns_order = [
+			0 => 'a.id',
+			1 => 'a.no_doc',
+			2 => 'a.tgl_doc',
+			3 => 'b.nm_lengkap',
+			4 => 'a.jumlah_kasbon',
+			5 => 'creator_name',
+			6 => 'a.created_on',
+			7 => 'a.approved_on',
+			8 => 'a.status'
+		];
+
+		$order_col = isset($post['order'][0]['column']) ? intval($post['order'][0]['column']) : 0;
+		$order_dir = isset($post['order'][0]['dir']) ? $post['order'][0]['dir'] : 'desc';
+
+		if (isset($columns_order[$order_col])) {
+			$this->db->order_by($columns_order[$order_col], $order_dir);
+		} else {
+			$this->db->order_by('a.id', 'desc');
+		}
+
+		if ($length != -1) {
+			$this->db->limit($length, $start);
+		}
+
+		$get_data = $this->db->get()->result();
+
+		$hasil = [];
+		$no = $start;
+
+		foreach ($get_data as $item) {
+			$no++;
+
+			// Determine requester name
+			$nmuser = !empty($item->nmuser) ? $item->nmuser : $item->nama;
+			$check_detail = $this->db->get_where('tr_pr_detail_kasbon', ['id_kasbon' => $item->no_doc])->result();
+			if (!empty($check_detail)) {
+				if ($item->tipe_pr == 'pr departemen') {
+					$this->db->select('b.nm_lengkap');
+					$this->db->from('rutin_non_planning_header a');
+					$this->db->join('users b', 'b.id_user = a.created_by');
+					$this->db->where('a.no_pr', $item->id_pr);
+					$get_single_detail = $this->db->get()->row();
+					if (!empty($get_single_detail)) {
+						$nmuser = $get_single_detail->nm_lengkap;
+					}
+				}
+
+				if ($item->tipe_pr == 'pr stok') {
+					$this->db->select('b.nm_lengkap');
+					$this->db->from('material_planning_base_on_produksi a');
+					$this->db->join('users b', 'b.id_user = a.created_by');
+					$this->db->where('a.no_pr', $item->id_pr);
+					$get_single_detail = $this->db->get()->row();
+					if (!empty($get_single_detail)) {
+						$nmuser = $get_single_detail->nm_lengkap;
+					}
+				}
+
+				if ($item->tipe_pr == 'pr asset') {
+					$this->db->select('b.nm_lengkap');
+					$this->db->from('tran_pr_header a');
+					$this->db->join('users b', 'b.id_user = a.created_by');
+					$this->db->where('a.no_pr', $item->id_pr);
+					$get_single_detail = $this->db->get()->row();
+					if (!empty($get_single_detail)) {
+						$nmuser = $get_single_detail->nm_lengkap;
+					}
+				}
+			}
+
+			// Created By & Created Date
+			$created_by = !empty($item->creator_name) ? $item->creator_name : (!empty($item->created_by) ? $item->created_by : '-');
+			$created_date = '-';
+			if (!empty($item->created_on) && $item->created_on != '0000-00-00 00:00:00') {
+				$created_date = date('d M Y H:i', strtotime($item->created_on));
+			} elseif (!empty($item->tgl_doc) && $item->tgl_doc != '0000-00-00') {
+				$created_date = date('d M Y', strtotime($item->tgl_doc));
+			}
+
+			$tgl_doc = (!empty($item->tgl_doc) && $item->tgl_doc != '0000-00-00') ? date('d M Y', strtotime($item->tgl_doc)) : '-';
+			$nominal_kasbon = number_format($item->jumlah_kasbon, 0, ',', '.');
+			$approval_date = (!empty($item->approved_on) && $item->approved_on != '0000-00-00 00:00:00') ? date('d M Y H:i', strtotime($item->approved_on)) : '-';
+
+			// Status badge
+			$status = '<span class="badge bg-yellow text-light">New</span>';
+			if ($item->status == '1' || $item->status == '2') {
+				$status = '<span class="badge bg-blue text-light">Approved</span>';
+			} elseif ($item->status == '3') {
+				$check_expense_report = $this->db->get_where('tr_expense_detail', ['id_kasbon' => $item->no_doc, 'status' => 2])->row();
+				if (!empty($check_expense_report)) {
+					$status = '<span class="badge bg-navy text-light">Close</span>';
+				} else {
+					$status = '<span class="badge bg-green text-light">Paid</span>';
+				}
+			} elseif ($item->status == '4') {
+				$status = '<span class="badge bg-purple text-light">Kurang</span>';
+			} elseif ($item->status == '9') {
+				$status = '<span class="badge bg-red text-light">Reject</span>';
+			}
+
+			// Actions
+			$action = '';
+			if (has_permission($viewPermission)) {
+				if ($item->approved_by !== null) {
+					$action .= '<a class="btn btn-default btn-sm print" href="' . base_url('expense/kasbon_print/' . $item->id) . '" target="_blank" title="Print" style="margin-right: 3px;"><i class="fa fa-print"></i></a>';
+				}
+				$action .= '<a class="btn btn-warning btn-sm view" href="javascript:void(0)" title="View" onclick="data_view(\'' . $item->id . '\')" style="margin-right: 3px;"><i class="fa fa-eye"></i></a>';
+			}
+
+			$hasil[] = [
+				'no'             => '<div class="text-center">' . $no . '</div>',
+				'no_doc'         => '<div class="text-center"><b>' . $item->no_doc . '</b></div>',
+				'tgl_doc'        => '<div class="text-center">' . $tgl_doc . '</div>',
+				'nama'           => '<div>' . $nmuser . '</div>',
+				'nominal_kasbon' => '<div class="text-right" style="font-weight: 600;">' . $nominal_kasbon . '</div>',
+				'created_by'     => '<div>' . $created_by . '</div>',
+				'created_date'   => '<div class="text-center">' . $created_date . '</div>',
+				'approval_date'  => '<div class="text-center">' . $approval_date . '</div>',
+				'status'         => '<div class="text-center">' . $status . '</div>',
+				'action'         => '<div class="text-center" style="white-space: nowrap;">' . $action . '</div>'
+			];
+		}
+
+		$response = [
+			'draw'            => intval($draw),
+			'recordsTotal'    => intval($count_all),
+			'recordsFiltered' => intval($count_filtered),
+			'data'            => $hasil
+		];
+
+		echo json_encode($response);
+	}
 }
