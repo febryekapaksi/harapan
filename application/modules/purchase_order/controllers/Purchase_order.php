@@ -37,6 +37,23 @@ class Purchase_order extends Admin_Controller
 		$this->auth->restrict($this->viewPermission);
 		$session = $this->session->userdata('app_session');
 		$this->template->page_icon('fa fa-users');
+
+		// filter tanggal PO (format YYYY-MM-DD dari input type="date")
+		$start_date = $this->input->get('start_date', true);
+		$end_date   = $this->input->get('end_date', true);
+
+		$start_date = (!empty($start_date) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $start_date)) ? $start_date : '';
+		$end_date   = (!empty($end_date) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $end_date)) ? $end_date : '';
+
+		$filter_tanggal = '';
+		if (!empty($start_date) && !empty($end_date)) {
+			$filter_tanggal = " AND DATE( a.tanggal ) >= " . $this->db->escape($start_date) . " AND DATE( a.tanggal ) <= " . $this->db->escape($end_date) . " ";
+		} elseif (!empty($start_date)) {
+			$filter_tanggal = " AND DATE( a.tanggal ) >= " . $this->db->escape($start_date) . " ";
+		} elseif (!empty($end_date)) {
+			$filter_tanggal = " AND DATE( a.tanggal ) <= " . $this->db->escape($end_date) . " ";
+		}
+
 		$data = $this->db->query("
 				SELECT
 				a.*,
@@ -93,6 +110,7 @@ class Purchase_order extends Admin_Controller
 				WHERE
 				a.close_po IS NULL 
 				AND EXISTS ( SELECT 1 FROM dt_trans_po aa WHERE aa.no_po = a.no_po ) 
+				" . $filter_tanggal . "
 				ORDER BY
 				a.no_po DESC;
 		")->result();
@@ -132,6 +150,8 @@ class Purchase_order extends Admin_Controller
 
 		$this->template->set('results', $data);
 		$this->template->set('list_no_incoming', $link_no_incoming);
+		$this->template->set('start_date', $start_date);
+		$this->template->set('end_date', $end_date);
 		$this->template->title('Purchase Order');
 		$this->template->render('index');
 	}
