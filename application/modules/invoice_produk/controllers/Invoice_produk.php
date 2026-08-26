@@ -711,7 +711,7 @@ class Invoice_produk extends Admin_Controller
 				'memo'                => '',
 				'tgl_jvkoreksi'        => $tgl_inv,
 				'ho_valid'            => ''
-		);
+			);
 
 			$this->db->insert(DBACC . '.javh', $dataJVhead);
 
@@ -796,11 +796,22 @@ class Invoice_produk extends Admin_Controller
 		}
 	}
 
+	/**
+	 * Endpoint server-side DataTables untuk tab "Invoice Delivery".
+	 * Menggantikan pola lama (fetch semua baris + N+1 query di change_tab())
+	 * dengan paging di level SQL supaya hanya baris yang ditampilkan yang diproses.
+	 */
+	public function data_side_delivery()
+	{
+		$this->auth->restrict($this->viewPermission);
+		$this->Invoice_produk_model->data_side_delivery();
+	}
+
 	public function change_tab()
 	{
 		$tipe = $this->input->post('tipe');
 
-		$hasil = ''; 
+		$hasil = '';
 
 		$tipe  = $this->input->post('tipe', TRUE);
 		$start = $this->input->post('start_date', TRUE);
@@ -890,6 +901,14 @@ class Invoice_produk extends Admin_Controller
 		}
 
 		if ($tipe == 'delivery') {
+			// PERFORMANCE NOTE:
+			// Sebelumnya blok ini melakukan query utama TANPA limit (bisa >1.700 baris)
+			// lalu untuk SETIAP baris menjalankan 3-6 query tambahan (N+1 query problem),
+			// sehingga total ribuan query dijalankan setiap kali tab ini dibuka.
+			// Sekarang blok ini hanya merender skeleton tabel (tbody kosong).
+			// Data baris diambil oleh DataTables secara server-side (paging di level SQL)
+			// lewat endpoint `invoice_produk/data_side_delivery`, lihat
+			// Invoice_produk_model::data_side_delivery().
 			$hasil .= '
 					<div class="row" style="margin:0 0 10px 0; align-items:center;">
 						<div class="col-sm-2" style="display:flex; align-items:center;">
@@ -931,150 +950,8 @@ class Invoice_produk extends Admin_Controller
 						<th class="text-center">Action</th>
 						</tr>
 					</thead>
-					<tbody>
+					<tbody></tbody>
 				';
-
-			// Query + filter tanggal
-			$this->db
-				->select('sj.no_surat_jalan, sj.delivery_date, sj.no_delivery, sj.no_so, c.name_customer, i.id_invoice, i.created_on, i.is_cancel, sj.created_at, COALESCE(sjd_sum.total_terkirim, 0) AS total_terkirim')
-				->from('surat_jalan sj')
-				->join('tr_invoice_sales i', 'sj.no_surat_jalan = i.id_billing AND i.tipe_billing="delivery"', 'left')
-				->join('spk_delivery a', 'a.no_delivery = sj.no_delivery', 'left')
-				->join('sales_order b', 'b.no_so = sj.no_so', 'left')
-				->join('master_customers c', 'c.id_customer = b.id_customer', 'left')
-				->join('(SELECT no_surat_jalan, SUM(qty_terkirim) AS total_terkirim FROM surat_jalan_detail GROUP BY no_surat_jalan) sjd_sum', 'sjd_sum.no_surat_jalan = sj.no_surat_jalan', 'left')
-				->where('sj.status !=', 'ON DELIVER')
-				->where('sj.status IS NOT NULL')
-				// Tampilkan hanya jika: sudah punya invoice (tetap tampil untuk view/print)
-				// ATAU data relasi SO+customer valid DAN ada barang yang terkirim (qty_terkirim > 0)
-				->where('(
-					i.id_invoice IS NOT NULL
-					OR (
-						b.no_so IS NOT NULL
-						AND c.id_customer IS NOT NULL
-						AND COALESCE(sjd_sum.total_terkirim, 0) > 0
-					)
-				)')
-				// ->where('i.is_cancel IS NULL')
-				->order_by('sj.delivery_date', 'DESC', false)
-				->order_by('sj.created_at', 'DESC', false);
-
-			// Pakai tanggal invoice jika ada, fallback ke tanggal SJ (ganti sj.created_on ke kolom tanggal SJ-mu jika berbeda)
-			if ($start && $end) {
-				$this->db->where("DATE(i.created_on) >=", $start);
-				$this->db->where("DATE(i.created_on) <=", $end);
-			} elseif ($start) {
-				$this->db->where("DATE(i.created_on) >=", $start);
-			} elseif ($end) {
-				$this->db->where("DATE(i.created_on) <=", $end);
-			}
-
-			$get_delivery = $this->db->get()->result();
-
-			foreach ($get_delivery as $item) {
-
-				$get_hitung_nilai_invoice = $this->db->query("
-					SELECT
-						sod.product,
-						sod.qty_order,
-						sjd.qty_terkirim AS qty,
-						sod.harga_penawaran,
-						sod.price_list,
-						sod.diskon_persen AS diskon,
-						sod.diskon_nilai
-					FROM
-						surat_jalan_detail sjd
-					LEFT JOIN sales_order_detail sod ON sod.id = sjd.id_so_det
-					WHERE sjd.no_surat_jalan = '" . $item->no_surat_jalan . "'
-				")->result();
-
-				$get_sj_pertama = $this->db
-					->select('no_surat_jalan')
-					->from('surat_jalan')
-					->where('no_so', $item->no_so)
-					->order_by('delivery_date', 'ASC')   // pakai tanggal kirim
-					->order_by('id', 'ASC')              // fallback kalau tanggal sama
-					->limit(1)
-					->get()
-					->row();
-
-				$is_sj_pertama = ($get_sj_pertama && $get_sj_pertama->no_surat_jalan === $item->no_surat_jalan);
-
-				// Hitung freight jika SJ pertama
-				$freight = 0;
-				$diskon_khusus = 0;
-				if ($is_sj_pertama) {
-					$freight_data = $this->db
-						->select('b.freight, b.diskon_khusus')
-						->from('sales_order a')
-						->join('penawaran b', 'b.id_penawaran = a.id_penawaran')
-						->where('a.no_so', $item->no_so)
-						->get()
-						->row();
-
-					$freight = $freight_data ? $freight_data->freight : 0;
-					$diskon_khusus = $freight_data ? $freight_data->diskon_khusus : 0;
-				}
-
-				// Hitung nominal
-				$subtotal = 0;
-				foreach ($get_hitung_nilai_invoice as $item_hitung) {
-					$nilai_disc = (float) $item_hitung->diskon;
-					$total_harga = round(($item_hitung->harga_penawaran * $item_hitung->qty), -2); // bulat ribuan
-					$subtotal += $total_harga;
-				}
-
-				$includeppn = $subtotal -  $diskon_khusus;
-				$excludeppn = ($includeppn + $freight) / 1.11;
-				$dpp = $excludeppn * 11 / 12;
-				$ppn = $dpp * 12 / 100;
-				$nominal_invoice = ($excludeppn + $ppn);
-
-				$tanggal = (($item->created_on != null) ? date('d/M/Y', strtotime($item->created_on)) : '');
-
-				$hasil .= '<tr>';
-				$hasil .= '<td class="text-center">' . $item->no_surat_jalan . '</td>';
-				$hasil .= '<td class="text-center">' . $item->no_so . '</td>';
-				$hasil .= '<td class="text-center">' . date('d/M/Y', strtotime($item->delivery_date)) . '</td>';
-				$hasil .= '<td class="text-center">' . $item->id_invoice . '</td>';
-				$hasil .= '<td class="text-center">' . $tanggal . '</td>';
-				$hasil .= '<td class="text-left">' . $item->name_customer . '</td>';
-				$hasil .= '<td class="text-right">' . number_format($nominal_invoice, 2) . '</td>';
-
-				$edit = '<button type="button" class="btn btn-sm btn-success create_invoice_modal" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" title="Create"><i class="fa fa-check"></i></button>';
-
-				$check_invoice_dp = $this->db->get_where('tr_invoice_sales', ['id_billing' => $item->no_surat_jalan, 'tipe_billing' => 'delivery'])->num_rows();
-				if ($item->is_cancel == 1) {
-					$button = '<span class="badge bg-red">Credit Note (Full)</span>';
-				} elseif ($item->is_cancel == 2) {
-					$get_invoice_dp = $this->db->get_where('tr_invoice_sales', ['id_billing' => $item->no_surat_jalan, 'tipe_billing' => 'delivery'])->row();
-					$view  = '<button type="button" class="btn btn-sm btn-info view_invoice_modal_delivery" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '"><i class="fa fa-eye"></i></button>';
-					$print = '<a href="invoice_produk/print_invoice_delivery/' . $get_invoice_dp->id_invoice . '" target="_blank" class="btn btn-sm btn-primary" title="Print Invoice"><i class="fa fa-print"></i></a>';
-					$button = $view . ' ' . $print . ' <span class="badge bg-orange">CN Partial</span>';
-				} else {
-					if ($check_invoice_dp > 0) {
-						$get_invoice_dp = $this->db->get_where('tr_invoice_sales', ['id_billing' => $item->no_surat_jalan, 'tipe_billing' => 'delivery'])->row();
-						$retur_row = $this->db->get_where('tr_retur', ['id_invoice' => $get_invoice_dp->id_invoice])->row();
-						$view  = '<button type="button" class="btn btn-sm btn-info view_invoice_modal_delivery" data-no_so="' . $item->no_so . '" data-id="' . $item->no_surat_jalan . '" data-tipe_billing="delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '"><i class="fa fa-eye"></i></button>';
-						$print = '<a href="invoice_produk/print_invoice_delivery/' . $get_invoice_dp->id_invoice . '" target="_blank" class="btn btn-sm btn-primary print_invoice_delivery" data-id_invoice="' . $get_invoice_dp->id_invoice . '" title="Print Invoice"><i class="fa fa-print"></i></a>';
-						if ($retur_row && $retur_row->status == 0) {
-							$button = $view . ' ' . $print . ' <span class="badge bg-yellow" style="color:#333;">Retur Pending</span>';
-						} elseif ($retur_row && $retur_row->status == 1) {
-							$button = $view . ' ' . $print . ' <span class="badge bg-blue">Menunggu CN</span>';
-						} else {
-							$button = $view . ' ' . $print;
-						}
-					} else {
-						$button = $edit;
-					}
-				}
-				$hasil .=	 '<td class="text-center">
-								' . $button . '
-							</td>';
-				$hasil .=	 '</tr>';
-			}
-
-			$hasil .= '</tbody>';
 		}
 
 		if ($tipe == 'retensi') {
