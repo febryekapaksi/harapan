@@ -1530,4 +1530,171 @@ class Request_payment_model extends BF_Model
 
         return $get_list_all_request_payment;
     }
+
+    public function get_data_list_return()
+    {
+        $post = $this->input->post();
+
+        $draw   = isset($post['draw']) ? intval($post['draw']) : 1;
+        $length = isset($post['length']) ? intval($post['length']) : 10;
+        $start  = isset($post['start']) ? intval($post['start']) : 0;
+        $search = isset($post['search']['value']) ? trim($post['search']['value']) : '';
+
+        // Base where condition for Pengembalian Expense
+        $base_where = "a.status IN (1, 2, 3) 
+            AND a.exp_pib IS NULL 
+            AND a.exp_inv_po IS NULL 
+            AND (
+                (a.lebih_bayar IS NOT NULL AND a.lebih_bayar > 0)
+                OR a.jumlah < 0
+                OR (
+                    SELECT IFNULL(SUM(d.kasbon), 0) - IFNULL(SUM(d.expense), 0) 
+                    FROM tr_expense_detail d 
+                    WHERE d.no_doc = a.no_doc
+                ) > 0
+            )";
+
+        // 1. Total Data Count
+        $this->db->from('tr_expense a');
+        $this->db->where($base_where, NULL, FALSE);
+        $count_all = $this->db->count_all_results();
+
+        // 2. Filtered Count & Query
+        $this->db->from('tr_expense a');
+        $this->db->join('users c', 'a.nama = c.username OR a.nama = c.nm_lengkap OR a.created_by = c.username OR a.created_by = c.id_user', 'left');
+        $this->db->where($base_where, NULL, FALSE);
+
+        if (!empty($search)) {
+            $this->db->group_start();
+            $this->db->like('a.no_doc', $search, 'both');
+            $this->db->or_like('a.tgl_doc', $search, 'both');
+            $this->db->or_like('a.nama', $search, 'both');
+            $this->db->or_like('c.nm_lengkap', $search, 'both');
+            $this->db->or_like('a.created_by', $search, 'both');
+            $this->db->or_like('a.informasi', $search, 'both');
+            $this->db->group_end();
+        }
+
+        $db_filtered = clone $this->db;
+        $count_filtered = $db_filtered->count_all_results();
+
+        // 3. Fetch Paginated Records
+        $this->db->select("
+            a.id as ids,
+            a.no_doc,
+            a.created_by,
+            COALESCE(c.nm_lengkap, a.nama) as nama,
+            a.tgl_doc,
+            a.informasi as keperluan,
+            'Expense' as tipe,
+            COALESCE(
+                NULLIF(a.lebih_bayar, 0),
+                NULLIF((
+                    SELECT IFNULL(SUM(d.kasbon), 0) - IFNULL(SUM(d.expense), 0) 
+                    FROM tr_expense_detail d 
+                    WHERE d.no_doc = a.no_doc
+                ), 0),
+                IF(a.jumlah < 0, ABS(a.jumlah), 0)
+            ) as nilai_pengembalian,
+            a.bank_id,
+            a.accnumber,
+            a.accname
+        ", FALSE);
+
+        $columns_order = [
+            0 => 'a.id',
+            1 => 'a.no_doc',
+            2 => 'nama',
+            3 => 'a.tgl_doc',
+            4 => 'a.informasi',
+            5 => 'tipe',
+            6 => 'nilai_pengembalian',
+            7 => 'a.id',
+            8 => 'a.id',
+            9 => 'a.id'
+        ];
+
+        $order_col = isset($post['order'][0]['column']) ? intval($post['order'][0]['column']) : 0;
+        $order_dir = isset($post['order'][0]['dir']) ? $post['order'][0]['dir'] : 'desc';
+
+        if (isset($columns_order[$order_col])) {
+            $this->db->order_by($columns_order[$order_col], $order_dir);
+        } else {
+            $this->db->order_by('a.id', 'desc');
+        }
+
+        if ($length != -1) {
+            $this->db->limit($length, $start);
+        }
+
+        $get_data = $this->db->get()->result();
+
+        $hasil = [];
+        $no = $start;
+
+        foreach ($get_data as $record) {
+            $no++;
+
+            $nilai_pengembalian = floatval($record->nilai_pengembalian);
+
+            // Get total approved return
+            $get_pengembalian = $this->db->select('IFNULL(SUM(transfer_jumlah), 0) as ttl_kembali_expense')
+                ->get_where('tr_pengembalian_expense', ['no_doc' => $record->no_doc, 'status' => 1])
+                ->row();
+            
+            // Check if there are pending returns (status = 0 or status IS NULL)
+            $count_pending = $this->db->where('no_doc', $record->no_doc)
+                ->where('(status = 0 OR status IS NULL)')
+                ->count_all_results('tr_pengembalian_expense');
+
+            $terbayar = floatval($get_pengembalian->ttl_kembali_expense);
+            $sisa = $nilai_pengembalian - $terbayar;
+            if ($sisa < 0) $sisa = 0;
+
+            // Status badge
+            if ($sisa <= 0 && $nilai_pengembalian > 0) {
+                $status = '<span class="badge bg-green">Paid</span>';
+            } elseif ($count_pending > 0) {
+                $status = '<span class="badge bg-yellow"><i class="fa fa-clock-o"></i> Waiting Approval</span>';
+            } elseif ($terbayar > 0 && $sisa > 0) {
+                $status = '<span class="badge bg-yellow">Partial</span>';
+            } else {
+                $status = '<span class="badge bg-red">Outstanding</span>';
+            }
+
+            $tgl_doc = (!empty($record->tgl_doc) && $record->tgl_doc != '0000-00-00') ? date('d M Y', strtotime($record->tgl_doc)) : '-';
+            $request_by = !empty($record->nama) ? $record->nama : (!empty($record->created_by) ? $record->created_by : '-');
+
+            // Action buttons
+            $action = '';
+            if ($sisa > 0 && $count_pending == 0) {
+                $action .= '<button type="button" class="btn btn-sm btn-success" onclick="edit(\'' . $record->ids . '\')" title="Konfirmasi / Input Pengembalian"><i class="fa fa-money"></i> Input Return</button> ';
+            } else {
+                $action .= '<button type="button" class="btn btn-sm btn-info" onclick="edit(\'' . $record->ids . '\')" title="Lihat Detail"><i class="fa fa-eye"></i> Detail</button> ';
+            }
+
+            $hasil[] = [
+                'no'                 => '<div class="text-center">' . $no . '</div>',
+                'no_doc'             => '<div class="text-center"><b>' . $record->no_doc . '</b></div>',
+                'request_by'         => '<div>' . $request_by . '</div>',
+                'tgl_doc'            => '<div class="text-center">' . $tgl_doc . '</div>',
+                'keperluan'          => '<div>' . $record->keperluan . '</div>',
+                'tipe'               => '<div class="text-center"><span class="badge bg-purple">' . $record->tipe . '</span></div>',
+                'nilai_pengembalian' => '<div class="text-right" style="font-weight: 600;">' . number_format($nilai_pengembalian, 0, ',', '.') . '</div>',
+                'terbayar'           => '<div class="text-right" style="color: #00a65a; font-weight: 600;">' . number_format($terbayar, 0, ',', '.') . '</div>',
+                'sisa'               => '<div class="text-right" style="color: #dd4b39; font-weight: 600;">' . number_format($sisa, 0, ',', '.') . '</div>',
+                'status'             => '<div class="text-center">' . $status . '</div>',
+                'action'             => '<div class="text-center" style="white-space: nowrap;">' . $action . '</div>'
+            ];
+        }
+
+        $response = [
+            'draw'            => intval($draw),
+            'recordsTotal'    => intval($count_all),
+            'recordsFiltered' => intval($count_filtered),
+            'data'            => $hasil
+        ];
+
+        echo json_encode($response);
+    }
 }

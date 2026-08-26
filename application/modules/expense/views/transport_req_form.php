@@ -21,182 +21,260 @@ $dept = $datauser->department_id;
 <input type="hidden" id="id" name="id" value="<?php echo set_value('id', isset($data->id) ? $data->id : ''); ?>">
 <input type="hidden" id="departement" name="departement" value="<?php echo (isset($data->departement) ? $data->departement : $dept); ?>">
 <input type="hidden" id="nama" name="nama" value="<?php echo (isset($data->nama) ? $data->nama : $this->auth->user_name()); ?>">
-<div class="tab-content">
-	<div class="tab-pane active">
-		<div class="box box-primary">
-			<div class="box-body">
-				<div class="form-group ">
-					<label class="col-sm-2 control-label">No Dokumen</label>
-					<div class="col-sm-4">
+
+<style>
+	.section-title {
+		font-size: 15px;
+		font-weight: 600;
+		color: #337ab7;
+		padding-bottom: 8px;
+		margin-bottom: 15px;
+		border-bottom: 2px solid #e7eaec;
+	}
+	.table-detail thead th {
+		background-color: #3c8dbc;
+		color: #ffffff;
+		text-align: center;
+		vertical-align: middle;
+		border: 1px solid #367fa9;
+	}
+	.table-detail tbody td {
+		vertical-align: middle;
+	}
+</style>
+
+<div class="box box-primary">
+	<div class="box-body" style="padding: 20px;">
+		<!-- SECTION 1: Informasi Dokumen -->
+		<div class="section-title">
+			<i class="fa fa-file-text-o"></i> 1. Informasi Request Transportasi
+		</div>
+		<div class="row">
+			<div class="col-md-6">
+				<div class="form-group">
+					<label class="col-sm-4 control-label">No Dokumen</label>
+					<div class="col-sm-8">
 						<input type="text" class="form-control" id="no_doc" name="no_doc" value="<?php echo (isset($data->no_doc) ? $data->no_doc : ""); ?>" placeholder="Automatic" readonly>
 					</div>
-					<label class="col-sm-2 control-label">Tanggal <b class="text-red">*</b></label>
-					<div class="col-sm-4">
-						<input type="date" class="form-control" id="tgl_doc" name="tgl_doc" value="<?php echo (isset($data->tgl_doc) ? $data->tgl_doc : date("Y-m-d")); ?>" placeholder="Tanggal Dokumen" required>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Periode Mulai <b class="text-red">*</b></label>
+					<div class="col-sm-8">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+							<input type="date" class="form-control" id="date1" name="date1" value="<?php echo (isset($data->date1) ? $data->date1 : date("Y-m-d")); ?>" required>
+						</div>
 					</div>
 				</div>
-				<div class="form-group ">
-					<label class="col-sm-2 control-label">Periode 1 <b class="text-red">*</b></label>
-					<div class="col-sm-4">
-						<input type="date" class="form-control " id="date1" name="date1" value="<?php echo (isset($data->date1) ? $data->date1 : date("Y-m-d")); ?>" placeholder="Tanggal Awal" required>
+			</div>
+			<div class="col-md-6">
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Tanggal Dokumen <b class="text-red">*</b></label>
+					<div class="col-sm-8">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+							<input type="date" class="form-control" id="tgl_doc" name="tgl_doc" value="<?php echo (isset($data->tgl_doc) ? $data->tgl_doc : date("Y-m-d")); ?>" required>
+						</div>
 					</div>
-					<label class="col-sm-2 control-label">Periode 2 <b class="text-red">*</b></label>
-					<div class="col-sm-4">
-						<input type="date" class="form-control" id="date2" name="date2" value="<?php echo (isset($data->date2) ? $data->date2 : date("Y-m-d")); ?>" placeholder="Tanggal Akhir" required>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Periode Selesai <b class="text-red">*</b></label>
+					<div class="col-sm-8">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+							<input type="date" class="form-control" id="date2" name="date2" value="<?php echo (isset($data->date2) ? $data->date2 : date("Y-m-d")); ?>" required>
+						</div>
 						<?php
-						if (isset($data->st_reject)) {
-							if ($data->st_reject != '') {
-								echo '
-								  <div class="alert alert-danger alert-dismissible">
-									<h4><i class="icon fa fa-ban"></i> Alasan Penolakan!</h4>
-									' . $data->st_reject . '
-								  </div>';
-							}
+						if (isset($data->st_reject) && $data->st_reject != '') {
+							echo '
+							<div class="alert alert-danger alert-dismissible" style="margin-top: 10px; margin-bottom: 0;">
+								<h4><i class="icon fa fa-ban"></i> Alasan Penolakan:</h4>
+								' . $data->st_reject . '
+							</div>';
 						}
 						?>
 					</div>
 				</div>
-				<h4>Transfer ke</h4>
-				<div class="form-group ">
-					<label class="col-md-1 control-label">Bank</label>
-					<div class="col-md-2">
-						<input type="text" class="form-control" id="bank_id" name="bank_id" value="<?php echo (isset($data->bank_id) ? $data->bank_id : $bank_id); ?>" placeholder="Bank">
-					</div>
-					<label class="col-md-2 control-label">Nomor Rekening</label>
-					<div class="col-md-2">
-						<input type="text" class="form-control" id="accnumber" name="accnumber" value="<?php echo (isset($data->accnumber) ? $data->accnumber : $accnumber); ?>" placeholder="Nomor Rekening">
-					</div>
-					<label class="col-md-2 control-label">Nama Rekening</label>
-					<div class="col-md-3">
-						<input type="text" class="form-control" id="accname" name="accname" value="<?php echo (isset($data->accname) ? $data->accname : $accname); ?>" placeholder="Nama Pemilik Rekening">
-					</div>
-				</div>
-				<div class="table-responsive">
-					<table class="table table-bordered table-striped">
-						<caption>
-							<div class="pull-right">
-								<a class="btn btn-info btn-xs stsview" href="javascript:void(0)" title="Transport" onclick="add_detail()" id="add-kasbon"><i class="fa fa-user"></i> Generate</a>
-							</div>
-						</caption>
-						<thead>
-							<tr>
-								<th width="5">#</th>
-								<th>Tanggal</th>
-								<th width="100">Keperluan</th>
-								<th width="100">Rute</th>
-								<th>Bensin</th>
-								<th>T o l</th>
-								<th>Parkir</th>
-								<th>Lain Lain</th>
-								<th>KM Awal</th>
-								<th>KM Akhir</th>
-								<th>Total KM</th>
-								<th width="50">Bukti</th>
-							</tr>
-						</thead>
-						<tbody id="detail_body">
-							<?php $total_bensin = 0;
-							$total_tol = 0;
-							$total_parkir = 0;
-							$total_kasbon = 0;
-							$idd = 1;
-							$total_km = 0;
-							$grand_total = 0;
-							$total_lainnya = 0;
-							$gambar = '';
-							if (!empty($data_detail)) {
-								foreach ($data_detail as $record) {
-							?>
-									<tr id='tr1_<?= $idd ?>' class='delAll'>
-										<td>
-											<input type="hidden" name="id_transport[]" id="id_transport_<?= $idd ?>" value="<?= $record->id; ?>"><?= $record->no_doc; ?>
-											<input type='hidden' class='fben' name='bensin[]' value='<?= $record->bensin; ?>' id='bensin_<?= $idd ?>' />
-											<input type='hidden' class='ftol' name='tol[]' value='<?= $record->tol; ?>' id='tol_<?= $idd ?>' />
-											<input type='hidden' class='fpark' name='parkir[]' value='<?= $record->parkir; ?>' id='parkir_<?= $idd ?>' />
-											<input type='hidden' class='flainnya' name='lainnya[]' value='<?= $record->lainnya; ?>' id='lainnya_<?= $idd ?>' />
-										</td>
-										<td><?= $record->tgl_doc; ?></td>
-										<td><?= $record->keperluan; ?></td>
-										<td><?= $record->rute; ?></td>
-										<td class="divide"><?= $record->bensin; ?></td>
-										<td class="divide"><?= $record->tol; ?></td>
-										<td class="divide"><?= $record->parkir; ?></td>
-										<td class="divide"><?= $record->lainnya; ?></td>
-										<td class="divide"><?= $record->km_awal; ?></td>
-										<td class="divide"><?= $record->km_akhir; ?></td>
-										<td class="divide"><?= ($record->km_akhir - $record->km_awal); ?></td>
-										<td><span class="pull-right"><?= ($record->doc_file != '' ? '<a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank"><i class="fa fa-download"></i></a>' : '') ?></span>
-										</td>
-									</tr>
-							<?php
-									if ($record->doc_file != '') {
-										if (strpos($record->doc_file, 'pdf', 0) > 1) {
-											$gambar .= '<div class="col-md-12">
-								<iframe src="' . base_url('uploads/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-										 Presss me: <a href="' . base_url('uploads/expense/' . $record->doc_file) . '">Download PDF</a>
-								</iframe>
-								<br />' . $record->no_doc . '</div>';
-										} else {
-											$gambar .= '<div class="col-md-3"><a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $record->doc_file) . '" class="img-responsive"></a><br />' . $record->no_doc . '</div>';
-										}
-									}
+			</div>
+		</div>
 
-									$total_bensin = ($total_bensin + ($record->bensin));
-									$total_tol = ($total_tol + ($record->tol));
-									$total_parkir = ($total_parkir + ($record->parkir));
-									$total_km = ($total_km + ($record->km_akhir - $record->km_awal));
-									$total_lainnya = ($total_lainnya + $record->lainnya);
-									$idd++;
-								}
-							}
-							$grand_total = ($total_bensin + $total_tol + $total_parkir + $total_lainnya);
-							?>
-						</tbody>
-						<tfoot>
-							<tr class="info">
-								<td colspan="4" align=right>SUB TOTAL</td>
-								<td><input type="text" class="form-control divide input-sm" id="total_bensin" name="total_bensin" value="<?= $total_bensin ?>" placeholder="Total Bensin" tabindex="-1" readonly></td>
-								<td><input type="text" class="form-control divide input-sm" id="total_tol" name="total_tol" value="<?= $total_tol ?>" placeholder="Total Tol" tabindex="-1" readonly></td>
-								<td><input type="text" class="form-control divide input-sm" id="total_parkir" name="total_parkir" value="<?= $total_parkir ?>" placeholder="Total Parkir" tabindex="-1" readonly></td>
-								<td><input type="text" class="form-control divide input-sm" id="total_lainnya" name="total_lainnya" value="<?= $total_lainnya ?>" placeholder="Total Lainnya" tabindex="-1" readonly></td>
-								<td colspan=2></td>
-								<td><input type="text" class="form-control divide input-sm" id="total_km" name="total_km" value="<?= $total_km ?>" placeholder="Total KM" tabindex="-1" readonly></td>
-								<td></td>
-							</tr>
-							<tr class="warning">
-								<td colspan="4" align=right>TOTAL</td>
-								<td colspan="4"><input type="text" class="form-control divide input-sm" id="jumlah_expense" name="jumlah_expense" value="<?= $grand_total ?>" placeholder="Total" tabindex="-1" readonly></td>
-								<td colspan=4></td>
-							</tr>
-						</tfoot>
-					</table>
-				</div>
-				<div class="box-footer">
-					<div class="form-group">
-						<div class="col-sm-offset-2 col-sm-10">
-							<?php
-							if (isset($data)) {
-								if (($data->status == 0 || $data->status == 1) && $stsview == '') {
-									if (($mod == '_fin' || $mod == '_mgt')) {
-										echo '<a class="btn btn-primary btn-sm" href="#" id="approve" onclick="data_approve(' . $data->id . ',' . ($data->status + 1) . ')"><i class="fa fa-check-square-o"></i> Approve</a>';
-										echo ' <a class="btn btn-danger btn-sm" onclick="data_reject()"><i class="fa fa-ban">&nbsp;</i> Reject</a>';
-										$stsview = 'view';
-									}
-								}
-							}
-							?>
-							<button type="submit" name="save" class="btn btn-success btn-sm stsview" id="submit"><i class="fa fa-save">&nbsp;</i>Simpan</button>
-							<a class="btn btn-default btn-sm" onclick="window.location=siteurl+'expense/transport_req<?= $mod ?>';return false;"><i class="fa fa-reply"></i> Batal</a>
+		<!-- SECTION 2: Rekening Bank -->
+		<div class="section-title" style="margin-top: 15px;">
+			<i class="fa fa-university"></i> 2. Informasi Rekening Bank
+		</div>
+		<div class="row">
+			<div class="col-md-4">
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Bank</label>
+					<div class="col-sm-8">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-bank"></i></span>
+							<input type="text" class="form-control" id="bank_id" name="bank_id" value="<?php echo (isset($data->bank_id) ? $data->bank_id : $bank_id); ?>" placeholder="Bank">
 						</div>
 					</div>
-					<div class="row">
-						<?= $gambar ?>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="form-group">
+					<label class="col-sm-5 control-label">Nomor Rekening</label>
+					<div class="col-sm-7">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-credit-card"></i></span>
+							<input type="text" class="form-control" id="accnumber" name="accnumber" value="<?php echo (isset($data->accnumber) ? $data->accnumber : $accnumber); ?>" placeholder="Nomor Rekening">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Nama Rekening</label>
+					<div class="col-sm-8">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-user"></i></span>
+							<input type="text" class="form-control" id="accname" name="accname" value="<?php echo (isset($data->accname) ? $data->accname : $accname); ?>" placeholder="Nama Pemilik">
+						</div>
 					</div>
 				</div>
 			</div>
 		</div>
+
+		<!-- SECTION 3: Rincian Transportasi -->
+		<div class="section-title" style="margin-top: 15px;">
+			<i class="fa fa-table"></i> 3. Rincian Transportasi
+		</div>
+
+		<div class="row" style="margin-bottom: 10px;">
+			<div class="col-md-12 text-right">
+				<button class="btn btn-info btn-sm stsview" type="button" onclick="add_detail()" id="add-kasbon">
+					<i class="fa fa-refresh"></i> Generate / Tarik Data Transport
+				</button>
+			</div>
+		</div>
+
+		<div class="table-responsive">
+			<table class="table table-bordered table-striped table-hover table-detail" width="100%">
+				<thead>
+					<tr>
+						<th width="10%">No Doc</th>
+						<th width="10%">Tanggal</th>
+						<th width="14%">Keperluan</th>
+						<th width="14%">Rute</th>
+						<th width="9%">Bensin</th>
+						<th width="9%">Tol</th>
+						<th width="9%">Parkir</th>
+						<th width="9%">Lain-Lain</th>
+						<th width="6%">KM Awal</th>
+						<th width="6%">KM Akhir</th>
+						<th width="6%">Total KM</th>
+						<th width="4%">Bukti</th>
+					</tr>
+				</thead>
+				<tbody id="detail_body">
+					<?php $total_bensin = 0;
+					$total_tol = 0;
+					$total_parkir = 0;
+					$total_kasbon = 0;
+					$idd = 1;
+					$total_km = 0;
+					$grand_total = 0;
+					$total_lainnya = 0;
+					$gambar = '';
+					if (!empty($data_detail)) {
+						foreach ($data_detail as $record) {
+					?>
+							<tr id='tr1_<?= $idd ?>' class='delAll'>
+								<td class="text-center">
+									<input type="hidden" name="id_transport[]" id="id_transport_<?= $idd ?>" value="<?= $record->id; ?>">
+									<b><?= $record->no_doc; ?></b>
+									<input type='hidden' class='fben' name='bensin[]' value='<?= $record->bensin; ?>' id='bensin_<?= $idd ?>' />
+									<input type='hidden' class='ftol' name='tol[]' value='<?= $record->tol; ?>' id='tol_<?= $idd ?>' />
+									<input type='hidden' class='fpark' name='parkir[]' value='<?= $record->parkir; ?>' id='parkir_<?= $idd ?>' />
+									<input type='hidden' class='flainnya' name='lainnya[]' value='<?= $record->lainnya; ?>' id='lainnya_<?= $idd ?>' />
+								</td>
+								<td class="text-center"><?= (!empty($record->tgl_doc) && $record->tgl_doc != '0000-00-00') ? date('d M Y', strtotime($record->tgl_doc)) : '-'; ?></td>
+								<td><?= $record->keperluan; ?></td>
+								<td><?= $record->rute; ?></td>
+								<td class="divide text-right"><?= number_format($record->bensin, 0, ',', '.'); ?></td>
+								<td class="divide text-right"><?= number_format($record->tol, 0, ',', '.'); ?></td>
+								<td class="divide text-right"><?= number_format($record->parkir, 0, ',', '.'); ?></td>
+								<td class="divide text-right"><?= number_format($record->lainnya, 0, ',', '.'); ?></td>
+								<td class="divide text-right"><?= number_format($record->km_awal, 0, ',', '.'); ?></td>
+								<td class="divide text-right"><?= number_format($record->km_akhir, 0, ',', '.'); ?></td>
+								<td class="divide text-right" style="font-weight: 600;"><?= number_format($record->km_akhir - $record->km_awal, 0, ',', '.'); ?></td>
+								<td class="text-center">
+									<?= ($record->doc_file != '' ? '<a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank" class="btn btn-xs btn-info"><i class="fa fa-download"></i></a>' : '-') ?>
+								</td>
+							</tr>
+					<?php
+							if ($record->doc_file != '') {
+								if (strpos($record->doc_file, 'pdf', 0) > 1) {
+									$gambar .= '<div class="col-md-12" style="margin-bottom: 15px;">
+						<iframe src="' . base_url('uploads/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:100%; height:400px;" frameborder="0">
+								 <a href="' . base_url('uploads/expense/' . $record->doc_file) . '">Download PDF</a>
+						</iframe>
+						<br /><b>' . $record->no_doc . '</b></div>';
+								} else {
+									$gambar .= '<div class="col-md-3" style="margin-bottom: 15px;"><a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $record->doc_file) . '" class="img-responsive img-thumbnail"></a><br /><b>' . $record->no_doc . '</b></div>';
+								}
+							}
+
+							$total_bensin = ($total_bensin + ($record->bensin));
+							$total_tol = ($total_tol + ($record->tol));
+							$total_parkir = ($total_parkir + ($record->parkir));
+							$total_km = ($total_km + ($record->km_akhir - $record->km_awal));
+							$total_lainnya = ($total_lainnya + $record->lainnya);
+							$idd++;
+						}
+					}
+					$grand_total = ($total_bensin + $total_tol + $total_parkir + $total_lainnya);
+					?>
+				</tbody>
+				<tfoot>
+					<tr style="background-color: #f5f5f5; font-weight: bold;">
+						<td colspan="4" class="text-right">SUB TOTAL:</td>
+						<td><input type="text" class="form-control divide input-sm text-right" id="total_bensin" name="total_bensin" value="<?= $total_bensin ?>" placeholder="Total Bensin" tabindex="-1" readonly style="font-weight: bold;"></td>
+						<td><input type="text" class="form-control divide input-sm text-right" id="total_tol" name="total_tol" value="<?= $total_tol ?>" placeholder="Total Tol" tabindex="-1" readonly style="font-weight: bold;"></td>
+						<td><input type="text" class="form-control divide input-sm text-right" id="total_parkir" name="total_parkir" value="<?= $total_parkir ?>" placeholder="Total Parkir" tabindex="-1" readonly style="font-weight: bold;"></td>
+						<td><input type="text" class="form-control divide input-sm text-right" id="total_lainnya" name="total_lainnya" value="<?= $total_lainnya ?>" placeholder="Total Lainnya" tabindex="-1" readonly style="font-weight: bold;"></td>
+						<td colspan="2"></td>
+						<td><input type="text" class="form-control divide input-sm text-right" id="total_km" name="total_km" value="<?= $total_km ?>" placeholder="Total KM" tabindex="-1" readonly style="font-weight: bold;"></td>
+						<td></td>
+					</tr>
+					<tr style="background-color: #e8f4f8; font-weight: bold;">
+						<td colspan="4" class="text-right" style="font-size: 15px; color: #3c8dbc;">TOTAL EXPENSE:</td>
+						<td colspan="4"><input type="text" class="form-control divide input-sm text-right" id="jumlah_expense" name="jumlah_expense" value="<?= $grand_total ?>" placeholder="Total" tabindex="-1" readonly style="font-size: 15px; font-weight: bold; color: #3c8dbc;"></td>
+						<td colspan="4"></td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+
+		<?php if (!empty($gambar)): ?>
+			<div class="section-title" style="margin-top: 20px;">
+				<i class="fa fa-paperclip"></i> Preview Lampiran Bukti
+			</div>
+			<div class="row">
+				<?= $gambar ?>
+			</div>
+		<?php endif; ?>
 	</div>
-	<?= form_close() ?>
+	<div class="box-footer text-center" style="background-color: #f9f9f9; padding: 15px;">
+		<?php
+		if (isset($data)) {
+			if (($data->status == 0 || $data->status == 1) && $stsview == '') {
+				if (($mod == '_fin' || $mod == '_mgt')) {
+					echo '<button type="button" class="btn btn-primary btn-sm" id="approve" onclick="data_approve(' . $data->id . ',' . ($data->status + 1) . ')" style="margin-right: 5px;"><i class="fa fa-check-square-o"></i> Approve</button>';
+					echo '<button type="button" class="btn btn-danger btn-sm" onclick="data_reject()" style="margin-right: 5px;"><i class="fa fa-ban">&nbsp;</i> Reject</button>';
+					$stsview = 'view';
+				}
+			}
+		}
+		?>
+		<button type="submit" name="save" class="btn btn-success btn-sm stsview" id="submit" style="margin-right: 5px;"><i class="fa fa-save">&nbsp;</i> Simpan Pengajuan</button>
+		<a class="btn btn-default btn-sm" onclick="window.location=siteurl+'expense/transport_req<?= $mod ?>';return false;"><i class="fa fa-reply"></i> Batal</a>
+	</div>
+</div>
+<?= form_close() ?>
 	<script src="<?= base_url('assets/js/number-divider.min.js') ?>"></script>
 	<script type="text/javascript">
 		var url_save = siteurl + 'expense/transport_req_save/';

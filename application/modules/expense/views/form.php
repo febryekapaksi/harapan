@@ -26,342 +26,376 @@ if (!isset($data->departement)) {
 <input type="hidden" id="nama" name="nama" value="<?php echo (isset($data->nama) ? $data->nama : $this->auth->user_name()); ?>">
 <input type="hidden" id="approval" name="approval" value="<?php echo (isset($data->approval) ? $data->approval : $app); ?>">
 <input type="hidden" name="" class="stsview" value="<?= (isset($stsview)) ? $stsview : null ?>">
+
 <style>
-	@media screen and (max-width: 520px) {
-		table {
-			width: 100%;
-		}
-
-		thead th.column-primary {
-			width: 100%;
-		}
-
-		thead th:not(.column-primary) {
-			display: none;
-		}
-
-		th[scope="row"] {
-			vertical-align: top;
-		}
-
-		td {
-			display: block;
-			width: auto;
-			text-align: right;
-		}
-
-		thead th::before {
-			text-transform: uppercase;
-			font-weight: bold;
-			content: attr(data-header);
-		}
-
-		thead th:first-child span {
-			display: none;
-		}
-
-		td::before {
-			float: left;
-			text-transform: uppercase;
-			font-weight: bold;
-			content: attr(data-header);
-		}
+	.section-title {
+		font-size: 15px;
+		font-weight: 600;
+		color: #337ab7;
+		padding-bottom: 8px;
+		margin-bottom: 15px;
+		border-bottom: 2px solid #e7eaec;
+	}
+	.table-detail thead th {
+		background-color: #3c8dbc;
+		color: #ffffff;
+		text-align: center;
+		vertical-align: middle;
+		border: 1px solid #367fa9;
+	}
+	.table-detail tbody td {
+		vertical-align: middle;
+	}
+	.table-detail tfoot td {
+		font-weight: bold;
+		vertical-align: middle;
 	}
 </style>
-<div class="tab-content">
-	<div class="tab-pane active">
-		<div class="box box-primary">
-			<div class="box-body">
-				<div class="form-group ">
-					<label class="col-sm-2 col-md-2 control-label">No Dokumen</label>
-					<div class="col-sm-4 col-md-4">
+
+<div class="box box-primary">
+	<div class="box-body" style="padding: 20px;">
+		<!-- SECTION 1: Informasi Dokumen -->
+		<div class="section-title">
+			<i class="fa fa-file-text-o"></i> 1. Informasi Pengajuan Expense
+		</div>
+		<div class="row">
+			<div class="col-md-6">
+				<div class="form-group">
+					<label class="col-sm-4 control-label">No Dokumen</label>
+					<div class="col-sm-8">
 						<input type="text" class="form-control" id="no_doc" name="no_doc" value="<?php echo (isset($data->no_doc) ? $data->no_doc : ""); ?>" placeholder="Automatic" readonly>
 					</div>
-					<label class="col-sm-2 col-md-2 control-label">Tanggal <b class="text-red">*</b></label>
-					<div class="col-sm-4 col-md-4">
-						<input type="text" class="form-control tanggal" id="tgl_doc" name="tgl_doc" value="<?php echo (isset($data->tgl_doc) ? $data->tgl_doc : date("Y-m-d")); ?>" placeholder="Tanggal Dokumen" required>
+				</div>
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Tanggal Dokumen <b class="text-red">*</b></label>
+					<div class="col-sm-8">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+							<input type="text" class="form-control tanggal" id="tgl_doc" name="tgl_doc" value="<?php echo (isset($data->tgl_doc) ? $data->tgl_doc : date("Y-m-d")); ?>" placeholder="Tanggal Dokumen" required>
+						</div>
 					</div>
 				</div>
-				<div class="form-group ">
-					<label class="col-sm-2 col-md-2 control-label">Keterangan <b class="text-red">*</b></label>
-					<div class="col-sm-4">
-						<textarea class="form-control" id="informasi" name="informasi" placeholder="Keterangan" required><?php echo (isset($data->informasi) ? $data->informasi : ""); ?></textarea>
+			</div>
+			<div class="col-md-6">
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Keterangan <b class="text-red">*</b></label>
+					<div class="col-sm-8">
+						<textarea class="form-control" id="informasi" name="informasi" rows="2" placeholder="Keterangan / Keperluan Expense" required><?php echo (isset($data->informasi) ? $data->informasi : ""); ?></textarea>
 						<?php
-						if (isset($data->st_reject)) {
-							if ($data->st_reject != '') {
-								echo '
-							  <div class="alert alert-danger alert-dismissible">
-								<h4><i class="icon fa fa-ban"></i> Alasan Penolakan!</h4>
+						if (isset($data->st_reject) && $data->st_reject != '') {
+							echo '
+							<div class="alert alert-danger alert-dismissible" style="margin-top: 10px; margin-bottom: 0;">
+								<h4><i class="icon fa fa-ban"></i> Alasan Penolakan:</h4>
 								' . $data->st_reject . '
-							  </div>';
-							}
+							</div>';
 						}
 						?>
 					</div>
-					<label class="col-sm-2 col-md-2 control-label">Bon Bukti <b class="text-red">*</b></label>
-					<div class="col-sm-4 col-md-4">
-						<input class="form-control" type="file" name="doc_file[]" id="id_doc_file" multiple <?= (isset($data->bon_bukti) ? "" : "required") ?> />
-						<span class="pull-right">
-							<?php
-							if (isset($data->bon_bukti)) {
-								echo ($data->bon_bukti != '' ? '<a href="' . base_url($data->bon_bukti) . '" download target="_blank"><i class="fa fa-download"></i></a>' : '');
-							}
-							?>
-						</span>
-					</div>
 				</div>
-				<div>
-					<h4>Transfer ke</h4>
-					<div class="form-group" id="formRekening">
-						<label class="col-md-1 control-label">Bank</label>
-						<div class="col-md-2">
-							<input type="text" class="form-control" id="bank_id" name="bank_id" value="<?php echo (isset($data->bank_id) ? $data->bank_id : $bank_id); ?>" placeholder="Bank">
-						</div>
-						<label class="col-md-2 control-label">Nomor Rekening</label>
-						<div class="col-md-2">
-							<input type="text" class="form-control" id="accnumber" name="accnumber" value="<?php echo (isset($data->accnumber) ? $data->accnumber : $accnumber); ?>" placeholder="Nomor Rekening">
-						</div>
-						<label class="col-md-2 control-label">Nama Rekening</label>
-						<div class="col-md-3">
-							<input type="text" class="form-control" id="accname" name="accname" value="<?php echo (isset($data->accname) ? $data->accname : $accname); ?>" placeholder="Nama Pemilik Rekening">
-						</div>
-						<input type="hidden" id="no_doc_kasbon" name="no_doc_kasbon">
-						<input type="hidden" id="idKasbon" name="idKasbon">
-					</div>
-				</div>
-
-				<div class="text-start" style="margin-bottom: 5px;">
-					<a class="btn btn-info btn-sm stsview" href="javascript:void(0)" title="Kasbon" onclick="add_kasbon()" id="add-kasbon"><i class="fa fa-user"></i> Expense Kasbon</a>
-				</div>
-				<div class="table-responsive">
-					<table class="table table-bordered table-striped" width="100%">
-						<thead>
-							<tr>
-								<th width="5" scope="col" class="column-primary">#</th>
-								<th scope="col" width="200px">Jenis</th>
-								<th scope="col" width="100px">Tanggal</th>
-								<th scope="col">Barang/Jasa</th>
-								<th scope="col">Spesifikasi</th>
-								<th scope="col" width="50px">Jumlah</th>
-								<th scope="col" nowrap>Harga Satuan</th>
-								<th scope="col">Expense</th>
-								<th scope="col" class="column-primary">
-									<div class="pull-right">
-										<a class="btn btn-success btn-xs stsview" href="javascript:void(0)" title="Tambah" onclick="add_detail()" id="add-material"><i class="fa fa-plus"></i> Tambah</a>
-									</div>
-								</th>
-							</tr>
-						</thead>
-						<tbody id="detail_body">
-							<?php $total = 0;
-							$idd = 1;
-							$grand_total = 0;
-							$total_expense = 0;
-							$total_kasbon = 0;
-							if (!empty($data_detail)) {
-								foreach ($data_detail as $record) {
-									$tekskasbon = "";
-									if ($record->id_kasbon != '') $tekskasbon = 'readonly'; ?>
-									<tr id='tr1_<?= $idd ?>' class='delAll <?= ($record->id_kasbon != '' ? 'kasbonrow' : '') ?>'>
-										<td data-header="#">
-											<input type='hidden' name='id_kasbon[]' id='id_kasbon_<?= $idd ?>' value='<?= $record->id_kasbon; ?>'>
-											<input type="hidden" name="filename[]" id="filename_<?= $idd ?>" value="<?= $record->doc_file; ?>">
-											<input type="hidden" name="detail_id[]" id="raw_id_<?= $idd ?>" value="<?= $idd; ?>" class="dtlloop">
-											<input type="hidden" name="id_detail[]" id="id_detail_<?= $idd ?>" value="<?= $record->id; ?>" class="dtlloop">
-											<?= $idd ?>
-										</td>
-										<td data-header="Jenis">
-											<?php
-											if ($tekskasbon == '') {
-												echo form_dropdown('coa[]', $option_coa, (isset($record->coa) ? $record->coa : ''), array('id' => 'coa' . $idd, 'required' => 'required', 'class' => 'form-control select2'));
-											} else {
-												echo '<input type="hidden" name="coa[]" id="coa' . $idd . '" value="' . $record->coa . '">';
-											}
-											?>
-										</td>
-										<td data-header="Tanggal">
-											<input type="text" class="form-control tanggal input-sm" name="tanggal[]" id="tanggal<?= $idd; ?>" value="<?= $record->tanggal; ?>" <?= $tekskasbon ?>>
-										</td>
-										<td data-header="Barang / Jasa">
-											<textarea class="form-control" name="deskripsi[]" id="deskripsi_<?= $idd; ?>" <?= $tekskasbon; ?>><?= $record->deskripsi; ?></textarea>
-										</td>
-										<td data-header="Spesifikasi">
-											<textarea class="form-control" name="keterangan[]" id="keterangan_<?= $idd; ?>" <?= $tekskasbon ?>><?= $record->keterangan; ?></textarea>
-										</td>
-										<td data-header="Qty"><input type="text" class="form-control divide input-sm" name="qty[]" id="qty_<?= $idd; ?>" value="<?= $record->qty; ?>" onblur="cektotal(<?= $idd; ?>)" <?= $tekskasbon ?> size="15"></td>
-										<td data-header="Harga Satuan"><input type="text" class="form-control divide input-sm" name="harga[]" id="harga_<?= $idd; ?>" value="<?= (($tekskasbon != "") ? $record->kasbon : $record->expense) ?>" onblur="cektotal(<?= $idd; ?>)" <?= $tekskasbon ?>></td>
-										<td data-header="Expense"><input type="text" class="form-control divide subtotal input-sm" name="expense[]" id="expense_<?= $idd; ?>" value="<?= (($tekskasbon != "") ? $record->kasbon : $record->expense) ?>" tabindex="-1" readonly></td>
-										<th scope="row" align='center'><button type='button' class='btn btn-danger btn-xs stsview' data-toggle='tooltip' onClick='delDetail(<?= $idd ?>)' title='Hapus data'><i class='fa fa-close'></i> Hapus</button></th>
-									</tr>
-							<?php
-									if ($record->doc_file != '') {
-										if (strpos($record->doc_file, 'pdf', 0) > 1) {
-											$gambar .= '<div class="col-md-12">
-								<iframe src="' . base_url('uploads/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-										 <a href="' . base_url('uploads/expense/' . $record->doc_file) . '">Download PDF</a>
-								</iframe>
-								<br />' . $record->no_doc . '</div>';
-										} else {
-											$gambar .= '<div class="col-md-4"><a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $record->doc_file) . '" class="img-responsive"></a><br />' . $record->no_doc . '</div>';
-										}
-									}
-									$total_expense = ($total_expense + ($record->expense));
-									$total_kasbon = ($total_kasbon + ($record->kasbon));
-									$idd++;
-								}
-								if ($data->lebih_bayar != null) {
-									$grand_total = 0;
-								} else {
-									$grand_total = ($grand_total + ($total_expense - $total_kasbon));
-								}
-							} ?>
-						</tbody>
-						<tfoot>
-							<tr>
-								<td colspan="7" align=right>TOTAL EXPENSE</td>
-								<td colspan="2">
-									<input type="text" class="form-control divide input-sm" id="total_expense" name="total_expense" value="<?= (isset($data_detail)) ? $total_expense : "" ?>" placeholder="0" tabindex="-1" readonly>
-								</td>
-							</tr>
-							<tr id="total_kasbon_row" hidden>
-								<td colspan="7" align="right">KASBON</td>
-								<td colspan="2">
-									<input type="text" class="form-control divide input-sm" id="total_kasbon" name="total_kasbon" value="<?= (isset($data_detail)) ? $total_kasbon : "" ?>" placeholder="0" tabindex="-1" readonly disabled>
-								</td>
-							</tr>
-							<tr id="kontrol_row" <?= (isset($data->lebih_bayar)) ? "" : "hidden" ?>>
-								<td colspan="7" align="right">KONTROL</td>
-								<td colspan="2">
-									<input type="text" class="form-control divide input-sm" onblur="updateGrandTotal()" id="kontrol" placeholder="0" tabindex="-1" value="<?= (isset($data->lebih_bayar)) ? $data->lebih_bayar : "" ?>">
-								</td>
-							</tr>
-							<tr id="selisih_row" hidden>
-								<td colspan="7" align="right">SELISIH</td>
-								<td colspan="2">
-									<input type="text" class="form-control divide input-sm" id="grand_total" name="grand_total" value="<?= (isset($data_detail)) ? $grand_total : "" ?>" placeholder="0" tabindex="-1" readonly disabled>
-									<input type="hidden" id="initial_grand_total">
-								</td>
-							</tr>
-						</tfoot>
-					</table>
-
-					<div class="col-md-6" id="pengembalian" <?= (isset($data->lebih_bayar)) ? "" : "hidden" ?>>
-						<table class="table">
-							<thead>
-								<tr>
-									<th>Pengembalian Kasbon</th>
-								</tr>
-							</thead>
-							<tbody>
-								<tr>
-									<td>
-										<input type="radio" name="pengembalian" id="" value="1" <?= (isset($data->tipe_pengembalian) && $data->tipe_pengembalian == 1) ? 'checked' : null ?>> Cash
-									</td>
-								</tr>
-								<tr>
-									<td>
-										<input type="radio" name="pengembalian" id="" value="2" <?= (isset($data->tipe_pengembalian) && $data->tipe_pengembalian == 2) ? 'checked' : null ?>> Transfer
-										<br>
-										<div class="row col-md-6">
-											<label class="control-label">Upload Bukti Transfer</label>
-											<input type="file" name="bukti_pengembalian[]" class="form-control" multiple>
-											<?php
-											$file = '';
-											if (isset($data->bukti_pengembalian)) {
-												if (strpos($data->bukti_pengembalian, 'pdf', 0) > 1) {
-													$file .= '<div class="row col-md-12">
-										<iframe src="' . base_url($data->bukti_pengembalian) . '#toolbar=0&navpanes=0" title="PDF" style="width:600px; height:500px;" frameborder="0">
-												 <a href="' . base_url($data->bukti_pengembalian) . '">Download PDF</a>
-										</iframe>
-										<br />' . $data->no_doc . '</div>';
-												} else {
-													$file .= '<div class="row col-md-6"><a href="' . base_url($data->bukti_pengembalian) . '" target="_blank"><img src="' . base_url($data->bukti_pengembalian) . '" class="img-responsive"></a><br />' . $data->no_doc . '</div>';
-												}
-											}
-											?>
-											<?= $file ?>
-										</div>
-									</td>
-								</tr>
-							</tbody>
-						</table>
-					</div>
-
-					<?php
-					if (isset($data_exp_kasbon)) {
-						if (!empty($data_exp_kasbon)) {
-							foreach ($data_exp_kasbon as $exp_kasbon) :
-								$no_kasbon_detail = 1;
-								$this->db->select('a.*, IF(b.code IS NULL, "Pcs", b.code) AS satuan');
-								$this->db->from('tr_pr_detail_kasbon a');
-								$this->db->join('ms_satuan b', 'b.id = a.unit', 'left');
-								$this->db->where('a.id_kasbon', $exp_kasbon['id_kasbon']);
-								$get_pr_kasbon_detail = $this->db->get()->result_array();
-
-								if (!empty($get_pr_kasbon_detail)) {
-									echo '<h4>No PR: ' . $get_pr_kasbon_detail[0]['no_pr'] . '</h4>';
-									echo '<table class="table table-bordered">';
-									echo '<thead>';
-									echo '<tr>';
-									echo '<th class="text-center">No.</th>';
-									echo '<th class="text-center">Material Name</th>';
-									echo '<th class="text-center">Qty</th>';
-									echo '<th class="text-center">Unit</th>';
-									echo '<th class="text-center">Price</th>';
-									echo '<th class="text-center">Total Price</th>';
-									echo '</tr>';
-									echo '</thead>';
-									echo '<tbody>';
-
-									foreach ($get_pr_kasbon_detail as $kasbon_detail) :
-										echo '<tr>';
-										echo '<td class="text-center">' . $no_kasbon_detail . '</td>';
-										echo '<td class="text-center">' . $kasbon_detail['nm_material'] . '</td>';
-										echo '<td class="text-center">' . number_format($kasbon_detail['qty']) . '</td>';
-										echo '<td class="text-center">' . $kasbon_detail['satuan'] . '</td>';
-										echo '<td class="text-right">' . number_format($kasbon_detail['harga']) . '</td>';
-										echo '<td class="text-right">' . number_format($kasbon_detail['total_harga']) . '</td>';
-										echo '</tr>';
-
-										$no_kasbon_detail++;
-									endforeach;
-
-									echo '</tbody>';
-									echo '</table>';
-								}
-							endforeach;
-						}
-					}
-					?>
-				</div>
-				<div class="box-footer">
-					<div class="form-group">
-						<div class="text-center">
-							<?php
-							$urlback = '';
-							if (isset($data)) {
-								if ($data->status == 0) {
-									if ($stsview == 'approval') {
-										$urlback = 'list_expense_approval';
-										echo '<a class="btn btn-warning btn-sm" onclick="data_approve()"><i class="fa fa-check-square-o">&nbsp;</i>Approve</a>';
-										echo ' <a class="btn btn-danger btn-sm" onclick="data_reject()"><i class="fa fa-ban">&nbsp;</i> Reject</a>';
-									}
-								}
-							}
-
-							?>
-							<button type="submit" name="save" class="btn btn-success btn-sm stsview" id="submit"><i class="fa fa-save">&nbsp;</i>Simpan</button>
-							<a class="btn btn-default btn-sm" onclick="window.location.reload();return false;"><i class="fa fa-reply">&nbsp;</i>Batal</a>
-						</div>
-					</div>
-					<div class="row">
-						<?= $gambar ?>
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Bon Bukti <b class="text-red">*</b></label>
+					<div class="col-sm-8">
+						<input class="form-control" type="file" name="doc_file[]" id="id_doc_file" multiple <?= (isset($data->bon_bukti) ? "" : "required") ?> style="padding: 4px; height: auto;" />
+						<?php if (isset($data->bon_bukti) && $data->bon_bukti != ''): ?>
+							<div style="margin-top: 5px;">
+								<a href="<?= base_url($data->bon_bukti) ?>" download target="_blank" class="btn btn-xs btn-info"><i class="fa fa-download"></i> Unduh Bon Bukti</a>
+							</div>
+						<?php endif; ?>
 					</div>
 				</div>
 			</div>
 		</div>
+
+		<!-- SECTION 2: Rekening Bank -->
+		<div class="section-title" style="margin-top: 15px;">
+			<i class="fa fa-university"></i> 2. Informasi Rekening Bank
+		</div>
+		<div class="row" id="formRekening">
+			<div class="col-md-4">
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Bank</label>
+					<div class="col-sm-8">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-bank"></i></span>
+							<input type="text" class="form-control" id="bank_id" name="bank_id" value="<?php echo (isset($data->bank_id) ? $data->bank_id : $bank_id); ?>" placeholder="Nama Bank">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="form-group">
+					<label class="col-sm-5 control-label">Nomor Rekening</label>
+					<div class="col-sm-7">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-credit-card"></i></span>
+							<input type="text" class="form-control" id="accnumber" name="accnumber" value="<?php echo (isset($data->accnumber) ? $data->accnumber : $accnumber); ?>" placeholder="Nomor Rekening">
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="form-group">
+					<label class="col-sm-4 control-label">Nama Rekening</label>
+					<div class="col-sm-8">
+						<div class="input-group">
+							<span class="input-group-addon"><i class="fa fa-user"></i></span>
+							<input type="text" class="form-control" id="accname" name="accname" value="<?php echo (isset($data->accname) ? $data->accname : $accname); ?>" placeholder="Nama Pemilik">
+						</div>
+					</div>
+				</div>
+			</div>
+			<input type="hidden" id="no_doc_kasbon" name="no_doc_kasbon">
+			<input type="hidden" id="idKasbon" name="idKasbon">
+		</div>
+
+		<!-- SECTION 3: Rincian Expense & Kasbon -->
+		<div class="section-title" style="margin-top: 15px;">
+			<i class="fa fa-table"></i> 3. Rincian Expense & Kasbon
+		</div>
+
+		<div class="row" style="margin-bottom: 10px;">
+			<div class="col-md-12">
+				<button class="btn btn-info btn-sm stsview" type="button" onclick="add_kasbon()" id="add-kasbon">
+					<i class="fa fa-user"></i> Expense Kasbon
+				</button>
+				<button class="btn btn-success btn-sm stsview pull-right" type="button" onclick="add_detail()" id="add-material">
+					<i class="fa fa-plus"></i> Tambah Item Expense
+				</button>
+			</div>
+		</div>
+
+		<div class="table-responsive">
+			<table class="table table-bordered table-striped table-hover table-detail" width="100%">
+				<thead>
+					<tr>
+						<th width="4%">#</th>
+						<th width="18%">Jenis COA</th>
+						<th width="10%">Tanggal</th>
+						<th width="20%">Barang / Jasa</th>
+						<th width="18%">Spesifikasi</th>
+						<th width="7%">Jumlah</th>
+						<th width="11%">Harga Satuan</th>
+						<th width="12%">Expense (Rp)</th>
+						<th width="6%" class="stsview">Aksi</th>
+					</tr>
+				</thead>
+				<tbody id="detail_body">
+					<?php $total = 0;
+					$idd = 1;
+					$grand_total = 0;
+					$total_expense = 0;
+					$total_kasbon = 0;
+					if (!empty($data_detail)) {
+						foreach ($data_detail as $record) {
+							$tekskasbon = "";
+							if ($record->id_kasbon != '') $tekskasbon = 'readonly'; ?>
+							<tr id='tr1_<?= $idd ?>' class='delAll <?= ($record->id_kasbon != '' ? 'kasbonrow' : '') ?>'>
+								<td class="text-center" data-header="#">
+									<input type='hidden' name='id_kasbon[]' id='id_kasbon_<?= $idd ?>' value='<?= $record->id_kasbon; ?>'>
+									<input type="hidden" name="filename[]" id="filename_<?= $idd ?>" value="<?= $record->doc_file; ?>">
+									<input type="hidden" name="detail_id[]" id="raw_id_<?= $idd ?>" value="<?= $idd; ?>" class="dtlloop">
+									<input type="hidden" name="id_detail[]" id="id_detail_<?= $idd ?>" value="<?= $record->id; ?>" class="dtlloop">
+									<?= $idd ?>
+								</td>
+								<td data-header="Jenis">
+									<?php
+									if ($tekskasbon == '') {
+										echo form_dropdown('coa[]', $option_coa, (isset($record->coa) ? $record->coa : ''), array('id' => 'coa' . $idd, 'required' => 'required', 'class' => 'form-control select2', 'style' => 'width: 100%;'));
+									} else {
+										echo '<input type="hidden" name="coa[]" id="coa' . $idd . '" value="' . $record->coa . '"><span class="badge bg-gray">' . (isset($record->coa) ? $record->coa : '') . '</span>';
+									}
+									?>
+								</td>
+								<td data-header="Tanggal">
+									<input type="text" class="form-control tanggal input-sm text-center" name="tanggal[]" id="tanggal<?= $idd; ?>" value="<?= $record->tanggal; ?>" <?= $tekskasbon ?>>
+								</td>
+								<td data-header="Barang / Jasa">
+									<textarea class="form-control" rows="2" name="deskripsi[]" id="deskripsi_<?= $idd; ?>" <?= $tekskasbon; ?>><?= $record->deskripsi; ?></textarea>
+								</td>
+								<td data-header="Spesifikasi">
+									<textarea class="form-control" rows="2" name="keterangan[]" id="keterangan_<?= $idd; ?>" <?= $tekskasbon ?>><?= $record->keterangan; ?></textarea>
+								</td>
+								<td data-header="Qty">
+									<input type="text" class="form-control divide input-sm text-center" name="qty[]" id="qty_<?= $idd; ?>" value="<?= $record->qty; ?>" onblur="cektotal(<?= $idd; ?>)" <?= $tekskasbon ?>>
+								</td>
+								<td data-header="Harga Satuan">
+									<input type="text" class="form-control divide input-sm text-right" name="harga[]" id="harga_<?= $idd; ?>" value="<?= (($tekskasbon != "") ? $record->kasbon : $record->expense) ?>" onblur="cektotal(<?= $idd; ?>)" <?= $tekskasbon ?>>
+								</td>
+								<td data-header="Expense">
+									<input type="text" class="form-control divide subtotal input-sm text-right" name="expense[]" id="expense_<?= $idd; ?>" value="<?= (($tekskasbon != "") ? $record->kasbon : $record->expense) ?>" tabindex="-1" readonly style="font-weight: 600;">
+								</td>
+								<td class="text-center stsview">
+									<button type='button' class='btn btn-danger btn-xs' data-toggle='tooltip' onClick='delDetail(<?= $idd ?>)' title='Hapus data'><i class='fa fa-trash'></i></button>
+								</td>
+							</tr>
+					<?php
+							if ($record->doc_file != '') {
+								if (strpos($record->doc_file, 'pdf', 0) > 1) {
+									$gambar .= '<div class="col-md-12" style="margin-bottom: 15px;">
+						<iframe src="' . base_url('uploads/expense/' . $record->doc_file) . '#toolbar=0&navpanes=0" title="PDF" style="width:100%; height:400px;" frameborder="0">
+								 <a href="' . base_url('uploads/expense/' . $record->doc_file) . '">Download PDF</a>
+						</iframe>
+						<br /><b>' . $record->no_doc . '</b></div>';
+								} else {
+									$gambar .= '<div class="col-md-4" style="margin-bottom: 15px;"><a href="' . base_url('uploads/expense/' . $record->doc_file) . '" target="_blank"><img src="' . base_url('uploads/expense/' . $record->doc_file) . '" class="img-responsive img-thumbnail"></a><br /><b>' . $record->no_doc . '</b></div>';
+								}
+							}
+							$total_expense = ($total_expense + ($record->expense));
+							$total_kasbon = ($total_kasbon + ($record->kasbon));
+							$idd++;
+						}
+						if ($data->lebih_bayar != null) {
+							$grand_total = 0;
+						} else {
+							$grand_total = ($grand_total + ($total_expense - $total_kasbon));
+						}
+					} ?>
+				</tbody>
+				<tfoot>
+					<tr>
+						<td colspan="7" align="right">TOTAL EXPENSE:</td>
+						<td colspan="2">
+							<input type="text" class="form-control divide input-sm text-right" id="total_expense" name="total_expense" value="<?= (isset($data_detail)) ? $total_expense : "" ?>" placeholder="0" tabindex="-1" readonly style="font-weight: bold;">
+						</td>
+					</tr>
+					<tr id="total_kasbon_row" hidden>
+						<td colspan="7" align="right">KASBON:</td>
+						<td colspan="2">
+							<input type="text" class="form-control divide input-sm text-right" id="total_kasbon" name="total_kasbon" value="<?= (isset($data_detail)) ? $total_kasbon : "" ?>" placeholder="0" tabindex="-1" readonly disabled style="font-weight: bold; color: #3c8dbc;">
+						</td>
+					</tr>
+					<tr id="kontrol_row" <?= (isset($data->lebih_bayar)) ? "" : "hidden" ?>>
+						<td colspan="7" align="right">KONTROL:</td>
+						<td colspan="2">
+							<input type="text" class="form-control divide input-sm text-right" onblur="updateGrandTotal()" id="kontrol" placeholder="0" tabindex="-1" value="<?= (isset($data->lebih_bayar)) ? $data->lebih_bayar : "" ?>">
+						</td>
+					</tr>
+					<tr id="selisih_row" hidden>
+						<td colspan="7" align="right">SELISIH:</td>
+						<td colspan="2">
+							<input type="text" class="form-control divide input-sm text-right" id="grand_total" name="grand_total" value="<?= (isset($data_detail)) ? $grand_total : "" ?>" placeholder="0" tabindex="-1" readonly disabled style="font-weight: bold; color: #dd4b39;">
+							<input type="hidden" id="initial_grand_total">
+						</td>
+					</tr>
+				</tfoot>
+			</table>
+		</div>
+
+		<div class="row" id="pengembalian" <?= (isset($data->lebih_bayar)) ? "" : "hidden" ?> style="margin-top: 15px;">
+			<div class="col-md-6">
+				<div class="panel panel-info">
+					<div class="panel-heading" style="font-weight: 600;">
+						<i class="fa fa-reply"></i> Pengembalian Kasbon
+					</div>
+					<div class="panel-body">
+						<div class="radio">
+							<label>
+								<input type="radio" name="pengembalian" value="1" <?= (isset($data->tipe_pengembalian) && $data->tipe_pengembalian == 1) ? 'checked' : null ?>> Cash (Pettycash)
+							</label>
+						</div>
+						<div class="radio">
+							<label>
+								<input type="radio" name="pengembalian" value="2" <?= (isset($data->tipe_pengembalian) && $data->tipe_pengembalian == 2) ? 'checked' : null ?>> Transfer Bank
+							</label>
+						</div>
+						<div style="margin-top: 10px;">
+							<label class="control-label">Upload Bukti Transfer</label>
+							<input type="file" name="bukti_pengembalian[]" class="form-control" multiple style="padding: 4px; height: auto;">
+							<?php
+							$file = '';
+							if (isset($data->bukti_pengembalian)) {
+								if (strpos($data->bukti_pengembalian, 'pdf', 0) > 1) {
+									$file .= '<div style="margin-top: 10px;">
+						<iframe src="' . base_url($data->bukti_pengembalian) . '#toolbar=0&navpanes=0" title="PDF" style="width:100%; height:300px;" frameborder="0">
+								 <a href="' . base_url($data->bukti_pengembalian) . '">Download PDF</a>
+						</iframe>
+						<br /><b>' . $data->no_doc . '</b></div>';
+								} else {
+									$file .= '<div style="margin-top: 10px;"><a href="' . base_url($data->bukti_pengembalian) . '" target="_blank"><img src="' . base_url($data->bukti_pengembalian) . '" class="img-responsive img-thumbnail"></a><br /><b>' . $data->no_doc . '</b></div>';
+								}
+							}
+							?>
+							<?= $file ?>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<?php
+		if (isset($data_exp_kasbon) && !empty($data_exp_kasbon)) {
+			foreach ($data_exp_kasbon as $exp_kasbon) :
+				$no_kasbon_detail = 1;
+				$this->db->select('a.*, IF(b.code IS NULL, "Pcs", b.code) AS satuan');
+				$this->db->from('tr_pr_detail_kasbon a');
+				$this->db->join('ms_satuan b', 'b.id = a.unit', 'left');
+				$this->db->where('a.id_kasbon', $exp_kasbon['id_kasbon']);
+				$get_pr_kasbon_detail = $this->db->get()->result_array();
+
+				if (!empty($get_pr_kasbon_detail)) {
+					echo '<div class="section-title" style="margin-top: 20px;"><i class="fa fa-list"></i> Rincian PR Non PO (No PR: ' . $get_pr_kasbon_detail[0]['no_pr'] . ')</div>';
+					echo '<div class="table-responsive">';
+					echo '<table class="table table-bordered table-striped">';
+					echo '<thead>';
+					echo '<tr style="background-color: #3c8dbc; color: #fff;">';
+					echo '<th class="text-center" width="5%">No.</th>';
+					echo '<th class="text-center">Material Name</th>';
+					echo '<th class="text-center" width="10%">Qty</th>';
+					echo '<th class="text-center" width="10%">Unit</th>';
+					echo '<th class="text-center" width="15%">Price</th>';
+					echo '<th class="text-center" width="15%">Total Price</th>';
+					echo '</tr>';
+					echo '</thead>';
+					echo '<tbody>';
+
+					foreach ($get_pr_kasbon_detail as $kasbon_detail) :
+						echo '<tr>';
+						echo '<td class="text-center">' . $no_kasbon_detail . '</td>';
+						echo '<td>' . $kasbon_detail['nm_material'] . '</td>';
+						echo '<td class="text-center">' . number_format($kasbon_detail['qty']) . '</td>';
+						echo '<td class="text-center">' . $kasbon_detail['satuan'] . '</td>';
+						echo '<td class="text-right">' . number_format($kasbon_detail['harga'], 0, ',', '.') . '</td>';
+						echo '<td class="text-right" style="font-weight: 600;">' . number_format($kasbon_detail['total_harga'], 0, ',', '.') . '</td>';
+						echo '</tr>';
+
+						$no_kasbon_detail++;
+					endforeach;
+
+					echo '</tbody>';
+					echo '</table>';
+					echo '</div>';
+				}
+			endforeach;
+		}
+		?>
+
+		<?php if (!empty($gambar)): ?>
+			<div class="section-title" style="margin-top: 20px;">
+				<i class="fa fa-paperclip"></i> Preview Lampiran Dokumen
+			</div>
+			<div class="row">
+				<?= $gambar ?>
+			</div>
+		<?php endif; ?>
 	</div>
-	<?= form_close() ?>
+	<div class="box-footer text-center" style="background-color: #f9f9f9; padding: 15px;">
+		<?php
+		$urlback = '';
+		if (isset($data)) {
+			if ($data->status == 0) {
+				if ($stsview == 'approval') {
+					$urlback = 'list_expense_approval';
+					echo '<button type="button" class="btn btn-success btn-sm" onclick="data_approve()" style="margin-right: 5px;"><i class="fa fa-check-square-o">&nbsp;</i> Approve</button>';
+					echo '<button type="button" class="btn btn-danger btn-sm" onclick="data_reject()" style="margin-right: 5px;"><i class="fa fa-ban">&nbsp;</i> Reject</button>';
+				}
+			}
+		}
+		?>
+		<button type="submit" name="save" class="btn btn-success btn-sm stsview" id="submit" style="margin-right: 5px;"><i class="fa fa-save">&nbsp;</i> Simpan Expense</button>
+		<a class="btn btn-default btn-sm" onclick="window.location.reload();return false;"><i class="fa fa-reply">&nbsp;</i> Batal</a>
+	</div>
+</div>
+<?= form_close() ?>
 	<?php
 	$datacombocoa = "";
 	foreach ($data_budget as $keys => $val) {
@@ -381,10 +415,10 @@ if (!isset($data->departement)) {
 		$('.divide').divide();
 		$('.select2').select2();
 
-		var stsview = $('.stsview').val();
+		var stsview = '<?= isset($stsview) ? $stsview : '' ?>';
 		if (stsview == 'view' || stsview == 'approval') {
 			$(".stsview").addClass("hidden");
-			$("#frm_data :input").prop("disabled", true);
+			$("#frm_data input:not([type=hidden]), #frm_data select, #frm_data textarea").prop("disabled", true);
 		}
 
 		$(function() {
@@ -777,7 +811,7 @@ if (!isset($data->departement)) {
 										timer: 1500,
 										showConfirmButton: false
 									});
-									window.location.reload();
+									window.location = siteurl + 'expense/list_expense_approval';
 								} else {
 									swal({
 										title: "Gagal!",
@@ -822,7 +856,7 @@ if (!isset($data->departement)) {
 
 					swal({
 							title: "Anda Yakin?",
-							text: "Data Akan Tolak!",
+							text: "Data Akan Ditolak!",
 							type: "warning",
 							showCancelButton: true,
 							confirmButtonText: "Ya, tolak!",
@@ -834,7 +868,7 @@ if (!isset($data->departement)) {
 							if (isConfirm) {
 								id = $("#id").val();
 								$.ajax({
-									url: base_url + 'expense/reject/',
+									url: siteurl + 'expense/reject/',
 									data: {
 										'id': id,
 										'reason': inputValue,
@@ -851,7 +885,7 @@ if (!isset($data->departement)) {
 												timer: 1500,
 												showConfirmButton: false
 											});
-											window.location.reload();
+											window.location = siteurl + 'expense/list_expense_approval';
 										} else {
 											swal({
 												title: "Gagal!",

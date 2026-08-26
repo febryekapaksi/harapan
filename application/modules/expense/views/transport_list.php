@@ -4,37 +4,62 @@ $ENABLE_MANAGE  = has_permission('Transportasi.Manage');
 $ENABLE_VIEW    = has_permission('Transportasi.View');
 $ENABLE_DELETE  = has_permission('Transportasi.Delete');
 ?>
+<link rel="stylesheet" href="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.css') ?>">
+
+<style>
+	#mytabledata_transport thead th {
+		background-color: #3c8dbc;
+		color: #ffffff;
+		text-align: center;
+		vertical-align: middle;
+		border: 1px solid #367fa9;
+	}
+	#mytabledata_transport tbody td {
+		vertical-align: middle;
+	}
+	.badge {
+		font-size: 11px;
+		padding: 4px 8px;
+		font-weight: 600;
+	}
+	.box-header-flex {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+</style>
+
 <div id="alert_edit" class="alert alert-success alert-dismissable" style="padding: 15px; display: none;"></div>
-<link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.dataTables.min.css">
-<div class="box">
-	<div class="box-header">
-		<?php if ($ENABLE_ADD) : ?>
-			<div class="dropdown">
+
+<div class="box box-primary">
+	<div class="box-header with-border box-header-flex">
+		<h3 class="box-title"><i class="fa fa-car"></i> Daftar Pengajuan Transportasi / Bensin</h3>
+		<div>
+			<?php if ($ENABLE_ADD) : ?>
 				<button class="btn btn-success btn-sm" type="button" onclick="data_add()">
-					<i class="fa fa-plus">&nbsp;</i> Tambah
+					<i class="fa fa-plus">&nbsp;</i> Tambah Transport
 				</button>
-			</div>
-		<?php endif; ?>
+			<?php endif; ?>
+		</div>
 	</div>
 	<!-- /.box-header -->
 	<div class="box-body">
 		<div class="table-responsive">
-			<table id="mytabledata" class="table table-bordered table-striped">
+			<table id="mytabledata_transport" class="table table-bordered table-striped table-hover" width="100%">
 				<thead>
 					<tr>
-						<th width="5">#</th>
-						<th>No</th>
-						<th>Tanggal</th>
-						<th>Nama</th>
-						<th>Keperluan</th>
-						<th>No. Polisi</th>
-						<th>Total Transport</th>
-						<th>Status</th>
-						<th width="120">Action</th>
+						<th width="4%">#</th>
+						<th width="15%">No Dokumen</th>
+						<th width="10%">Tanggal</th>
+						<th width="15%">Nama</th>
+						<th width="18%">Keperluan</th>
+						<th width="12%">No. Polisi</th>
+						<th width="12%">Total Transport</th>
+						<th width="10%">Status</th>
+						<th width="10%">Action</th>
 					</tr>
 				</thead>
 				<tbody>
-
 				</tbody>
 			</table>
 		</div>
@@ -42,8 +67,12 @@ $ENABLE_DELETE  = has_permission('Transportasi.Delete');
 	<!-- /.box-body -->
 </div>
 <div id="form-data"></div>
+
 <!-- DataTables -->
-<script src="https://cdn.datatables.net/2.3.2/js/dataTables.min.js"></script>
+<script src="<?= base_url('assets/plugins/datatables/jquery.dataTables.min.js') ?>"></script>
+<script src="<?= base_url('assets/plugins/datatables/dataTables.bootstrap.min.js') ?>"></script>
+<script src="<?= base_url('assets/js/basic.js') ?>"></script>
+
 <!-- page script -->
 <script type="text/javascript">
 	var url_add = siteurl + 'expense/transport_create/';
@@ -51,49 +80,33 @@ $ENABLE_DELETE  = has_permission('Transportasi.Delete');
 	var url_delete = siteurl + 'expense/transport_delete/';
 	var url_view = siteurl + 'expense/transport_view/';
 
-	DataTables();
+	$(document).ready(function() {
+		DataTables();
+	});
 
 	function DataTables() {
-		var datatables = $('#mytabledata').dataTable({
+		var datatables = $('#mytabledata_transport').dataTable({
 			serverSide: true,
-			process: true,
-			stateSave: true,
-			paging: true,
+			processing: true,
+			responsive: true,
+			order: [[1, 'desc']],
 			ajax: {
 				type: 'post',
 				url: siteurl + active_controller + 'get_data_transport_input',
 				cache: false,
 				dataType: 'json'
 			},
-			columns: [{
-					data: 'no'
-				},
-				{
-					data: 'id_pengajuan'
-				},
-				{
-					data: 'tanggal'
-				},
-				{
-					data: 'nama'
-				},
-				{
-					data: 'keperluan'
-				},
-				{
-					data: 'no_polisi'
-				},
-				{
-					data: 'total'
-				},
-				{
-					data: 'status'
-				},
-				{
-					data: 'action'
-				}
+			columns: [
+				{ data: 'no', className: 'text-center' },
+				{ data: 'id_pengajuan', className: 'text-center' },
+				{ data: 'tanggal', className: 'text-center' },
+				{ data: 'nama' },
+				{ data: 'keperluan' },
+				{ data: 'no_polisi', className: 'text-center' },
+				{ data: 'total', className: 'text-right' },
+				{ data: 'status', className: 'text-center' },
+				{ data: 'action', className: 'text-center' }
 			]
 		});
 	}
 </script>
-<script src="<?= base_url('assets/js/basic.js') ?>"></script>

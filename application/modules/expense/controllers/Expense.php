@@ -151,7 +151,13 @@ class Expense extends Admin_Controller
 		$metode_pembayaran	= 1;
 
 		$this->db->trans_begin();
-		$config['upload_path'] = 'uploads/expense/';
+		$upload_dir = './uploads/expense/';
+		if (!is_dir($upload_dir)) {
+			mkdir($upload_dir, 0777, true);
+		}
+		@chmod($upload_dir, 0777);
+
+		$config['upload_path'] = $upload_dir;
 		$config['allowed_types'] = '*';
 		$config['remove_spaces'] = TRUE;
 		$config['encrypt_name'] = TRUE;
@@ -1149,6 +1155,12 @@ class Expense extends Admin_Controller
 		}
 
 		//proses utama update tr_expense
+		$upload_dir = './uploads/expense/';
+		if (!is_dir($upload_dir)) {
+			mkdir($upload_dir, 0777, true);
+		}
+		@chmod($upload_dir, 0777);
+
 		$this->db->trans_begin();
 		if ($id != "") {
 			$data = array(
@@ -1176,7 +1188,7 @@ class Expense extends Admin_Controller
 					// proses update jika ada id_detail
 					if ($id_detail[$keys] !== '') {
 						if ($qty[$keys] > 0) {
-							$config['upload_path'] = './uploads/expense/';
+							$config['upload_path'] = $upload_dir;
 							$config['allowed_types'] = '*';
 							$config['remove_spaces'] = TRUE;
 							$config['encrypt_name'] = TRUE;
@@ -1282,7 +1294,7 @@ class Expense extends Admin_Controller
 					// proses insert karena tidak ada id_detail
 					else {
 						if ($qty[$keys] > 0) {
-							$config['upload_path'] = './uploads/expense/';
+							$config['upload_path'] = $upload_dir;
 							$config['allowed_types'] = '*';
 							$config['remove_spaces'] = TRUE;
 							$config['encrypt_name'] = TRUE;
@@ -1403,6 +1415,11 @@ class Expense extends Admin_Controller
 			$no_doc = $this->All_model->GetAutoGenerate('format_expense');
 
 			$uploadDirectory = "./uploads/expense/";
+			if (!is_dir($uploadDirectory)) {
+				mkdir($uploadDirectory, 0777, true);
+			}
+			@chmod($uploadDirectory, 0777);
+
 			$pathBonBukti = [];
 			$pathBuktiPengembalian = [];
 
@@ -1486,7 +1503,7 @@ class Expense extends Admin_Controller
 				foreach ($detail_id as $keys => $val) {
 					$no_doc			= $no_doc;
 					if ($qty[$keys] > 0) {
-						$config['upload_path'] = './uploads/expense/';
+						$config['upload_path'] = $uploadDirectory;
 						$config['allowed_types'] = '*';
 						$config['remove_spaces'] = TRUE;
 						$config['encrypt_name'] = TRUE;
@@ -1908,7 +1925,13 @@ class Expense extends Admin_Controller
 		$msg = '';
 
 		$this->db->trans_begin();
-		$config['upload_path'] = 'uploads/expense/';
+		$upload_dir = './uploads/expense/';
+		if (!is_dir($upload_dir)) {
+			mkdir($upload_dir, 0777, true);
+		}
+		@chmod($upload_dir, 0777);
+
+		$config['upload_path'] = $upload_dir;
 		$config['allowed_types'] = 'jpg|jpeg|png|pdf';
 		// $config['max_size'] = 5120000;
 		$config['remove_spaces'] = TRUE;
@@ -2354,53 +2377,137 @@ class Expense extends Admin_Controller
 	public function return_confirm($id = '')
 	{
 		$result = false;
+		$valid = 0;
 		$data_session	= $this->session->userdata;
 		$dateTime = date('Y-m-d H:i:s');
 		$UserName = $data_session['app_session']['username'];
 		if ($id != "") {
 			$transfer_coa_bank	= $this->input->post("transfer_coa_bank");
 			$transfer_tanggal	= $this->input->post("transfer_tanggal");
-			$transfer_jumlah	= $this->input->post("transfer_jumlah");
-			//			$transferfile		= $this->input->post("transferfile");
+			$transfer_jumlah	= floatval(str_replace(',', '', $this->input->post("transfer_jumlah")));
 
 			$get_expense = $this->db->get_where('tr_expense', ['id' => $id])->row();
-			$get_pengembalian_expense = $this->db->get_where('tr_pengembalian_expense', ['no_doc' => $get_expense->no_doc])->result();
+			$get_pengembalian_expense = $this->db->get_where('tr_pengembalian_expense', ['no_doc' => $get_expense->no_doc, 'status' => 1])->result();
 
 			$nilai_on_kembali = 0;
 			foreach ($get_pengembalian_expense as $item) {
-				$nilai_on_kembali += $item->transfer_jumlah;
+				$nilai_on_kembali += floatval($item->transfer_jumlah);
 			}
 
-			if ($get_expense->jumlah < 0) {
-				$sisa_expense = ($get_expense->jumlah * -1);
+			$sisa_expense = 0;
+			if (!empty($get_expense->lebih_bayar) && $get_expense->lebih_bayar > 0) {
+				$sisa_expense = floatval($get_expense->lebih_bayar);
+			} elseif ($get_expense->jumlah < 0) {
+				$sisa_expense = abs(floatval($get_expense->jumlah));
 			} else {
-				$sisa_expense = $get_expense->jumlah;
+				$calc = $this->db->select('IFNULL(SUM(kasbon), 0) - IFNULL(SUM(expense), 0) as diff')->get_where('tr_expense_detail', ['no_doc' => $get_expense->no_doc])->row();
+				if (!empty($calc) && $calc->diff > 0) {
+					$sisa_expense = floatval($calc->diff);
+				} else {
+					$sisa_expense = floatval($get_expense->jumlah);
+				}
 			}
 
 			$total_nilai = ($transfer_jumlah + $nilai_on_kembali);
 			$valid = 1;
-			if ($total_nilai > $sisa_expense) {
-				$valid = 2;
+
+			// Cek apakah ada pengembalian yang masih berstatus pending / waiting approval
+			$check_pending = $this->db->where('no_doc', $get_expense->no_doc)
+				->where('(status = 0 OR status IS NULL)')
+				->count_all_results('tr_pengembalian_expense');
+
+			if ($check_pending > 0) {
+				$valid = 3; // Sedang menunggu approval
+			} elseif ($total_nilai > $sisa_expense) {
+				$valid = 2; // Melebihi sisa
 			}
 
 			if ($valid == 1) {
-				// $data = array(
-				// 	'status' => 3,
-				// 	'transfer_coa_bank' => $transfer_coa_bank,
-				// 	'transfer_tanggal' => $transfer_tanggal,
-				// 	'transfer_jumlah' => $transfer_jumlah,
-				// 	'st_reject' => ''
-				// );
-				$this->db->trans_begin();
-				// $results = $this->db->update('tr_expense', $data, ['id' => $id]);
-				$insert_pengembalian = $this->db->insert('tr_pengembalian_expense', [
-					'no_doc' => $get_expense->no_doc,
+				$filenames = '';
+				if (!empty($_FILES['transfer_file']['name'])) {
+					$upload_dir = './uploads/expense/';
+					if (!is_dir($upload_dir)) {
+						mkdir($upload_dir, 0777, true);
+					}
+					@chmod($upload_dir, 0777);
+
+					$config['upload_path']   = $upload_dir;
+					$config['allowed_types'] = '*';
+					$config['remove_spaces'] = TRUE;
+					$config['encrypt_name']  = TRUE;
+					$this->load->library('upload', $config);
+					$this->upload->initialize($config);
+					if ($this->upload->do_upload('transfer_file')) {
+						$uploadData = $this->upload->data();
+						$filenames  = $uploadData['file_name'];
+					}
+				}
+
+				// Pastikan kolom transfer_file & status tersedia di tabel
+				$this->load->dbforge();
+				if (!$this->db->field_exists('transfer_file', 'tr_pengembalian_expense')) {
+					$this->dbforge->add_column('tr_pengembalian_expense', [
+						'transfer_file' => [
+							'type' => 'VARCHAR',
+							'constraint' => '255',
+							'null' => TRUE,
+							'default' => NULL
+						]
+					]);
+				}
+				if (!$this->db->field_exists('status', 'tr_pengembalian_expense')) {
+					$this->dbforge->add_column('tr_pengembalian_expense', [
+						'status' => [
+							'type' => 'INT',
+							'constraint' => 11,
+							'null' => TRUE,
+							'default' => 0
+						]
+					]);
+				}
+				if (!$this->db->field_exists('app_by', 'tr_pengembalian_expense')) {
+					$this->dbforge->add_column('tr_pengembalian_expense', [
+						'app_by' => [
+							'type' => 'VARCHAR',
+							'constraint' => '100',
+							'null' => TRUE,
+							'default' => NULL
+						],
+						'app_date' => [
+							'type' => 'DATETIME',
+							'null' => TRUE,
+							'default' => NULL
+						],
+						'reject_by' => [
+							'type' => 'VARCHAR',
+							'constraint' => '100',
+							'null' => TRUE,
+							'default' => NULL
+						],
+						'reject_date' => [
+							'type' => 'DATETIME',
+							'null' => TRUE,
+							'default' => NULL
+						]
+					]);
+				}
+
+				$insert_data = [
+					'no_doc'            => $get_expense->no_doc,
 					'transfer_coa_bank' => $transfer_coa_bank,
-					'transfer_tanggal' => $transfer_tanggal,
-					'transfer_jumlah' => $transfer_jumlah,
-					'created_by' => $this->auth->user_id(),
-					'created_date' => date('Y-m-d H:i:s')
-				]);
+					'transfer_tanggal'  => $transfer_tanggal,
+					'transfer_jumlah'   => $transfer_jumlah,
+					'status'            => 0,
+					'created_by'        => $this->auth->user_id() ? $this->auth->user_id() : $UserName,
+					'created_date'      => date('Y-m-d H:i:s')
+				];
+
+				if ($this->db->field_exists('transfer_file', 'tr_pengembalian_expense')) {
+					$insert_data['transfer_file'] = $filenames;
+				}
+
+				$this->db->trans_begin();
+				$this->db->insert('tr_pengembalian_expense', $insert_data);
 				// $recpc = $this->All_model->GetOneData('tr_expense', array('id' => $id, 'status' => '3'));
 				// $exjumlah = $recpc->jumlah;
 				// if ($exjumlah == 0) {
