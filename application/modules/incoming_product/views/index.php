@@ -54,6 +54,7 @@ $ENABLE_DELETE  = has_permission('Incoming_Material.Delete');
                         <label class="label-control col-sm-2"><b>No PO</b></label>
 
                         <div class="col-md-4">
+                            <input type="text" id="search_no_po" class="form-control mb-2" placeholder="Search No PO...">
                             <div class="table-fixed-header"> <!-- area scroll -->
                                 <table class="table table-bordered table-sm mb-0">
                                     <thead>
@@ -482,8 +483,17 @@ $ENABLE_DELETE  = has_permission('Incoming_Material.Delete');
             });
     });
 
+    $(document).on('keyup', '#search_no_po', function() {
+        var value = $(this).val().toLowerCase().trim();
+        $('.list_no_po tr').filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1);
+        });
+    });
+
     $(document).on('change', '.choose_supplier', function() {
         var kode_supplier = $(this).val();
+
+        $('#search_no_po').val('');
 
         $.ajax({
             type: 'POST',
