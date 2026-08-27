@@ -32,11 +32,12 @@ class Report_margin_achievement_model extends BF_Model
     public function get_data($bulan_no, $tahun)
     {
         // =========================
-        // A) Semua sales aktif (employee, department = 2)
+        // A) Semua sales aktif (employee, department = 2, belum di-nonaktifkan/keluar)
         // =========================
         $allSales = $this->db->select('id, nm_karyawan')
             ->from('employee')
             ->where('department', '2')
+            ->where('deleted', 'N')
             ->order_by('nm_karyawan', 'asc')
             ->get()
             ->result_array();
