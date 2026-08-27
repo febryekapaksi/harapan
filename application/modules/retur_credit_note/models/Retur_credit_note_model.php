@@ -44,7 +44,7 @@ class Retur_credit_note_model extends BF_Model
             if ($row['status'] == 0) {
                 // Request masuk — menunggu SJ Retur dari Gudang
                 $status = "<span class='badge bg-yellow' style='color:#333;'>Menunggu SJ Retur</span>";
-                if ($user_dept == 2 || $is_admin) {
+                if ($user_dept == 2 || $is_admin || has_permission('Retur_credit_note.BuatSJR')) {
                     $action = "<a href='" . site_url('retur_credit_note/form_sjr/' . $id_retur) . "' class='btn btn-sm btn-warning' title='Buat Surat Jalan Retur'><i class='fa fa-truck'></i> Buat SJ Retur</a>";
                 } else {
                     $action = "<span class='text-muted'><i class='fa fa-clock-o'></i> Menunggu Gudang</span>";
@@ -52,7 +52,7 @@ class Retur_credit_note_model extends BF_Model
             } elseif ($row['status'] == 1) {
                 // SJ Retur sudah dibuat — menunggu Credit Note dari Finance
                 $status = "<span class='badge bg-blue'>Menunggu Credit Note</span>";
-                if ($user_dept == 3 || $is_admin) {
+                if ($user_dept == 3 || $is_admin || has_permission('Retur_credit_note.BuatCN')) {
                     $action = "<a href='" . site_url('retur_credit_note/form_cn/' . $id_retur) . "' class='btn btn-sm btn-primary' title='Buat Credit Note'><i class='fa fa-file-text'></i> Buat CN</a>";
                 } else {
                     $action = "<span class='text-muted'><i class='fa fa-clock-o'></i> Menunggu Finance</span>";
