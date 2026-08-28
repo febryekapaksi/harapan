@@ -171,9 +171,30 @@ class Retur_produk extends Admin_Controller
             show_404();
         }
 
+        // Subquery bantu untuk status tampilan saja (tidak mengubah tr_retur.status):
+        // ambil SPK Delivery terakhir untuk no_retur ini, lalu cek status SJ pengganti-nya
+        // supaya badge "On Loading" bisa lebih akurat jadi "On Delivery"/"Delivered".
+        $spk_sub = "
+            (
+                SELECT
+                    spk.no_retur,
+                    spk.status         AS spk_status,
+                    sj2.status          AS sj_status
+                FROM spk_delivery spk
+                INNER JOIN (
+                    SELECT no_retur, MAX(created_date) AS max_date
+                    FROM spk_delivery
+                    WHERE no_retur IS NOT NULL AND no_retur != ''
+                    GROUP BY no_retur
+                ) latest ON latest.no_retur = spk.no_retur AND latest.max_date = spk.created_date
+                LEFT JOIN surat_jalan sj2 ON sj2.no_surat_jalan = spk.no_surat_jalan
+            ) spkinfo
+        ";
+
         $retur = $this->db
-            ->select('r.id as id_retur, r.no_retur, r.no_surat_jalan, r.no_so, r.id_customer, r.nm_customer, r.alasan, r.tgl_retur, r.total_harga, r.tipe, r.status, r.created_date')
+            ->select('r.id as id_retur, r.no_retur, r.no_surat_jalan, r.no_so, r.id_customer, r.nm_customer, r.alasan, r.tgl_retur, r.total_harga, r.tipe, r.status, r.created_date, spkinfo.spk_status, spkinfo.sj_status')
             ->from('tr_retur r')
+            ->join($spk_sub, 'spkinfo.no_retur = r.no_retur', 'left')
             ->where('r.id', $id_retur)
             ->get()
             ->row_array();

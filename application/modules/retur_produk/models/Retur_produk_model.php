@@ -44,7 +44,16 @@ class Retur_produk_model extends BF_Model
                 $status = "<span class='badge bg-red'>Closed</span>";
                 $action = $viewRetur;
             } else if ($row['status'] == 2) {
-                $status = "<span class='badge bg-green'>On Loading</span>";
+                // Status tr_retur mentah masih 2 (On Loading) dan TIDAK diubah di sini.
+                // Badge ditampilkan lebih detail berdasarkan progres SPK/SJ pengganti
+                // supaya tidak terlihat "nyangkut" walau sebenarnya sudah dikirim/diterima.
+                if (!empty($row['sj_status']) && in_array($row['sj_status'], ['CONFIRM', 'RETUR', 'HILANG'])) {
+                    $status = "<span class='badge bg-orange'>Delivered</span>";
+                } else if (!empty($row['spk_status']) && $row['spk_status'] == 'ON DELIVER') {
+                    $status = "<span class='badge bg-blue'>On Delivery</span>";
+                } else {
+                    $status = "<span class='badge bg-green'>On Loading</span>";
+                }
                 $action = $viewRetur;
             } else if ($row['status'] == 1) {
                 $status = "<span class='badge bg-yellow'>Proses Retur</span>";
@@ -129,12 +138,35 @@ class Retur_produk_model extends BF_Model
         // =============================
         // 3. Ambil data paginasi
         // =============================
-        $this->db->select('r.id as id_retur, r.no_retur, sj.id as id_sj, sj.no_surat_jalan, sj.no_so, r.tgl_retur, r.status, c.name_customer');
+        // Subquery bantu: status real proses retur diambil dari SPK Delivery
+        // (spk_delivery.status) TERAKHIR untuk no_retur ini, dijoin lagi ke
+        // surat_jalan (SJ pengganti) untuk tahu apakah sudah confirm delivery.
+        // Ini HANYA untuk kebutuhan tampilan/badge, tidak mengubah tr_retur.status.
+        $spk_sub = "
+            (
+                SELECT
+                    spk.no_retur,
+                    spk.status         AS spk_status,
+                    spk.no_surat_jalan  AS spk_no_sj,
+                    sj2.status          AS sj_status
+                FROM spk_delivery spk
+                INNER JOIN (
+                    SELECT no_retur, MAX(created_date) AS max_date
+                    FROM spk_delivery
+                    WHERE no_retur IS NOT NULL AND no_retur != ''
+                    GROUP BY no_retur
+                ) latest ON latest.no_retur = spk.no_retur AND latest.max_date = spk.created_date
+                LEFT JOIN surat_jalan sj2 ON sj2.no_surat_jalan = spk.no_surat_jalan
+            ) spkinfo
+        ";
+
+        $this->db->select('r.id as id_retur, r.no_retur, sj.id as id_sj, sj.no_surat_jalan, sj.no_so, r.tgl_retur, r.status, c.name_customer, spkinfo.spk_status, spkinfo.sj_status');
         $this->db->from('surat_jalan sj');
         $this->db->join('surat_jalan_detail sjd', 'sj.no_surat_jalan = sjd.no_surat_jalan', 'left');
         $this->db->join('tr_retur r', 'sj.no_surat_jalan = r.no_surat_jalan', 'left');
         $this->db->join('sales_order so', 'sj.no_so = so.no_so', 'left');
         $this->db->join('master_customers c', 'so.id_customer = c.id_customer', 'left');
+        $this->db->join($spk_sub, 'spkinfo.no_retur = r.no_retur', 'left');
         $this->db->where('sj.status', 'RETUR');
         $this->db->where('sjd.qty_retur !=', 0);
         $this->db->group_by('sj.no_surat_jalan');

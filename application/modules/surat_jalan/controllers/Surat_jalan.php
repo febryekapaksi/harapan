@@ -224,6 +224,16 @@ class Surat_jalan extends Admin_Controller
                 $this->db->where('id_gudang', 1);
                 $this->db->where('kd_gudang', 'PUS');
                 $this->db->update('warehouse_stock');
+
+                // Guard: kalau baris warehouse_stock tidak ditemukan, UPDATE di atas
+                // diam-diam tidak mengubah apapun (affected_rows = 0) tapi proses tetap
+                // lanjut jika tidak dicek. Batalkan transaksi supaya tidak terjadi
+                // selisih stok seperti pada kasus SJ/G/2608/0072.
+                if ((int)$old['qty'] > 0 && $this->db->affected_rows() == 0) {
+                    $this->db->trans_rollback();
+                    echo json_encode(['status' => 0, 'pesan' => "Gagal mengembalikan stok lama untuk produk {$old['id_product']}: baris warehouse_stock tidak ditemukan."]);
+                    return;
+                }
             }
 
             $this->db->update('surat_jalan', $ArrHeader, ['id' => $id_sj]);
@@ -255,8 +265,18 @@ class Surat_jalan extends Admin_Controller
                 $this->db->where('id_material', $id_product);
                 $this->db->where('id_gudang', 1);
                 $this->db->where('kd_gudang', 'PUS');
-                $this->db->where('qty_stock >=', $qty);
+                $this->db->where('qty_stock >=', $qty); // guard anti-minus
                 $this->db->update('warehouse_stock');
+
+                // Guard: kalau qty_stock riil < qty, WHERE di atas tidak match baris
+                // manapun dan UPDATE ini diam-diam gagal (affected_rows = 0) tanpa
+                // error. Tanpa cek ini, proses tetap lanjut seolah stok sudah
+                // berkurang padahal warehouse_stock tidak berubah sama sekali.
+                if ($qty > 0 && $this->db->affected_rows() == 0) {
+                    $this->db->trans_rollback();
+                    echo json_encode(['status' => 0, 'pesan' => "Stok tidak cukup untuk produk {$value['product']} ({$id_product}). Tidak dapat memperbarui Surat Jalan."]);
+                    return;
+                }
             }
         } else {
             $this->db->insert('surat_jalan', $ArrHeader);
@@ -270,7 +290,7 @@ class Surat_jalan extends Admin_Controller
 
             // Preload stok untuk kartu stok — baca dengan FOR UPDATE agar tidak race condition
             $productIds = array_unique(array_column($detail, 'id_product'));
-            $ids_escaped = array_map(function($id) {
+            $ids_escaped = array_map(function ($id) {
                 return $this->db->escape($id);
             }, $productIds);
             $ids_str = implode(',', $ids_escaped);
@@ -299,10 +319,32 @@ class Surat_jalan extends Admin_Controller
                 $this->db->update('sales_order_detail');
 
                 // Turunkan stok saat SJ dibuat — barang sudah keluar gudang fisik
-                $stok        = $stockMap[$id_product] ?? null;
-                $old_stock   = $stok ? (float)$stok['qty_stock']   : 0;
-                $old_booking = $stok ? (float)$stok['qty_booking'] : 0;
-                $old_free    = $stok ? (float)$stok['qty_free']    : 0;
+                $stok = $stockMap[$id_product] ?? null;
+
+                // Guard: produk tidak ditemukan di warehouse_stock (gudang 1 / PUS).
+                // Sebelumnya kondisi ini tidak dicek dan diam-diam dianggap stok = 0,
+                // sehingga kartu_stok tetap mencatat pengurangan padahal warehouse_stock
+                // sama sekali tidak tersentuh.
+                if ($stok === null) {
+                    $this->db->trans_rollback();
+                    echo json_encode(['status' => 0, 'pesan' => "Stok warehouse tidak ditemukan untuk produk {$value['product']} ({$id_product})."]);
+                    return;
+                }
+
+                $old_stock   = (float)$stok['qty_stock'];
+                $old_booking = (float)$stok['qty_booking'];
+                $old_free    = (float)$stok['qty_free'];
+
+                // Guard: stok riil tidak cukup. Ini adalah root cause bug di kasus
+                // SJ/G/2608/0072 — WHERE qty_stock >= $qty di bawah gagal match,
+                // UPDATE warehouse_stock diam-diam ber-affected_rows 0, tapi tanpa
+                // cek ini proses tetap lanjut dan kartu_stok tetap mencatat qty_akhir
+                // yang seolah-olah berhasil dikurangi (bahkan bisa jadi minus).
+                if ($old_stock < $qty) {
+                    $this->db->trans_rollback();
+                    echo json_encode(['status' => 0, 'pesan' => "Stok tidak cukup untuk produk {$value['product']} ({$id_product}). Stok tersedia: {$old_stock}, dibutuhkan: {$qty}."]);
+                    return;
+                }
 
                 $new_stock   = $old_stock - $qty;
                 $new_booking = max($old_booking - $qty, 0);
@@ -316,6 +358,14 @@ class Surat_jalan extends Admin_Controller
                 $this->db->where('kd_gudang', 'PUS');
                 $this->db->where('qty_stock >=', $qty); // guard anti-minus
                 $this->db->update('warehouse_stock');
+
+                // Guard tambahan: pastikan UPDATE benar-benar mengubah baris
+                // (jaga-jaga race condition di luar lock FOR UPDATE di atas).
+                if ($this->db->affected_rows() == 0) {
+                    $this->db->trans_rollback();
+                    echo json_encode(['status' => 0, 'pesan' => "Gagal memperbarui stok untuk produk {$value['product']} ({$id_product}). Kemungkinan stok berubah bersamaan proses lain, silakan coba lagi."]);
+                    return;
+                }
 
                 // Update map lokal agar kartu stok berikutnya akurat
                 if (isset($stockMap[$id_product])) {
@@ -602,7 +652,7 @@ class Surat_jalan extends Admin_Controller
 
         // Baca stok dengan FOR UPDATE di dalam transaksi agar tidak race condition
         if (!empty($productIds)) {
-            $ids_escaped = array_map(function($id) {
+            $ids_escaped = array_map(function ($id) {
                 return $this->db->escape($id);
             }, $productIds);
             $ids_str = implode(',', $ids_escaped);
