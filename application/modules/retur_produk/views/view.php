@@ -68,7 +68,15 @@
                             if ($retur['status'] == 3) {
                                 echo "<span class='badge bg-red' style='font-size:13px;padding:6px 10px;'>Closed</span>";
                             } elseif ($retur['status'] == 2) {
-                                echo "<span class='badge bg-green' style='font-size:13px;padding:6px 10px;'>On Loading</span>";
+                                // Status tr_retur mentah masih 2 (On Loading), tidak diubah.
+                                // Badge diperjelas berdasarkan progres SPK/SJ pengganti (tampilan saja).
+                                if (!empty($retur['sj_status']) && in_array($retur['sj_status'], ['CONFIRM', 'RETUR', 'HILANG'])) {
+                                    echo "<span class='badge bg-orange' style='font-size:13px;padding:6px 10px;'>Delivered</span>";
+                                } elseif (!empty($retur['spk_status']) && $retur['spk_status'] == 'ON DELIVER') {
+                                    echo "<span class='badge bg-blue' style='font-size:13px;padding:6px 10px;'>On Delivery</span>";
+                                } else {
+                                    echo "<span class='badge bg-green' style='font-size:13px;padding:6px 10px;'>On Loading</span>";
+                                }
                             } elseif ($retur['status'] == 1) {
                                 echo "<span class='badge bg-yellow' style='font-size:13px;padding:6px 10px;'>Proses Retur</span>";
                             } else {
