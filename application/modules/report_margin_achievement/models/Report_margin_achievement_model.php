@@ -32,11 +32,16 @@ class Report_margin_achievement_model extends BF_Model
     public function get_data($bulan_no, $tahun)
     {
         // =========================
-        // A) Semua sales aktif (employee, department = 2)
+        // A) Semua sales aktif (employee, department = 2).
+        // Aktif = deleted_date belum terisi (belum di-soft-delete lewat
+        // Master_employee::delete()). Kolom 'status' Active/Non-Active TIDAK
+        // dipakai di sini karena hanya menandai status kepegawaian, bukan
+        // apakah record karyawan sudah dihapus.
         // =========================
         $allSales = $this->db->select('id, nm_karyawan')
             ->from('employee')
             ->where('department', '2')
+            ->where('deleted_date', NULL)
             ->order_by('nm_karyawan', 'asc')
             ->get()
             ->result_array();

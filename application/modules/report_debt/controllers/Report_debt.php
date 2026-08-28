@@ -41,8 +41,8 @@ class Report_debt extends Admin_Controller
         c.id as id_sales,
         MONTH(a.jatuh_tempo) as bulan,
         SUM(a.piutang) as total_piutang,
-        SUM(CASE WHEN DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) BETWEEN 15 AND 30 THEN a.piutang ELSE 0 END) as aging_15_30,
-        SUM(CASE WHEN DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) > 30 THEN a.piutang ELSE 0 END) as aging_30_up
+        SUM(CASE WHEN DATEDIFF(CURRENT_DATE, a.jatuh_tempo) BETWEEN 15 AND 30 THEN a.piutang ELSE 0 END) as aging_15_30,
+        SUM(CASE WHEN DATEDIFF(CURRENT_DATE, a.jatuh_tempo) >= 31 THEN a.piutang ELSE 0 END) as aging_30_up
         ");
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');
@@ -100,7 +100,7 @@ class Report_debt extends Admin_Controller
         $awal_bulan  = "$tahun-" . str_pad($bulan, 2, '0', STR_PAD_LEFT) . "-01";
         $akhir_bulan = date('Y-m-t', strtotime($awal_bulan));
 
-        $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang, DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) as hari_lewat", false);
+        $this->db->select("a.id_invoice as no_invoice, a.nm_customer, a.created_on as tgl_invoice, a.jatuh_tempo, a.grand_total as total_invoice, a.total_bayar, a.piutang, DATEDIFF(CURRENT_DATE, a.jatuh_tempo) as hari_lewat", false);
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer', 'left');
         $this->db->where('b.id_karyawan', $id_sales);
@@ -110,13 +110,13 @@ class Report_debt extends Admin_Controller
 
         if ($tipe == 'late') {
             // Aging 15-30 hari
-            $this->db->where('DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) BETWEEN 15 AND 30', null, false);
+            $this->db->where('DATEDIFF(CURRENT_DATE, a.jatuh_tempo) BETWEEN 15 AND 30', null, false);
             $judul = 'Detail Piutang Late Debt (15-30 Hari)';
             $filename = 'Detail_Late_Debt_' . str_replace(' ', '_', $nama_sales) . '_' . $nama_bulan . '_' . $tahun . '.xls';
         } elseif ($tipe == 'bad') {
-            // Aging >30 hari
-            $this->db->where('DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) > 30', null, false);
-            $judul = 'Detail Piutang Bad Debt (> 30 Hari)';
+            // Aging >=31 hari
+            $this->db->where('DATEDIFF(CURRENT_DATE, a.jatuh_tempo) >= 31', null, false);
+            $judul = 'Detail Piutang Bad Debt (>= 31 Hari)';
             $filename = 'Detail_Bad_Debt_' . str_replace(' ', '_', $nama_sales) . '_' . $nama_bulan . '_' . $tahun . '.xls';
         } else {
             // Total piutang
@@ -190,7 +190,7 @@ class Report_debt extends Admin_Controller
             $sheet->getStyle('I' . $r)->getNumberFormat()->setFormatCode('#,##0');
 
             // Highlight baris berdasarkan hari lewat
-            if ($hari_lewat > 30) {
+            if ($hari_lewat >= 31) {
                 $sheet->getStyle('A' . $r . ':I' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFCCCC');
             } elseif ($hari_lewat >= 15) {
                 $sheet->getStyle('A' . $r . ':I' . $r)->getFill()->setFillType(PHPExcel_Style_Fill::FILL_SOLID)->getStartColor()->setRGB('FFF2CC');
@@ -225,7 +225,9 @@ class Report_debt extends Admin_Controller
 
         // Output
         $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
-        ob_end_clean();
+        if (ob_get_length()) {
+            ob_end_clean();
+        }
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="' . $filename . '"');
         header('Cache-Control: max-age=0');
@@ -256,8 +258,8 @@ class Report_debt extends Admin_Controller
             c.id as id_sales, 
             MONTH(a.jatuh_tempo) as bulan,
             SUM(a.piutang) as total_piutang,
-            SUM(CASE WHEN DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) BETWEEN 15 AND 30 THEN a.piutang ELSE 0 END) as aging_15_30,
-            SUM(CASE WHEN DATEDIFF(LEAST(CURRENT_DATE, LAST_DAY(a.jatuh_tempo)), a.jatuh_tempo) > 30 THEN a.piutang ELSE 0 END) as aging_30_up
+            SUM(CASE WHEN DATEDIFF(CURRENT_DATE, a.jatuh_tempo) BETWEEN 15 AND 30 THEN a.piutang ELSE 0 END) as aging_15_30,
+            SUM(CASE WHEN DATEDIFF(CURRENT_DATE, a.jatuh_tempo) >= 31 THEN a.piutang ELSE 0 END) as aging_30_up
         ");
         $this->db->from('tr_invoice_sales a');
         $this->db->join('master_customers b', 'a.id_customer = b.id_customer');

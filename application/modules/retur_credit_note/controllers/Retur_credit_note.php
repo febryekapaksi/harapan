@@ -157,10 +157,10 @@ class Retur_credit_note extends Admin_Controller
     // =========================================================
     public function form_sjr($id_retur)
     {
-        // Cek department user — hanya gudang (dept_id=2) atau admin (user_id=7)
+        // Cek department user — hanya gudang (dept_id=2), admin (user_id=7), atau yang punya permission Retur_credit_note.BuatSJR
         $user_dept = $this->_get_user_dept();
         $user_id   = $this->auth->user_id();
-        if ($user_dept != 2 && $user_id != 7) {
+        if ($user_dept != 2 && $user_id != 7 && !has_permission('Retur_credit_note.BuatSJR')) {
             show_error('Akses ditolak. Hanya departemen Gudang yang dapat membuat Surat Jalan Retur.', 403);
         }
 
@@ -193,7 +193,7 @@ class Retur_credit_note extends Admin_Controller
     {
         $user_dept = $this->_get_user_dept();
         $user_id   = $this->auth->user_id();
-        if ($user_dept != 2 && $user_id != 7) {
+        if ($user_dept != 2 && $user_id != 7 && !has_permission('Retur_credit_note.BuatSJR')) {
             echo json_encode(['status' => 0, 'pesan' => 'Akses ditolak.']);
             return;
         }
@@ -334,7 +334,7 @@ class Retur_credit_note extends Admin_Controller
     {
         $user_dept = $this->_get_user_dept();
         $user_id   = $this->auth->user_id();
-        if ($user_dept != 3 && $user_id != 7) {
+        if ($user_dept != 3 && $user_id != 7 && !has_permission('Retur_credit_note.BuatCN')) {
             show_error('Akses ditolak. Hanya departemen Finance yang dapat membuat Credit Note.', 403);
         }
 
@@ -393,7 +393,7 @@ class Retur_credit_note extends Admin_Controller
     {
         $user_dept = $this->_get_user_dept();
         $user_id   = $this->auth->user_id();
-        if ($user_dept != 3 && $user_id != 7) {
+        if ($user_dept != 3 && $user_id != 7 && !has_permission('Retur_credit_note.BuatCN')) {
             echo json_encode(['status' => 0, 'pesan' => 'Akses ditolak.']);
             return;
         }
