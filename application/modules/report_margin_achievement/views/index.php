@@ -99,7 +99,7 @@
                 <li>Target Margin % diambil dari Master Target Margin per Sales.</li>
                 <li>Target Margin (Rp) = Target Omset x Target Margin %.</li>
                 <li>Realisasi Margin (Rp) = Realisasi Omset (Revenue) - HPP (Harga Pokok Penjualan/COGS) aktual per baris invoice.</li>
-                <li>% Ach Margin = Realisasi Margin (Rp) / Target Margin (Rp).</li>
+                <li>% Ach Margin = Margin % thd Omset (Realisasi) / Target Margin %.</li>
                 <li>Status: &gt;=100% Tercapai, 90-99,9% Mendekati Target, &lt;90% Belum Tercapai.</li>
             </ol>
         </div>

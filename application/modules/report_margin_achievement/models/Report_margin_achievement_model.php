@@ -157,9 +157,11 @@ class Report_margin_achievement_model extends BF_Model
             $targetMarginRp    = $targetOmset * ($targetMarginPct / 100);
             $realisasiMarginRp = $realisasiMarginRpMap[$id] ?? 0;
 
-            $pctAchMargin = $targetMarginRp > 0 ? ($realisasiMarginRp / $targetMarginRp) : 0;
-
             $marginPctThdOmset = $realisasiOmset > 0 ? ($realisasiMarginRp / $realisasiOmset) : 0;
+
+            // % Ach Margin = Margin % thd Omset (Realisasi) / Target Margin %
+            // (murni membandingkan rate margin aktual vs rate target, terlepas dari pencapaian omset)
+            $pctAchMargin = $targetMarginPct > 0 ? ($marginPctThdOmset / ($targetMarginPct / 100)) : 0;
 
             if ($pctAchMargin >= 1) {
                 $status = 'Tercapai';
@@ -189,14 +191,19 @@ class Report_margin_achievement_model extends BF_Model
             $totalRealisasiMarginRp += $realisasiMarginRp;
         }
 
+        // Target Margin % gabungan (weighted average) = Total Target Margin Rp / Total Target Omset
+        $totalTargetMarginPct = $totalTargetOmset > 0 ? ($totalTargetMarginRp / $totalTargetOmset) : 0;
+        $totalMarginPctThdOmset = $totalRealisasiOmset > 0 ? ($totalRealisasiMarginRp / $totalRealisasiOmset) : 0;
+
         $totals = [
             'target_omset'         => $totalTargetOmset,
             'realisasi_omset'      => $totalRealisasiOmset,
             'pct_ach_omset'        => $totalTargetOmset > 0 ? ($totalRealisasiOmset / $totalTargetOmset) : 0,
             'target_margin_rp'     => $totalTargetMarginRp,
             'realisasi_margin_rp'  => $totalRealisasiMarginRp,
-            'pct_ach_margin'       => $totalTargetMarginRp > 0 ? ($totalRealisasiMarginRp / $totalTargetMarginRp) : 0,
-            'margin_pct_thd_omset' => $totalRealisasiOmset > 0 ? ($totalRealisasiMarginRp / $totalRealisasiOmset) : 0,
+            // % Ach Margin = Margin % thd Omset (Realisasi) / Target Margin % (weighted average)
+            'pct_ach_margin'       => $totalTargetMarginPct > 0 ? ($totalMarginPctThdOmset / $totalTargetMarginPct) : 0,
+            'margin_pct_thd_omset' => $totalMarginPctThdOmset,
         ];
 
         return [
