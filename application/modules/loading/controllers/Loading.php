@@ -518,8 +518,8 @@ class Loading extends Admin_Controller
             if ($val === '' || !is_numeric($val)) {
                 $invalid[] = trim(
                     (isset($value['no_delivery']) ? $value['no_delivery'] : '-') . ' / ' .
-                    (isset($value['no_so']) ? $value['no_so'] : '-') . ' - ' .
-                    (isset($value['product']) ? $value['product'] : '-')
+                        (isset($value['no_so']) ? $value['no_so'] : '-') . ' - ' .
+                        (isset($value['product']) ? $value['product'] : '-')
                 );
             }
         }
@@ -1045,7 +1045,7 @@ class Loading extends Admin_Controller
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        $statusMap = [0 => 'Draft', 1 => 'Confirm QTY', 2 => 'Confirm Berat', 3 => 'Approved'];
+        $statusMap = [-1 => 'Cancelled', 0 => 'Draft', 1 => 'Confirm QTY', 2 => 'Confirm Berat', 3 => 'Approved'];
         $r = $rowHeader + 1;
         $no = 1;
         foreach ($rows as $row) {
@@ -1057,7 +1057,12 @@ class Loading extends Admin_Controller
             $sheet->setCellValueExplicit('F' . $r, (float)$row->total_berat, PHPExcel_Cell_DataType::TYPE_NUMERIC);
             $sheet->getStyle('F' . $r)->getNumberFormat()->setFormatCode('#,##0.00');
             if (!empty($row->tanggal_muat)) {
-                $tgl = (float)PHPExcel_Shared_Date::PHPToExcel(strtotime($row->tanggal_muat));
+                // Ambil komponen tanggal langsung dari string (hindari konversi lewat strtotime()
+                // + PHPToExcel() yang memaksa timezone UTC, karena itu bisa membuat tanggal
+                // mundur 1 hari saat timezone aplikasi (Asia/Bangkok, UTC+7) berbeda dari UTC).
+                $dateOnly = substr($row->tanggal_muat, 0, 10); // 'Y-m-d'
+                list($y, $m, $d) = array_map('intval', explode('-', $dateOnly));
+                $tgl = (float)PHPExcel_Shared_Date::FormattedPHPToExcel($y, $m, $d);
                 $sheet->setCellValueExplicit('G' . $r, $tgl, PHPExcel_Cell_DataType::TYPE_NUMERIC);
                 $sheet->getStyle('G' . $r)->getNumberFormat()->setFormatCode('dd/mm/yyyy');
             }
@@ -1067,7 +1072,7 @@ class Loading extends Admin_Controller
 
         $sheet->setTitle('Muat Kendaraan');
         $writer = PHPExcel_IOFactory::createWriter($xls, 'Excel5');
-        ob_end_clean();
+        if (ob_get_level() > 0) ob_end_clean();
         header('Content-Type: application/vnd.ms-excel');
         header('Content-Disposition: attachment;filename="Muat_Kendaraan_' . date('Ymd_His') . '.xls"');
         header('Cache-Control: max-age=0');
