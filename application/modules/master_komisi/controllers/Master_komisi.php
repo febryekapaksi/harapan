@@ -379,4 +379,65 @@ class Master_komisi extends Admin_Controller
 
         echo json_encode($status);
     }
+
+    /**
+     * Hapus data perhitungan komisi (hard delete) sekaligus mencatat log
+     * aktivitas ke tabel log_aktifitas, supaya histori penghapusan tetap
+     * bisa ditelusuri walaupun data aslinya sudah tidak ada lagi.
+     */
+    public function delete_komisi()
+    {
+        $this->auth->restrict($this->deletePermission);
+
+        $id = $this->input->post('id');
+
+        if (!$id) {
+            echo json_encode([
+                'pesan' => 'ID tidak valid.',
+                'status' => 0
+            ]);
+            return;
+        }
+
+        // Ambil data sebelum dihapus, agar log tetap punya informasi
+        // walaupun barisnya sudah tidak ada di tabel komisi_realisasi.
+        $komisi = $this->db->get_where('komisi_realisasi', ['id' => $id])->row();
+
+        $this->db->trans_begin();
+
+        $this->db->where('id', $id)->delete('komisi_realisasi');
+
+        if ($this->db->trans_status() === FALSE) {
+            $this->db->trans_rollback();
+            $status = [
+                'pesan' => 'Failed process data!',
+                'status' => 0
+            ];
+
+            $keterangan = 'GAGAL, Delete data Perhitungan Komisi ID ' . $id;
+            $log_status = 0;
+        } else {
+            $this->db->trans_commit();
+            $status = [
+                'pesan' => 'Success process data!',
+                'status' => 1
+            ];
+
+            $keterangan = $komisi
+                ? 'SUKSES, Delete data Perhitungan Komisi ' . $komisi->nm_karyawan . ' - ' . $komisi->bulan . ' (ID ' . $id . ')'
+                : 'SUKSES, Delete data Perhitungan Komisi ID ' . $id;
+            $log_status = 1;
+        }
+
+        simpan_aktifitas(
+            $this->deletePermission,
+            $id,
+            $keterangan,
+            1,
+            $this->db->last_query(),
+            $log_status
+        );
+
+        echo json_encode($status);
+    }
 }
