@@ -36,10 +36,9 @@
                         <th class="text-center" style="vertical-align:middle; min-width: 130px;">Target Omset (Rp)</th>
                         <th class="text-center" style="vertical-align:middle; min-width: 130px;">Realisasi Omset (Rp)</th>
                         <th class="text-center" style="vertical-align:middle;">% Ach Omset</th>
-                        <th class="text-center" style="vertical-align:middle; min-width: 120px;">Target Margin (Rp)</th>
                         <th class="text-center" style="vertical-align:middle; min-width: 130px;">Realisasi Margin (Rp)</th>
                         <th class="text-center" style="vertical-align:middle;">% Ach Margin</th>
-                        <th class="text-center" style="vertical-align:middle; min-width: 110px;">Margin % thd Omset (Realisasi)</th>
+                        <th class="text-center" style="vertical-align:middle; min-width: 110px;">Actual Margin (%)</th>
                         <th class="text-center" style="vertical-align:middle;">Target Margin %</th>
                         <th class="text-center" style="vertical-align:middle; min-width: 130px;">Status Achievement</th>
                     </tr>
@@ -53,7 +52,6 @@
                             <td class="text-right"><?= number_format($row['target_omset']) ?></td>
                             <td class="text-right"><?= number_format($row['realisasi_omset']) ?></td>
                             <td class="text-center"><?= number_format($row['pct_ach_omset'] * 100, 1) ?>%</td>
-                            <td class="text-right"><?= number_format($row['target_margin_rp']) ?></td>
                             <td class="text-right"><?= number_format($row['realisasi_margin_rp']) ?></td>
                             <td class="text-center"><?= number_format($row['pct_ach_margin'] * 100, 1) ?>%</td>
                             <td class="text-center"><?= number_format($row['margin_pct_thd_omset'] * 100, 1) ?>%</td>
@@ -70,7 +68,7 @@
                     <?php endforeach; ?>
                     <?php if (empty($rows)): ?>
                         <tr>
-                            <td colspan="11" class="text-center">Tidak ada data sales.</td>
+                            <td colspan="10" class="text-center">Tidak ada data sales.</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -80,7 +78,6 @@
                         <th class="text-right"><?= number_format($totals['target_omset']) ?></th>
                         <th class="text-right"><?= number_format($totals['realisasi_omset']) ?></th>
                         <th class="text-center"><?= number_format($totals['pct_ach_omset'] * 100, 1) ?>%</th>
-                        <th class="text-right"><?= number_format($totals['target_margin_rp']) ?></th>
                         <th class="text-right"><?= number_format($totals['realisasi_margin_rp']) ?></th>
                         <th class="text-center"><?= number_format($totals['pct_ach_margin'] * 100, 1) ?>%</th>
                         <th class="text-center"><?= number_format($totals['margin_pct_thd_omset'] * 100, 1) ?>%</th>
@@ -97,9 +94,9 @@
                 <li>Target Omset dan Realisasi Omset diambil dari Report Penjualan per Sales.</li>
                 <li>% Ach Omset = Realisasi Omset / Target Omset.</li>
                 <li>Target Margin % diambil dari Master Target Margin per Sales.</li>
-                <li>Target Margin (Rp) = Target Omset x Target Margin %.</li>
                 <li>Realisasi Margin (Rp) = Realisasi Omset (Revenue) - HPP (Harga Pokok Penjualan/COGS) aktual per baris invoice.</li>
-                <li>% Ach Margin = Margin % thd Omset (Realisasi) / Target Margin %.</li>
+                <li>Actual Margin (%) = Realisasi Margin (Rp) / Realisasi Omset (Rp).</li>
+                <li>% Ach Margin = Actual Margin (%) / Target Margin %.</li>
                 <li>Status: &gt;=100% Tercapai, 90-99,9% Mendekati Target, &lt;90% Belum Tercapai.</li>
             </ol>
         </div>
