@@ -59,7 +59,7 @@ class Master_komisi_model extends BF_Model
             $nomor = $urut + $requestData['start'];
 
             $action = "<a href='javascript:void(0)' data-id='{$row['id']}' class='btn btn-sm btn-primary edit'><i class='fa fa-edit'></i></a> ";
-            $action .= "<a class='btn btn-danger btn-sm delete' data-id='{$row['id']} href='javascript:void(0)' title='Delete'><i class='fa fa-trash'></i></a>";
+            $action .= "<a class='btn btn-danger btn-sm delete' data-id='{$row['id']}' href='javascript:void(0)' title='Delete'><i class='fa fa-trash'></i></a>";
 
             $nestedData = [];
             $nestedData[] = "<div align='left'>{$nomor}</div>";
