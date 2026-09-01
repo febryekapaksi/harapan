@@ -90,16 +90,15 @@
                                 $ttl_qty_oke = $get_qty_ng_oke['ttl_qty_oke'];
 
                                 // Cek total qty yang sudah pernah di-incoming berdasarkan id_po_detail
-                                // agar cocok dengan cara simpan di process_in_product (per id_po_detail)
+                                // agar cocok dengan cara simpan di process_in_product (per id_po_detail).
+                                // PENTING: basis sisa qty HARUS dari tr_incoming_check_detail (semua incoming
+                                // yang sudah tercatat, apapun status QC-nya), BUKAN dari hasil QC
+                                // (tr_checked_incoming_detail). QC bisa baru menyelesaikan sebagian incoming,
+                                // sehingga memakai basis QC akan membuat sisa yang ditampilkan lebih besar
+                                // dari kenyataan dan berpotensi menyebabkan input incoming dobel/over-qty.
                                 $get_qty_incoming_check = $this->db->select('IF(SUM(qty_order) IS NULL, 0, SUM(qty_order)) AS ttl_qty_incoming_check')->get_where('tr_incoming_check_detail', ['id_po_detail' => $valx['id']])->row_array();
 
                                 $ttl_qty_incoming_check = $get_qty_incoming_check['ttl_qty_incoming_check'];
-                                $check_tr_incoming_check = $this->db->select('IF(SUM(a.qty_oke + a.qty_ng) IS NULL, 0, SUM(a.qty_oke + a.qty_ng)) AS ttl_checked_incoming')->get_where('tr_checked_incoming_detail a', ['no_ipp' => $valx['no_po'], 'id_material' => $valx['idmaterial']])->row_array();
-                                if (!empty($check_tr_incoming_check)) {
-                                    if ($check_tr_incoming_check['ttl_checked_incoming'] > 0) {
-                                        $ttl_qty_incoming_check = $check_tr_incoming_check['ttl_checked_incoming'];
-                                    }
-                                }
 
                                 if (($valx['qty'] - $ttl_qty_incoming_check) > 0) {
                                     echo "<tr>";

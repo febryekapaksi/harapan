@@ -359,42 +359,71 @@ class Incoming_product_model extends BF_Model
         $valid = 1;
         foreach ($addInMat as $val => $valx) {
             // Pastikan qty_in dikonversi ke float agar perbandingan akurat
-            $qtyIN      = floatval(str_replace(',', '', $valx['qty_in']));
-            $qty_sisa   = floatval($valx['qty_sisa']);
+            $qtyIN = floatval(str_replace(',', '', $valx['qty_in']));
 
             // Lewati baris yang tidak diisi (qty 0 atau kosong)
             if ($qtyIN <= 0) {
                 continue;
             }
 
-            if ($qtyIN > $qty_sisa) {
+            $id_po_detail = isset($valx['id']) ? (int) $valx['id'] : 0;
+            if ($id_po_detail <= 0) {
+                $valid = 3;
+                break;
+            }
+
+            // Kunci baris dt_trans_po (FOR UPDATE) supaya tidak terjadi race condition
+            // ketika dua user menyimpan incoming untuk detail PO yang sama secara bersamaan.
+            $get_trans_po = $this->db->query(
+                'SELECT * FROM dt_trans_po WHERE id = ? FOR UPDATE',
+                [$id_po_detail]
+            )->row();
+
+            if (empty($get_trans_po)) {
+                $valid = 3;
+                break;
+            }
+
+            // Hitung ulang sisa qty LANGSUNG dari database (bukan dari nilai qty_sisa
+            // yang dikirim form/browser), berdasarkan total qty yang sudah tercatat di
+            // tr_incoming_check_detail untuk id_po_detail ini. Ini mencegah input
+            // dobel/over-qty walaupun nilai di form salah, sudah usang, atau dimanipulasi,
+            // dan tetap valid meski qty tersebut sudah/belum melalui proses QC.
+            $get_ttl_sudah_incoming = $this->db
+                ->select('IFNULL(SUM(qty_order), 0) AS ttl', false)
+                ->get_where('tr_incoming_check_detail', ['id_po_detail' => $id_po_detail])
+                ->row();
+            $ttl_sudah_incoming = (float) ($get_ttl_sudah_incoming->ttl ?? 0);
+
+            $qty_po_aktual   = (float) $get_trans_po->qty;
+            $qty_sisa_aktual = $qty_po_aktual - $ttl_sudah_incoming;
+
+            if ($qtyIN > $qty_sisa_aktual) {
                 $valid = 2;
                 break; // langsung hentikan loop agar tidak ada data yang tersimpan sebagian
-            } else {
-                $get_trans_po = $this->db->get_where('dt_trans_po', ['id' => $valx['id']])->row();
-
-                // Simpan per no_po masing-masing item, bukan gabungan semua no_po
-                $this->db->insert('tr_incoming_check_detail', [
-                    'kode_trans'        => $kodecollect,
-                    'no_ipp'            => $get_trans_po->no_po,
-                    'id_po_detail'      => $valx['id'],
-                    'id_material_req'   => $get_trans_po->idmaterial,
-                    'id_material'       => $get_trans_po->idmaterial,
-                    'nm_material'       => $get_trans_po->namamaterial,
-                    'harga'             => $get_trans_po->hargasatuan,
-                    'qty_order'         => $qtyIN,
-                    'keterangan'        => $valx['keterangan']
-                ]);
-
-                $this->db->update('dt_trans_po', [
-                    'qty_in' => ($get_trans_po->qty_in + $qtyIN),
-                    'keterangan' => $valx['keterangan']
-                ], [
-                    'id' => $valx['id']
-                ]);
-
-                $jumlah_mat += $qtyIN;
             }
+
+            // Simpan per no_po masing-masing item, bukan gabungan semua no_po
+            $this->db->insert('tr_incoming_check_detail', [
+                'kode_trans'        => $kodecollect,
+                'no_ipp'            => $get_trans_po->no_po,
+                'id_po_detail'      => $id_po_detail,
+                'id_material_req'   => $get_trans_po->idmaterial,
+                'id_material'       => $get_trans_po->idmaterial,
+                'nm_material'       => $get_trans_po->namamaterial,
+                'harga'             => $get_trans_po->hargasatuan,
+                'qty_order'         => $qtyIN,
+                'keterangan'        => $valx['keterangan']
+            ]);
+
+            $this->db->update('dt_trans_po', [
+                'qty_in' => ($get_trans_po->qty_in + $qtyIN),
+                'keterangan' => $valx['keterangan']
+            ], [
+                'id' => $id_po_detail
+            ]);
+
+            $jumlah_mat += $qtyIN;
         }
 
         $config['upload_path'] = './uploads/incoming_material'; //path folder
@@ -458,8 +487,10 @@ class Incoming_product_model extends BF_Model
             $this->db->trans_rollback();
 
             $msg = 'Save process failed. Please try again later ...';
-            if ($valid == '2') {
-                $msg = 'Maaf, qty pengiriman melebihi qty yang belum dikirim !';
+            if ($valid == 2) {
+                $msg = 'Maaf, qty pengiriman melebihi sisa qty PO yang belum dikirim. Silakan refresh dan cek kembali sisa qty terbaru.';
+            } elseif ($valid == 3) {
+                $msg = 'Data detail material tidak valid. Silakan refresh halaman dan coba lagi.';
             }
             $Arr_Data    = array(
                 'pesan'        => $msg,
