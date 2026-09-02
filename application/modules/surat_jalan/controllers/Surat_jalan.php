@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 defined('BASEPATH') or exit('No direct script access allowed');
 
 class Surat_jalan extends Admin_Controller
@@ -480,7 +480,7 @@ class Surat_jalan extends Admin_Controller
             ->from('surat_jalan sj')
             ->join('loading_delivery ld', 'sj.no_loading = ld.no_loading', 'left')
             ->join('sales_order so', 'sj.no_so = so.no_so', 'left')
-            ->join('penawaran p', 'so.id_penawaran = p.id_penawaran')
+            ->join('penawaran p', 'so.id_penawaran = p.id_penawaran', 'left')
             ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
             ->where('sj.id', $id)
             ->get()
@@ -549,7 +549,7 @@ class Surat_jalan extends Admin_Controller
             ->from('surat_jalan sj')
             ->join('loading_delivery ld', 'sj.no_loading = ld.no_loading', 'left')
             ->join('sales_order so', 'sj.no_so = so.no_so', 'left')
-            ->join('penawaran p', 'so.id_penawaran = p.id_penawaran')
+            ->join('penawaran p', 'so.id_penawaran = p.id_penawaran', 'left')
             ->join('master_customers c', 'so.id_customer = c.id_customer', 'left')
             ->where('sj.id', $id)
             ->get()
