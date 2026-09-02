@@ -44,30 +44,6 @@
             </div>
         </div>
 
-        <!-- Ringkasan -->
-        <div class="row" id="summary-area" style="display:none;">
-            <div class="col-md-4 col-md-offset-4">
-            </div>
-            <div class="col-md-4">
-                <div class="info-box bg-green">
-                    <span class="info-box-icon"><i class="fa fa-arrow-down"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Total Debet</span>
-                        <span class="info-box-number" id="sum-debet">0</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="info-box bg-yellow">
-                    <span class="info-box-icon"><i class="fa fa-arrow-up"></i></span>
-                    <div class="info-box-content">
-                        <span class="info-box-text">Total Kredit</span>
-                        <span class="info-box-number" id="sum-kredit">0</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
         <!-- Tabel Hasil -->
         <div class="table-responsive" style="margin-top:10px;">
             <table class="table table-bordered table-striped" id="tbl-kartu" style="width:100%;">
@@ -76,20 +52,23 @@
                         <th width="30">No</th>
                         <th>Tanggal</th>
                         <th>Nomor</th>
+                        <th>No Perkiraan</th>
                         <th>No Reff</th>
                         <th>Jenis Trans</th>
                         <th id="th-nama">Supplier</th>
                         <th>Keterangan</th>
                         <th>Debet</th>
                         <th>Kredit</th>
+                        <th width="60">Action</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
                 <tfoot>
                     <tr class="active">
-                        <th colspan="7" class="text-right">Total</th>
+                        <th colspan="8" class="text-right">Total</th>
                         <th class="text-right" id="tfoot-debet"></th>
                         <th class="text-right" id="tfoot-kredit"></th>
+                        <th></th>
                     </tr>
                 </tfoot>
             </table>
@@ -170,7 +149,8 @@ $(document).ready(function () {
             aLengthMenu: [[10, 25, 50, 100], [10, 25, 50, 100]],
             columnDefs: [
                 { targets: 0, orderable: false, width: '30px' },
-                { targets: [7, 8], className: 'text-right' }
+                { targets: [8, 9], className: 'text-right' },
+                { targets: 10, orderable: false, searchable: false, className: 'text-center', width: '60px' }
             ],
             ajax: {
                 url: base_url + active_controller + '/data',
@@ -182,11 +162,8 @@ $(document).ready(function () {
                     d.tgl_akhir = cf.tgl_akhir;
                 },
                 dataSrc: function (json) {
-                    $('#sum-debet').text(formatNumber(json.total_debet));
-                    $('#sum-kredit').text(formatNumber(json.total_kredit));
                     $('#tfoot-debet').text(formatNumber(json.total_debet));
                     $('#tfoot-kredit').text(formatNumber(json.total_kredit));
-                    $('#summary-area').show();
                     return json.data;
                 },
                 error: function () {
@@ -214,6 +191,43 @@ $(document).ready(function () {
 
     $('#btn-excel').on('click', function () {
         window.location.href = base_url + active_controller + '/export_excel?' + buildQuery();
+    });
+
+    // Hapus baris (dipindahkan ke tabel _deleted)
+    $('#tbl-kartu').on('click', '.btn-hapus', function () {
+        var id    = $(this).data('id');
+        var jenis = $('#jenis').val();
+
+        swal({
+            title: 'Hapus data ini?',
+            text: 'Data akan dipindahkan ke tabel arsip (' +
+                  (jenis === 'piutang' ? 'tr_kartu_piutang_deleted' : 'tr_kartu_hutang_deleted') + ').',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dd4b39',
+            confirmButtonText: 'Ya, hapus',
+            cancelButtonText: 'Batal'
+        }, function (isConfirm) {
+            if (!isConfirm) return;
+
+            $.ajax({
+                url: base_url + active_controller + '/delete',
+                type: 'POST',
+                dataType: 'json',
+                data: { id: id, jenis: jenis },
+                success: function (res) {
+                    if (res.status) {
+                        swal({ title: 'Berhasil', text: res.message, type: 'success' });
+                        if (dtKartu) dtKartu.ajax.reload(null, false);
+                    } else {
+                        swal({ title: 'Gagal', text: res.message, type: 'error' });
+                    }
+                },
+                error: function () {
+                    swal({ title: 'Error', text: 'Koneksi gagal, coba lagi.', type: 'error' });
+                }
+            });
+        });
     });
 });
 </script>
